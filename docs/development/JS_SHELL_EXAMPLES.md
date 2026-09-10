@@ -10,10 +10,13 @@ Referenzen: ECMA-262-Sprachsemantik und die bereits implementierten
 [Datei-Capability-Vertraege](../architecture/OS_JAVASCRIPT_FILE_CAPABILITY_CONTRACT.md).
 Kein Node.js-/Browser-API-Kompatibilitaetsanspruch.
 
-Sechs kurze, kommentierte und selbstpruefende Skripte unter `/htdocs`, mit
+Sieben kurze, kommentierte und selbstpruefende Skripte unter `/htdocs`, mit
 8.3-kompatiblen Namen identisch im Repository und beiden Referenzimages:
 Argumente/Konsole, Berechnungen/Arrays, JSON/Klassen, aufgefangene Fehler,
-fehlende Ambient-Rechte und explizites Datei-Lesen. Ein fehlgeschlagener
+fehlende Ambient-Rechte, explizites Datei-Lesen und ASCII-Mandelbrot.
+Der ausdrueckliche Zusatzauftrag erweitert die Datenliste um `mandel.js`,
+ohne die bereits eingefrorenen fuenf Befehle oder Fristen zu lockern.
+Ein fehlgeschlagener
 Selbsttest wirft eine normale JS-Ausnahme; kein nativer Fault/Hang-Test.
 Alle Schleifen/Lesemengen bleiben klein und fest begrenzt. Dateibeispiel
 schliesst sein delegiertes Objekt explizit auch bei Ausnahmen.
@@ -29,9 +32,11 @@ ein headless QEMU-Gast. Der Imagevergleich bindet die archivierten R3.42-
 Images an ihre SHA256-Werte und verlangt bytegleiche Kernel/alle PRGs sowie
 exakte neue Skriptbytes. Kein erneuter Benchmark fuer unveraenderten Code.
 Der bestehende JS-Gastpruefer erhaelt nur einen opt-in Beispielsatz; seine
-bisherigen Assertions und 180s/1024MiB bleiben erhalten. Sechs Beispiele
+bisherigen Assertions und 180s/1024MiB bleiben erhalten. Sieben Beispiele
 zweimal aus der normalen Shell, exakte geordnete Resultate und Shell-Fortschritt;
 Host-Negativtests lehnen fehlende, doppelte, falsche und fatale Belege ab.
+Mandelbrot: genau 24 Zeilen zu 64 ASCII-Pixeln, hoechstens 48 Iterationen je
+Pixel, zwei vollstaendige bytegleiche Bilder gegen eine unabhaengige Referenz.
 Logs unter `build/codex-agent/r343-js-examples/`; Fehlversuche erhalten.
 Nach bestandenen Gates Diff/Scope pruefen, Queue umschalten und lokal committen.
 
@@ -47,6 +52,7 @@ js /htdocs/jsjson.js
 js /htdocs/jserror.js
 js /htdocs/jssafe.js
 js --read /htdocs/hello.js /htdocs/jsread.js
+js /htdocs/mandel.js
 ```
 
 Jedes Skript gibt am Ende eine eigene `JS_EXAMPLE_..._OK`-Zeile aus, wenn
@@ -69,3 +75,19 @@ Bestehende Beispiele `hello.js` und `readfile.js` bleiben ebenfalls vorhanden.
 Ausgaben werden gepuffert und erst nach abgeschlossener Ausfuehrung validiert
 ausgegeben. Timer, Netzwerk, Prozesse, DOM und Dateischreiben werden in diesen
 Shell-Beispielen weder vorausgesetzt noch freigeschaltet.
+
+`mandel.js` berechnet die Mandelbrot-Menge als 64x24-ASCII-Bild. Die konstanten
+Breite/Hoehe/Iterationsgrenze halten Laufzeit und Ausgabe klein. Es benoetigt
+keine Dateifreigabe, GUI, Timer oder Farben.
+
+## Zusatzauftrag: einfache Farben (noch offen)
+
+Farbausgabe ist eine eigene Terminal-Ausgabegrenze, kein weiterer Testtext.
+Der alte VGA-Pfad kennt einzelne ANSI-SGR-Farben, aber der Framebufferpfad
+und ein einfaches Shell-/JS-Format sind damit nicht abgedeckt. Der JS-Runner
+ersetzt ESC bisher bewusst durch `?`, um Terminal-Steuerinjektion zu verhindern.
+Das Folgepaket muss einen kleinen standardbezogenen, validierten Farbteilumfang
+mit einfacher Benutzung, Reset/Cleanup und echten VGA-/Framebuffer-Nachweisen
+definieren. Kein ungefiltertes Durchlassen von Escape-Sequenzen und kein neuer
+komplexer Parser in Ring 0. Dieser Auftrag bleibt vor der JS-Schreibdelegation
+vorgemerkt; in R3.43 werden unveraenderte Programme und Schutzgrenzen verlangt.

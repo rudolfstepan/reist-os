@@ -1,7 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
 active_id = "R3.43-js-shell-examples"
-next_user_request = "2026-09-10: User asks for several JS test files executable from the shell. R3.43 packages six bounded examples using only the accepted runner and explicit read grants. No JS write delegation or production runtime change. Preserve accepted R3.42 references and R341-H1/H2; deferred R3.6b retains all original gates. Interactive main agent only, no nested agent, visible VM or push."
+next_user_request = "2026-09-10: User asks for JS shell examples, then explicitly adds an ASCII Mandelbrot demo and easy shell colors. R3.43 now packages seven bounded examples; only htdocs/mandel.js is added to the frozen data scope. Terminal colors require a separate output-boundary package: current JS sanitizes ESC and VGA/framebuffer differ. No unsafe ESC passthrough, JS write delegation or production runtime change here. Preserve accepted R3.42 references/R341-H1/H2 and R3.6b deferral. Main agent only, no visible VM/agent/push."
 
 [policy]
 one_package_per_run = true
@@ -17,13 +17,13 @@ status = "active"
 phase = "post-s0"
 risk = "low"
 title = "Packaged self-checking JavaScript shell examples"
-scope = "Read docs/development/JS_SHELL_EXAMPLES.md fully. Six bounded examples, usage, both image layouts and real shell execution on accepted f808b558. Data/test integration only; no runtime or authority changes."
-allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/JS_SHELL_EXAMPLES.md", "htdocs/jsargs.js", "htdocs/jsmath.js", "htdocs/jsjson.js", "htdocs/jserror.js", "htdocs/jssafe.js", "htdocs/jsread.js", "scripts/build-windows.ps1", "Makefile", "test/test_js_examples.py", "scripts/run_qemu_js_runner.py", "scripts/verify_js_examples_artifacts.py"]
+scope = "Read docs/development/JS_SHELL_EXAMPLES.md fully. Seven bounded examples including user-added ASCII Mandelbrot, usage, both image layouts and real shell execution on accepted f808b558. Data/test integration only; no runtime or authority changes."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/JS_SHELL_EXAMPLES.md", "htdocs/jsargs.js", "htdocs/jsmath.js", "htdocs/jsjson.js", "htdocs/jserror.js", "htdocs/jssafe.js", "htdocs/jsread.js", "htdocs/mandel.js", "scripts/build-windows.ps1", "Makefile", "test/test_js_examples.py", "scripts/run_qemu_js_runner.py", "scripts/verify_js_examples_artifacts.py"]
 invariants = ["No kernel/engine/runner/broker/ABI/resource budget changes, no implicit file/network/process/admin authority. Examples use ECMA-262 and existing REIST profile1 APIs, not Node.js. Read grant explicitly selected by CLI; bounded reads and explicit finally-close.", "Existing guest validation and180s/1024MiB limits unchanged. New opt-in examples require exact ordered twice-repeated results and continued shell progress. Native fault dialogs/visible VMs/agents/push forbidden; retain failed evidence.", "Both reference kernels and every packaged PRG must be byte-identical to accepted R3.42 images. This protects existing code/performance, not a new throughput claim. No later writable host or deferred VMware work."]
 targeted_tests = ["python test/test_js_examples.py -v"]
 package_tests = [".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga", ".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga"]
 runtime_tests = ["python scripts/verify_js_examples_artifacts.py --evidence build/codex-agent/r343-js-examples/artifacts", "python scripts/run_qemu_js_runner.py --file-capabilities --examples --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r343-js-examples/guest.log"]
-acceptance = "All five frozen groups; host negatives for missing/duplicate/reordered/fatal results and image drift, exact source bytes in both images, existing runner/lifecycle/capability proof plus six examples twice through real Ring3 shell. Direct diff/scope review and local commit only after all pass."
+acceptance = "All five frozen groups; host negatives for missing/duplicate/reordered/fatal results, malformed Mandelbrot rows and image drift; exact source bytes in both images, existing runner/lifecycle/capability proof plus seven examples twice through real Ring3 shell. Direct diff/scope review and local commit only after all pass."
 stop_conditions = ["Unattributed changes", "Runtime source change required", "Failed gate without focused in-scope correction"]
 commit_message = "feat: add self-checking JavaScript shell examples"
 evidence = []
