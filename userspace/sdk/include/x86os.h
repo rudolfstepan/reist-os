@@ -652,9 +652,17 @@ typedef struct {
 #define X86OS_STORAGE_VFS_BULK_READ 32U
 #define X86OS_STORAGE_VFS_SYMLINK 33U
 #define X86OS_STORAGE_VFS_NAMESPACE 34U
+#define X86OS_STORAGE_VFS_OBJECT_MUTATE 35U
 #define X86OS_STORAGE_BULK_VERSION 1U
 #define X86OS_STORAGE_BULK_PUBLISH 1U
 #define X86OS_STORAGE_BULK_COLLECT 2U
+#define X86OS_STORAGE_DESCRIPTOR_V3_VERSION 3U
+#define X86OS_STORAGE_BULK_INPUT_VERSION 2U
+#define X86OS_STORAGE_BULK_INPUT_PUBLISH 3U
+#define X86OS_STORAGE_BULK_INPUT_TAKE 4U
+#define X86OS_STORAGE_BULK_RECEIPT_VERSION 3U
+#define X86OS_STORAGE_BULK_RECEIPT_COLLECT 5U
+#define X86OS_STORAGE_BULK_RECEIPT_ACK 6U
 #define X86OS_STORAGE_BULK_MAX_BYTES (128U * 1024U)
 #define X86OS_FAT12_RESULT_MIRROR_MISMATCH (1U << 0)
 #define X86OS_FAT12_RESULT_PRIMARY_INVALID (1U << 1)
@@ -717,6 +725,14 @@ typedef struct {
     uint32_t client_generation;
     uint32_t service_generation;
 } x86os_storage_descriptor_v2_t;
+typedef struct {
+    uint32_t version, struct_size;
+    x86os_storage_handle_t handle;
+    uint32_t operation, resource, offset, length;
+    int32_t client_pid;
+    uint32_t client_generation, service_generation;
+    uint64_t deadline_ms;
+} x86os_storage_descriptor_v3_t;
 typedef struct {
     uint32_t version;
     uint32_t struct_size;
@@ -2080,9 +2096,56 @@ static inline int x86os_process_restrict_script(void) {
     };
     return (int)x86os_syscall(X86OS_SYS_PROCESS_RESTRICT, (uintptr_t)&request, 0, 0);
 }
+/* Version3 is selected in the previously zero third syscall argument. Old
+ * claim wrappers remain output-only and preserve their exact v1/v2 layouts. */
+static inline int x86os_storage_claim_identity_v3(x86os_storage_descriptor_v3_t* request,
+                                                 uint8_t* frame) {
+    return (int)x86os_syscall(X86OS_SYS_STORAGE_CLAIM_IDENTITY, (uintptr_t)request,
+        (uintptr_t)frame, X86OS_STORAGE_DESCRIPTOR_V3_VERSION);
+}
+/* Mutations require explicit ACK only AFTER validating the returned frame.
+ * On malformed/lost response cancel; never automatically resubmit a mutation. */
+static inline int x86os_storage_mutation_collect(x86os_storage_handle_t handle,
+    int32_t* result, uint8_t* frame) {
+    if (!result || !frame) return -22;
+    *result = 0;
+    x86os_storage_bulk_control_t control = {X86OS_STORAGE_BULK_RECEIPT_VERSION, sizeof(control),
+        X86OS_STORAGE_BULK_RECEIPT_COLLECT, handle, 0, 0, 0, 0};
+    int status = (int)x86os_syscall(X86OS_SYS_STORAGE_BULK, (uintptr_t)&control, (uintptr_t)frame, 0);
+    if (!status) *result = control.result;
+    return status;
+}
+static inline int x86os_storage_mutation_ack(x86os_storage_handle_t handle) {
+    x86os_storage_bulk_control_t control = {X86OS_STORAGE_BULK_RECEIPT_VERSION, sizeof(control),
+        X86OS_STORAGE_BULK_RECEIPT_ACK, handle, 0, 0, 0, 0};
+    return (int)x86os_syscall(X86OS_SYS_STORAGE_BULK, (uintptr_t)&control, 0, 0);
+}
+static inline int x86os_storage_input_publish(x86os_storage_handle_t handle,
+                                               const void* data, uint32_t length) {
+    x86os_storage_bulk_control_t control = {X86OS_STORAGE_BULK_INPUT_VERSION, sizeof(control),
+        X86OS_STORAGE_BULK_INPUT_PUBLISH, handle, length, 0, 0, 0};
+    return (int)x86os_syscall(X86OS_SYS_STORAGE_BULK, (uintptr_t)&control, 0, (uintptr_t)data);
+}
+static inline int x86os_storage_input_take(x86os_storage_handle_t handle,
+    void* data, uint32_t capacity, uint32_t* transferred) {
+    if (!transferred) return -22;
+    *transferred = 0;
+    x86os_storage_bulk_control_t control = {X86OS_STORAGE_BULK_INPUT_VERSION, sizeof(control),
+        X86OS_STORAGE_BULK_INPUT_TAKE, handle, capacity, 0, 0, 0};
+    int result = (int)x86os_syscall(X86OS_SYS_STORAGE_BULK, (uintptr_t)&control, 0, (uintptr_t)data);
+    if (!result) *transferred = control.transferred;
+    return result;
+}
+
 /* Storage service only; no file-access rights are granted by this syscall. */
 static inline int x86os_file_object_guard(reist_file_object_guard_request_t* request) {
     return (int)x86os_syscall(X86OS_SYS_FILE_OBJECT_GUARD, (uintptr_t)request, 0, 0);
+}
+static inline int x86os_file_object_owned(reist_file_object_owned_request_t* request) {
+    return (int)x86os_syscall(X86OS_SYS_FILE_OBJECT_GUARD, (uintptr_t)request, 0, REIST_FILE_OBJECT_OWNED_VERSION);
+}
+static inline int x86os_file_repair(reist_file_repair_request_t* request) {
+    return (int)x86os_syscall(X86OS_SYS_FILE_OBJECT_GUARD, (uintptr_t)request, 0, REIST_FILE_REPAIR_VERSION);
 }
 static inline int x86os_storage_journal_io(const reist_storage_journal_request_t* request,
                                            void* data) {

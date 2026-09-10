@@ -1745,7 +1745,18 @@ static bool fat32_vfs_journal_write_range(const vfs_filesystem_t* fs,
     return !backup || backup == UINT16_MAX || backup < relative || backup - relative >= count;
 }
 
+static int fat32_vfs_journal_geometry(const vfs_filesystem_t* fs,
+    uint32_t* reserved, uint32_t* backup) {
+    if (!fs || !fs->fs_data || !reserved || !backup) return -REIST_EINVAL;
+    const fat32_vfs_context_t* context = fs->fs_data;
+    *reserved = context->boot.reserved_sector_count;
+    *backup = context->boot.backup_boot_sector;
+    return 0;
+}
+
 vfs_filesystem_ops_t fat32_vfs_ops = {
+    .unmount_revoked = fat32_vfs_unmount,
+    .journal_geometry = fat32_vfs_journal_geometry,
     .journal_handoff = fat32_vfs_journal_handoff,
     .journal_write_range = fat32_vfs_journal_write_range,
     .object_key = fat32_vfs_object_key,

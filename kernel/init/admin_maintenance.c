@@ -18,10 +18,12 @@
 #include "include/kernel/critical_object.h"
 #include "include/kernel/storage_maintenance.h"
 #include "include/kernel/storage_service.h"
+#include "include/kernel/storage_safety.h"
 #include "kernel/proc/process.h"
 #include "kernel/sched/scheduler.h"
 #include "kernel/time/pit.h"
 #include "lib/libc/string.h"
+#include "lib/libc/stdio.h"
 
 #define ADMIN_CONTROL_VERSION 1U
 #define ADMIN_RESOURCE_VERSION 1U
@@ -500,7 +502,48 @@ static int block_and_drain(uint32_t resource_mask, uint64_t deadline_ms) {
     return 0;
 }
 
+typedef struct {
+    int pid;
+    uint32_t process_generation;
+    uint32_t resource_mask;
+    uint32_t resource;
+    uint32_t transaction_generation;
+    uint64_t deadline_ms;
+} admin_flush_context_t;
+
+static int admin_flush_check(void* opaque, bool effect) {
+    const admin_flush_context_t* context = opaque;
+    admin_control_t control;
+    size_t length = 0U;
+    Process* process = scheduler_current_process();
+    if (!context || !process || process->pid != context->pid ||
+        process->generation != context->process_generation ||
+        !process_identity_alive(context->pid, context->process_generation) ||
+        critical_object_read(&protected_control, ADMIN_CONTROL_VERSION,
+            &control, sizeof(control), &length, control_valid) < 0 ||
+        length != sizeof(control) || !control.active ||
+        control.owner_pid != context->pid || control.owner_generation != context->process_generation ||
+        control.transaction_generation != context->transaction_generation ||
+        control.resource_mask != context->resource_mask ||
+        control.deadline_ms != context->deadline_ms || pit_monotonic_ms() >= control.deadline_ms ||
+        context->resource >= MAX_DRIVES ||
+        (control.resource_mask & (1U << context->resource)) == 0U ||
+        (control.resource_mask & control.root_resource_mask) != 0U ||
+        (control.command != ADMIN_STORAGE_UMOUNT && control.command != ADMIN_STORAGE_DEVICE_DOWN &&
+         control.command != ADMIN_STORAGE_DEVICE_UP) ||
+        !leases_valid(context->pid, context->process_generation, context->resource_mask) ||
+        !storage_service_admin_flush_allowed(context->resource) ||
+        (effect && !storage_admin_flush_current(context->resource, pit_monotonic_ms())))
+        return ADMIN_EACCES;
+    return 0;
+}
+
 static int flush_resources(uint32_t resource_mask) {
+    admin_control_t control;
+    size_t length = 0U;
+    if (critical_object_read(&protected_control, ADMIN_CONTROL_VERSION,
+            &control, sizeof(control), &length, control_valid) < 0 ||
+        length != sizeof(control) || control.resource_mask != resource_mask) return ADMIN_EACCES;
     for (uint32_t resource = 0U; resource < (uint32_t)drive_count;
          ++resource) {
         if ((resource_mask & (1U << resource)) == 0U) continue;
@@ -509,7 +552,24 @@ static int flush_resources(uint32_t resource_mask) {
             drive->parent_resource < (uint32_t)drive_count &&
             (resource_mask & (1U << drive->parent_resource)) != 0U)
             continue;
-        if (block_device_flush(drive) != BLOCK_DEVICE_OK) return ADMIN_EIO;
+        admin_flush_context_t context = {control.owner_pid, control.owner_generation,
+            resource_mask, resource, control.transaction_generation, control.deadline_ms};
+        ata_journal_admission_t admission = {admin_flush_check, &context, 0};
+        if (admin_flush_check(&context, false) != 0) {
+            printf("ADMIN_STORAGE FLUSH_ADMISSION resource=%u\n", resource);
+            return ADMIN_EACCES;
+        }
+        const drive_t* physical = drive;
+        if (drive->type == DRIVE_TYPE_PARTITION)
+            physical = &detected_drives[drive->parent_resource];
+        int result = physical->type == DRIVE_TYPE_ATA
+            ? ata_admin_flush_checked(resource, control.deadline_ms, &admission)
+            : block_device_flush(drive);
+        if (result != BLOCK_DEVICE_OK || admin_flush_check(&context, false) != 0) {
+            printf("ADMIN_STORAGE FLUSH_ERROR resource=%u status=%d admission=%d\n",
+                   resource, result, admission.error);
+            return ADMIN_EIO;
+        }
     }
     return 0;
 }
@@ -525,7 +585,11 @@ static int unmount_resources(uint32_t resource_mask) {
             vfs_mount_info_t info;
             if (vfs_get_mount_info(&detected_drives[resource], &info) !=
                     VFS_OK) continue;
-            if (vfs_unmount(info.path) != VFS_OK) return ADMIN_EIO;
+            int detached = vfs_unmount(info.path);
+            if (detached != VFS_OK) {
+                printf("ADMIN_STORAGE DETACH_ERROR resource=%u status=%d\n", resource, detached);
+                return ADMIN_EIO;
+            }
         }
     }
     return 0;
@@ -775,7 +839,7 @@ int admin_maintenance_execute(int pid, uint32_t process_generation,
     if (drain_ms > ADMIN_MAINTENANCE_DRAIN_MAX_MS) return ADMIN_EINVAL;
     uint64_t deadline_ms = deadline_after(now_ms, drain_ms);
     int status = claim_transaction(pid, process_generation, request,
-                                   resource_mask, deadline_ms);
+        resource_mask, deadline_after(now_ms, STORAGE_MAINTENANCE_LEASE_MS));
     if (status != 0) return status;
     status = acquire_leases(pid, process_generation, resource_mask, now_ms);
     bool executed = false;
@@ -806,7 +870,11 @@ int admin_maintenance_execute(int pid, uint32_t process_generation,
         block_vfs_mounts(resource_mask);
         (void)storage_service_admin_fail(resource_mask);
     }
-    if (status != 0) return status;
+    if (status != 0) {
+        printf("ADMIN_STORAGE REQUEST_ERROR command=%u resource=%u status=%d\n",
+               request->command, request->resource, status);
+        return status;
+    }
     return populate_result(request->resource, result);
 }
 

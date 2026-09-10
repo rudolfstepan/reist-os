@@ -153,7 +153,9 @@ class FileObjectGuardTests(unittest.TestCase):
         evidence = ROOT / "build/codex-agent/r338-file-lifetime" / ("service-" + uuid.uuid4().hex)
         evidence.mkdir(parents=True)
         source = (ROOT / "userspace/programs/storage_service.c").read_text(encoding="utf-8")
-        objects = source[source.index("#define VFS_OBJECT_CAPACITY"):source.index("static int vfs_symlink_reserved_zero(")]
+        # This legacy lifetime seam ends before the new, independently tested
+        # writable host. Keep every old object function, not its new neighbors.
+        objects = source[source.index("#define VFS_OBJECT_CAPACITY"):source.index("/* R3.42 writable object host.")]
         (evidence / "service_objects.inc").write_text(objects, encoding="utf-8")
         for optimization in ("-O0", "-O2"):
             executable = evidence / (optimization + ".exe")
@@ -175,12 +177,24 @@ class FileObjectGuardTests(unittest.TestCase):
             print(optimization, result.stdout.strip())
 
     def test_shared_vfs_admission_o0_o2(self):
+        self.vfs_native(False)
+
+    def test_retained_repair_admission_o0_o2(self):
+        self.vfs_native(True)
+
+    def vfs_native(self, repair):
         suppress_windows_test_dialogs()
         evidence = ROOT / "build/codex-agent/r338-file-lifetime" / ("vfs-" + uuid.uuid4().hex)
         evidence.mkdir(parents=True)
         syscall = function((ROOT / "kernel/syscall/syscall_table.c").read_text(encoding="utf-8"),
                            "static int syscall_file_object_guard(")
         (evidence / "syscall_guard.inc").write_text(syscall, encoding="utf-8")
+        (evidence / "syscall_owned.inc").write_text(function(
+            (ROOT / "kernel/syscall/syscall_table.c").read_text(encoding="utf-8"),
+            "static int syscall_file_object_owned("), encoding="utf-8")
+        (evidence / "syscall_repair.inc").write_text(function(
+            (ROOT / "kernel/syscall/syscall_table.c").read_text(encoding="utf-8"),
+            "static int syscall_file_repair("), encoding="utf-8")
         journal = function((ROOT / "kernel/syscall/syscall_table.c").read_text(encoding="utf-8"),
                            "static int syscall_storage_journal_io(")
         (evidence / "syscall_journal.inc").write_text(journal, encoding="utf-8")
@@ -190,18 +204,20 @@ class FileObjectGuardTests(unittest.TestCase):
         for optimization in ("-O0", "-O2"):
             executable = evidence / (optimization + ".exe")
             command = ["gcc", "-std=c11", optimization, "-Wall", "-Wextra", "-Werror",
-                "-fno-builtin", "-DKERNEL_HOST_TEST", "-DFILE_OBJECT_GUARD_VFS_TEST",
+                "-fno-builtin", "-DKERNEL_HOST_TEST", "-DREIST_HOST_TEST", "-DFILE_OBJECT_GUARD_VFS_TEST",
                 "-I", str(ROOT), "-I", str(evidence), str(ROOT / "test/file_object_guard_host.c"),
                 str(ROOT / "fs/vfs/vfs.c"), str(ROOT / "kernel/init/file_object_guard.c"),
+                str(ROOT / "kernel/init/storage_request_pool.c"),
                 str(ROOT / "kernel/init/critical_object.c"), "-o", str(executable)]
-            for index, current in enumerate((command, [str(executable)])):
+            runs = [[str(executable), str(variant)] for variant in range(11)] if repair else [[str(executable)]]
+            for index, current in enumerate([command, *runs]):
                 result = subprocess.run(current, cwd=ROOT, capture_output=True, text=True,
                     timeout=90 if index == 0 else 30,
                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-                (evidence / (optimization + ("-compile.log" if index == 0 else "-run.log"))).write_text(
+                (evidence / (optimization + ("-compile.log" if index == 0 else "-run-" + str(index) + ".log"))).write_text(
                     result.stdout + result.stderr, encoding="utf-8")
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("FILE_OBJECT_GUARD_VFS_OK", result.stdout)
+            self.assertIn("R342_REPAIR_VFS_OK" if repair else "FILE_OBJECT_GUARD_VFS_OK", result.stdout)
             print(optimization, result.stdout.strip())
 
     def test_metadata_state_machine_o0_o2(self):

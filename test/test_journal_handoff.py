@@ -30,7 +30,12 @@ class JournalHandoffTests(unittest.TestCase):
     def test_deadline_guest_injection_is_private_and_exactly_anchored(self):
         import re
         from run_qemu_journal_handoff import private_deadline_source
-        source = (ROOT / "drivers/block/ata.c").read_text(encoding="utf-8")
+        # This immutable R3.41 guest injector is tied to its accepted binary.
+        # R3.42 current PIO callbacks are exercised by the actual native test
+        # below, and protected against unrelated drift by the R3.42 checker.
+        source = subprocess.check_output(["git", "show",
+            "3e7c02add995b5c33aed045913382dc7ccce2d0f:drivers/block/ata.c"],
+            cwd=ROOT, timeout=15).decode("utf-8").replace("\r\n", "\n")
         private = private_deadline_source(source)
         restored = re.sub(r'#ifdef REIST_JOURNAL_DEADLINE_TEST\n.*?#endif\n#line [0-9]+ "drivers/block/ata.c"\n',
             '', private, flags=re.S)
@@ -40,9 +45,14 @@ class JournalHandoffTests(unittest.TestCase):
             with self.assertRaises(ValueError): private_deadline_source(bad)
 
     def test_ata_artifact_exemptions_reject_unrelated_drift(self):
-        from verify_journal_handoff_artifacts import ata_protected_source_equal
+        from verify_journal_handoff_artifacts import ata_protected_source_equal as legacy_equal
+        from verify_fat32_write_artifacts import BASELINE, ata_protected_source_equal
         old = subprocess.check_output(["git", "show", "7d87119c:drivers/block/ata.c"],
             cwd=ROOT, timeout=15).decode("utf-8")
+        accepted = subprocess.check_output(["git", "show", BASELINE+":drivers/block/ata.c"],
+            cwd=ROOT, timeout=15).decode("utf-8").replace("\r\n", "\n")
+        self.assertTrue(legacy_equal(old, accepted))
+        old = accepted
         new = (ROOT / "drivers/block/ata.c").read_text(encoding="utf-8")
         self.assertTrue(ata_protected_source_equal(old, new))
         for signature in ("static bool ata_transaction_begin(", "static bool ata_pio_wait_status(",
@@ -50,8 +60,48 @@ class JournalHandoffTests(unittest.TestCase):
             body = function(new, signature)
             self.assertFalse(ata_protected_source_equal(old, new.replace(body, body.replace("{", "{ return false;", 1))))
         for bad in (new+"\nint unrelated;\n", new.replace("ATA_PIO_MAX_SECTORS", "UNBOUNDED"),
-                    new+function(new, "static bool ata_read_sectors_pio_until(")):
+                    new+function(new, "static bool ata_read_sectors_pio_until("),
+                    new.replace("if (!ata_journal_check(admission, write)) return false;", ""),
+                    new.replace("deadline, NULL);", "deadline, borrowed);"),
+                    new.replace("if (!ata_journal_check(admission, false)) return -1;", ""),
+                    new.replace("ata_cache_entry_t *cached =", "ata_cache_entry_t *cached = invalid +")):
             self.assertFalse(ata_protected_source_equal(old, bad))
+        for before,after in (("block > 128", "block > 256"),
+                             ("mode & (mode-1)", "0"),
+                             ("index += amount;", "index += count;"),
+                             ("amount * (SECTOR_SIZE / 2U)", "count * (SECTOR_SIZE / 2U)")):
+            self.assertIn(before,new)
+            self.assertFalse(ata_protected_source_equal(old,new.replace(before,after)))
+        for bad in (new.replace("deadline_ms, admission, false);", "deadline_ms, admission, true);"),
+                    new.replace("deadline_ms, admission, true);", "deadline_ms, NULL, true);"),
+                    new + function(new, "int ata_repair_journal_io_checked(")):
+            self.assertFalse(ata_protected_source_equal(old, bad))
+
+    def test_primary_only_journal_source_scope_is_exact(self):
+        from verify_fat32_write_artifacts import BASELINE, journal_protected_source_equal
+        old = subprocess.check_output(["git", "show", BASELINE+":drivers/block/ata_journal.c"],
+            cwd=ROOT, timeout=15).decode("utf-8")
+        new = (ROOT / "drivers/block/ata_journal.c").read_text(encoding="utf-8")
+        self.assertTrue(journal_protected_source_equal(old, new))
+        self.assertTrue(journal_protected_source_equal(old, new.replace("\n", "\r\n")))
+        self.assertFalse(journal_protected_source_equal(old, old))
+        for needle, replacement in (
+            ("repair_headers = mirror_lba != 0U;", "repair_headers = false;"),
+            ("if (!primary_valid && !mirror_valid) return false;", ""),
+            ("memcmp(primary, mirror, sizeof(*primary)) != 0", "false"),
+            ("record->state == ATA_JOURNAL_ACTIVE || repair_headers", "repair_headers"),
+            ("if (record->version == 1U)", "if (false)"),
+            ("if (result) result = clear_journal(journal, false);", ""),
+            ("record->entry_count <= ATA_JOURNAL_MAX_ENTRIES", "true"),
+            ("expected_crc == journal_record_crc32(record)", "true"),
+            ("if (result && deferred) result = flush_deferred(journal);", ""),
+        ):
+            with self.subTest(needle=needle):
+                self.assertTrue(needle in new, "Missing negative-test anchor: " + needle)
+                self.assertFalse(journal_protected_source_equal(old, new.replace(needle, replacement)))
+        self.assertFalse(journal_protected_source_equal(old, new+"\nint unrelated;\n"))
+        self.assertFalse(journal_protected_source_equal(old,
+            new+function(new, "bool ata_undo_journal_attach(")))
 
     def test_actual_pio_deadlines_and_legacy_batches(self):
         suppress_windows_test_dialogs()
@@ -59,18 +109,19 @@ class JournalHandoffTests(unittest.TestCase):
         evidence.mkdir(parents=True)
         source = (ROOT / "drivers/block/ata.c").read_text(encoding="utf-8")
         functions = ("static bool ata_pio_wait_status(", "static bool ata_pio_select_read(",
-            "static int ata_pio_read_block_size(", "static bool ata_pio_range_valid(",
-            "static bool ata_pio_read_range_valid(", "static bool ata_program_pio_batch(",
-            "static bool ata_read_sectors_pio_until(", "static bool ata_read_sectors_pio_impl(",
-            "static bool ata_write_sectors_pio_deferred_until(", "static bool ata_write_sectors_pio_deferred_impl(",
-            "static uint8_t ata_flush_command_for_drive(", "static bool ata_flush_cache_until(",
+            "static int ata_pio_read_block_size_checked(", "static bool ata_pio_range_valid(",
+            "static bool ata_pio_read_range_valid(", "static bool ata_program_pio_batch_checked(",
+            "static bool ata_read_sectors_pio_mode_checked(", "static bool ata_read_sectors_pio_checked(", "static bool ata_read_sectors_pio_until(", "static bool ata_read_sectors_pio_impl(",
+            "static bool ata_write_sectors_pio_mode_checked(", "static bool ata_write_sectors_pio_deferred_checked(", "static bool ata_write_sectors_pio_deferred_until(", "static bool ata_write_sectors_pio_deferred_impl(",
+            "static uint8_t ata_flush_command_for_drive(", "static bool ata_flush_cache_checked(", "static bool ata_flush_cache_until(",
             "static bool ata_flush_cache_impl(")
         (evidence / "ata_pio.inc").write_text("\n".join(function(source, f) for f in functions), encoding="utf-8")
         for opt in ("-O0", "-O2"):
             exe = evidence / (opt + ".exe")
             command = ["gcc", "-std=c11", opt, "-Wall", "-Wextra", "-Werror", "-fno-builtin",
-                "-DJOURNAL_HANDOFF_PIO_TEST", "-I", str(ROOT), "-I", str(ROOT / "include"),
-                "-I", str(evidence), str(ROOT / "test/journal_handoff_host.c"), "-o", str(exe)]
+                "-DJOURNAL_HANDOFF_PIO_TEST", "-DREIST_HOST_TEST", "-I", str(ROOT), "-I", str(ROOT / "include"),
+                "-I", str(evidence), str(ROOT / "test/journal_handoff_host.c"),
+                str(ROOT / "kernel/init/storage_request_pool.c"), str(ROOT / "kernel/init/critical_object.c"), "-o", str(exe)]
             for index, current in enumerate((command, [str(exe)])):
                 result = subprocess.run(current, cwd=ROOT, capture_output=True, text=True,
                     timeout=90 if index == 0 else 30,
@@ -401,9 +452,10 @@ class JournalHandoffTests(unittest.TestCase):
         source = (ROOT / "drivers/block/ata.c").read_text(encoding="utf-8")
         (evidence / "ata_bounds.inc").write_text("\n".join(function(source, name) for name in
             ("static bool ata_pio_range_valid(", "static bool ata_pio_read_range_valid(")), encoding="utf-8")
-        (evidence / "ata_handoff.inc").write_text("\n".join(function(source, name) for name in
-            ("static bool ata_transaction_begin_until(", "int ata_external_journal_handoff(",
-             "int ata_external_journal_io(")), encoding="utf-8")
+        (evidence / "ata_handoff.inc").write_text("\n".join([function(source, name) for name in
+            ("static bool ata_transaction_begin_until(", "int ata_external_journal_handoff(")] +
+            [source[source.index("typedef struct {\n    ata_journal_admission_t* owner;"):
+                    source.index("bool ata_write_sector(", source.index("int ata_external_journal_io_checked("))]]), encoding="utf-8")
         for opt in ("-O0", "-O2"):
             exe = evidence / (opt + ".exe")
             command = ["gcc", "-std=c11", opt, "-Wall", "-Wextra", "-Werror", "-fno-builtin",

@@ -2,6 +2,22 @@
 
 Stand: 6. September 2026. Pakete R7.1n und R3.14 abgenommen.
 
+R3.42,10.September: genehmigter Kandidat, noch NICHT abgenommen. Der
+tokengebundene externe Schreibtransport darf WRITE MULTIPLE (C5h) bzw.
+WRITE MULTIPLE EXT (39h) verwenden. Eine frische IDENTIFY-/SET-MULTIPLE-
+Aushandlung gilt ausschliesslich unter der durchgehend gehaltenen ATA-Sperre
+fuer die Schreibbatches und deren vollstaendiges Ruecklesen. Es gibt keinen
+Moduscache ueber Syscalls, Reset, Medienwechsel oder Besitzer hinweg.
+Sector Count bleibt Sektoranzahl; der letzte DRQ-Block wird exakt gekuerzt.
+Alle urspruenglichen Sektor-/Zeitgrenzen, Befehls-/DRQ-Admission, Fehlerfences
+und vier Journalbarrieren bleiben. Kein Retry nach begonnenem Transfer.
+Nicht geeignete Faehigkeiten waehlen vor Datenbeginn READ/WRITE SECTORS;
+fehlgeschlagene IDENTIFY/SET-Befehle sind Fehler, kein stiller Fallback.
+Legacy-Aufrufe ohne private Admission bleiben unveraendert. Ergaenzende
+Referenz fuer48bit-Kommandos ist die unten verlinkte Seagate-Befehlsreferenz.
+Die bestehenden ATA-Hosts werden um reale O0/O2 Schreib-/Readback-/Fault-
+Pruefungen erweitert; alle R3.42-Gaeste bleiben erforderlich.
+
 R3.14, 6. September: Der ausdruecklich freigegebene Loader-Lesepfad
 trennt die reine PIO-Lesequote (128 Sektoren / 64 KiB) von der bisherigen
 20-Sektor-Schreib-/Journalquote. FAT32 nutzt nur den validierten Backendhinweis;

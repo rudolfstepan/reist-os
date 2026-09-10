@@ -4,6 +4,19 @@ Inventory on eb4dcc12, 8 September 2026. This distinguishes requirements from
 implemented authority. R3.36 provides read-only JS objects. **No writable JS
 object, general Ring-3 file write API or new disk format is accepted here.**
 
+Update10 September2026: R3.42's FAT32 backend has passed all37 frozen groups.
+The inventory below remains the historical prerequisite record. Existing
+regular FAT32 files on ATA-PIO now have explicitly authorized bounded writes,
+append, zero growth, incremental shrink and sync, including complete input
+transport and fenced requalification. The20-slot/four-barrier format and
+original budgets remain unchanged. No JS write grant, create, FAT12/EXT2
+write backend or general POSIX compatibility is implied. After Storage
+restart exhaustion, ordinary file objects stay closed; the independent
+existing root rescue read path was proved, not a hidden client fallback.
+See FAT32_WRITABLE_OBJECT_CONTRACT and the source/image/gate archive under
+build/codex-agent/r342-fat32-write/accepted-final/. The next explicit JS-host
+authority package must preserve the read-only default and old handles.
+
 ## Existing mechanisms and gaps
 
 | Boundary | Existing implementation | Required before writes |

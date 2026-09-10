@@ -444,7 +444,9 @@ bool ata_undo_journal_attach(ata_undo_journal_t *journal,
         repair_headers = true;
     } else {
         record = primary;
-        repair_headers = true;
+        /* A valid primary alone needs no header repair when the declared
+         * extent has no mirror. ACTIVE recovery and v1 upgrade still apply. */
+        repair_headers = mirror_lba != 0U;
     }
 
     if (record->version == 1U) {

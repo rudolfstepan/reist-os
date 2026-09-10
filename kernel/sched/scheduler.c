@@ -1189,6 +1189,7 @@ static size_t wait_queue_wake_all_task_locked(wait_queue_t *queue,
 void scheduler_wake_expired_waiters_locked(uint64_t now_ms) {
     KASSERT_IRQ_DISABLED();
     if (irq_enabled()) return;
+    uint32_t reschedule_mask = 0U;
     spinlock_acquire(&task_table_lock);
     for (size_t index = 0; index < MAX_TASKS; ++index) {
         task_t *task = &tasks[index];
@@ -1202,9 +1203,12 @@ void scheduler_wake_expired_waiters_locked(uint64_t now_ms) {
             task->blocked_owner_task = -1;
             task->blocked_owner_generation = 0U;
             task->status = TASK_READY;
+            reschedule_mask |= task->cpu_affinity_mask;
         }
     }
     spinlock_release(&task_table_lock);
+    if ((reschedule_mask & (1U << scheduler_cpu_local()->cpu_index)) != 0U)
+        preemption_pending = true;
 }
 
 size_t wait_queue_wake_all_locked(wait_queue_t *queue) {
@@ -1221,12 +1225,15 @@ size_t wait_queue_wake_all_locked(wait_queue_t *queue) {
 void scheduler_wake_expired_sleepers_locked(uint64_t now_ms) {
     KASSERT_IRQ_DISABLED();
     if (irq_enabled()) return;
+    uint32_t reschedule_mask = 0U;
     spinlock_acquire(&task_table_lock);
     while (sleep_waiters.head != NULL &&
            sleep_waiters.head->key <= now_ms) {
-        (void)wait_queue_wake_one_task_locked(&sleep_waiters, NULL);
+        (void)wait_queue_wake_one_task_locked(&sleep_waiters, &reschedule_mask);
     }
     spinlock_release(&task_table_lock);
+    if ((reschedule_mask & (1U << scheduler_cpu_local()->cpu_index)) != 0U)
+        preemption_pending = true;
 }
 
 int scheduler_sleep_ms(uint32_t milliseconds) {
@@ -1458,10 +1465,22 @@ bool scheduler_uses_pit_fallback(void) {
 }
 
 void scheduler_pit_interrupt_handler(void) {
-    if (!scheduler_uses_pit_fallback()) return;
-    if (++pit_scheduler_ticks < SCHEDULER_QUANTUM_MS) return;
-    pit_scheduler_ticks = 0;
-    scheduler_interrupt_handler();
+    uint32_t flags = irq_save();
+    bool periodic = false;
+    if (scheduler_uses_pit_fallback() &&
+        ++pit_scheduler_ticks >= SCHEDULER_QUANTUM_MS) {
+        pit_scheduler_ticks = 0;
+        periodic = true;
+    }
+    /* IRQ0's caller already acknowledged the PIC and left hard-IRQ context.
+     * A timed READY publication is a hint, never task ownership. Dispatch
+     * only an idle saved context early; running-task quanta stay unchanged.
+     * The normal dispatcher keeps all policy/claim/stack checks and retains
+     * preemption_pending when a pin or lock collision defers the attempt. */
+    bool wake_idle = current_task < 0 && kernel_context_saved &&
+        preempt_disable_count == 0U && preemption_pending;
+    if (periodic || wake_idle) scheduler_interrupt_handler();
+    irq_restore(flags);
 }
 
 void scheduler_interrupt_handler(void) {

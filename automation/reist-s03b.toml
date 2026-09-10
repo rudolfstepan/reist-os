@@ -1,7 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.42-fat32-writable-objects"
-next_user_request = "2026-09-09: R3.42 is the next single cohesive implementation package after accepted3e7c02ad. Read FAT32_WRITABLE_OBJECT_CONTRACT fully; implement actual writable FAT32 objects, complete input transport and fenced recovery/requalification together before JS write grants. Definition checkpoint first, then clean-main-worktree implementation with all27 frozen groups. Retain R3.41 accepted-final, corrected references, original stash and unresolved historical risks R341-H1/H2; no waiver for new failures. R3.6b remains queued/deferred with every requirement unchanged. Interactive main agent only, no routine handoff, visible VM, later-package implementation or push."
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
+next_user_request = "2026-09-10: R3.42 passed all37 frozen groups; reviewed source, matching reference images/kernels and gate evidence are archived under build/codex-agent/r342-fat32-write/accepted-final. Existing FAT32 writable objects are accepted, but no new JS write rights are granted. Explicit JS-host write delegation requires its own next package definition. The formal next-queued transition activates R3.6b only for bookkeeping; its user-approved browser-priority deferral and every original requirement remain binding. Preserve R3.41 evidence, original stash and historical risks R341-H1/H2; no waiver for new failures. Interactive main agent only; no nested agent, visible VM or push."
 
 [policy]
 one_package_per_run = true
@@ -13,7 +13,7 @@ push = false
 
 [[packages]]
 id = "R3.42-fat32-writable-objects"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Stable Ring-3 FAT32 write objects with bounded progress and fenced requalification"
@@ -31,6 +31,17 @@ allowed_files = [
   "scripts/generate_syscall_abi.py",
   "include/kernel/file_object_guard.h",
   "kernel/init/file_object_guard.c",
+  "kernel/init/critical_object.c",
+  "kernel/init/admin_maintenance.c",
+  "test/test_admin_maintenance.py",
+  "test/admin_maintenance_transition_host.c",
+  "scripts/run_qemu_admin_ata.py",
+  "test/test_reist_critical_object.py",
+  "test/test_critical_object_host.c",
+  "kernel/sched/scheduler.c",
+  "test/test_scheduler_time.py",
+  "test/test_scheduler_wakeup.py",
+  "test/test_scheduler_wakeup_host.c",
   "include/kernel/storage_request_pool.h",
   "kernel/init/storage_request_pool.c",
   "include/kernel/storage_service.h",
@@ -45,6 +56,10 @@ allowed_files = [
   "fs/fat32/fat32_vfs_adapter.c",
   "drivers/block/ata.c",
   "drivers/block/ata.h",
+  "drivers/block/ata_journal.c",
+  "docs/architecture/ATA_PIO_TRANSFER_CONTRACT.md",
+  "test/test_ata_multiple.py",
+  "test/test_ata_multiple_host.c",
   "userspace/storage/include/reist/vfs_file_client.h",
   "userspace/storage/lib/vfs_file_client.c",
   "userspace/storage/include/reist/vfs_shadow_fat32.h",
@@ -91,6 +106,12 @@ invariants = [
   "Clean visible main worktree after definition commit, one package, no agents/visible VMs/native crash dialogs/push. Preserve accepted R3.41 sources/artifacts and historical failed records; open-risk disposition never waives a new failure. No JS4 or deferred VMware implementation."
 ]
 targeted_tests = [
+  "python test/test_admin_maintenance.py -v",
+  "python test/test_scheduler_wakeup.py -v",
+  "python scripts/measure_cpp_baseline.py --host-test test/test_scheduler_time.py -v",
+  "python scripts/measure_cpp_baseline.py --host-test test/test_scheduler_slack.py -v",
+  "python test/test_smp.py -v",
+  "python test/test_reist_critical_object.py -v",
   "python test/test_fat32_writable_objects.py -v",
   "python scripts/measure_cpp_baseline.py --host-test test/test_reist_storage_request_pool.py -v",
   "python scripts/measure_cpp_baseline.py --host-test test/test_reist_vfs_file_client.py -v",
@@ -115,18 +136,29 @@ package_tests = [
   ".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga"
 ]
 runtime_tests = [
+  "python scripts/run_qemu_admin_ata.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r342-fat32-write/admin-ata",
   "python scripts/verify_fat32_write_artifacts.py --evidence build/codex-agent/r342-fat32-write/artifacts",
   "python scripts/run_qemu_fat32_writable_objects.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r342-fat32-write/guest",
-  "python scripts/run_qemu_fat32_recovery_admission.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r342-fat32-write/legacy-recovery",
+  "python scripts/run_qemu_fat32_recovery_admission.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r340-fat32-recovery/r342-compatibility",
   "python scripts/run_qemu_js_runner.py --file-capabilities --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r342-fat32-write/js-file.log",
   "python scripts/run_qemu_js_service.py --restricted-worker --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r342-fat32-write/js-service.log",
   "python scripts/run_qemu_browser_external.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r342-fat32-write/browser.log",
-  "python scripts/run_qemu_fat32_write_performance.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r342-fat32-write/performance"
+  "python scripts/run_qemu_fat32_write_performance.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --evidence build/codex-agent/r342-fat32-write/performance",
+  "python scripts/run_qemu_scheduler_slack.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r342-fat32-write/scheduler-apic.log",
+  "python scripts/run_qemu_scheduler_slack.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --no-apic --log build/codex-agent/r342-fat32-write/scheduler-pit.log",
+  "python scripts/run_qemu_smoke.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --smp 4 --expect-smp --log build/codex-agent/r342-fat32-write/scheduler-smp.log"
 ]
-acceptance = "All27 frozen groups. Actual O0/O2 transport/guard/planner/journal/requalification and every fault/barrier cut; large/fragmented/empty and mirrored-FAT variants, explicit durable progress and unchanged old rights. Both reference builds/matching kernels/all payloads; only STORAGE, enumerated file-client consumers and new FWRITEST may change. Real shell file-object dispatch, fault/hang/cancel/lost reply/reap/recovery/exhaustion with whole-media oracles, stale rejection and independent root/shell liveness in headless1024MiB QEMU. Existing FAT32 recovery, JS-file/restricted-worker/browser guests and paired baseline/candidate benchmark. No hardware power-loss/WCET/VMware throughput/JS write claim. Review/archive before done/next transition and local commit; deferred VMware priority remains binding."
+acceptance = "All37 frozen groups, including the explicitly approved integrity, scheduler and admin amendments below. Actual O0/O2 transport/guard/planner/journal/requalification and every fault/barrier cut; large/fragmented/empty and mirrored-FAT variants, explicit durable progress and unchanged old rights. Both reference builds/matching kernels/all payloads; only STORAGE, enumerated file-client consumers and new FWRITEST may change. Real shell file-object dispatch, fault/hang/cancel/lost reply/reap/recovery/exhaustion with whole-media oracles, stale rejection and independent root/shell liveness in headless1024MiB QEMU. Existing FAT32 recovery, JS-file/restricted-worker/browser guests and paired baseline/candidate benchmark. No hardware power-loss/WCET/VMware throughput/JS write claim. Review/archive before done/next transition and local commit; deferred VMware priority remains binding."
 stop_conditions = ["Unattributed or overlapping change", "Required source outside allowed_files", "Failed gate without focused correction", "Need for a new persistent orphan/journal format", "Unresolved allocation ownership, generation or fence-publication authority", "Need to weaken resource/restart limits or protected hotpaths"]
 commit_message = "feat: add bounded Ring-3 FAT32 writable file objects"
 definition_note = "Definition-only continuation on clean3e7c02ad. Inventory groups owned-pin admission, complete input, all data/size variants and uncertain-outcome requalification in one vertical slice. No runtime source change or gate pass is asserted by the definition commit. The17 existing file-client consumers are frozen in FAT32_WRITABLE_OBJECT_CONTRACT; all other prior payloads remain protected."
+scope_amendment = "User approved9September: include drivers/block/ata_journal.c solely to keep valid CLEAN-v2 primary-only attach read-only when no mirror is prescribed. Preserve ACTIVE/v1/inconsistent-header recovery, format,20 slots, four commit barriers and all27 frozen groups. No new authority, whole-file protection waiver or queue transition."
+consumer_scope_amendment = "User approved10September: add exactly WAVPLAY.PRG and SOUNDPLAYER.PRG as indirect file-client relinks through the unchanged AUDIO_LIBRARY_SOURCES archive. Total19 consumers (17 original direct plus2 indirect); audio/application sources, SDK archive recipe, vfs_path and all other prior payloads remain protected. No new source scope, rights, cache limits or change to any of27 frozen gates."
+integrity_scope_amendment = "User approved10September (ja): include exactly kernel/init/critical_object.c and test/test_reist_critical_object.py/test_critical_object_host.c for measured, mathematically equivalent CRC/SECDED optimization. Preserve all validation/publication/locking,64-byte payload,format,sequence,replica selection,errors and deadlines. Original27 gates unchanged plus one mandatory O0/O2 integrity equivalence/fault/performance group (28 total). Compare to pinned accepted3e7c02ad primitive; no changed critical_object.h, scheduler or other core source."
+idle_wakeup_scope_amendment = "User approved10September (ja mach das alles was noetig ist): include kernel/sched/scheduler.c, test/test_scheduler_time.py and new test/test_scheduler_wakeup.py/test_scheduler_wakeup_host.c solely for local idle dispatch after timed wakeups. Reuse preemption_pending and the existing post-EOI PIT hook. Preserve selection/accounting/claim/stack/lock/preemption code, all running-task quanta, CPU-local ABI, IRQ/APIC/PIT backends and time/resource budgets. Original28 groups retained plus four targeted and three existing APIC/PIT/SMP guest groups (35 total); actual128KiB guest must still pass. Scope guard permits only the three named wake/PIT-hook bodies with structural negatives, not a scheduler-wide exemption."
+gate_output_path_amendment = "Correct only the legacy FAT32 recovery evidence destination to a fresh child of its existing enforced r340-fat32-recovery root. Keep the inherited runner, cases, deadlines and assertions unchanged; no path-guard waiver. Prior failed evidence stays preserved."
+admin_flush_scope_amendment = "User approved10September: include admin_maintenance.c, its native/source tests and run_qemu_admin_ata.py to repair the demonstrated self-denied ATA maintenance flush. Use a separate flush-only kernel entry, mandatory exact live admin transaction/lease admission and unchanged supervisor/fences. Ordinary storage_write_begin and ATA IO stay closed during transitions; no temporary resource-available flag. Existing scoped ATA/service/safety files may add only this bounded mediation. Preserve the original maintenance lease deadline, root/parent protection, stale mounts, all35 gates; add admin O0/O2 and headless ATA down/up/umount/mount proofs (37 total). No AHCI/FDD driver change or new userspace ABI."
+pio_multiple_scope_amendment = "User approved10September: optimize the protected ATA-PIO multi-sector path and its existing test/test_ata_multiple.py/test_ata_multiple_host.c; update ATA_PIO_TRANSFER_CONTRACT. Permit only parameterized checked read/write helpers, WRITE MULTIPLE command selection and cold external transport negotiation. Fresh IDENTIFY once per mediated bulk write, reuse its mode only for write/readback under the same continuously held ATA mutex; never cache across syscall/reset/media/owner boundaries. Legacy NULL-admission reads/writes remain exact. Bounds, original deadlines, per-command and per-DRQ-block authorization, readback, four journal barriers, error fencing, all37 groups and ABI remain mandatory. Native O0/O2 production PIO tests cover partial blocks, LBA28/48, fallback before effects, every injected denial/expiry and no retry after errors. No DMA, AHCI/FDD, new driver or journal policy change."
 
 [[packages]]
 id = "R3.41a-network-arp-lifecycle"
@@ -2565,7 +2597,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

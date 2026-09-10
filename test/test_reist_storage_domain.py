@@ -1,5 +1,6 @@
 import pathlib
 import unittest
+from test_reist_probe_domain import function
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -31,9 +32,20 @@ class ReistStorageDomainTests(unittest.TestCase):
         write = source[source.index("bool ata_write_sector("):source.index("drive_t* ata_get_drive")]
         self.assertIn("storage_write_begin((uint32_t)resource", write)
         self.assertIn("storage_write_end(result)", write)
-        flush = source[source.index("// Flush cache"):source.index("bool ata_write_sector(")]
-        self.assertLess(flush.index("Cache flush timeout"),
-                        flush.index("return false;"))
+        flush = function(source, "static bool ata_flush_cache_checked(")
+        self.assertIn("if (!ata_journal_check(admission, true)) return false;", flush)
+        self.assertIn("ata_flush_command_for_drive(drive)", flush)
+        self.assertIn("return ata_wait_flush_complete(", flush)
+        wait = function(source, "static bool ata_wait_flush_complete(")
+        self.assertIn('now < started ? "clock" : "timeout"', wait)
+        self.assertIn('"poll-limit"', wait)
+        self.assertEqual(wait.count("return ata_flush_failure("), 5)
+        failure = source[source.rindex("static bool ata_flush_failure("):source.index("static uint8_t ata_flush_command_for_drive(")]
+        self.assertIn("ATA_FLUSH_FAILED", failure)
+        self.assertIn("return false;", failure)
+        self.assertNotIn("return true;", failure)
+        ordinary = function(source, "static bool ata_flush_cache_until(")
+        self.assertIn("ata_flush_cache_checked(base, is_master, drive, deadline, NULL)", ordinary)
         self.assertIn("ATA_ALT_STATUS", source[source.index("bool ata_writes_quiescent"):])
 
     def test_fdd_write_is_supervised_and_fence_is_read_back(self):

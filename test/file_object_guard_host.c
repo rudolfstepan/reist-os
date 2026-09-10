@@ -18,6 +18,7 @@ static Process process_list[MAX_PROGRAMS];
 static int current_task, num_tasks = 2, task_table_lock, assertions, reclaimed;
 static int preempt_depth, cleanup_calls, releases, terminal_calls, injected;
 static bool interrupts = true, injecting, test_interleaving;
+static bool preemption_pending;
 static wait_queue_t sleep_waiters, io_waiters;
 static struct { int cpu_index; } cpu_local;
 #define KASSERT(x) do { if (!(x)) ++assertions; } while (0)
@@ -98,6 +99,7 @@ static void reset(int state, int cpu) {
         .blocked_owner_task=-1};
     preempt_depth=cleanup_calls=releases=terminal_calls=reclaimed=assertions=injected=0;
     injecting=test_interleaving=false; interrupts=true; task_table_lock=0;
+    preemption_pending=false;
 }
 int main(void) {
     const int admitted[]={TASK_READY,TASK_WAITING,TASK_SLEEPING,TASK_PREPARED};
@@ -113,6 +115,7 @@ int main(void) {
         CHECK(process_terminate(8)==0);
         CHECK(!assertions && !reclaimed && !releases && cleanup_calls==7 && terminal_calls==1 && injected==1);
         CHECK(!preempt_depth && interrupts && task_table_lock==0);
+        CHECK(!preemption_pending); /* A terminating task cannot request idle dispatch. */
         CHECK(tasks[1].status==TASK_FINISHED && tasks[1].wait_node.queue==NULL);
         CHECK(process_list[1].has_exited && !process_list[1].is_running &&
               !process_list[1].terminating && process_list[1].exit_status==143);
@@ -353,6 +356,13 @@ static int vfs_shadow_read_sector(void* ctx, uint32_t resource, uint32_t sector,
     }
     return read_sector(&service_disk, resource, sector, data);
 }
+int x86os_yield(void) { ++service_clock; return 0; }
+int x86os_drive_info(uint32_t resource, x86os_drive_info_t* info) {
+    return vfs_shadow_drive_info(NULL, resource, info);
+}
+int x86os_storage_block_read(uint32_t resource, uint32_t sector, void* data) {
+    return vfs_shadow_read_sector(NULL, resource, sector, data);
+}
 #define VFS_EXT2_READ_DEADLINE_MS 2000U
 static int vfs_shadow_deadline(uint32_t budget, uint64_t* deadline) {
     *deadline = service_clock + budget; return 0;
@@ -412,7 +422,7 @@ int main(void) {
         .struct_size=sizeof(read), .operation=X86OS_VFS_SHADOW_OBJECT_READ,
         .object_token=adopted, .service_generation=3, .requested=1};
     unsigned before_reads = service_reads;
-    CHECK(vfs_object_read(&read, 9, 7, 3) == 0 && read.result == -13);
+    CHECK(vfs_object_read(&read, 9, 7, 3, service_clock+5000) == 0 && read.result == -13);
     CHECK(service_reads == before_reads);
     frame = (x86os_vfs_shadow_object_frame_t){.version=X86OS_VFS_SHADOW_FRAME_VERSION,
         .struct_size=sizeof(frame), .operation=X86OS_VFS_SHADOW_OBJECT_CLOSE,
@@ -433,7 +443,7 @@ int main(void) {
         .struct_size=sizeof(read), .operation=X86OS_VFS_SHADOW_OBJECT_READ,
         .object_token=frame.object_token, .service_generation=3, .requested=1};
     before_reads = service_reads;
-    CHECK(vfs_object_read(&read, 8, 7, 3) == 0 && read.result == -116 && !read.transferred);
+    CHECK(vfs_object_read(&read, 8, 7, 3, service_clock+5000) == 0 && read.result == -116 && !read.transferred);
     CHECK(service_reads == before_reads);
     puts("FILE_OBJECT_GUARD_SERVICE_OK real-service real-fat real-core pin-admission delegation rights reply-loss close-retry epoch-race media-revoke");
     return 0;
@@ -444,6 +454,8 @@ int main(void) {
 #include "test/test_vfs_host.c"
 #undef main
 #include "include/kernel/file_object_guard.h"
+#include "include/kernel/storage_request_pool.h"
+#include "drivers/block/ata.h"
 #undef CHECK
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "%s:%d: %s\n", \
     __FILE__, __LINE__, #x); return __LINE__; } } while (0)
@@ -453,6 +465,27 @@ static uint64_t guard_test_time = 10;
 static uint32_t guard_test_quarantine;
 static bool guard_client_live = true, guard_service_live = true;
 static uint32_t guard_client_generation = 7, guard_service_generation = 3;
+static bool repair_reaped = true, repair_identity = true, repair_publish = true;
+bool vfs_guard_platform_fingerprint(uint32_t resource, uint32_t* fingerprint) {
+    if (resource != 2) return false;
+    *fingerprint = 0x1234; return true;
+}
+bool vfs_guard_platform_reaped(int pid, uint32_t generation) {
+    return repair_reaped && pid == 5 && generation != guard_service_generation;
+}
+bool vfs_guard_platform_repair_check(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    return repair_identity && resource == 2 && pid == 5 && generation == guard_service_generation && fingerprint == 0x1234;
+}
+bool vfs_guard_platform_repair_live(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    return vfs_guard_platform_repair_check(resource, pid, generation, fingerprint);
+}
+bool vfs_guard_platform_repair_publish(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    if (!repair_publish || !vfs_guard_platform_repair_check(resource, pid, generation, fingerprint)) return false;
+    guard_test_quarantine &= ~(1U << resource); return true;
+}
+int vfs_guard_platform_repair_handoff(uint32_t resource, uint64_t deadline) {
+    return resource == 2 && deadline == guard_test_time + 500 ? 0 : -REIST_EINVAL;
+}
 drive_t* vfs_guard_platform_drive(uint32_t resource) {
     return resource < 3 ? &guard_test_drives[resource] : NULL;
 }
@@ -483,6 +516,8 @@ static unsigned syscall_ranges, syscall_reads, syscall_writes, syscall_terminati
 static bool syscall_readable = true, syscall_writable = true, syscall_copyout_fault;
 static bool syscall_data_copy_fault, syscall_buffer_readable = true;
 static unsigned journal_io_calls, journal_handoffs;
+static storage_request_handle_t cancel_checked_handle;
+static bool expire_checked;
 static int journal_handoff_error;
 static uint8_t storage_journal_staging[REIST_STORAGE_JOURNAL_MAX_SECTORS * 512U];
 static Process* scheduler_current_process(void) { return &syscall_process; }
@@ -510,6 +545,8 @@ static int copy_to_user(void* target, const void* source, size_t size) {
 }
 static int process_terminate(int pid) { (void)pid; ++syscall_terminations; return 0; }
 #include "syscall_guard.inc"
+#include "syscall_owned.inc"
+#include "syscall_repair.inc"
 static bool storage_service_resource_available(uint32_t resource) {
     return vfs_guard_platform_available(resource);
 }
@@ -519,7 +556,7 @@ static bool storage_service_resource_read_only(uint32_t resource) {
 static bool storage_service_report_media_failure(uint32_t resource, bool uncertain) {
     (void)uncertain; return vfs_guard_platform_fence(resource);
 }
-static int ata_external_journal_io(uint32_t resource, uint32_t operation,
+int ata_external_journal_io(uint32_t resource, uint32_t operation,
     uint32_t sector, uint32_t count, void* data, bool pending, uint64_t deadline_ms) {
     (void)pending;
     CHECK(deadline_ms == guard_test_time + 500);
@@ -527,6 +564,23 @@ static int ata_external_journal_io(uint32_t resource, uint32_t operation,
         (sector == 64 && count == 256 && data == storage_journal_staging)));
     ++journal_io_calls;
     return 0;
+}
+int ata_external_journal_io_checked(uint32_t resource, uint32_t operation,
+    uint32_t sector, uint32_t count, void* data, bool pending, uint64_t deadline_ms,
+    ata_journal_admission_t* admission) {
+    if (cancel_checked_handle) {
+        (void)storage_request_cancel(8, 7, cancel_checked_handle);
+        cancel_checked_handle = 0;
+    }
+    if (expire_checked) { guard_test_time = deadline_ms; expire_checked = false; }
+    if (!ata_journal_check(admission, operation != REIST_STORAGE_JOURNAL_READ)) return admission->error;
+    return ata_external_journal_io(resource, operation, sector, count, data, pending, deadline_ms);
+}
+int ata_repair_journal_io_checked(uint32_t resource, uint32_t operation,
+    uint32_t sector, uint32_t count, void* data, bool pending, uint64_t deadline_ms,
+    ata_journal_admission_t* admission) {
+    CHECK(guard_test_quarantine & (1U << resource));
+    return ata_external_journal_io_checked(resource, operation, sector, count, data, pending, deadline_ms, admission);
 }
 #include "syscall_journal.inc"
 
@@ -564,10 +618,107 @@ static int integration_handoff(vfs_filesystem_t* fs, uint64_t deadline_ms) {
 static bool integration_journal_range(const vfs_filesystem_t* fs, uint32_t sector, uint32_t count) {
     (void)fs; (void)count; return sector >= 32;
 }
+static int integration_geometry(const vfs_filesystem_t* fs, uint32_t* reserved, uint32_t* backup) {
+    (void)fs; *reserved = 32; *backup = 6; return 0;
+}
+static int integration_owned_journal(reist_file_object_key_t key) {
+    CHECK(storage_request_pool_init() == 0 && storage_request_bind_service(5, 3) == 0);
+    uint8_t frame[512] = {0};
+    storage_request_submit_t submit = {1, sizeof(submit), STORAGE_REQUEST_VFS_OBJECT_MUTATE, 0, 0, 512, 500};
+    storage_request_handle_t handle;
+    storage_request_descriptor_v3_t claimed;
+    CHECK(storage_request_submit(8, 7, &submit, frame, guard_test_time, &handle) == 0);
+    CHECK(storage_request_claim_v3(5, 3, guard_test_time, &claimed, frame) == 0);
+    reist_file_object_guard_request_t pin = integration_request(REIST_FILE_OBJECT_PIN);
+    pin.keys[0] = key; pin.client_pid = 8; pin.client_generation = 7; pin.epoch = integration_epoch();
+    CHECK(vfs_file_object_guard_request(&pin, 5, 3) == 0);
+    reist_file_object_guard_request_t begin = integration_request(REIST_FILE_OBJECT_MUTATION_BEGIN);
+    begin.flags = REIST_FILE_OBJECT_EXCLUSIVE | REIST_FILE_OBJECT_EXTERNAL_JOURNAL;
+    begin.keys[0] = key; begin.epoch = integration_epoch(); begin.deadline_ms = claimed.deadline_ms;
+#ifdef REIST_FILE_OBJECT_OWNED_VERSION
+    reist_file_object_owned_request_t owned = {.base=begin, .pin=pin.token, .request=handle};
+    owned.base.version = REIST_FILE_OBJECT_OWNED_VERSION; owned.base.struct_size = sizeof(owned);
+    owned.base.client_pid = 8; owned.base.client_generation = 7;
+    ++owned.base.deadline_ms;
+    CHECK(vfs_file_object_owned_request(&owned, 5, 3) == -REIST_EINVAL && !owned.base.token);
+    --owned.base.deadline_ms;
+    ++owned.request;
+    CHECK(vfs_file_object_owned_request(&owned, 5, 3) < 0 && !owned.base.token);
+    --owned.request;
+    syscall_writable = false;
+    CHECK(syscall_file_object_owned(&owned) == -REIST_EFAULT && !owned.base.token);
+    syscall_writable = true;
+    owned.reserved[1] = 1;
+    CHECK(syscall_file_object_owned(&owned) == -REIST_EINVAL && !owned.base.token);
+    owned.reserved[1] = 0;
+    syscall_process.pid = 9;
+    CHECK(syscall_file_object_owned(&owned) == -REIST_EACCES);
+    syscall_process.pid = 5;
+    CHECK(syscall_file_object_owned(&owned) == 0 && owned.base.token);
+    begin.token = owned.base.token;
+#else
+    CHECK(vfs_file_object_guard_request(&begin, 5, 3) == 0 && begin.token);
+#endif
+    reist_storage_journal_request_t io = {1, sizeof(io), REIST_STORAGE_JOURNAL_WRITE_DEFERRED,
+        begin.token, key.resource, 64, 256, 0};
+    static uint8_t data[256*512];
+    CHECK(syscall_storage_journal_io(&io, data) == 0);
+    reist_file_object_guard_request_t end = integration_request(REIST_FILE_OBJECT_MUTATION_END);
+    end.token = begin.token; end.flags = REIST_FILE_OBJECT_DURABLE_COMMIT;
+    CHECK(vfs_file_object_guard_request(&end, 5, 3) == -REIST_EINVAL); /* Missing flush. */
+    io.operation = REIST_STORAGE_JOURNAL_FLUSH; io.sector = io.count = 0;
+    CHECK(syscall_storage_journal_io(&io, NULL) == 0);
+    CHECK(vfs_file_object_guard_request(&end, 5, 3) == 0);
+    CHECK(storage_request_mutation_authorized(5, 3, handle, key.resource, guard_test_time) == -REIST_EACCES);
+    CHECK(storage_request_complete(5, 3, handle, 0, frame) == 0);
+    int32_t result;
+    CHECK(storage_request_mutation_reply_begin(8, 7, handle, guard_test_time, &result, frame) == 0 && !result);
+    CHECK(storage_request_mutation_reply_end(8, 7, handle, true, guard_test_time) == 0);
+    CHECK(storage_request_mutation_reply_ack(8, 7, handle, guard_test_time) == 0);
+    reist_file_object_guard_request_t verify = integration_request(REIST_FILE_OBJECT_VERIFY);
+    verify.token=pin.token; verify.client_pid=8; verify.client_generation=7;
+    CHECK(vfs_file_object_guard_request(&verify, 5, 3) == 0);
+#ifdef REIST_FILE_OBJECT_OWNED_VERSION
+    for (unsigned cut=0; cut<4; ++cut) {
+        CHECK(storage_request_submit(8, 7, &submit, frame, guard_test_time, &handle) == 0);
+        CHECK(storage_request_claim_v3(5, 3, guard_test_time, &claimed, frame) == 0);
+        owned.request = handle; owned.base.token = 0; owned.base.epoch = integration_epoch();
+        owned.base.deadline_ms = claimed.deadline_ms;
+        syscall_copyout_fault = cut == 1;
+        CHECK(syscall_file_object_owned(&owned) == (cut == 1 ? -REIST_EFAULT : 0));
+        syscall_copyout_fault = false;
+        if (cut != 1) {
+            if (!cut) CHECK(storage_request_cancel(8, 7, handle) == 0);
+            if (cut == 2) cancel_checked_handle = handle;
+            if (cut == 3) expire_checked = true;
+            io.token = owned.base.token;
+            io.operation=REIST_STORAGE_JOURNAL_WRITE_DEFERRED; io.sector=64; io.count=256;
+            unsigned calls = journal_io_calls;
+            CHECK(syscall_storage_journal_io(&io, data) == (cut == 3 ? -110 : -125) && journal_io_calls == calls);
+            /* Early admission failed without entering ATA. END releases the
+             * still discoverable, effect-free reservation without fencing. */
+            end.token = owned.base.token; end.flags = REIST_FILE_OBJECT_NO_EFFECT;
+            CHECK(vfs_file_object_guard_request(&end, 5, 3) == (!cut ? -125 : -REIST_ESTALE));
+        }
+        CHECK(storage_request_complete(5, 3, handle, -125, NULL) == 0);
+        if (cut == 1 || cut == 3)
+            CHECK(storage_request_mutation_reply_begin(8, 7, handle, guard_test_time, &result, frame) == -110);
+        CHECK(vfs_file_object_guard_request(&verify, 5, 3) == 0);
+        uint32_t mask;
+        CHECK(vfs_file_object_guard_fenced(&mask) == 0 && !mask);
+    }
+    storage_request_stats_t stats;
+    CHECK(storage_request_stats(&stats) == 0 && !stats.active_requests);
+#endif
+    verify.operation=REIST_FILE_OBJECT_RELEASE;
+    CHECK(vfs_file_object_guard_request(&verify, 5, 3) == 0);
+    return 0;
+}
 static int integration_journal(void) {
     vfs_filesystem_ops_t ops = fake_ops;
     ops.journal_handoff = integration_handoff;
     ops.journal_write_range = integration_journal_range;
+    ops.journal_geometry = integration_geometry;
     CHECK(vfs_register_filesystem("fat32", &ops) == VFS_OK);
     CHECK(vfs_mount(&guard_test_drives[2], "fat32", "/fat") == VFS_OK);
     reist_file_object_guard_request_t begin = integration_request(REIST_FILE_OBJECT_MUTATION_BEGIN);
@@ -615,9 +766,125 @@ static int integration_journal(void) {
     CHECK(!syscall_storage_journal_io(&request, NULL) && journal_io_calls == 2);
     CHECK(!vfs_file_object_guard_request(&end, 5, 3));
     CHECK(syscall_storage_journal_io(&request, NULL) == -REIST_ESTALE && journal_io_calls == 2);
+    CHECK(integration_owned_journal(begin.keys[0]) == 0);
     CHECK(vfs_unmount("/fat") == VFS_OK);
     syscall_ranges = syscall_reads = syscall_writes = 0;
     puts("JOURNAL_HANDOFF_VFS_SYSCALL_OK bulk=128KiB mixed stale partition pointer rollback durability");
+    return 0;
+}
+
+static int integration_repair(unsigned variant) {
+    vfs_filesystem_ops_t ops = fake_ops;
+    ops.unmount_revoked = fake_unmount;
+    ops.journal_handoff = integration_handoff; ops.journal_write_range = integration_journal_range;
+    ops.journal_geometry = integration_geometry;
+    CHECK(vfs_register_filesystem("fat32", &ops) == VFS_OK);
+    CHECK(vfs_mount(&guard_test_drives[2], "fat32", "/fat") == VFS_OK);
+    CHECK(!storage_request_pool_init() && !storage_request_bind_service(5, 3));
+    reist_file_object_guard_request_t begin = integration_request(REIST_FILE_OBJECT_MUTATION_BEGIN);
+    begin.flags = REIST_FILE_OBJECT_EXCLUSIVE | REIST_FILE_OBJECT_EXTERNAL_JOURNAL;
+    begin.keys[0] = (reist_file_object_key_t){.kind=REIST_FILE_OBJECT_FAT32, .resource=2, .object_a=2, .alias="TARGET  TXT"};
+    begin.epoch = integration_epoch(); begin.deadline_ms = guard_test_time + 500;
+    CHECK(!syscall_file_object_guard(&begin));
+    reist_file_object_guard_request_t end = integration_request(REIST_FILE_OBJECT_MUTATION_END);
+    end.token = begin.token; end.flags = REIST_FILE_OBJECT_UNKNOWN;
+    CHECK(!syscall_file_object_guard(&end));
+    CHECK(!storage_request_recovery_refence(2) && !storage_request_recovery_refence(1));
+    vfs_file_object_guard_media_changed(2);
+    vfs_file_object_guard_process_cleanup(5, 3);
+    storage_request_unbind_service(5, 3);
+    ++guard_service_generation; syscall_process.generation = guard_service_generation;
+    CHECK(!storage_request_bind_service(5, guard_service_generation));
+    reist_file_repair_request_t q = {.version=3, .struct_size=sizeof(q), .operation=REIST_FILE_REPAIR_QUERY, .resource=2};
+    repair_reaped = false;
+    CHECK(syscall_file_repair(&q) == -REIST_EBUSY && !q.token);
+    repair_reaped = true;
+    if (variant != 1) CHECK(vfs_unmount("/fat") == VFS_OK); /* extent must survive */
+    CHECK(!syscall_file_repair(&q) && q.generation && q.fingerprint == 0x1234 && q.sector_count == 1000 && !q.token);
+    q.operation = REIST_FILE_REPAIR_BEGIN; q.deadline_ms = guard_test_time + 500;
+    ++q.first_sector; CHECK(syscall_file_repair(&q) == -REIST_EINVAL && !q.token); --q.first_sector;
+    repair_identity = false; CHECK(syscall_file_repair(&q) == -REIST_EIO && !q.token); repair_identity = true;
+    if (variant == 2) syscall_copyout_fault = true;
+    int status = syscall_file_repair(&q);
+    syscall_copyout_fault = false;
+    if (variant == 2) {
+        CHECK(status == -REIST_EFAULT && !q.token);
+        CHECK(vfs_file_repair_expired(5, guard_service_generation, guard_test_time));
+    } else {
+        CHECK(!status && q.token);
+        reist_file_repair_request_t bad = q;
+        bad.deadline_ms++; CHECK(syscall_file_repair(&bad) < 0); /* cannot renew */
+        CHECK(vfs_file_object_guard_io_begin(2, 64, false, 5, guard_service_generation) < 0);
+        reist_storage_journal_request_t io = {1, sizeof(io), REIST_STORAGE_JOURNAL_WRITE_DEFERRED, q.token, 2, 64, 256, 0};
+        static uint8_t bytes[256*512];
+        io.sector = 0; CHECK(syscall_storage_journal_io(&io, bytes) == -REIST_EACCES);
+        io.sector = 6; io.count = 1; CHECK(syscall_storage_journal_io(&io, bytes) == -REIST_EACCES);
+        io.sector = 999; io.count = 2; CHECK(syscall_storage_journal_io(&io, bytes) == -REIST_EINVAL);
+        io.sector = 64; io.count = 256;
+        if (variant != 3) CHECK(!syscall_storage_journal_io(&io, bytes));
+        if (variant >= 9) {
+            for (unsigned cut = 0; cut < (variant == 9 ? 1U : 3U); ++cut) {
+                reist_file_repair_request_t old = q;
+                /* No second media-change event: the device is already fenced.
+                 * Exercise both completed and deferred guard cleanup. */
+                if (variant == 10) vfs_file_object_guard_process_cleanup(5, guard_service_generation);
+                storage_request_unbind_service(5, guard_service_generation);
+                ++guard_service_generation; syscall_process.generation = guard_service_generation;
+                CHECK(!storage_request_bind_service(5, guard_service_generation));
+                q = (reist_file_repair_request_t){.version=3, .struct_size=sizeof(q),
+                    .operation=REIST_FILE_REPAIR_QUERY, .resource=2};
+                repair_reaped = false;
+                CHECK(syscall_file_repair(&q) == -REIST_EBUSY && !q.token);
+                repair_reaped = true;
+                unsigned calls = journal_io_calls;
+                CHECK(syscall_storage_journal_io(&io, bytes) < 0 && calls == journal_io_calls);
+                if (cut == 2) {
+                    CHECK(syscall_file_repair(&q) == -REIST_EBUSY && !q.token);
+                    CHECK(syscall_file_repair(&q) == -REIST_EBUSY && !q.token);
+                    uint32_t pool_fences, guard_fences;
+                    CHECK(!storage_request_mutation_fences(guard_test_time, &pool_fences));
+                    CHECK(!vfs_file_object_guard_fenced(&guard_fences));
+                    CHECK((pool_fences & 6U) == 6U && (guard_fences & 6U) == 6U);
+                    puts("R342_REPAIR_VFS_OK three-reaped-repair-cuts exhausted fences-retained no-new-media-event");
+                    return 0;
+                }
+                CHECK(!syscall_file_repair(&q) && !q.token && q.generation > old.generation);
+                q.operation = REIST_FILE_REPAIR_BEGIN; q.deadline_ms = guard_test_time + 500;
+                CHECK(!syscall_file_repair(&q) && q.token && q.token != old.token);
+                CHECK(vfs_file_object_guard_io_begin(2, 64, false, 5, guard_service_generation) < 0);
+                io.token = q.token;
+                CHECK(!syscall_storage_journal_io(&io, bytes));
+            }
+        }
+        if (variant == 4) guard_test_time = q.deadline_ms;
+        else if (variant != 3 && variant != 5) {
+            io.operation = REIST_STORAGE_JOURNAL_FLUSH; io.sector = io.count = 0;
+            CHECK(!syscall_storage_journal_io(&io, NULL));
+        }
+        q.operation = variant == 6 ? REIST_FILE_REPAIR_ABORT : REIST_FILE_REPAIR_COMMIT;
+        if (variant == 7) repair_publish = false;
+        if (variant == 8) repair_identity = false;
+        unsigned copyouts = syscall_writes;
+        status = syscall_file_repair(&q);
+        CHECK(copyouts == syscall_writes); /* COMMIT/ABORT never publish a lost token/reply */
+        CHECK(variant < 2 || variant == 6 || variant == 9 ? status == 0 : status < 0);
+        if (variant < 2 || variant == 9) {
+            CHECK(!vfs_file_repair_expired(5, guard_service_generation, guard_test_time));
+            CHECK(syscall_file_repair(&q) == -REIST_ESTALE);
+            if (variant == 1) {
+                vfs_node_t* node = NULL;
+                CHECK(vfs_open("/fat/file", &node) == VFS_ERR_IO); /* old mount stays stale */
+                CHECK(vfs_unmount("/fat") == VFS_OK);
+            }
+        } else CHECK(vfs_file_repair_expired(5, guard_service_generation, guard_test_time));
+    }
+    uint32_t pool_mask, guard_mask;
+    CHECK(!storage_request_mutation_fences(guard_test_time, &pool_mask));
+    CHECK(!vfs_file_object_guard_fenced(&guard_mask));
+    CHECK((pool_mask & 2) && (guard_mask & 2)); /* another unsafe resource remains fenced */
+    CHECK((guard_mask & 4) == (variant < 2 || variant == 9 ? 0U : 4U));
+    CHECK((pool_mask & 4) == (variant < 2 || variant == 9 ? 0U : 4U));
+    puts("R342_REPAIR_VFS_OK retained-extent reaped-owner bounds copyout flush expiry partial-publication stale-mount other-resource");
     return 0;
 }
 
@@ -718,7 +985,7 @@ static int integration_lifecycle(void) {
     return 0;
 }
 
-int main(void) {
+int main(int argc, char** argv) {
     /* Old host fixture remains a separate executable: this one enables the
      * production guard branch, linking the real VFS and real metadata core. */
     vfs_init();
@@ -756,6 +1023,7 @@ int main(void) {
     partition_end.token = partition_mutation.token; partition_end.flags = REIST_FILE_OBJECT_NO_EFFECT;
     CHECK(vfs_file_object_guard_request(&partition_end, 5, 3) == 0);
     CHECK(vfs_unmount("/part") == VFS_OK);
+    if (argc == 2) return integration_repair((unsigned)atoi(argv[1]));
     CHECK(integration_journal() == 0);
     guard_test_drives[2] = guard_test_drives[0];
     CHECK(vfs_mount(&guard_test_drives[0], "ext2", "/") == VFS_OK);
@@ -787,7 +1055,7 @@ int main(void) {
     CHECK(vfs_open("/file", &legacy) == VFS_OK);
     reist_file_object_guard_request_t mutation = integration_request(REIST_FILE_OBJECT_MUTATION_BEGIN);
     mutation.keys[0] = opened.keys[0];
-    mutation.epoch = integration_epoch(); mutation.deadline_ms = 100;
+    mutation.epoch = integration_epoch(); mutation.deadline_ms = guard_test_time + 90;
     CHECK(vfs_file_object_guard_request(&mutation, 5, 3) == -REIST_EBUSY);
     fake_close_fails = true;
     CHECK(vfs_close(legacy) == VFS_ERR_IO);
@@ -812,6 +1080,25 @@ int main(void) {
     CHECK(vfs_open("/file", &legacy) == VFS_OK && vfs_close(legacy) == VFS_OK);
     CHECK(integration_syscall_boundaries() == 0);
     CHECK(integration_lifecycle() == 0);
+    /* A reply lost AFTER durable END still fences before the next legacy open.
+     * The actual pool and VFS/guard run here, not a simulated fence callback. */
+    CHECK(storage_request_pool_init() == 0 && storage_request_bind_service(5, 4) == 0);
+    uint8_t frame[512] = {0};
+    storage_request_submit_t write = {1, sizeof(write), STORAGE_REQUEST_VFS_OBJECT_MUTATE,
+        0, 0, sizeof(frame), 500};
+    storage_request_handle_t handle;
+    storage_request_descriptor_v3_t claimed;
+    CHECK(storage_request_submit(8, 8, &write, frame, guard_test_time, &handle) == 0);
+    CHECK(storage_request_claim_v3(5, 4, guard_test_time, &claimed, frame) == 0);
+    CHECK(storage_request_mutation_bind(5, 4, handle, 1, guard_test_time) == 0);
+    CHECK(storage_request_mutation_effect(5, 4, handle, 1, guard_test_time) == 0);
+    CHECK(storage_request_mutation_finish(5, 4, handle, 1, STORAGE_MUTATION_DURABLE, guard_test_time) == 0);
+    CHECK(storage_request_complete(5, 4, handle, 0, frame) == 0);
+    CHECK(storage_request_cancel(8, 8, handle) == 0);
+    CHECK(vfs_open("/other/file", &legacy) == VFS_ERR_IO && !legacy);
+    uint32_t fences = 0;
+    CHECK(vfs_file_object_guard_fenced(&fences) == 0 && fences == 3);
+    CHECK(guard_test_quarantine == 3);
     puts("FILE_OBJECT_GUARD_VFS_OK both-registries aliases epoch close-failure maintenance");
     return 0;
 }

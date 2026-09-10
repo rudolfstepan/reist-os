@@ -72,6 +72,24 @@ static bool bind_on_sleep, reap_on_sleep;
 static int live_pid = 7, boundary_error;
 static uint32_t live_generation = 3;
 static uint32_t object_fences = 1;
+static bool repair_expired;
+enum { DRIVE_TYPE_ATA=1, DRIVE_TYPE_PARTITION=2 };
+typedef struct { int type; uint32_t parent_resource; } drive_t;
+static drive_t detected_drives[MAX_DRIVES];
+static int drive_count = 3;
+static bool repair_media_ok = true, storage_restore_ok = true, fs_restore_ok = true;
+static bool storage_closed = true, fs_closed = true;
+static unsigned repair_media_reads, restore_calls;
+static bool storage_service_expected_fingerprint(uint32_t resource, uint32_t* fingerprint) {
+    *fingerprint = resource == 1 ? 0x1234 : 0x5678; return resource < 3;
+}
+static bool media_identity_matches(uint32_t resource) { ++repair_media_reads; return resource < 3 && repair_media_ok; }
+static bool storage_restore_writes_after_recovery(uint32_t resource) {
+    ++restore_calls; if (resource != 1 || !storage_restore_ok) return false; storage_closed = false; return true;
+}
+static bool filesystem_restore_mutations_after_recovery(void) {
+    ++restore_calls; if (!fs_restore_ok) return false; fs_closed = false; return true;
+}
 static bool control_valid(const void *, size_t);
 static int control_read(void *out) { memcpy(out, saved, 64); return 0; }
 static int control_write(const void *in) {
@@ -109,11 +127,14 @@ static uint32_t x86_cpu_current_index(void) { return 0; }
 static int scheduler_sleep_ms(uint32_t ms);
 static int scheduler_yield(void) { ++now; return 0; }
 static int vfs_file_object_guard_poll(uint64_t ms) { (void)ms; return 0; }
+static bool vfs_file_repair_expired(int pid, uint32_t generation, uint64_t ms) {
+    return repair_expired && pid == live_pid && generation == live_generation && ms == now;
+}
 static void storage_service_emit_pending_quarantine(void) {}
 static void poll_media_reintegration(uint64_t ms) { (void)ms; }
 static int vfs_file_object_guard_fenced(uint32_t *mask) { *mask = object_fences; return 0; }
-static void storage_fence_writes(void) { ++fence_count; }
-static void filesystem_fence_mutations(void) { ++fence_count; }
+static void storage_fence_writes(void) { ++fence_count; storage_closed = true; }
+static void filesystem_fence_mutations(void) { ++fence_count; fs_closed = true; }
 #include "storage_lifecycle.inc"
 #define CHECK(x) do { if (!(x)) { printf("RETIREMENT FAIL line=%d %s\n", __LINE__, #x); return 1; } } while (0)
 static void storage_request_unbind_service(int p, uint32_t g) {
@@ -140,6 +161,7 @@ static void reset(bool healthy) {
     initialized = service_administratively_enabled = service_started = true;
     service_starting = false; lifecycle_busy = 0; object_fences = 0;
     lifecycle_failed = false;
+    repair_expired = false;
     spawn_count = terminate_count = unbind_count = fence_count = affinity_count = 0;
     deny_terminate = alive = true;
     live_pid = 7; live_generation = 3;
@@ -248,6 +270,52 @@ int main(void) {
     CHECK(spawn_count == 1);
     CHECK(deadline_after(UINT64_MAX-3, 1000) == UINT64_MAX);
     CHECK(boundary_error == 0);
+    for (unsigned variant = 0; variant < 10; ++variant) {
+        reset(true);
+        detected_drives[0].type = DRIVE_TYPE_ATA;
+        detected_drives[1] = (drive_t){DRIVE_TYPE_PARTITION, 0};
+        repair_media_ok = storage_restore_ok = fs_restore_ok = true;
+        storage_closed = fs_closed = true; repair_media_reads = restore_calls = 0;
+        CHECK(!storage_service_repair_check(1, 7, 4, 0x1234));
+        CHECK(!storage_service_repair_check(1, 7, 3, 0x5678));
+        CHECK(!repair_media_reads);
+        CHECK(storage_service_repair_check(1, 7, 3, 0x1234) && repair_media_reads == 2);
+        repair_media_ok = false;
+        CHECK(!storage_service_repair_check(1, 7, 3, 0x1234));
+        repair_media_ok = true;
+        control_read(&control);
+        if (variant == 1) control.quarantined_resources |= 4;
+        if (variant == 2) control.admin_down_resources |= 4;
+        if (variant == 3) control.admin_transition_resources |= 1; /* parent admin transition */
+        if (variant == 4) { control.admin_failed_resources |= 2; control.admin_down_resources |= 2; }
+        if (variant == 5) { control.retiring = STORAGE_RETIRE_PENDING; control.healthy = 0; control.start_deadline_ms = now+1000; }
+        CHECK(!control_write(&control));
+        if (variant == 6) storage_restore_ok = false;
+        if (variant == 7) fs_restore_ok = false;
+        if (variant == 8) publish_fail = true;
+        if (variant == 9) lifecycle_busy = 1;
+        bool published = storage_service_repair_publish(1, 7, 3, 0x1234);
+        if (published != (variant < 3)) printf("repair variant=%u published=%u healthy=%u retiring=%u lock=%u\n", variant, published, control.healthy, control.retiring, lifecycle_busy);
+        CHECK(published == (variant < 3));
+        control_read(&control);
+        CHECK((control.quarantined_resources & 2) == (published ? 0U : 2U));
+        CHECK((control.read_only_resources & 2) == (published ? 0U : 2U));
+        CHECK(control.launch_count == 1 && control.generation == 3);
+        CHECK(storage_closed == (variant != 0) && fs_closed == (variant != 0));
+        if (variant == 1) CHECK((control.quarantined_resources & 4) && !restore_calls);
+        if (variant == 2) CHECK((control.admin_down_resources & 4) && !restore_calls);
+    }
+    reset(true);
+    storage_service_poll(now); /* forget already recovered fence bits */
+    CHECK(!terminate_count);
+    repair_expired = true;
+    storage_service_poll(now);
+    CHECK(terminate_count == 1 && !spawn_count && !storage_service_authorized(7, 3));
+    control_read(&control); deadline = control.start_deadline_ms;
+    storage_service_poll(++now);
+    control_read(&control); CHECK(control.start_deadline_ms == deadline);
+    CHECK(boundary_error == 0);
+    puts("R342_REPAIR_LIFECYCLE_OK parent-identity generation partial-publication other-resource deadline-retirement");
     puts("STORAGE_RETIREMENT_OK");
     return 0;
 }

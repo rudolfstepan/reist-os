@@ -76,7 +76,8 @@ class StorageRetirementTests(unittest.TestCase):
             "static bool retirement_begin(", "static int retirement_step(",
             "static bool spawn_service(", "static bool storage_start_locked(uint64_t now_ms)",
             "bool storage_service_start(", "int storage_service_bind(",
-            "bool storage_service_authorized(", "void storage_service_poll(",
+            "bool storage_service_authorized(", "static bool repair_identity_current(",
+            "bool storage_service_repair_check(", "bool storage_service_repair_publish(", "void storage_service_poll(",
             "bool storage_service_component_ready(", "static bool storage_down_locked(",
             "bool storage_service_component_down(", "bool storage_service_component_up(",
         ):

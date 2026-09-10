@@ -211,6 +211,93 @@ typedef struct {
     uint32_t client_generation, reserved;
 } reist_file_object_guard_request_t;
 
+/* Syscall129 arg3=2: owned FAT32 BEGIN only. The original112-byte prefix and
+ * v1 entry remain unchanged. Neither a pin nor a request alone grants IO. */
+#define REIST_FILE_OBJECT_OWNED_VERSION 2U
+typedef struct {
+    reist_file_object_guard_request_t base;
+    uint32_t pin, request, reserved[2];
+} reist_file_object_owned_request_t;
+
+/* Syscall129 arg3=3: Storage-only fenced repair protocol. QUERY has only a
+ * resource; BEGIN echoes the immutable queried extent/generation/fingerprint
+ * with an absolute deadline <=5000ms. COMMIT/ABORT echo the admitted token.
+ * QUERY/BEGIN copy out; COMMIT/ABORT return errno only, never a new grant.
+ * All sectors are relative to that resource, in512-byte units. No mount,
+ * normal write authority, format operation or caller-chosen recovery range. */
+#define REIST_FILE_REPAIR_VERSION 3U
+#define REIST_FILE_REPAIR_QUERY 1U
+#define REIST_FILE_REPAIR_BEGIN 2U
+#define REIST_FILE_REPAIR_COMMIT 3U
+#define REIST_FILE_REPAIR_ABORT 4U
+typedef struct {
+    uint32_t version, struct_size, operation, resource;
+    uint32_t token, generation, fingerprint, flags;
+    uint64_t deadline_ms;
+    uint32_t first_sector, sector_count, reserved_sectors, backup_sector;
+    uint32_t reserved[2];
+} reist_file_repair_request_t;
+
+/* R3.42: separate namespace carried ONLY by Storage operation35. No old
+ * OPEN/DATA/ALL gains authority. Byte units, POSIX write/pwrite/append/fsync
+ * terminology; resize_step is explicitly incremental, not ftruncate.
+ * Entire input is published before claim. Only OPEN permits NOFOLLOW flags;
+ * all reserved fields and the input reply are zero.
+ * request in replies is the original kernel request handle, never a new lease. */
+#define REIST_VFS_WRITE_VERSION 2U
+#define REIST_VFS_WRITE_RESULT_VERSION 1U
+#define REIST_VFS_WRITE_OPEN 1U
+#define REIST_VFS_WRITE_DELEGATE 2U
+#define REIST_VFS_WRITE_ADOPT 3U
+#define REIST_VFS_WRITE_DATA 4U
+#define REIST_VFS_WRITE_APPEND 5U
+#define REIST_VFS_WRITE_RESIZE 6U
+#define REIST_VFS_WRITE_SYNC 7U
+#define REIST_VFS_WRITE_RIGHT_WRITE (1U << 4U)
+#define REIST_VFS_WRITE_RIGHT_APPEND (1U << 5U)
+#define REIST_VFS_WRITE_RIGHT_RESIZE (1U << 6U)
+#define REIST_VFS_WRITE_RIGHT_SYNC (1U << 7U)
+#define REIST_VFS_WRITE_RIGHT_MUTATIONS 240U
+#define REIST_VFS_WRITE_RIGHT_MASK 255U
+#define REIST_VFS_WRITE_SIZE_KNOWN 1U
+#define REIST_VFS_WRITE_DONE 2U
+
+typedef struct {
+    uint32_t version, struct_size, request;
+    int32_t result;
+    uint32_t outcome, flags, durable_bytes, released_clusters;
+    uint64_t effective_offset, previous_size, resulting_size;
+    uint32_t reserved[2];
+} reist_vfs_write_result_t;
+
+typedef struct {
+    uint32_t version, struct_size, operation, flags;
+    uint32_t object_token, service_generation, rights, path_length;
+    uint64_t offset, target_size;
+    uint32_t length, data_crc32;
+    int32_t target_pid;
+    uint32_t target_generation;
+    char path[192];
+    reist_vfs_write_result_t reply;
+    uint32_t reserved[48];
+} reist_vfs_write_frame_t;
+
+#if defined(__cplusplus)
+static_assert(sizeof(reist_file_repair_request_t) == 64U, "repair ABI");
+static_assert(__builtin_offsetof(reist_file_repair_request_t, deadline_ms) == 32U, "repair deadline offset");
+static_assert(sizeof(reist_vfs_write_result_t) == 64U, "write result ABI");
+static_assert(sizeof(reist_vfs_write_frame_t) == 512U, "write frame ABI");
+static_assert(__builtin_offsetof(reist_vfs_write_frame_t, reply) == 256U, "write reply offset");
+static_assert(__builtin_offsetof(reist_vfs_write_result_t, effective_offset) == 32U, "write byte offset");
+#else
+_Static_assert(sizeof(reist_file_repair_request_t) == 64U, "repair ABI");
+_Static_assert(__builtin_offsetof(reist_file_repair_request_t, deadline_ms) == 32U, "repair deadline offset");
+_Static_assert(sizeof(reist_vfs_write_result_t) == 64U, "write result ABI");
+_Static_assert(sizeof(reist_vfs_write_frame_t) == 512U, "write frame ABI");
+_Static_assert(__builtin_offsetof(reist_vfs_write_frame_t, reply) == 256U, "write reply offset");
+_Static_assert(__builtin_offsetof(reist_vfs_write_result_t, effective_offset) == 32U, "write byte offset");
+#endif
+
 #define REIST_DECLARE_SYSCALL(kernel_name, sdk_name, number) \
     REIST_SYS_##sdk_name = number,
 typedef enum {

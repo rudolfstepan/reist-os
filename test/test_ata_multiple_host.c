@@ -3,8 +3,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "drivers/block/ata.h"
+
+/* Report a normal failing exit, never raise a native Windows abort dialog. */
+#undef assert
+#define assert(condition) do { if (!(condition)) { fprintf(stderr,"ATA:%u %s\n",(unsigned)__LINE__,#condition); exit(1); } } while(0)
 
 #define ATA_WAIT_TIMEOUT_MS 500U
 #define ATA_POLL_DELAY_MS 1U
@@ -16,6 +21,10 @@ static ata_cache_entry_t caches[32];
 static uint32_t consecutive_read_failures;
 static uint64_t now;
 static uint32_t sleeps, spins, commands, identifies, sets, transferred;
+static uint32_t written_blocks, written_sectors, read_blocks, live_checks, deny_check, expire_check, illegal_io;
+static bool authority_lost, memory_io;
+static uint8_t media[256][512];
+static uint32_t io_lba;
 static uint32_t blocks[128], block_count, busy, step, fail_block;
 static uint8_t command, count_register, last_read_command;
 static uint8_t reg_values[16];
@@ -29,7 +38,9 @@ static uint8_t port_status(void) {
     if (command == ATA_IDENTIFY) return fail_identify ? 0x41 : 0x48;
     if (command == ATA_SET_MULTIPLE_MODE) return fail_set ? 0x41 : 0x40;
     if (command == ATA_READ_MULTIPLE || command == ATA_READ_MULTIPLE_EXT ||
-        command == ATA_READ_SECTORS || command == ATA_READ_SECTORS_EXT) {
+        command == ATA_READ_SECTORS || command == ATA_READ_SECTORS_EXT ||
+        command == ATA_WRITE_MULTIPLE || command == ATA_WRITE_MULTIPLE_EXT ||
+        command == ATA_WRITE_SECTORS || command == ATA_WRITE_SECTORS_EXT) {
         if (fail_block && block_count == fail_block) return 0x41;
         if (transferred < count_register) return 0x48;
         return fail_final ? 0x41 : 0x40;
@@ -40,11 +51,12 @@ static uint8_t inb(uint16_t port) { (void)port; return port_status(); }
 static void outb(uint16_t port, uint8_t value) {
     if (port == ATA_SECTOR_CNT(0x1f0)) count_register=value;
     if (port == ATA_COMMAND(0x1f0)) {
+        if(authority_lost || now>=500) ++illegal_io;
         command=value; ++commands;
         if (value==ATA_IDENTIFY) ++identifies;
         else if (value==ATA_SET_MULTIPLE_MODE) {
             ++sets; if (!fail_set) current_word=0x100U | count_register;
-        } else last_read_command=value;
+        } else { last_read_command=value; transferred=block_count=0; }
     } else if (port >= ATA_SECTOR_CNT(0x1f0) && port <= ATA_LBA_HIGH(0x1f0)) {
         if (reg_count<sizeof(reg_values)) reg_values[reg_count++]=value;
     }
@@ -57,10 +69,25 @@ static void insw(uint16_t port, void *buffer, unsigned words) {
         command=0; return;
     }
     assert(words && words%256==0 && words<=128*256);
+    if(authority_lost || now>=500) ++illegal_io;
     assert(block_count<128); blocks[block_count++]=words/256;
+    ++read_blocks;
     for (unsigned i=0;i<words/256;i++)
-        memset((uint8_t *)buffer+i*512,(int)(transferred+i+1),512);
+        if(memory_io)memcpy((uint8_t*)buffer+i*512,media[(io_lba+transferred+i)%256],512);
+        else memset((uint8_t *)buffer+i*512,(int)(transferred+i+1),512);
     transferred+=words/256;
+}
+static void outsw(uint16_t port,const void* buffer,unsigned words) {
+    (void)port;
+    if(authority_lost || now>=500) ++illegal_io;
+    assert(command==ATA_WRITE_MULTIPLE || command==ATA_WRITE_MULTIPLE_EXT ||
+        command==ATA_WRITE_SECTORS || command==ATA_WRITE_SECTORS_EXT);
+    uint32_t block=command==ATA_WRITE_MULTIPLE || command==ATA_WRITE_MULTIPLE_EXT ? current_word&255U : 1U;
+    uint32_t expected=count_register-transferred;if(expected>block)expected=block;
+    assert(words==expected*256U && expected && block_count<128);
+    blocks[block_count++]=expected;++written_blocks;written_sectors+=expected;
+    for(unsigned i=0;i<expected;++i)memcpy(media[(io_lba+transferred+i)%256],(const uint8_t*)buffer+i*512,512);
+    transferred+=expected;
 }
 uint16_t ata_control_port_for_base(uint16_t base) { return base+0x206; }
 static void ata_selection_delay(uint16_t base) {
@@ -78,6 +105,12 @@ static int scheduler_sleep_ms(uint32_t ms) {
 static void pit_delay(uint32_t ms) { ++spins; if (!frozen) now+=ms; }
 static bool ata_select_target(uint16_t base, uint8_t head, uint32_t ms) {
     (void)base; (void)head; (void)ms; return true;
+}
+static bool wait_for_drive_data_ready(uint16_t base,uint32_t timeout) {
+    (void)base;(void)timeout;return (port_status()&0xc9)==0x48;
+}
+static bool wait_for_drive_ready(uint16_t base,uint32_t timeout) {
+    (void)base;(void)timeout;return (port_status()&0xc9)==0x40;
 }
 static int ata_resource_index(uint16_t base, bool master) {
     return base==0x1f0 && master ? 0 : -1;
@@ -128,11 +161,66 @@ static void reset(void) {
     sleepable=irqs=true; in_irq=fail_final=fail_set=fail_identify=false; task=1;
     reg_count=0; memset(reg_values,0,sizeof(reg_values));
     forced_status=-1;
+    written_blocks=written_sectors=read_blocks=live_checks=deny_check=expire_check=illegal_io=0;
+    authority_lost=memory_io=false;io_lba=0;memset(media,0,sizeof(media));
 }
 static unsigned cache_count(void) {
     unsigned count=0; for(unsigned i=0;i<32;i++) count+=caches[i].valid; return count;
 }
+static int live_admission(void* context,bool effect) {
+    (void)context;(void)effect;
+    ++live_checks;
+    if(live_checks==expire_check) now=500;
+    if(live_checks==deny_check || now>=500) authority_lost=true;
+    return authority_lost ? -125 : 0;
+}
+static void multiple_writes(void) {
+    uint8_t input[20*512+2],output[20*512+2];
+    for(unsigned i=0;i<sizeof(input);++i)input[i]=(uint8_t)(i*17+23);
+    for(unsigned extended=0;extended<2;++extended)for(unsigned mode=1;mode<=128;mode*=2)
+        for(unsigned count=1;count<=20;++count) {
+            reset();memory_io=true;max_word=0x8080;current_word=0x100|mode;
+            ata_journal_admission_t admission={live_admission,NULL,0};
+            int block=ata_pio_read_block_size_checked(0x1f0,true,500,&admission);
+            assert(block==(int)mode);
+            uint32_t lba=extended ? ATA_LBA28_LIMIT-1 : 5;
+            io_lba=lba;
+            assert(ata_write_sectors_pio_mode_checked(0x1f0,lba,count,input+1,true,500,&admission,block));
+            assert(written_sectors==count && written_blocks==(count+mode-1)/mode && !illegal_io);
+            assert(last_read_command==(lba+count-1>=ATA_LBA28_LIMIT ? (mode>1?0x39:0x34) : (mode>1?0xc5:0x30)));
+            memset(output,0xEE,sizeof(output));
+            assert(ata_read_sectors_pio_mode_checked(0x1f0,lba,count,output+1,true,500,&admission,block));
+            assert(identifies==1 && !sets && read_blocks==(count+mode-1)/mode);
+            assert(!memcmp(input+1,output+1,count*512) && output[0]==0xEE && output[count*512+1]==0xEE);
+        }
+    /* Every denial/expiry point before and between the actual DRQ blocks.
+     * No command/data after refusal, and no transfer replay/fallback. */
+    for(unsigned expiry=0;expiry<2;++expiry)for(unsigned cut=1;cut<=3;++cut) {
+        reset();current_word=0x110;
+        if(expiry)expire_check=cut;else deny_check=cut;
+        ata_journal_admission_t a={live_admission,NULL,0};
+        assert(!ata_write_sectors_pio_mode_checked(0x1f0,5,20,input+1,true,500,&a,16));
+        assert(authority_lost && !illegal_io && commands<=1 && written_sectors<=16);
+    }
+    for(unsigned mode=0;mode<5;++mode) {
+        reset();ata_journal_admission_t a={live_admission,NULL,0};
+        int invalid[]={0,-1,3,129,256};
+        assert(!ata_write_sectors_pio_mode_checked(0x1f0,0,20,input,true,500,&a,invalid[mode]));
+        assert(!commands && !written_sectors);
+    }
+    reset();assert(!ata_write_sectors_pio_mode_checked(0x1f0,0,20,input,true,500,NULL,16) && !commands);
+    reset();fail_block=1;ata_journal_admission_t a={live_admission,NULL,0};
+    assert(!ata_write_sectors_pio_mode_checked(0x1f0,0,20,input,true,500,&a,16));
+    assert(written_sectors==16 && commands==1);
+    reset();fail_final=true;a=(ata_journal_admission_t){live_admission,NULL,0};
+    assert(!ata_write_sectors_pio_mode_checked(0x1f0,0,20,input,true,500,&a,16));
+    assert(written_sectors==20 && commands==1);
+    reset();assert(ata_write_sectors_pio_deferred_checked(0x1f0,0,20,input,true,500,NULL));
+    assert(!identifies && written_blocks==20 && last_read_command==ATA_WRITE_SECTORS);
+    puts("ATA_MULTIPLE_WRITE_OK cases=320 fresh-mode shared-readback fail-closed legacy-unchanged");
+}
 int main(void) {
+    multiple_writes();
     uint8_t bytes[128*512+2];
     for(unsigned part=0;part<2;++part) {
         reset(); partition_on=part;
@@ -207,6 +295,10 @@ int main(void) {
     assert(last_read_command==ATA_WRITE_SECTORS && count_register==3 && !identifies);
     reset(); assert(ata_program_pio_batch(0x1f0,ATA_LBA28_LIMIT,3,true,true,true,false,0));
     assert(last_read_command==ATA_WRITE_SECTORS_EXT && count_register==3 && !identifies);
+    reset(); assert(ata_program_pio_batch(0x1f0,5,20,true,true,false,true,500));
+    assert(last_read_command==0xC5 && count_register==20);
+    reset(); assert(ata_program_pio_batch(0x1f0,ATA_LBA28_LIMIT,20,true,true,true,true,500));
+    assert(last_read_command==0x39 && count_register==20);
     reset(); assert(!ata_read_sectors_pio_impl(0x1f0,UINT32_MAX-1,3,bytes,true)); assert(!commands);
     reset(); assert(!ata_read_sectors_pio_impl(0x1f0,0,129,bytes,true)); assert(!commands);
     reset(); assert(!ata_read_sectors_pio_impl(0x1f0,0,0,bytes,true)); assert(!commands);

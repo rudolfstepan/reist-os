@@ -367,6 +367,7 @@ try {
         'bin/rename.prg' = 'RENAME.PRG'; 'bin/stat.prg' = 'STAT.PRG'
         'bin/ln.prg' = 'LN.PRG'; 'bin/readlink.prg' = 'READLINK.PRG'
         'bin/objgdtst.prg' = 'OBJGDTST.PRG'
+        'bin/fwritest.prg' = 'FWRITEST.PRG'
         'bin/df.prg' = 'DF.PRG'; 'bin/touch.prg' = 'TOUCH.PRG'
         'bin/tree.prg' = 'TREE.PRG'; 'bin/find.prg' = 'FIND.PRG'
         'bin/rm.prg' = 'RM.PRG'

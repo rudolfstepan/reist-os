@@ -812,6 +812,25 @@ bool storage_service_report_io_failure(uint32_t resource) {
     return storage_service_report_media_failure(resource, false);
 }
 
+bool storage_service_admin_flush_allowed(uint32_t resource) {
+    storage_service_control_t control;
+    if (!initialized || resource >= (uint32_t)drive_count || resource >= MAX_DRIVES ||
+        control_read(&control) != 0) return false;
+    uint32_t mask = 1U << resource;
+    if ((control.admin_transition_resources & mask) != mask) return false;
+    if (detected_drives[resource].type == DRIVE_TYPE_PARTITION) {
+        uint32_t parent = detected_drives[resource].parent_resource;
+        if (parent >= (uint32_t)drive_count || parent >= MAX_DRIVES ||
+            detected_drives[parent].type == DRIVE_TYPE_PARTITION) return false;
+        uint32_t parent_mask = 1U << parent;
+        if ((control.admin_down_resources & parent_mask) != 0U &&
+            (control.admin_transition_resources & parent_mask) == 0U) return false;
+        mask |= parent_mask;
+    }
+    return ((control.quarantined_resources | control.read_only_resources |
+             control.recovering_resources | control.admin_failed_resources) & mask) == 0U;
+}
+
 static void storage_service_emit_pending_quarantine(void) {
     uint32_t observed = __atomic_load_n(&pending_quarantine_reports,
                                          __ATOMIC_ACQUIRE);
@@ -867,6 +886,52 @@ bool storage_service_report_media_failure(uint32_t resource,
         (void)__atomic_fetch_or(&pending_quarantine_reports, mask,
                                 __ATOMIC_RELEASE);
     return true;
+}
+
+static bool repair_identity_current(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    storage_service_control_t control;
+    uint32_t expected = 0;
+    if (resource >= MAX_DRIVES || resource >= (uint32_t)drive_count || !fingerprint ||
+        !storage_service_authorized(pid, generation) || control_read(&control) ||
+        !storage_service_expected_fingerprint(resource, &expected) || expected != fingerprint) return false;
+    uint32_t mask = 1U << resource, admin_mask = mask;
+    drive_t* drive = &detected_drives[resource];
+    if (drive->type == DRIVE_TYPE_PARTITION) {
+        if (drive->parent_resource >= MAX_DRIVES || drive->parent_resource >= (uint32_t)drive_count ||
+            detected_drives[drive->parent_resource].type != DRIVE_TYPE_ATA) return false;
+        admin_mask |= 1U << drive->parent_resource;
+    } else if (drive->type != DRIVE_TYPE_ATA) return false;
+    return !(admin_mask & (control.admin_down_resources | control.admin_transition_resources | control.admin_failed_resources)) &&
+        (control.quarantined_resources & mask) && (control.read_only_resources & mask);
+}
+
+bool storage_service_repair_check(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    if (!repair_identity_current(resource, pid, generation, fingerprint)) return false;
+    drive_t* drive = &detected_drives[resource];
+    if (drive->type == DRIVE_TYPE_PARTITION && !media_identity_matches(drive->parent_resource)) return false;
+    return media_identity_matches(resource) && repair_identity_current(resource, pid, generation, fingerprint);
+}
+
+bool storage_service_repair_publish(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint) {
+    /* VFS -> try lifecycle only; supervisor holds lifecycle -> try VFS. */
+    if (!lifecycle_enter()) return false;
+    storage_service_control_t control;
+    bool ok = repair_identity_current(resource, pid, generation, fingerprint) && control_read(&control) == 0;
+    if (ok) {
+        uint32_t mask = 1U << resource;
+        uint32_t other_unsafe = (control.quarantined_resources | control.read_only_resources |
+            control.admin_down_resources | control.admin_transition_resources | control.admin_failed_resources) & ~mask;
+        if (!other_unsafe) ok = storage_restore_writes_after_recovery(resource) && filesystem_restore_mutations_after_recovery();
+        if (ok) {
+            control.quarantined_resources &= ~mask;
+            control.read_only_resources &= ~mask;
+            control.recovering_resources &= ~mask;
+            ok = control_write(&control) == 0;
+        }
+    }
+    if (!ok) { storage_fence_writes(); filesystem_fence_mutations(); }
+    lifecycle_leave();
+    return ok;
 }
 
 static void poll_media_reintegration(uint64_t now_ms) {
@@ -999,7 +1064,9 @@ void storage_service_poll(uint64_t now_ms) {
     }
     uint32_t object_fences = 0U;
     if (vfs_file_object_guard_fenced(&object_fences) != 0) goto done;
-    if ((object_fences & ~observed_object_fences) != 0U) {
+    observed_object_fences &= object_fences;
+    if ((object_fences & ~observed_object_fences) != 0U ||
+        (control.retiring == 0U && vfs_file_repair_expired(control.pid, control.generation, now_ms))) {
         /* The VFS guard has already published quarantine before dropping its
          * mutex. A timed-out mutation must not leave a healthy-looking but
          * hung Storage process serving unrelated volumes indefinitely. */

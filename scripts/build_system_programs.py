@@ -261,7 +261,13 @@ PROGRAMS = {
         ROOT / "userspace/storage/lib/vfs_shadow_fat32.c",
         ROOT / "userspace/storage/lib/vfs_shadow_ext2.c",
         ROOT / "userspace/storage/lib/fat32_transaction.c",
+        ROOT / "userspace/storage/lib/fat32_file_write.c",
         ROOT / "drivers/block/ata_journal.c",
+    ),
+    "FWRITEST.PRG": (
+        ROOT / "userspace/programs/fwritest.c",
+        ROOT / "userspace/storage/lib/vfs_file_client.c",
+        ROOT / "userspace/storage/lib/vfs_path.c",
     ),
     "HDA.PRG": ROOT / "userspace/drivers/audio/hda_driver.c",
     "SVGA2D.PRG": ROOT / "userspace/drivers/video/vmware_svga2d.c",
@@ -385,7 +391,7 @@ def main() -> None:
                 dependency_files.append(ROOT / "userspace/gui/apps/display/display_model.h")
             if name in {"STORAGE.PRG", "STAT.PRG", "HTTPD.PRG", "CAT.PRG",
                         "LS.PRG", "TREE.PRG", "FIND.PRG", "DESKTOP.PRG",
-                        "SHELL.PRG", "GTEST.PRG", "OBJGDTST.PRG", "IMAGEVIEWER.PRG",
+                        "SHELL.PRG", "GTEST.PRG", "OBJGDTST.PRG", "FWRITEST.PRG", "IMAGEVIEWER.PRG",
                         "LN.PRG", "READLINK.PRG", "DEL.PRG",
                         "RENAME.PRG", "RM.PRG", "BROWSER.PRG", "DISPLAY.PRG", "MOUSE.PRG", "JS.PRG", "JSRUNTST.PRG"}:
                 dependency_files.extend(storage_headers)
@@ -407,6 +413,12 @@ def main() -> None:
             if name == "STORAGE.PRG":
                 includes.append(ROOT)
                 link_libraries.append(sdk.libc_library)
+            if name == "FWRITEST.PRG":
+                # Conventional compiler runtime for uint64 progress printing;
+                # old file-client consumers keep their existing link contracts.
+                link_libraries.extend([sdk.libc_library,
+                    sdk.library_dir / "libclang_rt.builtins-i386.a"])
+                dependency_files.append(Path(__file__).resolve())
             if name == "HTMLWORK.PRG":
                 includes[:0] = [sdk.libc_include_dir, GUI_INCLUDE_ROOT]
                 link_libraries.extend([sdk.library_dir / "libhubbub.a",
@@ -503,7 +515,10 @@ def main() -> None:
                 dependency_files=dependency_files,
                 cpp=name in ("CPPTEST.PRG", "BROWSER.PRG", "JSIPCTST.PRG", "JS.PRG", "JSRUNTST.PRG") or name == "HTMLWORK.PRG",
                 compile_flags=(
-                    (["-fno-inline-functions"]
+                    # Keep the supervised service in its existing224KiB rescue
+                    # image budget; discard unused sections and avoid code-size
+                    # expansion. Runtime deadlines/PIO batching stay unchanged.
+                    (["-fno-inline-functions", "-fno-unroll-loops", "-falign-functions=1", "-ffunction-sections", "-fdata-sections"]
                      if name == "STORAGE.PRG" else []) +
                     (["-DREIST_CSS_WORKER", "-DREIST_SCRIPT_WORKER", "-ffunction-sections", "-fdata-sections"] if name == "HTMLWORK.PRG" else []) +
                     (["-DREIST_CURL_TLS_RUNTIME_PROBE"]

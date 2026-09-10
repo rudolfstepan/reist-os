@@ -28,6 +28,9 @@
 #define FAT12_BAD_CLUSTER 0x0FF7U
 #define FAT12_RESERVED_MIN 0x0FF0U
 
+_Static_assert(REIST_VFS_SHADOW_FAT_CHAIN_WINDOW * 2U + 2U <=
+    REIST_VFS_SHADOW_MAX_SECTOR_READS, "chain window retains total read budget");
+
 typedef struct {
     uint32_t resource;
     uint32_t sectors;
@@ -39,6 +42,7 @@ typedef struct {
     uint32_t root_dir_start;
     uint32_t root_dir_sectors;
     uint32_t active_fat;
+    uint32_t total_sectors, extended_flags, filesystem_version, fsinfo_sector, backup_sector;
     uint32_t reads;
     uint32_t signature;
     uint32_t fat_cache_lba;
@@ -317,6 +321,11 @@ static int shadow_parse_bpb(shadow_volume_t *volume, uint8_t required_type) {
     volume->sectors_per_cluster = (uint8_t)sectors_per_cluster;
     volume->fat_count = (uint8_t)fat_count;
     volume->fat_type = fat_type;
+    volume->total_sectors = total;
+    volume->extended_flags = shadow_get16(sector + 40U);
+    volume->filesystem_version = shadow_get16(sector + 42U);
+    volume->fsinfo_sector = shadow_get16(sector + 48U);
+    volume->backup_sector = shadow_get16(sector + 50U);
     return 0;
 }
 
@@ -333,10 +342,9 @@ static void shadow_file_chain_guard_initialize(
     guard->visited = 1U;
 }
 
-static int shadow_file_chain_advance(shadow_file_chain_guard_t *guard,
-                                     uint32_t next) {
-    if (guard == 0 ||
-        guard->visited >= REIST_VFS_SHADOW_MAX_FILE_CHAIN_CLUSTERS)
+static int shadow_file_chain_advance_limit(shadow_file_chain_guard_t *guard,
+                                           uint32_t next, uint32_t limit) {
+    if (guard == 0 || guard->visited >= limit)
         return -110;
     if (next == guard->anchor) return -5;
     ++guard->visited;
@@ -348,6 +356,10 @@ static int shadow_file_chain_advance(shadow_file_chain_guard_t *guard,
             ? guard->power * 2U : UINT32_MAX;
     }
     return 0;
+}
+
+static int shadow_file_chain_advance(shadow_file_chain_guard_t *guard, uint32_t next) {
+    return shadow_file_chain_advance_limit(guard, next, REIST_VFS_SHADOW_MAX_FILE_CHAIN_CLUSTERS);
 }
 
 static int shadow_fat_sector(shadow_volume_t *volume, uint32_t lba,
@@ -783,10 +795,21 @@ int reist_vfs_shadow_fat_stat(const reist_vfs_shadow_io_t *io,
     return shadow_stat(io, absolute_path, path_length, info, FAT_TYPE_ANY);
 }
 
-static int shadow_read_file(shadow_volume_t *volume,
+static int shadow_read_checkpoint(shadow_volume_t *volume, uint32_t *work,
+        reist_vfs_shadow_progress_fn progress, void *context) {
+    if (!progress || (*work)++ < REIST_VFS_SHADOW_FAT_CHAIN_WINDOW) return 0;
+    int status = progress(context);
+    if (status) return status < 0 ? status : -5;
+    *work = 1U;
+    volume->reads = 0U;
+    return 0;
+}
+
+static int shadow_read_file_windowed(shadow_volume_t *volume,
                             const shadow_dir_entry_t *entry, uint32_t offset,
                             uint8_t *data, uint32_t capacity,
-                            uint32_t *transferred) {
+                            uint32_t *transferred,
+                            reist_vfs_shadow_progress_fn progress, void *context) {
     if ((entry->bytes[11U] & FAT32_ATTR_DIRECTORY) != 0U) return -21;
     uint32_t size = shadow_get32(entry->bytes + 28U);
     if (offset >= size) return 0;
@@ -800,16 +823,20 @@ static int shadow_read_file(shadow_volume_t *volume,
     shadow_file_chain_guard_t guard;
     shadow_file_chain_guard_initialize(&guard, cluster);
     int status = 0;
+    uint32_t work = 0U;
     for (;;) {
         if (!shadow_cluster_valid(volume, cluster)) return -5;
         if (skip == 0U) break;
+        status = shadow_read_checkpoint(volume, &work, progress, context);
+        if (status) return status;
         uint32_t next = 0U;
         status = shadow_next_cluster(volume, cluster, &next);
         if (status != 0) return status;
         if (shadow_end_of_chain(volume, next) ||
             shadow_invalid_link(volume, next) ||
             !shadow_cluster_valid(volume, next)) return -5;
-        status = shadow_file_chain_advance(&guard, next);
+        status = progress ? shadow_file_chain_advance_limit(&guard, next, volume->cluster_count)
+                          : shadow_file_chain_advance(&guard, next);
         if (status != 0) return status;
         cluster = next;
         --skip;
@@ -818,6 +845,8 @@ static int shadow_read_file(shadow_volume_t *volume,
     uint32_t completed = 0U;
     uint8_t sector[X86OS_STORAGE_BLOCK_SIZE];
     while (completed < amount) {
+        status = shadow_read_checkpoint(volume, &work, progress, context);
+        if (status) return status;
         uint64_t first = (uint64_t)volume->data_start +
             (uint64_t)(cluster - 2U) * volume->sectors_per_cluster;
         uint32_t sector_in_cluster = in_cluster / X86OS_STORAGE_BLOCK_SIZE;
@@ -832,19 +861,29 @@ static int shadow_read_file(shadow_volume_t *volume,
         completed += chunk;
         in_cluster += chunk;
         if (in_cluster < cluster_bytes || completed == amount) continue;
+        status = shadow_read_checkpoint(volume, &work, progress, context);
+        if (status) return status;
         uint32_t next = 0U;
         status = shadow_next_cluster(volume, cluster, &next);
         if (status != 0) return status;
         if (shadow_end_of_chain(volume, next) ||
             shadow_invalid_link(volume, next) ||
             !shadow_cluster_valid(volume, next)) return -5;
-        status = shadow_file_chain_advance(&guard, next);
+        status = progress ? shadow_file_chain_advance_limit(&guard, next, volume->cluster_count)
+                          : shadow_file_chain_advance(&guard, next);
         if (status != 0) return status;
         cluster = next;
         in_cluster = 0U;
     }
     *transferred = completed;
     return 0;
+}
+
+static int shadow_read_file(shadow_volume_t *volume,
+        const shadow_dir_entry_t *entry, uint32_t offset, uint8_t *data,
+        uint32_t capacity, uint32_t *transferred) {
+    return shadow_read_file_windowed(volume, entry, offset, data, capacity,
+                                    transferred, 0, 0);
 }
 
 int reist_vfs_shadow_fat_read(const reist_vfs_shadow_io_t *io,
@@ -1316,26 +1355,217 @@ int reist_vfs_shadow_fat_object_stat(
     return status;
 }
 
-int reist_vfs_shadow_fat_object_read(
+int reist_vfs_shadow_fat_volume_view(const reist_vfs_shadow_io_t* io,
+    uint32_t resource, reist_vfs_shadow_fat_view_t* view) {
+    if (!view || !io || !io->drive_info || !io->read_sector || resource >= REIST_VFS_SHADOW_MAX_RESOURCES) return -22;
+    shadow_zero(view, sizeof(*view));
+    x86os_drive_info_t drive;
+    shadow_zero(&drive, sizeof(drive));
+    if (io->drive_info(io->context, resource, &drive) <= 0 || !drive.sectors) return -116;
+    shadow_volume_t volume;
+    shadow_zero(&volume, sizeof(volume));
+    volume.resource = resource; volume.sectors = drive.sectors; volume.io = io;
+    int result = shadow_parse_bpb(&volume, FAT_TYPE_32);
+    if (result) return result;
+    if (volume.filesystem_version) return -95;
+    *view = (reist_vfs_shadow_fat_view_t){
+        .object = {.resource=resource, .volume_signature=volume.signature},
+        .sectors = volume.total_sectors,
+        .reserved_sectors = volume.reserved_sectors, .fat_sectors = volume.fat_sectors,
+        .data_start = volume.data_start, .cluster_count = volume.cluster_count,
+        .root_cluster = volume.root_cluster, .sectors_per_cluster = volume.sectors_per_cluster,
+        .fat_count = volume.fat_count, .active_fat = volume.active_fat,
+        .mirrored = !(volume.extended_flags & 0x80U), .fsinfo_sector = volume.fsinfo_sector,
+        .backup_sector = volume.backup_sector
+    };
+    return 0;
+}
+
+int reist_vfs_shadow_fat_view(const reist_vfs_shadow_io_t* io,
+    const reist_vfs_shadow_object_t* object, reist_vfs_shadow_fat_view_t* view) {
+    if (!view) return -22;
+    shadow_zero(view, sizeof(*view));
+    shadow_volume_t volume;
+    int result = shadow_object_volume(io, object, &volume);
+    if (result) return result;
+    if (volume.fat_type != FAT_TYPE_32 || volume.filesystem_version) return -95;
+    if (object->locator_a < volume.data_start || object->locator_a >= volume.total_sectors)
+        return -116;
+    shadow_dir_entry_t entry;
+    char visible[256];
+    result = shadow_object_entry(&volume, object, &entry, visible);
+    if (result) return result;
+    *view = (reist_vfs_shadow_fat_view_t){
+        .object = *object, .sectors = volume.total_sectors,
+        .reserved_sectors = volume.reserved_sectors, .fat_sectors = volume.fat_sectors,
+        .data_start = volume.data_start, .cluster_count = volume.cluster_count,
+        .root_cluster = volume.root_cluster, .sectors_per_cluster = volume.sectors_per_cluster,
+        .fat_count = volume.fat_count, .active_fat = volume.active_fat,
+        .mirrored = !(volume.extended_flags & 0x80U), .fsinfo_sector = volume.fsinfo_sector,
+        .backup_sector = volume.backup_sector, .file_size = shadow_get32(entry.bytes + 28U)
+    };
+    shadow_copy(view->entry, entry.bytes, sizeof(view->entry));
+    return 0;
+}
+
+static int shadow_file_resize_view(const reist_vfs_shadow_fat_view_t* before,
+    uint32_t size, uint32_t start, reist_vfs_shadow_fat_view_t* after) {
+    if (!before || !after || (start && (start < 2 || start > before->cluster_count+1)) ||
+        (size && !start) || before->object.locator_c !=
+            (shadow_get16(before->entry+26) | (uint32_t)shadow_get16(before->entry+20)<<16) ||
+        before->object.object_generation != shadow_entry_generation(before->entry) ||
+        before->file_size != shadow_get32(before->entry+28)) return -22;
+    reist_vfs_shadow_fat_view_t result = *before;
+    result.file_size = size; result.object.locator_c = start;
+    for (unsigned i = 0; i < 4; ++i) result.entry[28+i] = (uint8_t)(size>>(8*i));
+    result.entry[26] = (uint8_t)start; result.entry[27] = (uint8_t)(start>>8);
+    result.entry[20] = (uint8_t)(start>>16); result.entry[21] = (uint8_t)(start>>24);
+    result.object.object_generation = shadow_entry_generation(result.entry);
+    *after = result;
+    return 0;
+}
+
+int reist_vfs_shadow_fat_shrink_view(const reist_vfs_shadow_fat_view_t* before,
+    uint32_t size, uint32_t start, reist_vfs_shadow_fat_view_t* after) {
+    if (!before || size > before->file_size ||
+        (start != before->object.locator_c && (start || size))) return -22;
+    return shadow_file_resize_view(before, size, start, after);
+}
+
+int reist_vfs_shadow_fat_grow_view(const reist_vfs_shadow_fat_view_t* before,
+    uint32_t size, uint32_t start, reist_vfs_shadow_fat_view_t* after) {
+    if (!before || size < before->file_size ||
+        (before->object.locator_c && start != before->object.locator_c) ||
+        (size == before->file_size && start != before->object.locator_c)) return -22;
+    return shadow_file_resize_view(before, size, start, after);
+}
+
+int reist_vfs_shadow_fat_chain_begin(const reist_vfs_shadow_io_t* io,
+    const reist_vfs_shadow_object_t* object, uint64_t epoch,
+    reist_vfs_shadow_fat_chain_cursor_t* cursor) {
+    if (!cursor) return -22;
+    shadow_zero(cursor, sizeof(*cursor));
+    if (!epoch) return -22;
+    int result = reist_vfs_shadow_fat_view(io, object, &cursor->view);
+    if (result) return result;
+    cursor->version = REIST_VFS_SHADOW_FAT_CHAIN_VERSION;
+    cursor->struct_size = sizeof(*cursor);
+    cursor->epoch = epoch;
+    cursor->cluster = object->locator_c;
+    cursor->anchor = cursor->cluster;
+    cursor->power = 1;
+    cursor->visited = cursor->cluster ? 1 : 0;
+    cursor->complete = cursor->cluster ? 0 : 1;
+    return 0;
+}
+
+static int shadow_chain_fail(reist_vfs_shadow_fat_chain_cursor_t* cursor, int error) {
+    cursor->complete = 0;
+    cursor->cache_valid[0] = cursor->cache_valid[1] = 0;
+    cursor->error = error;
+    return error;
+}
+
+int reist_vfs_shadow_fat_chain_step(const reist_vfs_shadow_io_t* io,
+    uint64_t epoch, reist_vfs_shadow_fat_chain_cursor_t* cursor) {
+    if (!cursor) return -22;
+    if (!epoch || cursor->epoch != epoch)
+        return shadow_chain_fail(cursor, -116);
+    if (cursor->version != REIST_VFS_SHADOW_FAT_CHAIN_VERSION ||
+        cursor->struct_size != sizeof(*cursor) || cursor->complete > 1 ||
+        cursor->cache_valid[0] > 1 || cursor->cache_valid[1] > 1)
+        return shadow_chain_fail(cursor, -22);
+    if (cursor->error) return cursor->error;
+    reist_vfs_shadow_fat_view_t current;
+    int result = reist_vfs_shadow_fat_view(io, &cursor->view.object, &current);
+    if (result) return shadow_chain_fail(cursor, result);
+    /* No native pointers/padding in this parser view. A changed directory byte
+     * is not our commit, even when the old start-cluster locator still matches. */
+    const uint8_t* old = (const uint8_t*)&cursor->view;
+    const uint8_t* fresh = (const uint8_t*)&current;
+    for (uint32_t i = 0; i < sizeof(current); ++i)
+        if (old[i] != fresh[i]) return shadow_chain_fail(cursor, -116);
+    if (cursor->complete) return 0;
+    if (!cursor->power || (cursor->power & (cursor->power-1U)) ||
+        cursor->distance >= cursor->power || !cursor->visited ||
+        cursor->visited > current.cluster_count) return shadow_chain_fail(cursor, -22);
+    for (unsigned work = 0; work < REIST_VFS_SHADOW_FAT_CHAIN_WINDOW; ++work) {
+        uint32_t cluster = cursor->cluster;
+        if (cluster < 2 || cluster > current.cluster_count+1U) return shadow_chain_fail(cursor, -5);
+        uint32_t index = cluster / 128U, offset = (cluster % 128U)*4U, next = 0;
+        unsigned first = current.mirrored ? 0 : current.active_fat;
+        unsigned end = current.mirrored ? current.fat_count : first+1;
+        for (unsigned copy = first; copy < end; ++copy) {
+            uint32_t lba = current.reserved_sectors + copy*current.fat_sectors + index;
+            if (!cursor->cache_valid[copy] || cursor->cache_lba[copy] != lba) {
+                cursor->cache_valid[copy] = 0;
+                if (io->read_sector(io->context, current.object.resource, lba, cursor->cache[copy]))
+                    return shadow_chain_fail(cursor, -5);
+                cursor->cache_lba[copy] = lba;
+                cursor->cache_valid[copy] = 1;
+            }
+            uint32_t link = shadow_get32(cursor->cache[copy]+offset) & 0x0fffffffU;
+            if (copy != first && link != next) return shadow_chain_fail(cursor, -5);
+            next = link;
+        }
+        if (next >= FAT32_EOC_MIN) {
+            uint64_t capacity = (uint64_t)cursor->visited * current.sectors_per_cluster * 512U;
+            if (capacity < current.file_size) return shadow_chain_fail(cursor, -5);
+            cursor->complete = 1;
+            return 0;
+        }
+        if (next < 2 || next >= FAT32_RESERVED_MIN || next > current.cluster_count+1U)
+            return shadow_chain_fail(cursor, -5);
+        shadow_file_chain_guard_t guard = {cursor->anchor, cursor->power, cursor->distance, cursor->visited};
+        result = shadow_file_chain_advance_limit(&guard, next, current.cluster_count);
+        if (result) return shadow_chain_fail(cursor, -5);
+        cursor->anchor = guard.anchor; cursor->power = guard.power;
+        cursor->distance = guard.distance; cursor->visited = guard.visited;
+        cursor->cluster = next;
+    }
+    return 1;
+}
+
+static int shadow_object_read_windowed(
         const reist_vfs_shadow_io_t *io,
         const reist_vfs_shadow_object_t *object, uint32_t offset,
-        uint8_t *data, uint32_t capacity, uint32_t *transferred) {
+        uint8_t *data, uint32_t capacity, uint32_t *transferred,
+        reist_vfs_shadow_progress_fn progress, void *context) {
     if (data == 0 || transferred == 0 || capacity == 0U ||
         capacity > X86OS_STORAGE_BULK_MAX_BYTES) return -22;
     shadow_zero(data, capacity);
     *transferred = 0U;
     shadow_volume_t volume;
-    int status = shadow_object_volume(io, object, &volume);
+    int status = progress ? progress(context) : 0;
+    if (status) return status < 0 ? status : -5;
+    status = shadow_object_volume(io, object, &volume);
     if (status != 0) return status;
     shadow_dir_entry_t entry;
     char visible[256];
     status = shadow_object_entry(&volume, object, &entry, visible);
     if (status != 0) return status;
-    status = shadow_read_file(&volume, &entry, offset, data, capacity,
-                              transferred);
+    status = shadow_read_file_windowed(&volume, &entry, offset, data, capacity,
+                                      transferred, progress, context);
+    if (!status && progress) status = progress(context);
     if (status != 0) {
         shadow_zero(data, capacity);
         *transferred = 0U;
     }
-    return status;
+    return status > 0 ? -5 : status;
+}
+
+int reist_vfs_shadow_fat_object_read(
+        const reist_vfs_shadow_io_t *io, const reist_vfs_shadow_object_t *object,
+        uint32_t offset, uint8_t *data, uint32_t capacity, uint32_t *transferred) {
+    return shadow_object_read_windowed(io, object, offset, data, capacity,
+                                      transferred, 0, 0);
+}
+
+int reist_vfs_shadow_fat_object_read_windowed(
+        const reist_vfs_shadow_io_t *io, const reist_vfs_shadow_object_t *object,
+        uint32_t offset, uint8_t *data, uint32_t capacity, uint32_t *transferred,
+        reist_vfs_shadow_progress_fn progress, void *context) {
+    if (!progress) return -22;
+    return shadow_object_read_windowed(io, object, offset, data, capacity,
+                                      transferred, progress, context);
 }

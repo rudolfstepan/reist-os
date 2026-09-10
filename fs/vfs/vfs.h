@@ -117,6 +117,11 @@ typedef struct vfs_filesystem_ops {
     int (*journal_handoff)(struct vfs_filesystem* fs, uint64_t deadline_ms);
     bool (*journal_write_range)(const struct vfs_filesystem* fs,
                                  uint32_t sector, uint32_t count);
+    /* Pure projection of validated geometry, retained before external effects. */
+    int (*journal_geometry)(const struct vfs_filesystem* fs,
+                            uint32_t* reserved_sectors, uint32_t* backup_sector);
+    /* Deny-only detach of revoked state; must perform NO media I/O. */
+    int (*unmount_revoked)(struct vfs_filesystem* fs);
 } vfs_filesystem_ops_t;
 
 // ===========================================================================
@@ -184,6 +189,14 @@ void vfs_init(void);
  * validate caller authority and the complete user input/output range. */
 int vfs_file_object_guard_request(reist_file_object_guard_request_t* request,
                                   int service_pid, uint32_t service_generation);
+int vfs_file_object_owned_request(reist_file_object_owned_request_t* request,
+                                  int service_pid, uint32_t service_generation);
+int vfs_file_repair_request(reist_file_repair_request_t* request,
+                            int service_pid, uint32_t service_generation);
+bool vfs_file_repair_expired(int pid, uint32_t generation, uint64_t now_ms);
+/* Caller holds the VFS mutex; checked kind lookup, not independent authority. */
+int vfs_storage_journal_repair(const reist_storage_journal_request_t* request,
+                              int pid, uint32_t generation, bool* repair);
 int vfs_file_object_guard_cancel_undelivered(
     const reist_file_object_guard_request_t* result,
     int service_pid, uint32_t service_generation);
@@ -203,8 +216,18 @@ int vfs_storage_journal_io_begin(const reist_storage_journal_request_t* request,
     int pid, uint32_t generation, bool* was_pending, uint64_t* deadline_ms);
 int vfs_storage_journal_io_complete(const reist_storage_journal_request_t* request,
     int pid, uint32_t generation, bool success);
+/* Internal combined admission only; existing entry points/wire frames remain. */
+int vfs_storage_journal_io_begin_mode(const reist_storage_journal_request_t* request,
+    int pid, uint32_t generation, bool* was_pending, uint64_t* deadline_ms, bool* repair);
 int vfs_storage_journal_io_mark_write(const reist_storage_journal_request_t* request,
     int pid, uint32_t generation);
+/* Caller holds the VFS mutex through ATA command issue. Never blocks. */
+int vfs_storage_journal_authorized(const reist_storage_journal_request_t* request,
+    int pid, uint32_t generation, bool effect);
+typedef struct { reist_storage_journal_request_t request; int pid; uint32_t generation; } vfs_journal_admission_t;
+int vfs_storage_journal_check(void* context, bool effect);
+int vfs_storage_journal_abort(const reist_storage_journal_request_t* request,
+    int pid, uint32_t generation, uint32_t* outcome);
 
 // Filesystem registration
 int vfs_register_filesystem(const char* name, vfs_filesystem_ops_t* ops);

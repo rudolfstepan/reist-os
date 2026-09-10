@@ -121,12 +121,10 @@ bool storage_safety_init(uint64_t now_ms) {
     return true;
 }
 
-bool storage_write_begin(uint32_t resource, uint64_t now_ms) {
+static bool storage_write_begin_admitted(uint32_t resource, uint64_t now_ms,
+                                         uint64_t deadline_ms) {
     storage_control_t state;
-    if (resource >= (uint32_t)drive_count || resource >= MAX_DRIVES ||
-        storage_handover_is_held() ||
-        !storage_service_resource_available(resource) ||
-        storage_service_resource_read_only(resource)) return false;
+    if (deadline_ms <= now_ms) return false;
     if (!storage_supervised)
         return !storage_integrity_failed && !storage_force_fenced;
     if (storage_force_fenced) return false;
@@ -140,6 +138,8 @@ bool storage_write_begin(uint32_t resource, uint64_t now_ms) {
     state.active_resource = resource;
     state.operation_deadline_ms = UINT64_MAX - now_ms < STORAGE_WRITE_DEADLINE_MS
         ? UINT64_MAX : now_ms + STORAGE_WRITE_DEADLINE_MS;
+    if (deadline_ms < state.operation_deadline_ms)
+        state.operation_deadline_ms = deadline_ms;
     if (!storage_control_write(&state) ||
         supervisor_report_progress(storage_supervisor_handle,
                                    state.progress_marker, now_ms) != 0) {
@@ -147,6 +147,28 @@ bool storage_write_begin(uint32_t resource, uint64_t now_ms) {
         return false;
     }
     return true;
+}
+
+bool storage_write_begin(uint32_t resource, uint64_t now_ms) {
+    if (resource >= (uint32_t)drive_count || resource >= MAX_DRIVES ||
+        storage_handover_is_held() ||
+        !storage_service_resource_available(resource) ||
+        storage_service_resource_read_only(resource)) return false;
+    return storage_write_begin_admitted(resource, now_ms, UINT64_MAX);
+}
+
+bool storage_admin_flush_begin(uint32_t resource, uint64_t now_ms, uint64_t deadline_ms) {
+    if (storage_handover_is_held() ||
+        !storage_service_admin_flush_allowed(resource)) return false;
+    return storage_write_begin_admitted(resource, now_ms, deadline_ms);
+}
+
+bool storage_admin_flush_current(uint32_t resource, uint64_t now_ms) {
+    storage_control_t state;
+    return storage_supervised && !storage_force_fenced && !storage_integrity_failed &&
+        !storage_handover_is_held() && storage_service_admin_flush_allowed(resource) &&
+        storage_control_read(&state) && !state.write_fenced && state.operation_active &&
+        state.active_resource == resource && now_ms < state.operation_deadline_ms;
 }
 
 bool storage_write_end(bool durable_commit) {

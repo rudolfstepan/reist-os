@@ -1320,6 +1320,8 @@ _Static_assert(sizeof(storage_request_descriptor_t) == 28U,
                "storage descriptor ABI changed");
 _Static_assert(sizeof(storage_request_descriptor_v2_t) == 40U,
                "storage descriptor v2 ABI changed");
+_Static_assert(sizeof(storage_request_descriptor_v3_t) == 48U,
+               "storage descriptor v3 ABI changed");
 _Static_assert(sizeof(storage_request_bulk_control_t) == 32U,
                "storage bulk control ABI changed");
 
@@ -1365,7 +1367,8 @@ static int syscall_storage_submit(const storage_request_submit_t *user_request,
         request.operation != STORAGE_REQUEST_VFS_SHADOW_STAT &&
         request.operation != STORAGE_REQUEST_VFS_BULK_READ) return -13;
     if ((request.operation == STORAGE_REQUEST_VFS_SYMLINK ||
-         request.operation == STORAGE_REQUEST_VFS_NAMESPACE) &&
+         request.operation == STORAGE_REQUEST_VFS_NAMESPACE ||
+         request.operation == STORAGE_REQUEST_VFS_OBJECT_MUTATE) &&
         process->domain_profile.kind != PROCESS_DOMAIN_COMPATIBILITY)
         return -13;
     if (request.operation >= STORAGE_REQUEST_FORMAT_FAT12 &&
@@ -1386,7 +1389,8 @@ static int syscall_storage_submit(const storage_request_submit_t *user_request,
         request.operation == STORAGE_REQUEST_VFS_SHADOW_STAT ||
         request.operation == STORAGE_REQUEST_VFS_BULK_READ ||
         request.operation == STORAGE_REQUEST_VFS_SYMLINK ||
-        request.operation == STORAGE_REQUEST_VFS_NAMESPACE) {
+        request.operation == STORAGE_REQUEST_VFS_NAMESPACE ||
+        request.operation == STORAGE_REQUEST_VFS_OBJECT_MUTATE) {
         uint32_t data_address = (uint32_t)(uintptr_t)user_data;
         if (request.length > sizeof(data) ||
             !user_range_accessible(directory, data_address, request.length,
@@ -1470,6 +1474,27 @@ static int syscall_storage_claim_identity(
                            sizeof(request)) != 0) {
         (void)storage_request_complete(process->pid, process->generation,
                                        request.handle, -14, NULL);
+        return -14;
+    }
+    return 0;
+}
+
+static int syscall_storage_claim_identity_v3(storage_request_descriptor_v3_t *user_request,
+                                             uint8_t *user_data) {
+    Process *process = scheduler_current_process();
+    page_directory_t *directory = paging_current_directory();
+    if (!process || !storage_service_authorized(process->pid, process->generation)) return -13;
+    uint32_t address = (uint32_t)(uintptr_t)user_request, data_address = (uint32_t)(uintptr_t)user_data;
+    if (!user_range_accessible(directory, address, sizeof(*user_request), true) ||
+        !user_range_accessible(directory, data_address, STORAGE_REQUEST_BLOCK_SIZE, true)) return -14;
+    storage_request_descriptor_v3_t request;
+    uint8_t data[STORAGE_REQUEST_BLOCK_SIZE] = {0};
+    int result = storage_request_claim_v3(process->pid, process->generation,
+                                          pit_monotonic_ms(), &request, data);
+    if (result) return result;
+    if (copy_to_user_space(directory, data_address, data, sizeof(data)) ||
+        copy_to_user_space(directory, address, &request, sizeof(request))) {
+        (void)storage_request_complete(process->pid, process->generation, request.handle, -14, NULL);
         return -14;
     }
     return 0;
@@ -1680,24 +1705,31 @@ static int syscall_storage_journal_io(const reist_storage_journal_request_t* use
     if (flush ? user_data != NULL : (!user_data ||
         !user_range_accessible(directory, (uint32_t)(uintptr_t)user_data, size, !write)))
         return -REIST_EFAULT;
-    if (!storage_service_resource_available(request.resource) ||
-        storage_service_resource_read_only(request.resource)) return -REIST_EROFS;
-    bool pending = false;
+    bool pending = false, repair = false;
     uint64_t deadline_ms = 0;
-    int result = vfs_storage_journal_io_begin(&request, process->pid, process->generation,
-                                             &pending, &deadline_ms);
+    int result = vfs_storage_journal_io_begin_mode(&request, process->pid, process->generation,
+                                             &pending, &deadline_ms, &repair);
     if (result) return result;
+    if (!result && !repair && (!storage_service_resource_available(request.resource) ||
+        storage_service_resource_read_only(request.resource))) result = -REIST_EROFS;
+    if (result) { vfs_file_object_guard_io_end(); return result; }
     if (write && copy_from_user(storage_journal_staging, user_data, size)) {
         vfs_file_object_guard_io_end();
         return -REIST_EFAULT;
     }
-    if (write) result = vfs_storage_journal_io_mark_write(&request, process->pid, process->generation);
-    if (!result) result = ata_external_journal_io(request.resource, request.operation,
-        request.sector, request.count, flush ? NULL : storage_journal_staging, pending, deadline_ms);
-    int completion = vfs_storage_journal_io_complete(&request, process->pid, process->generation,
-                                                     result == 0);
-    if (!result) result = completion;
-    if (result) (void)storage_service_report_media_failure(request.resource, true);
+    vfs_journal_admission_t context = {request, process->pid, process->generation};
+    ata_journal_admission_t admission = {vfs_storage_journal_check, &context, 0};
+    result = repair ? ata_repair_journal_io_checked(request.resource, request.operation,
+        request.sector, request.count, flush ? NULL : storage_journal_staging, pending, deadline_ms, &admission) :
+        ata_external_journal_io_checked(request.resource, request.operation,
+        request.sector, request.count, flush ? NULL : storage_journal_staging, pending, deadline_ms, &admission);
+    if (!result) result = vfs_storage_journal_io_complete(&request, process->pid, process->generation, true);
+    if (result) {
+        uint32_t outcome = REIST_FILE_OBJECT_UNKNOWN;
+        (void)vfs_storage_journal_abort(&request, process->pid, process->generation, &outcome);
+        if (outcome != REIST_FILE_OBJECT_NO_EFFECT)
+            (void)storage_service_report_media_failure(request.resource, true);
+    }
     if (!result && !write && !flush && copy_to_user(user_data, storage_journal_staging, size))
         result = -REIST_EFAULT;
     vfs_file_object_guard_io_end();
@@ -1847,11 +1879,49 @@ static int syscall_storage_bulk(storage_request_bulk_control_t *user_control,
     storage_request_bulk_control_t control;
     if (copy_from_user(&control, user_control, sizeof(control)) != 0)
         return -14;
-    if (control.version != STORAGE_REQUEST_BULK_VERSION ||
+    if ((control.version != STORAGE_REQUEST_BULK_VERSION &&
+         control.version != STORAGE_REQUEST_BULK_INPUT_VERSION &&
+         control.version != STORAGE_REQUEST_BULK_RECEIPT_VERSION) ||
         control.struct_size != sizeof(control) || control.handle == 0U ||
         control.length > STORAGE_REQUEST_BULK_MAX_BYTES ||
         control.result != 0 || control.transferred != 0U ||
         control.reserved != 0U) return -22;
+    if (control.version == STORAGE_REQUEST_BULK_RECEIPT_VERSION) {
+        if (control.length || user_data) return -22;
+        if (process->domain_profile.kind != PROCESS_DOMAIN_COMPATIBILITY) return -13;
+        if (control.operation == STORAGE_REQUEST_BULK_RECEIPT_ACK) {
+            if (user_frame) return -22;
+            return storage_request_mutation_reply_ack(process->pid, process->generation,
+                control.handle, pit_monotonic_ms());
+        }
+        if (control.operation != STORAGE_REQUEST_BULK_RECEIPT_COLLECT) return -22;
+        uint32_t address = (uint32_t)(uintptr_t)user_frame;
+        if (!user_range_accessible(directory, address, STORAGE_REQUEST_BLOCK_SIZE, true)) return -14;
+        uint8_t frame[STORAGE_REQUEST_BLOCK_SIZE];
+        int result = storage_request_mutation_reply_begin(process->pid, process->generation,
+            control.handle, pit_monotonic_ms(), &control.result, frame);
+        if (result) return result;
+        bool copied = copy_to_user_space(directory, address, frame, sizeof(frame)) == 0 &&
+            copy_to_user_space(directory, control_address, &control, sizeof(control)) == 0;
+        result = storage_request_mutation_reply_end(process->pid, process->generation,
+            control.handle, copied, pit_monotonic_ms());
+        return result ? result : copied ? 0 : -14;
+    }
+    if (control.version == STORAGE_REQUEST_BULK_INPUT_VERSION) {
+        bool take = control.operation == STORAGE_REQUEST_BULK_INPUT_TAKE;
+        if ((!take && control.operation != STORAGE_REQUEST_BULK_INPUT_PUBLISH) ||
+            user_frame || !control.length) return -22;
+        if (take ? !storage_service_authorized(process->pid, process->generation) :
+            process->domain_profile.kind != PROCESS_DOMAIN_COMPATIBILITY) return -13;
+        uint32_t address = (uint32_t)(uintptr_t)user_data;
+        if (!user_range_accessible(directory, address, control.length, take)) return -14;
+        if (!take) return storage_request_input_publish(process->pid, process->generation,
+            control.handle, user_data, control.length, pit_monotonic_ms());
+        int result = storage_request_input_take(process->pid, process->generation,
+            control.handle, user_data, control.length, &control.transferred, pit_monotonic_ms());
+        if (result) return result;
+        return copy_to_user_space(directory, control_address, &control, sizeof(control)) ? -14 : 0;
+    }
     if (control.operation == STORAGE_REQUEST_BULK_PUBLISH) {
         if (!storage_service_authorized(process->pid, process->generation))
             return -13;
@@ -3244,6 +3314,49 @@ static int syscall_file_object_guard(reist_file_object_guard_request_t* user_req
     return 0;
 }
 
+static int syscall_file_object_owned(reist_file_object_owned_request_t* user_request) {
+    Process* process = scheduler_current_process();
+    if (!process || !storage_service_authorized(process->pid, process->generation)) return -13;
+    page_directory_t* directory = paging_current_directory();
+    uint32_t address = (uint32_t)(uintptr_t)user_request;
+    if (!user_request || !user_range_accessible(directory, address, sizeof(*user_request), false) ||
+        !user_range_accessible(directory, address, sizeof(*user_request), true)) return -14;
+    reist_file_object_owned_request_t request;
+    _Static_assert(sizeof(request) == 128 && offsetof(reist_file_object_owned_request_t, pin) == 112, "owned guard ABI");
+    if (copy_from_user(&request, user_request, sizeof(request))) return -14;
+    int result = vfs_file_object_owned_request(&request, process->pid, process->generation);
+    if (result) return result;
+    if (copy_to_user(user_request, &request, sizeof(request))) {
+        int rollback = vfs_file_object_guard_cancel_undelivered(&request.base, process->pid, process->generation);
+        if (rollback && rollback != -REIST_ESTALE) (void)process_terminate(process->pid);
+        return -14;
+    }
+    return 0;
+}
+
+static int syscall_file_repair(reist_file_repair_request_t* user_request) {
+    Process* process = scheduler_current_process();
+    if (!process || !storage_service_authorized(process->pid, process->generation)) return -REIST_EACCES;
+    page_directory_t* directory = paging_current_directory();
+    uint32_t address = (uint32_t)(uintptr_t)user_request;
+    if (!user_request || !user_range_accessible(directory, address, sizeof(*user_request), false)) return -REIST_EFAULT;
+    reist_file_repair_request_t request;
+    if (copy_from_user(&request, user_request, sizeof(request))) return -REIST_EFAULT;
+    bool output = request.operation == REIST_FILE_REPAIR_QUERY || request.operation == REIST_FILE_REPAIR_BEGIN;
+    if (output && !user_range_accessible(directory, address, sizeof(request), true)) return -REIST_EFAULT;
+    int result = vfs_file_repair_request(&request, process->pid, process->generation);
+    if (result) return result;
+    if (output && copy_to_user(user_request, &request, sizeof(request))) {
+        if (request.operation == REIST_FILE_REPAIR_BEGIN) {
+            request.operation = REIST_FILE_REPAIR_ABORT;
+            int rollback = vfs_file_repair_request(&request, process->pid, process->generation);
+            if (rollback && rollback != -REIST_ESTALE) (void)process_terminate(process->pid);
+        }
+        return -REIST_EFAULT;
+    }
+    return 0;
+}
+
 static int syscall_process_restrict(const void *user_request) {
     reist_process_restrict_request_t request;
     _Static_assert(sizeof(request) == 16U, "process restriction ABI drift");
@@ -4147,8 +4260,11 @@ void syscall_handler(Registers* regs) {
                 (const reist_storage_journal_request_t*)arg1, (void*)arg2);
             break;
         case SYS_FILE_OBJECT_GUARD:
-            result = (uint32_t)syscall_file_object_guard(
-                (reist_file_object_guard_request_t*)(uintptr_t)arg1);
+            result = arg3 == REIST_FILE_REPAIR_VERSION ?
+                (uint32_t)syscall_file_repair((reist_file_repair_request_t*)(uintptr_t)arg1) :
+                arg3 == REIST_FILE_OBJECT_OWNED_VERSION ?
+                (uint32_t)syscall_file_object_owned((reist_file_object_owned_request_t*)(uintptr_t)arg1) :
+                (uint32_t)syscall_file_object_guard((reist_file_object_guard_request_t*)(uintptr_t)arg1);
             break;
         case SYS_PROCESS_INFO:
             scheduler_preempt_disable();
@@ -4530,9 +4646,11 @@ void syscall_handler(Registers* regs) {
             result = (uint32_t)syscall_storage_cancel(arg1);
             break;
         case SYS_STORAGE_CLAIM_IDENTITY:
-            result = (uint32_t)syscall_storage_claim_identity(
-                (storage_request_descriptor_v2_t*)(uintptr_t)arg1,
-                (uint8_t*)(uintptr_t)arg2);
+            result = arg3 == STORAGE_REQUEST_DESCRIPTOR_V3_VERSION ?
+                (uint32_t)syscall_storage_claim_identity_v3(
+                    (storage_request_descriptor_v3_t*)(uintptr_t)arg1, (uint8_t*)(uintptr_t)arg2) :
+                (uint32_t)syscall_storage_claim_identity(
+                    (storage_request_descriptor_v2_t*)(uintptr_t)arg1, (uint8_t*)(uintptr_t)arg2);
             break;
         case SYS_STORAGE_BULK:
             scheduler_preempt_disable();

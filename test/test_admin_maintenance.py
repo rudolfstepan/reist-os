@@ -1,4 +1,8 @@
 import unittest
+import subprocess
+import sys
+import shutil
+import uuid
 from pathlib import Path
 
 
@@ -6,6 +10,62 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AdminMaintenanceContracts(unittest.TestCase):
+    def test_guest_status_markers_use_complete_lines(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        import run_qemu_admin_ata as guest
+        for status in (guest.STATUS_ONLINE, guest.STATUS_DOWN):
+            output = status + '\n' + guest.MOUNT_FRESH + '\n'
+            guest.objects.handoff.validate_handoff_command(output, (status, guest.MOUNT_FRESH), ())
+            with self.assertRaises(ValueError):
+                guest.objects.handoff.validate_handoff_command(output.replace('resource=1', 'resource=2'), (status,), ())
+
+    def test_ordinary_storage_path_stays_exact(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from verify_fat32_write_artifacts import safety_protected_source_equal, BASELINE
+        old = subprocess.check_output(['git', 'show', BASELINE+':kernel/init/storage_safety.c'],
+            cwd=ROOT, timeout=15).decode('utf-8').replace('\r\n', '\n')
+        new = self.read('kernel/init/storage_safety.c')
+        self.assertTrue(safety_protected_source_equal(old, new))
+        for before, after in (('!storage_service_resource_available(resource)', 'false'),
+            ('state.operation_active != 0U) return false;', 'false) return false;'),
+            ('state.write_fenced = 1U;', 'state.write_fenced = 0U;'),
+            ('#define STORAGE_WRITE_DEADLINE_MS 10000U', '#define STORAGE_WRITE_DEADLINE_MS 20000U')):
+            self.assertIn(before, new)
+            self.assertFalse(safety_protected_source_equal(old, new.replace(before, after)))
+
+    def test_actual_ata_transition_flush(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from measure_cpp_baseline import suppress_windows_test_dialogs
+        from test_reist_probe_domain import function
+        suppress_windows_test_dialogs()
+        evidence = ROOT / 'build/codex-agent/r342-fat32-write' / ('admin-host-' + uuid.uuid4().hex)
+        evidence.mkdir(parents=True)
+        extracts = []
+        for path, signatures in (
+            ('kernel/init/storage_service.c', ('bool storage_service_resource_available(',
+                'bool storage_service_resource_read_only(', 'bool storage_service_admin_flush_allowed(')),
+            ('kernel/init/storage_safety.c', ('static bool storage_write_begin_admitted(',
+                'bool storage_write_begin(', 'bool storage_admin_flush_begin(', 'bool storage_admin_flush_current(')),
+            ('kernel/init/admin_maintenance.c', ('static int admin_flush_check(', 'static int flush_resources(')),
+            ('drivers/block/ata.c', ('static int ata_admin_flush_check(', 'int ata_admin_flush_checked(')),
+        ):
+            source = self.read(path)
+            extracts.extend(function(source, signature) for signature in signatures)
+        (evidence / 'admin-under-test.h').write_text('\n'.join(extracts), encoding='utf-8')
+        compiler = shutil.which('gcc') or shutil.which('clang')
+        self.assertIsNotNone(compiler)
+        for opt in ('-O0', '-O2'):
+            binary = evidence / (opt[1:] + '.exe')
+            for command, limit in (([compiler, '-std=c11', opt, '-Wall', '-Wextra', '-Werror',
+                '-I', str(evidence), str(ROOT / 'test/admin_maintenance_transition_host.c'), '-o', str(binary)], 90),
+                ([str(binary)], 30)):
+                result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=limit,
+                    creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                with (evidence / 'result.log').open('a', encoding='utf-8') as log:
+                    log.write(repr(command) + '\n' + result.stdout + result.stderr)
+                self.assertEqual(result.returncode, 0, str(evidence) + '\n' + result.stdout + result.stderr)
+                if limit == 30: print(opt, result.stdout.strip(), flush=True)
+
     def read(self, path):
         return (ROOT / path).read_text(encoding="utf-8")
 

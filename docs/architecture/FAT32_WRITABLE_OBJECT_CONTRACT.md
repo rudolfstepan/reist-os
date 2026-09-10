@@ -1,11 +1,114 @@
 # R3.42: Ring-3 FAT32 writable objects and requalification
 
 Definition on clean `3e7c02add995b5c33aed045913382dc7ccce2d0f`, 9 September 2026.
-Status: implementation contract, NOT implemented or runtime-accepted.
+Status: all37 frozen acceptance groups passed, 10 September2026.
+Evidence/source/images: build/codex-agent/r342-fat32-write/accepted-final/;
+final candidate32, reference builds24, guest29 and remaining runtime32.
+Local commit follows the reviewed archive and existing queue transition.
+10September recovery correction: a valid cold QUERY for a fenced ACTIVE
+repair first requires the exact previous PID/generation to be fully reaped.
+It retires that owner's guard and advances the retained record to FAILED,
+including its generation, without relying on another media-change event for
+an already quarantined device. This grants no IO authority; BEGIN still
+requires fresh identity/pool checks and a fresh bounded lease within the
+unchanged three-attempt budget. Old tokens and unrelated fences remain closed.
+Native O0/O2 tests cover deferred/completed cleanup, missing reap, resumed
+commit and three interrupted repairs; the actual guest cuts remain mandatory.
+Exhaustion liveness proof distinguishes dependencies: CAT's ordinary file-object
+client must still fail when Storage has exhausted its three restarts. A private
+Ring-3 probe reads the same actual root file using the existing bounded legacy
+read-only syscall path, closes it, and returns to the shell without another
+Storage identity. This demonstrates the retained rescue path, not continued
+file-object service, a client fallback or new kernel filesystem policy. The
+512-byte/5s observer and whole auxiliary-medium oracle remain mandatory.
 This is the next JS3 backend slice. R3.41 remains accepted with unresolved
 historical risks R341-H1/H2; their disposition is not a waiver for new failures.
 
+9 September, user-approved focused scope amendment: include
+`drivers/block/ata_journal.c` only to correct unnecessary CLEAN-v2 header
+repair on a primary-only journal. When no mirror is prescribed by the reserved
+extent and the primary is valid and CLEAN, attach must remain read-only.
+Missing/corrupt prescribed mirrors, inconsistent headers, ACTIVE recovery and
+v1 upgrades retain their original validation and effect requirements. The
+normal owned-object host still refuses recovery writes during attach. No new
+persistent format, syscall, kernel parser or authority; the existing20 slots,
+four commit barriers and all27 acceptance groups stay frozen. Require actual
+owned/recovery-host regressions and a narrowly anchored journal-source guard.
+
 ## Scope and references
+
+10September, explicit ATA-PIO follow-up approval: parameterize checked
+read/write transfer helpers and select T13 WRITE MULTIPLE/C5h or EXT/39h
+only for mediated external writes with live admission. Negotiate fresh mode
+once, then share it between bounded write batches and full readback under
+the SAME continuously held ATA mutex. No retained mode cache, cross-syscall
+hint, reset/media-generation exception or automatic retry. Readiness,
+original deadline and live authorization precede every command/DRQ block;
+errors stop subsequent blocks and fence uncertain writes. Legacy NULL-
+admission behavior, all capacities and four durability barriers stay intact.
+Add the existing ATA multiple host runner/fixture and its subsystem document
+to allowed scope. Strengthen that existing gate to O0/O2 actual production
+read/write tests; retain all37 groups and their original runtime requirements.
+This supersedes only the exact-helper-body restriction for these enumerated
+PIO functions, not a whole-file ATA/journal or kernel-migration exception.
+
+R3.42 admission refinement: a fresh per-command journal probe already validates
+control, the exact owned pin, media and live request cancellation. Under the
+same held VFS transaction mutex, an already attempted-and-pending WRITE is
+idempotent: no second guard probe/publication is needed. First WRITE after a
+barrier still publishes pending before effects. Never retain the probe across
+IO/commands/waits or drop any CRC/ECC, deadline, generation, fence or pool check.
+The actual VFS/guard native test must count three fresh protected reads rather
+than six for repeated WRITE and still reject every stale/cancelled/corrupt case.
+This is within the existing VFS/guard scope, no ABI, driver, journal or gate change.
+
+10September, explicit follow-up approval repairs the reproduced admin ATA
+flush deadlock in admin_maintenance.c and the already scoped ATA/service/safety
+mediation. A separate FLUSH-only entry requires the current protected admin
+transaction, live owner/generation, original maintenance lease, exact resource
+and transition state before each command. Keep ordinary resource availability,
+read-only/quarantine/recovery and global/driver fences unchanged; no transient
+un-fencing or generic write capability. The control deadline records the
+original lease expiry; the shorter drain deadline remains separate. Existing
+supervision bounds the flush and an uncertain effect fails closed. Native O0/O2
+actual-function tests and a headless ATA admin lifecycle/whole-media proof are
+two additional groups (37 total); all35 previous groups remain required.
+New paths: test/admin_maintenance_transition_host.c, scripts/run_qemu_admin_ata.py
+and existing test/test_admin_maintenance.py. No AHCI/FDD driver changes or
+userspace ABI change. The earlier failed admin/fault evidence remains failed.
+
+10September, further explicit approval covers a local timed-wakeup correction
+in kernel/sched/scheduler.c and its host tests. Expiry already publishes READY;
+when the local CPU is idle, its existing post-EOI PIT hook must dispatch without
+waiting for the10ms LAPIC quantum. Reuse the CPU-local pending-preemption bit,
+never switch inside the hard IRQ or under the task-table lock. Running-task
+quanta, class selection/accounting, stack and ownership checks, SMP ABI, timer
+frequency and deadlines remain unchanged. Remote CPUs retain the established
+periodic fallback. An executable O0/O2 test covers the actual wake/PIT bodies,
+coalescing, empty/future/cancelled/stale waits, affinity, preemption and lock
+deferral. Existing scheduler-time/slack/SMP hosts and APIC/PIT/SMP guests are
+mandatory: seven added groups,35 total, no replacement of the original28.
+The source guard allows only these three bodies and checks exact preservation
+of every other scheduler path. This supersedes only the scheduler restriction
+below, not the protected CPU-local/IRQ/backend/policy contract.
+
+10September, explicit user approval expands this package solely by
+kernel/init/critical_object.c and its existing two host-test files. Measure the
+shared primitive first; optimize only equivalent CRC32/SECDED arithmetic.
+Every copy, ECC/CRC/semantic check, correction result, generation/sequence,
+lock/IRQ rule, publication order and64-byte format remain unchanged. Freeze
+the accepted3e7c02ad implementation as independent executable reference for
+O0/O2 encodings, arbitrary syndromes, single/double-bit faults, complete public
+objects and bounded timing samples. Add its host-test group to the original27
+unchanged groups (28 total); all original guest/performance proofs still apply.
+No cache-based suppression of integrity checks or new hardware/WCET claim.
+
+The same approved arithmetic-only scope now uses four immutable256-byte
+SECDED contribution columns and one immutable256-entry CRC32 table. No lazy
+initialization, object-result cache or skipped copy/check. All1024 byte
+contributions plus overlapping random words are checked against the accepted
+bit-position reference, alongside every existing fault/decoder/object test.
+Host timings compare arithmetic cost only; they do not replace guest gates.
 
 Implement one cohesive object/transaction boundary: explicit writable handles,
 validated bulk input, overwrite, append, zero-filled growth, shrinking, sync,
@@ -65,6 +168,51 @@ Specific hazards already found:
 
 ## Implementation order inside this single package
 
+### Candidate wire/lifetime contract (10 September, not runtime accepted)
+
+Storage operation35 alone carries `reist_vfs_write_frame_t` v2 (512 bytes).
+Its separate operations are OPEN1, DELEGATE2, ADOPT3, DATA4, APPEND5, RESIZE6,
+SYNC7. Old512-byte frames, old descriptors and DATA7/ALL15 are unchanged.
+Explicit WRITE/APPEND/RESIZE/SYNC bits are16/32/64/128; the extended255 mask is
+not a replacement for old ALL. Existing Script/Compositor domains cannot submit
+operation35. Old ADOPT skips both unqualified and writable pending objects.
+All input reply/reserved fields are zero; the outer offset equals the complete
+input length, not a file offset. `offset`/`target_size` in the frame use bytes.
+
+The64-byte v1 result at frame offset256 correlates the original kernel request,
+errno, outcome, durable user bytes, released clusters, effective offset,
+previous size and resulting size. SIZE_KNOWN marks reliable sizes; DONE applies
+only to resize, including completed allocation-tail release. A single-step
+UNKNOWN reports no known durable bytes or size. A future multi-step convenience
+adapter must preserve earlier durable progress separately from an uncertain
+suffix. A data gap may report durable size-only progress (requiring RESIZE),
+never pretend zero filling transferred user bytes. A successful no-op resize
+already at the required size/allocation returns NO_EFFECT plus DONE.
+
+Client step functions return errno, with counts in the mandatory result, not
+POSIX ssize_t. Only acknowledged durable bytes advance write/append seek state;
+pwrite preserves it. Input is staged once; malformed/lost/late receipts cancel,
+never ACK or replay. The service/client retain the original request deadline;
+neither planner continuation nor input copying renews a transaction lease.
+Even an internally aborted attach retains its final UNKNOWN outcome.
+
+Open/adopt first qualify geometry, complete allocation ownership and read-only
+CLEAN journal evidence before publishing rights. A newly delivered writable
+open/adopt must receive its first owner-bound use within the existing5000ms
+handoff budget; otherwise bounded reap releases its pin. This explicit v2
+REIST lifetime deviation bounds lost-reply leaks; it is not POSIX open lifetime
+compatibility. First verified use clears that handoff timer, not the object's
+generation checks or mutation deadlines. Close can release it without effects.
+The existing16/four object bounds and old read-only open semantics remain.
+
+Storage uses one <256KiB fixed job (including immutable128KiB input) and one
+<48KiB pin/epoch-bound ownership cache. These are private Ring-3 buffers, not a
+third kernel bulk slot. Bounded planner/qualification turns interleave claim,
+reap and boot-health handling. Whole-volume evidence is retained across own
+verified commits, not recomputed per data chunk. Qualification/recovery after
+an UNKNOWN fence is still required before package acceptance; ordinary opens
+cannot repair journals or clear those fences.
+
 ### 1. Freeze executable negatives and append-only ABI
 
 Add actual O0/O2 regressions before the corresponding production change.
@@ -110,6 +258,18 @@ Protected records remain <=64 bytes; extra fixed metadata needs its own checked
 record, not a larger critical-record limit. Cancel before effects is NO_EFFECT;
 cancel/lost reply after possible effects is UNKNOWN and fenced, not a retry.
 
+10September candidate optimization: the private kernel journal probe obtains
+correlation, pending state and deadline with one checked control/pin/media
+snapshot. Revalidate after the VFS mutex wait and at every existing PIO command
+boundary; it is not a capability cache. Pool cancellation, repair leases and
+final completion remain separate live checks. Idempotent WRITE/FLUSHED events
+do not update an identical protected record, but still perform its full CRC/ECC
+validation. No critical-object primitive, protected-record format or wire ABI
+change is authorized by this optimization. Full-sector overwrite staging may
+omit its redundant preservation read, never the journal's real undo read;
+partial-sector untouched bytes and all four barriers stay proven by the same
+native media/fault oracles. The128KiB guest deadline is not yet satisfied.
+
 ### 3. One bounded FAT32 transaction planner
 
 Add userspace/storage/{include/reist,lib}/fat32_file_write.{h,c}; reuse the
@@ -140,6 +300,41 @@ permits; no implicit flush for each sector. Only successful durable completion
 refreshes cached size/start cluster/offset. Mixed legacy IO remains excluded
 during reservation and legacy hints are invalidated before the next owner.
 
+The shrink planner sorts its complete <=20-sector RAM target list before
+staging. The unchanged journal batches adjacent LBAs; all undo evidence and
+the four barriers remain mandatory. A live journal is never reordered.
+For this exact manifest the owned Ring-3 adapter reads adjacent before-images
+in bounded runs and passes the SAME immutable bytes to the unchanged undo
+core while applying a pure after-image transform. Its <=20-sector scratch is
+inside the unchanged <256KiB job budget. It is synchronous, refuses reentry,
+and is zeroed before finish/abort; live geometry and all post-write readback
+always reach media. This is not a cache across commits or a relaxed journal
+validation. Every predecessor/released link is checked in every FAT copy in
+these fresh before-images, then again against the sealed plan at finish. The
+terminal value is captured from the first selected FAT copy's fresh undo
+image and must match every other copy exactly; distinct otherwise-valid EOC
+values cannot evade mirror validation. Already-unknown valid FSInfo counters
+remain unchanged without a redundant journal target; known hints still become
+unknown in the same allocation-changing transaction.
+The existing <48KiB ownership cache also retains64 sparse prefix hints with
+power-of-two spacing, compacted during validated chain traversal/growth.
+They share the exact pin/epoch with the tail cache, are pruned only after a
+verified shrink commit, and cannot survive failed admission or foreign epochs.
+Refilling a depleted tail starts at a bounded cached prefix, then validates
+every traversed link/mirror until the already known suffix. Invalid hints or
+spacing fail closed. Refills extend by at most the existing1024-entry retained
+cache, clipped to the2561-entry plan workspace; a dense plan can extend again
+in later bounded turns. This avoids loading a worst-case prefix that would be
+discarded after the next small fragmented commit. No increased capacity,
+persistent index or kernel parser.
+The refill reader uses two64-sector FAT read-ahead windows inside the SAME
+<256KiB job (now also compile-time asserted). Only the existing mediated bulk
+READ is used; all physical sectors, including read-ahead, consume the original
+256-sector planning budget and remain inside that FAT copy. The128-work bound,
+live identity checks at each turn, mirror/cycle checks and original transaction
+deadline remain unchanged. Windows never cross transactions or feed journal
+staging/readback; scattered media may use more bounded turns, not more quota.
+
 ### 4. Explicit long-resource and outcome semantics
 
 Each reply carries a versioned result: request correlation, errno, durable byte
@@ -154,6 +349,33 @@ step is independently recoverable. A long append may interleave with another
 operation between steps; no whole-resource atomicity claim. The caller must
 receive short progress and can explicitly continue with a new request, not an
 automatic reset of its time budget. Seek alone never grows a file.
+
+Client implementation: `reist_vfs_file_{write,pwrite,append,resize}_bounded`
+returns errno and a version1,128-byte `reist_vfs_file_progress_t`. This is a
+local adapter result, not a new wire frame/capability or POSIX return contract.
+It retains confirmed bytes, released clusters, first confirmed data offset,
+initial observed size, last confirmed size and the exact last64-byte receipt.
+An aggregate UNKNOWN may therefore coexist with a confirmed earlier prefix;
+the last confirmed size does not assert the current size of an uncertain
+suffix. A local stop has last.request0 and does not erase preceding receipts'
+counts. COMPLETE requires a successful final data/resize-DONE step, not merely
+some durable bytes. Append offsets are per-step, not one contiguous guarantee.
+The original min(session timeout,5000ms) deadline includes input staging and
+all steps. Submit receives only the remaining duration; backward time relative
+to any preceding observation, clock failure or deadline expiry stops the call.
+Zero-length input is validated without data publication or gap allocation.
+
+Object reads use a host-controlled windowed parser path with the original
+descriptor-v3 deadline, checked before each mediated sector read and after
+IO. Every128 chain/data items the host rechecks its live object pin and yields;
+320 physical reads per window remain the bound. Cycle/range state persists
+across continuations and the validated volume cluster count is the total walk
+bound. Failed/cancelled host progress clears the complete output. FAT caches
+persist only within this synchronous request, under its pin, not across epochs.
+Both inline and bulk object reads use this path. Old path-based/parser wrappers
+retain their original total quotas; no larger kernel buffer or renewable lease.
+This closes the old6400-step ceiling exposed when reading the successful append
+at the end of the4MiB fragmented guest file.
 
 Growth publishes only durably zeroed/initialized data. A write beyond EOF first
 uses explicit growth progress when the entire gap cannot fit one transaction;
@@ -201,6 +423,36 @@ Conflicting/corrupt evidence needs intervention, not formatting or blind replay.
 
 ### 6. Prove, inspect, archive and commit
 
+Recovery implementation protocol: Sys129 discriminator/version3 carries the
+64-byte `reist_file_repair_request_t`; old discriminator0/v1 and2 remain intact.
+QUERY1 returns only a retained fenced resource after old-owner reap; BEGIN2
+echoes immutable geometry, fingerprint and record generation plus one <=5000ms
+deadline. COMMIT3/ABORT4 echo the exact admitted token/frame; they return errno
+without a copyout, so successful publication cannot lose an output capability.
+BEGIN copyout failure aborts fail-closed. No user-selected media range, mount,
+normal write grant or implicit retry. Invalid versions/reserved fields fail
+before publication. Resource-relative512-byte sectors; BPB and backup BPB are
+write-protected, including the standard absent-backup value0xffff.
+
+The64-byte retained record and existing guard/pool records serialize repair
+under VFS; no token survives an expired deadline, owner cleanup or generation
+change. Fixed three-attempt ceiling complements (never enlarges) the existing
+Storage restart budget. A hung repair triggers the same bounded retirement even
+when its object-fence bit was already observed. Receipt/copier quiescence is
+required before clearing only that resource's pool fence. Final guard release
+is last; any partial failure refences every affected layer. Integrity poison
+is sticky. Kernel repair IO checks current service authority before each PIO
+command and never calls a normal write-begin through a temporary fence clear.
+
+Ring3's recovery-only allocation certificate has no valid file-object locator
+and is rejected by ordinary mutation planners. The same resumable window walker
+checks all allocated/reachable clusters, including empty volumes. Before CLEAN,
+restored sectors are flushed as a group; redundant CLEAN headers are separately
+durable. Fresh read-only CLEAN attach and final flush precede publication. No
+changed RSTJ format,20-target capacity, normal four-barrier commit or raw fallback.
+Only FAT32 exposes the no-media-I/O revoked-unmount callback; active reservations,
+pins and open nodes continue to prevent detach. Other backends get no exception.
+
 Implement FWRITEST.PRG as an explicit file-object exercise on a caller-selected
 test file, packaged in both Windows and Makefile images and resolved by the
 normal Ring-3 shell. It has no raw/recovery authority. Private service fault
@@ -238,7 +490,13 @@ Frozen commands and allowed files are in automation/reist-s03b.toml. Required:
 The17 existing direct file-client consumers, frozen from the baseline build
 manifest, are JS, JSRUNTST, CAT, CHKDSK, BASIC, DESKTOP, NOTEPAD, BROWSER,
 IMAGEVIEWER, CONTROL, MOUSE, DISPLAY, COPY, HTTPD, EDIT, GTEST and OBJGDTST
-(.PRG each). This is a link-dependency exception only, not authority to edit
+(.PRG each). User-approved10September amendment adds exactly two indirect
+consumers, WAVPLAY.PRG and SOUNDPLAYER.PRG: the unchanged AUDIO_LIBRARY_SOURCES
+archive includes vfs_file_client.c. Total19 consumer exceptions; pin the SDK
+archive recipe, audio sources, path helper and both application sources to the
+accepted baseline. Only the shared file client explains their relink; no audio
+feature/rights change, other payload exception or gate/budget waiver.
+This is a link-dependency exception only, not authority to edit
 their application sources or silently remove protections from other programs.
 Record each actual changed payload and the linked-library cause. The new guest
 also proves expired/cancelled mutation authority issues zero fresh PIO commands;

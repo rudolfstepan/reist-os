@@ -43,6 +43,51 @@ typedef struct {
     reist_vfs_shadow_read_sector_fn read_sector;
 } reist_vfs_shadow_io_t;
 
+/* Ring-3 parser state, not a kernel capability or allocation certificate.
+ * Callers must hold/verify their object pin and supply the current mutation
+ * epoch. A completed chain proves local links only, not absence of cross-links
+ * from other objects. Global allocation/namespace ownership remains required
+ * before the write planner may publish a transaction. */
+#define REIST_VFS_SHADOW_FAT_CHAIN_VERSION 1U
+#define REIST_VFS_SHADOW_FAT_CHAIN_WINDOW 128U
+typedef struct {
+    reist_vfs_shadow_object_t object;
+    uint32_t sectors, reserved_sectors, fat_sectors, data_start, cluster_count;
+    uint32_t root_cluster, sectors_per_cluster, fat_count, active_fat, mirrored;
+    uint32_t fsinfo_sector, backup_sector, file_size;
+    uint8_t entry[32];
+} reist_vfs_shadow_fat_view_t;
+
+typedef struct {
+    uint32_t version, struct_size;
+    uint64_t epoch;
+    reist_vfs_shadow_fat_view_t view;
+    uint32_t cluster, anchor, power, distance, visited, complete;
+    int32_t error;
+    uint32_t cache_lba[2], cache_valid[2];
+    uint8_t cache[2][X86OS_STORAGE_BLOCK_SIZE];
+} reist_vfs_shadow_fat_chain_cursor_t;
+
+int reist_vfs_shadow_fat_view(const reist_vfs_shadow_io_t* io,
+    const reist_vfs_shadow_object_t* object, reist_vfs_shadow_fat_view_t* view);
+/* Recovery geometry only: no fabricated file locator or object authority. */
+int reist_vfs_shadow_fat_volume_view(const reist_vfs_shadow_io_t* io,
+    uint32_t resource, reist_vfs_shadow_fat_view_t* view);
+/* Pure private projection, not a media read or authority to refresh a handle.
+ * Host may publish only after exact journal readback and owned epoch/pin proof. */
+int reist_vfs_shadow_fat_shrink_view(const reist_vfs_shadow_fat_view_t* before,
+    uint32_t size, uint32_t start, reist_vfs_shadow_fat_view_t* after);
+int reist_vfs_shadow_fat_grow_view(const reist_vfs_shadow_fat_view_t* before,
+    uint32_t size, uint32_t start, reist_vfs_shadow_fat_view_t* after);
+int reist_vfs_shadow_fat_chain_begin(const reist_vfs_shadow_io_t* io,
+    const reist_vfs_shadow_object_t* object, uint64_t epoch,
+    reist_vfs_shadow_fat_chain_cursor_t* cursor);
+/* 1 = bounded progress, 0 = complete chain, negative = error. Each step checks
+ * the unchanged BPB/entry and reads at most320 sectors; no6400-cluster ceiling.
+ * Error is sticky until an explicit new begin; no implicit restart/replay. */
+int reist_vfs_shadow_fat_chain_step(const reist_vfs_shadow_io_t* io,
+    uint64_t epoch, reist_vfs_shadow_fat_chain_cursor_t* cursor);
+
 /**
  * Replaceable parser hint for one sequential FAT directory walk.
  *
@@ -113,5 +158,18 @@ int reist_vfs_shadow_fat_object_read(
     const reist_vfs_shadow_io_t *io,
     const reist_vfs_shadow_object_t *object, uint32_t offset, uint8_t *data,
     uint32_t capacity, uint32_t *transferred);
+
+/* Host-controlled continuation, not a renewed lease. Called before/after the
+ * read and at most128 chain/data work items apart; must check the original
+ * request deadline and live pin, yield, and return zero or a negative errno.
+ * IO callbacks must also enforce that deadline. The legacy API retains its
+ * fixed total budgets. This API retains320 reads per window and the volume's
+ * finite cluster bound, with cycle state preserved across every continuation.
+ * Failure clears the entire output, never publishes a partial read. */
+typedef int (*reist_vfs_shadow_progress_fn)(void *context);
+int reist_vfs_shadow_fat_object_read_windowed(
+    const reist_vfs_shadow_io_t *io, const reist_vfs_shadow_object_t *object,
+    uint32_t offset, uint8_t *data, uint32_t capacity, uint32_t *transferred,
+    reist_vfs_shadow_progress_fn progress, void *context);
 
 #endif

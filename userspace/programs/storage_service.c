@@ -11,6 +11,7 @@
 #include "x86os.h"
 #include "../storage/include/reist/vfs_shadow_ext2.h"
 #include "../storage/include/reist/vfs_shadow_fat32.h"
+#include "../storage/include/reist/fat32_file_write.h"
 #ifdef REIST_JOURNAL_HANDOFF_TEST
 #include "../storage/include/reist/fat32_transaction.h"
 #endif
@@ -6232,7 +6233,10 @@ static int vfs_object_resolve(uint32_t token, uint32_t service_generation,
     if (slot->closing != 0U) return -9;
     status = vfs_object_guard_slot(slot, REIST_FILE_OBJECT_VERIFY);
     if (status == -116) (void)vfs_object_release(slot);
-    if (status == 0) *slot_out = slot;
+    if (status == 0) {
+        slot->pending_deadline_ms = 0U; /* first use confirms delivered open/adopt */
+        *slot_out = slot;
+    }
     return status;
 }
 
@@ -6245,7 +6249,7 @@ static void vfs_object_reap_one(void) {
         (void)vfs_object_release(slot);
         return;
     }
-    if (slot->pending != 0U) {
+    if (slot->pending_deadline_ms != 0U) {
         uint64_t now_ms = 0U;
         if (x86os_monotonic_ms(&now_ms) != 0 ||
             now_ms >= slot->pending_deadline_ms) {
@@ -6428,7 +6432,7 @@ static int vfs_object_control(x86os_vfs_shadow_object_frame_t *frame,
         for (uint32_t index = 0U; index < VFS_OBJECT_CAPACITY; ++index) {
             vfs_object_slot_t *slot = &vfs_objects[index];
             if (slot->in_use == 0U || slot->pending == 0U ||
-                slot->closing != 0U ||
+                slot->closing != 0U || !slot->rights || (slot->rights & ~X86OS_VFS_OBJECT_RIGHT_ALL) != 0U ||
                 slot->owner_pid != owner_pid ||
                 slot->owner_generation != owner_generation ||
                 now_ms >= slot->pending_deadline_ms) continue;
@@ -6486,9 +6490,46 @@ static int vfs_object_control(x86os_vfs_shadow_object_frame_t *frame,
     return 0;
 }
 
+typedef struct {
+    vfs_object_slot_t *slot;
+    uint64_t deadline, last;
+} vfs_object_read_context_t;
+
+static int vfs_object_read_clock(vfs_object_read_context_t *context) {
+    uint64_t now = 0U;
+    if (x86os_monotonic_ms(&now)) return -5;
+    if (now < context->last || now >= context->deadline) return -110;
+    context->last = now;
+    return 0;
+}
+static int vfs_object_read_progress(void *opaque) {
+    vfs_object_read_context_t *context = opaque;
+    int status = vfs_object_read_clock(context);
+    if (!status) status = vfs_object_guard_slot(context->slot, REIST_FILE_OBJECT_VERIFY);
+    if (!status) status = x86os_yield();
+    return status ? status : vfs_object_read_clock(context);
+}
+static int vfs_object_read_info(void *opaque, uint32_t resource, x86os_drive_info_t *info) {
+    int status = vfs_object_read_clock(opaque);
+    return status ? status : x86os_drive_info(resource, info);
+}
+static int vfs_object_read_sector(void *opaque, uint32_t resource, uint32_t sector, uint8_t *data) {
+    int status = vfs_object_read_clock(opaque);
+    if (!status) status = x86os_storage_block_read(resource, sector, data);
+    return status ? status : vfs_object_read_clock(opaque);
+}
+static int vfs_object_fat_read(vfs_object_slot_t *slot, uint64_t deadline,
+        uint32_t offset, uint8_t *data, uint32_t capacity, uint32_t *transferred) {
+    vfs_object_read_context_t context = {.slot=slot, .deadline=deadline};
+    const reist_vfs_shadow_io_t io = {.context=&context,
+        .drive_info=vfs_object_read_info, .read_sector=vfs_object_read_sector};
+    return reist_vfs_shadow_fat_object_read_windowed(&io, &slot->locator,
+        offset, data, capacity, transferred, vfs_object_read_progress, &context);
+}
+
 static int vfs_object_read(x86os_vfs_shadow_object_read_frame_t *frame,
         int32_t owner_pid, uint32_t owner_generation,
-        uint32_t service_generation) {
+        uint32_t service_generation, uint64_t deadline) {
     if (frame == 0 || frame->version != X86OS_VFS_SHADOW_FRAME_VERSION ||
         frame->struct_size != sizeof(*frame) ||
         frame->operation != X86OS_VFS_SHADOW_OBJECT_READ ||
@@ -6508,15 +6549,10 @@ static int vfs_object_read(x86os_vfs_shadow_object_read_frame_t *frame,
         frame->result = -13;
         return 0;
     }
-    const reist_vfs_shadow_io_t io = {
-        .context = 0,
-        .drive_info = vfs_shadow_drive_info,
-        .read_sector = vfs_shadow_read_sector,
-    };
     uint32_t transferred = 0U;
     status = slot->locator.filesystem == REIST_VFS_SHADOW_OBJECT_FAT
-        ? reist_vfs_shadow_fat_object_read(
-            &io, &slot->locator, frame->offset, frame->data,
+        ? vfs_object_fat_read(
+            slot, deadline, frame->offset, frame->data,
             frame->requested, &transferred)
         : vfs_ext2_object_read(
             &slot->locator, frame->offset, frame->data,
@@ -6539,7 +6575,7 @@ static int vfs_object_read(x86os_vfs_shadow_object_read_frame_t *frame,
 static int vfs_object_bulk_read(
         x86os_vfs_shadow_object_bulk_read_frame_t *frame,
         int32_t owner_pid, uint32_t owner_generation,
-        uint32_t service_generation) {
+        uint32_t service_generation, uint64_t deadline) {
     if (frame == 0 || frame->version != X86OS_VFS_SHADOW_FRAME_VERSION ||
         frame->struct_size != sizeof(*frame) ||
         frame->operation != X86OS_VFS_SHADOW_OBJECT_BULK_READ ||
@@ -6557,15 +6593,10 @@ static int vfs_object_bulk_read(
         frame->result = -13;
         return 0;
     }
-    const reist_vfs_shadow_io_t io = {
-        .context = 0,
-        .drive_info = vfs_shadow_drive_info,
-        .read_sector = vfs_shadow_read_sector,
-    };
     uint32_t transferred = 0U;
     status = slot->locator.filesystem == REIST_VFS_SHADOW_OBJECT_FAT
-        ? reist_vfs_shadow_fat_object_read(
-            &io, &slot->locator, frame->offset, vfs_bulk_data,
+        ? vfs_object_fat_read(
+            slot, deadline, frame->offset, vfs_bulk_data,
             frame->requested, &transferred)
         : vfs_ext2_object_read(
             &slot->locator, frame->offset, vfs_bulk_data,
@@ -6674,6 +6705,439 @@ static void vfs_object_discard_reply(uint32_t token, int32_t pid,
     if (vfs_object_resolve_local(token, service_generation, pid, generation,
                                service_generation, &slot) == 0)
         (void)vfs_object_release(slot);
+}
+
+/* R3.42 writable object host. One fixed in-flight planner; the request pool
+ * retains its8/two-per-client limit. Qualification yields between bounded
+ * steps. This cache is a hint tied to an exact live pin/epoch, never authority.
+ * Ordinary reads/close/reap can run between steps; no per-chunk volume rescan. */
+typedef struct {
+    uint32_t active, phase, kind, token, pin, opening;
+    uint64_t deadline, epoch;
+    x86os_storage_descriptor_v3_t request;
+    reist_vfs_write_frame_t frame;
+    vfs_object_slot_t *slot;
+    vfs_object_slot_t *published_slot;
+    uint32_t published_pin;
+    reist_fat32_transaction_t transaction;
+    union {
+        reist_fat32_overwrite_t overwrite;
+        reist_fat32_shrink_t shrink;
+        reist_fat32_grow_t grow;
+    } plan;
+    uint8_t input[X86OS_STORAGE_BULK_MAX_BYTES];
+} vfs_write_job_t;
+_Static_assert(sizeof(vfs_write_job_t)<256U*1024U,"fixed writable job budget");
+_Static_assert(sizeof(reist_fat32_ownership_t)<48U*1024U,"fixed ownership cache budget");
+static vfs_write_job_t vfs_write_job;
+static reist_fat32_ownership_t vfs_write_proof;
+static uint32_t vfs_write_cache_pin;
+static uint32_t vfs_repair_active;
+
+static int vfs_write_frame_valid(const reist_vfs_write_frame_t *f,
+    const x86os_storage_descriptor_v3_t *d) {
+    if (!f || !d || d->version != X86OS_STORAGE_DESCRIPTOR_V3_VERSION ||
+        d->struct_size != sizeof(*d) || !d->handle || d->resource ||
+        d->operation != X86OS_STORAGE_VFS_OBJECT_MUTATE || d->length != sizeof(*f) ||
+        d->offset != f->length || !d->deadline_ms || d->client_pid <= 0 ||
+        !d->client_generation || !d->service_generation ||
+        f->version != REIST_VFS_WRITE_VERSION || f->struct_size != sizeof(*f) ||
+        f->operation < REIST_VFS_WRITE_OPEN || f->operation > REIST_VFS_WRITE_SYNC ||
+        (f->rights & ~REIST_VFS_WRITE_RIGHT_MASK) ||
+        !vfs_object_reserved_zero(f->reserved, 48U)) return -22;
+    const uint8_t *reply = (const uint8_t *)&f->reply;
+    for (uint32_t i = 0U; i < sizeof(f->reply); ++i) if (reply[i]) return -22;
+    if (f->length > X86OS_STORAGE_BULK_MAX_BYTES || (!f->length && f->data_crc32) ||
+        f->offset > UINT32_MAX || f->target_size > UINT32_MAX ||
+        f->length > UINT32_MAX - f->offset) return -22;
+    if (f->operation == REIST_VFS_WRITE_OPEN) {
+        if (!(f->rights & REIST_VFS_WRITE_RIGHT_MUTATIONS) || (f->flags & ~X86OS_O_NOFOLLOW) ||
+            f->object_token || f->service_generation || !f->path_length ||
+            f->path_length >= sizeof(f->path) || f->path[0] != '/' ||
+            f->length || f->offset || f->target_size || f->target_pid || f->target_generation) return -22;
+        for (uint32_t i = 0U; i < sizeof(f->path); ++i)
+            if (i < f->path_length ? !f->path[i] : f->path[i] != 0) return -22;
+        return 0;
+    }
+    if (f->flags || f->path_length) return -22;
+    for (uint32_t i = 0U; i < sizeof(f->path); ++i) if (f->path[i]) return -22;
+    if (f->operation == REIST_VFS_WRITE_ADOPT)
+        return f->object_token || f->service_generation || f->rights || f->length ||
+            f->offset || f->target_size || f->target_pid || f->target_generation ? -22 : 0;
+    if (!f->object_token || !f->service_generation || !f->rights) return -22;
+    if (f->operation == REIST_VFS_WRITE_DELEGATE)
+        return !(f->rights & REIST_VFS_WRITE_RIGHT_MUTATIONS) || f->target_pid <= 0 ||
+            !f->target_generation || f->length || f->offset || f->target_size ? -22 : 0;
+    if (f->target_pid || f->target_generation) return -22;
+    if (f->operation != REIST_VFS_WRITE_DATA && f->offset) return -22;
+    if (f->operation != REIST_VFS_WRITE_RESIZE && f->target_size) return -22;
+    if (f->operation >= REIST_VFS_WRITE_RESIZE && f->length) return -22;
+    return 0;
+}
+
+static void vfs_write_reply_init(reist_vfs_write_frame_t *f, uint32_t request) {
+    vfs_object_zero(&f->reply, sizeof(f->reply));
+    f->reply.version = REIST_VFS_WRITE_RESULT_VERSION;
+    f->reply.struct_size = sizeof(f->reply);
+    f->reply.request = request;
+    f->reply.outcome = REIST_FILE_OBJECT_NO_EFFECT;
+}
+
+static int vfs_write_clock(vfs_write_job_t *job) {
+    uint64_t now = 0U;
+    if (x86os_monotonic_ms(&now) != 0) return -5;
+    return now >= job->deadline ? -110 : 0;
+}
+static int vfs_write_live(vfs_write_job_t *job) {
+    int status = vfs_write_clock(job);
+    if (status) return status;
+    vfs_object_slot_t *s = job->slot;
+    if (!s || !s->in_use || s->closing || s->kernel_pin != job->pin ||
+        vfs_object_token((uint32_t)(s-vfs_objects), s->generation) != job->token ||
+        s->owner_pid != job->request.client_pid || s->owner_generation != job->request.client_generation)
+        return -116;
+    return vfs_object_guard_slot(s, REIST_FILE_OBJECT_VERIFY);
+}
+static int vfs_write_info(void *context, uint32_t resource, x86os_drive_info_t *info) {
+    int status = vfs_write_clock(context);
+    return status ? status : x86os_drive_info(resource, info);
+}
+static int vfs_write_read(void *context, uint32_t resource, uint32_t sector, uint8_t *data) {
+    int status = vfs_write_clock(context);
+    return status ? status : x86os_storage_block_read(resource, sector, data);
+}
+static int vfs_write_guard(void *context, reist_file_object_guard_request_t *request) {
+    (void)context;
+    /* END must always be attempted, including timeout/cancel paths. */
+    return x86os_file_object_guard(request);
+}
+static int vfs_write_owned(void *context, reist_file_object_owned_request_t *request) {
+    int status = vfs_write_live(context);
+    return status ? status : x86os_file_object_owned(request);
+}
+static int vfs_write_transfer(void *context, const reist_storage_journal_request_t *request, void *data) {
+    int status = vfs_write_clock(context);
+    return status ? status : x86os_storage_journal_io(request, data);
+}
+static bool vfs_write_probe_read(void *context, unsigned short base, uint32_t sector, void *data, bool master) {
+    vfs_write_job_t *job = context;
+    return !base && master && sector < vfs_write_proof.view.sectors &&
+        vfs_write_read(job, job->slot->locator.resource, sector, data) == 0;
+}
+static bool vfs_write_probe_deny(void *context, unsigned short base, uint32_t sector, const void *data, bool master) {
+    (void)context; (void)base; (void)sector; (void)data; (void)master;
+    return false; /* CLEAN validation only. Never repair during ordinary open. */
+}
+static const ata_journal_transport_t vfs_write_probe_io = {
+    .read = vfs_write_probe_read, .write = vfs_write_probe_deny
+};
+
+static int vfs_write_complete(vfs_write_job_t *job, int status) {
+    reist_vfs_write_result_t *r = &job->frame.reply;
+    if (job->transaction.active) {
+        uint32_t outcome = REIST_FILE_OBJECT_NO_EFFECT;
+        int ended = reist_fat32_transaction_finish(&job->transaction, false, &outcome);
+        r->outcome = outcome;
+        if (ended) status = ended;
+        vfs_write_cache_pin = 0U;
+    }
+    if (r->outcome == REIST_FILE_OBJECT_UNKNOWN) {
+        r->flags = r->durable_bytes = r->released_clusters = 0U;
+        r->previous_size = r->resulting_size = r->effective_offset = 0U;
+        vfs_write_cache_pin = 0U;
+        if (!status) status = -5;
+        if (job->slot && job->slot->kernel_pin == job->pin) job->slot->closing = 1U;
+    }
+    r->result = status;
+    if (job->opening && status) {
+        if (job->slot && job->slot->kernel_pin == job->pin) (void)vfs_object_release(job->slot);
+        job->frame.object_token = job->frame.service_generation = 0U;
+        vfs_write_cache_pin = 0U;
+    }
+    int completed = x86os_storage_complete(job->request.handle, 0, (const uint8_t *)&job->frame);
+    if (completed && job->published_slot && job->published_slot->kernel_pin == job->published_pin) {
+        (void)vfs_object_release(job->published_slot);
+        vfs_write_cache_pin = 0U;
+    }
+    if (completed && job->frame.operation >= REIST_VFS_WRITE_DATA &&
+        job->slot && job->slot->kernel_pin == job->pin) {
+        /* Pool preserves loss fences. Do not leave a locally reusable locator. */
+        (void)vfs_object_release(job->slot);
+        vfs_write_cache_pin = 0U;
+    }
+    job->active = 0U;
+    return completed;
+}
+
+static int vfs_write_finish_plan(vfs_write_job_t *job) {
+    reist_vfs_write_result_t *r = &job->frame.reply;
+    uint32_t size = (uint32_t)r->previous_size;
+    int status;
+    if (job->kind == 1U)
+        status = reist_fat32_overwrite_finish(&job->plan.overwrite, true, &r->outcome, &r->durable_bytes);
+    else if (job->kind == 2U)
+        status = reist_fat32_shrink_finish(&job->plan.shrink, true, &r->outcome, &size, &r->released_clusters);
+    else if (job->kind == 3U || job->kind == 4U) {
+        uint32_t bytes = 0U;
+        status = reist_fat32_grow_finish(&job->plan.grow, true, &r->outcome, &size, &bytes);
+        if (job->kind == 4U) r->durable_bytes = bytes; /* zero-filled gap != user bytes */
+    } else
+        status = reist_fat32_sync_finish(&job->plan.overwrite, true, &r->outcome);
+    if (r->outcome == REIST_FILE_OBJECT_DURABLE_COMMIT) {
+        r->resulting_size = size;
+        if (vfs_write_proof.ready && !vfs_write_proof.error) {
+            job->slot->locator = vfs_write_proof.view.object;
+            if (job->frame.operation == REIST_VFS_WRITE_RESIZE && size == job->frame.target_size) {
+                uint32_t cluster_bytes = vfs_write_proof.view.sectors_per_cluster*512U;
+                uint32_t needed = size/cluster_bytes + (size%cluster_bytes != 0U);
+                if (vfs_write_proof.chain_count == needed) r->flags |= REIST_VFS_WRITE_DONE;
+            }
+        } else {
+            vfs_write_cache_pin = 0U;
+            job->slot->closing = 1U;
+            if (!status) status = -116; /* preserve durable progress, retire stale locator */
+        }
+    } else vfs_write_cache_pin = 0U;
+    return vfs_write_complete(job, status);
+}
+
+static int vfs_write_begin_plan(vfs_write_job_t *job) {
+    reist_vfs_write_frame_t *f = &job->frame;
+    reist_vfs_write_result_t *r = &f->reply;
+    reist_fat32_ownership_t *p = &vfs_write_proof;
+    r->flags = REIST_VFS_WRITE_SIZE_KNOWN;
+    r->previous_size = r->resulting_size = p->view.file_size;
+    r->effective_offset = f->operation == REIST_VFS_WRITE_APPEND ? p->view.file_size : f->offset;
+    if ((f->operation == REIST_VFS_WRITE_DATA || f->operation == REIST_VFS_WRITE_APPEND) && !f->length)
+        return vfs_write_complete(job, 0);
+    if (f->operation == REIST_VFS_WRITE_APPEND && f->length > UINT32_MAX-p->view.file_size)
+        return vfs_write_complete(job, -75);
+    if (f->operation == REIST_VFS_WRITE_RESIZE && f->target_size == p->view.file_size) {
+        uint32_t cluster_bytes = p->view.sectors_per_cluster*512U;
+        if (p->chain_count == p->view.file_size/cluster_bytes + (p->view.file_size%cluster_bytes != 0U)) {
+            r->flags |= REIST_VFS_WRITE_DONE;
+            return vfs_write_complete(job, 0);
+        }
+    }
+    if (f->operation == REIST_VFS_WRITE_DATA && f->offset > p->view.file_size &&
+        !(job->slot->rights & REIST_VFS_WRITE_RIGHT_RESIZE)) return vfs_write_complete(job, -13);
+    reist_file_object_owned_request_t admission = {0};
+    admission.base.version = REIST_FILE_OBJECT_OWNED_VERSION;
+    admission.base.struct_size = sizeof(admission);
+    admission.base.operation = REIST_FILE_OBJECT_MUTATION_BEGIN;
+    admission.base.flags = REIST_FILE_OBJECT_EXCLUSIVE | REIST_FILE_OBJECT_EXTERNAL_JOURNAL;
+    admission.base.keys[0] = job->slot->key;
+    admission.base.epoch = p->epoch;
+    admission.base.deadline_ms = job->deadline;
+    admission.base.client_pid = job->request.client_pid;
+    admission.base.client_generation = job->request.client_generation;
+    admission.pin = job->pin;
+    admission.request = job->request.handle;
+    const reist_fat32_owned_transaction_io_t io = {
+        .base = {.context = job, .guard = vfs_write_guard, .transfer = vfs_write_transfer},
+        .owned = vfs_write_owned
+    };
+    /* Parser and mediated journal sectors are canonical-resource-relative.
+     * Partition displacement is applied only by the kernel, never twice. */
+    int status = reist_fat32_transaction_begin_owned(&job->transaction, &io, &admission,
+        0U, p->view.sectors, (uint16_t)p->view.reserved_sectors);
+    if (status) {
+        if (job->transaction.last_outcome == REIST_FILE_OBJECT_UNKNOWN)
+            r->outcome = REIST_FILE_OBJECT_UNKNOWN;
+        vfs_write_cache_pin = 0U;
+        return vfs_write_complete(job, status);
+    }
+    vfs_object_zero(&job->plan, sizeof(job->plan));
+    if (f->operation == REIST_VFS_WRITE_SYNC) {
+        job->kind = 5U;
+        status = reist_fat32_sync_begin(&job->plan.overwrite, p, &job->transaction);
+    } else if (f->operation == REIST_VFS_WRITE_RESIZE && f->target_size <= p->view.file_size) {
+        job->kind = 2U;
+        status = reist_fat32_shrink_begin(&job->plan.shrink, p, &job->transaction, f->target_size);
+    } else if (f->operation == REIST_VFS_WRITE_RESIZE ||
+               (f->operation == REIST_VFS_WRITE_DATA && f->offset > p->view.file_size)) {
+        job->kind = 3U;
+        status = reist_fat32_grow_begin(&job->plan.grow, p, &job->transaction,
+            f->operation == REIST_VFS_WRITE_RESIZE ? f->target_size : f->offset);
+    } else if (f->operation == REIST_VFS_WRITE_APPEND || f->offset == p->view.file_size) {
+        job->kind = 4U;
+        status = reist_fat32_append_begin(&job->plan.grow, p, &job->transaction, job->input, f->length);
+    } else {
+        job->kind = 1U;
+        uint32_t remaining = p->view.file_size-(uint32_t)f->offset;
+        uint32_t length = f->length < remaining ? f->length : remaining;
+        status = reist_fat32_overwrite_begin(&job->plan.overwrite, p, &job->transaction, f->offset, job->input, length);
+    }
+    if (status) return vfs_write_complete(job, status);
+    job->phase = 2U;
+    return 0;
+}
+
+static int vfs_write_delegate_publish(vfs_write_job_t *job) {
+    const reist_vfs_write_frame_t *f = &job->frame;
+    x86os_process_identity_t identity;
+    int status = x86os_process_identity_of(f->target_pid, &identity);
+    if (!status && (identity.version != 1U || identity.struct_size != sizeof(identity) ||
+        identity.pid != f->target_pid || identity.generation != f->target_generation)) status = -3;
+    uint32_t index = 0U;
+    if (!status) status = vfs_object_slot_for_owner(f->target_pid, f->target_generation, &index);
+    if (!status) status = vfs_write_live(job);
+    uint64_t now = 0U, epoch = 0U;
+    if (!status) status = x86os_monotonic_ms(&now);
+    if (!status) status = vfs_object_guard_snapshot(&epoch);
+    if (!status && epoch != job->epoch) status = -116;
+    uint32_t pin = 0U;
+    if (!status) status = vfs_object_guard_pin(&job->slot->key, epoch, f->target_pid, f->target_generation, &pin);
+    if (status) return vfs_write_complete(job, status);
+    vfs_object_slot_t *slot = &vfs_objects[index];
+    if (!slot->generation) slot->generation = 1U;
+    slot->locator = job->slot->locator; slot->key = job->slot->key;
+    slot->kernel_pin = pin; slot->owner_pid = f->target_pid; slot->owner_generation = f->target_generation;
+    slot->rights = f->rights; slot->closing = 0U; slot->pending = 1U; slot->in_use = 1U;
+    slot->pending_deadline_ms = UINT64_MAX-now < VFS_OBJECT_DELEGATION_TIMEOUT_MS ?
+        UINT64_MAX : now+VFS_OBJECT_DELEGATION_TIMEOUT_MS;
+    job->published_slot = slot; job->published_pin = pin;
+    job->frame.reply.flags = REIST_VFS_WRITE_SIZE_KNOWN;
+    job->frame.reply.previous_size = job->frame.reply.resulting_size = vfs_write_proof.view.file_size;
+    return vfs_write_complete(job, 0);
+}
+
+/* One turn of work, never a synchronous full-volume traversal. */
+static int vfs_write_poll(void) {
+    vfs_write_job_t *job = &vfs_write_job;
+    if (!job->active) return 0;
+    int status = vfs_write_live(job);
+    if (status) return vfs_write_complete(job, status);
+    if (job->phase == 1U) {
+        uint64_t epoch = 0U;
+        status = vfs_object_guard_snapshot(&epoch);
+        if (!status && epoch != job->epoch) status = -116;
+        const reist_vfs_shadow_io_t io = {.context = job, .drive_info = vfs_write_info, .read_sector = vfs_write_read};
+        if (!status && !vfs_write_proof.ready) status = reist_fat32_ownership_step(&vfs_write_proof, &io, epoch);
+        if (status > 0) return 0;
+        if (status < 0) { vfs_write_cache_pin = 0U; return vfs_write_complete(job, status); }
+        if (vfs_write_proof.view.entry[11] & 1U) return vfs_write_complete(job, -30);
+        if (job->frame.operation == REIST_VFS_WRITE_DELEGATE) return vfs_write_delegate_publish(job);
+        if (job->opening) {
+            ata_undo_journal_init(&job->transaction.journal, &vfs_write_probe_io, job);
+            if (!ata_undo_journal_attach(&job->transaction.journal, 0U, true, 0U,
+                    vfs_write_proof.view.sectors, (uint16_t)vfs_write_proof.view.reserved_sectors) ||
+                !job->transaction.journal.enabled) return vfs_write_complete(job, -5);
+            status = vfs_write_live(job);
+            uint64_t current = 0U;
+            if (!status) status = vfs_object_guard_snapshot(&current);
+            if (!status && current != job->epoch) status = -116;
+            uint64_t now = 0U;
+            if (!status) status = x86os_monotonic_ms(&now);
+            if (status) return vfs_write_complete(job, status);
+            if (job->frame.operation == REIST_VFS_WRITE_ADOPT) job->frame.rights = job->slot->rights;
+            job->slot->rights = job->frame.rights;
+            job->slot->pending = 0U;
+            /* A cancelled/lost open/adopt reply cannot leak a live pin forever.
+             * First owner-bound use confirms it; otherwise bounded reap does. */
+            job->slot->pending_deadline_ms = UINT64_MAX-now < VFS_OBJECT_DELEGATION_TIMEOUT_MS ?
+                UINT64_MAX : now+VFS_OBJECT_DELEGATION_TIMEOUT_MS;
+            job->published_slot = job->slot; job->published_pin = job->pin;
+            job->frame.object_token = job->token;
+            job->frame.service_generation = job->request.service_generation;
+            job->frame.reply.flags = REIST_VFS_WRITE_SIZE_KNOWN;
+            job->frame.reply.previous_size = job->frame.reply.resulting_size = vfs_write_proof.view.file_size;
+            return vfs_write_complete(job, 0);
+        }
+        return vfs_write_begin_plan(job);
+    }
+    if (job->kind == 1U) status = reist_fat32_overwrite_step(&job->plan.overwrite);
+    else if (job->kind == 2U) status = reist_fat32_shrink_step(&job->plan.shrink);
+    else if (job->kind == 3U || job->kind == 4U) status = reist_fat32_grow_step(&job->plan.grow);
+    if (status > 0) return 0;
+    if (status < 0) return vfs_write_complete(job, status);
+    return vfs_write_finish_plan(job);
+}
+
+static int vfs_write_start(reist_vfs_write_frame_t *frame, const x86os_storage_descriptor_v3_t *request) {
+    int status = vfs_write_frame_valid(frame, request);
+    if (status) return x86os_storage_complete(request->handle, status, 0);
+    vfs_write_reply_init(frame, request->handle);
+    if (vfs_write_job.active || vfs_repair_active) { frame->reply.result = -16; return x86os_storage_complete(request->handle, 0, (const uint8_t *)frame); }
+    vfs_write_job_t *job = &vfs_write_job;
+    vfs_object_zero(job, sizeof(*job));
+    job->request = *request;
+    job->frame = *frame;
+    job->deadline = request->deadline_ms;
+    uint64_t now = 0U;
+    status = x86os_monotonic_ms(&now);
+    if (!status && now >= job->deadline) status = -110;
+    if (!status && job->deadline-now > 5000U) job->deadline = now+5000U;
+    job->active = 1U;
+    if (status) return vfs_write_complete(job, status);
+    if (frame->operation == REIST_VFS_WRITE_OPEN) {
+        uint32_t index = 0U;
+        status = vfs_object_slot_for_owner(request->client_pid, request->client_generation, &index);
+        if (!status) status = vfs_object_guard_snapshot(&job->epoch);
+        reist_vfs_shadow_object_t object;
+        reist_file_object_key_t key;
+        x86os_file_info_t info;
+        const reist_vfs_shadow_io_t io = {.context = job, .drive_info = vfs_write_info, .read_sector = vfs_write_read};
+        if (!status) status = reist_vfs_shadow_fat_object_open_key(&io, frame->path, frame->path_length, &object, &info, &key);
+        if (!status && (info.type != X86OS_FILE || key.kind != REIST_FILE_OBJECT_FAT32)) status = -95;
+        if (!status) status = vfs_object_guard_pin(&key, job->epoch, request->client_pid, request->client_generation, &job->pin);
+        if (status) return vfs_write_complete(job, status);
+        vfs_object_slot_t *slot = &vfs_objects[index];
+        if (!slot->generation) slot->generation = 1U;
+        slot->locator = object; slot->key = key; slot->kernel_pin = job->pin;
+        slot->owner_pid = request->client_pid; slot->owner_generation = request->client_generation;
+        slot->rights = 0U; slot->pending = 1U; slot->pending_deadline_ms = job->deadline;
+        slot->closing = 0U; slot->in_use = 1U;
+        job->slot = slot; job->token = vfs_object_token(index, slot->generation); job->opening = 1U;
+    } else if (frame->operation == REIST_VFS_WRITE_ADOPT) {
+        for (uint32_t index = 0U; index < VFS_OBJECT_CAPACITY; ++index) {
+            vfs_object_slot_t *slot = &vfs_objects[index];
+            if (!slot->in_use || !slot->pending || slot->closing ||
+                !(slot->rights & REIST_VFS_WRITE_RIGHT_MUTATIONS) ||
+                slot->owner_pid != request->client_pid || slot->owner_generation != request->client_generation ||
+                now >= slot->pending_deadline_ms) continue;
+            job->slot = slot; job->pin = slot->kernel_pin;
+            job->token = vfs_object_token(index, slot->generation); job->opening = 1U;
+            break;
+        }
+        if (!job->slot) return vfs_write_complete(job, -11);
+        status = vfs_write_live(job);
+        if (!status) status = vfs_object_guard_snapshot(&job->epoch);
+        if (status) return vfs_write_complete(job, status);
+    } else {
+        status = vfs_object_resolve(frame->object_token, frame->service_generation,
+            request->client_pid, request->client_generation, request->service_generation, &job->slot);
+        if (status) return vfs_write_complete(job, status);
+        job->pin = job->slot->kernel_pin; job->token = frame->object_token;
+        uint32_t right = frame->operation == REIST_VFS_WRITE_DATA ? REIST_VFS_WRITE_RIGHT_WRITE :
+            frame->operation == REIST_VFS_WRITE_APPEND ? REIST_VFS_WRITE_RIGHT_APPEND :
+            frame->operation == REIST_VFS_WRITE_RESIZE ? REIST_VFS_WRITE_RIGHT_RESIZE : REIST_VFS_WRITE_RIGHT_SYNC;
+        if (frame->operation == REIST_VFS_WRITE_DELEGATE) {
+            if (!(job->slot->rights & X86OS_VFS_OBJECT_RIGHT_DELEGATE) ||
+                (frame->rights & ~job->slot->rights)) return vfs_write_complete(job, -13);
+            if (frame->target_pid == request->client_pid && frame->target_generation == request->client_generation)
+                return vfs_write_complete(job, -22);
+        } else if (frame->rights != job->slot->rights || !(job->slot->rights & right)) return vfs_write_complete(job, -13);
+        if (job->slot->key.kind != REIST_FILE_OBJECT_FAT32) return vfs_write_complete(job, -95);
+        if (frame->length) {
+            uint32_t amount = 0U;
+            status = x86os_storage_input_take(request->handle, job->input, sizeof(job->input), &amount);
+            if (!status && (amount != frame->length || format_crc32(job->input, amount) != frame->data_crc32)) status = -84;
+            if (status) return vfs_write_complete(job, status);
+        }
+        status = vfs_object_guard_snapshot(&job->epoch);
+        if (status) return vfs_write_complete(job, status);
+    }
+    const reist_vfs_shadow_io_t io = {.context = job, .drive_info = vfs_write_info, .read_sector = vfs_write_read};
+    if (vfs_write_cache_pin != job->pin || vfs_write_proof.epoch != job->epoch ||
+        !vfs_write_proof.ready || vfs_write_proof.error) {
+        vfs_write_cache_pin = 0U;
+        status = reist_fat32_volume_begin(&vfs_write_proof, &io, &job->slot->locator, job->epoch);
+        if (status) return vfs_write_complete(job, status);
+        vfs_write_cache_pin = job->pin;
+    }
+    job->phase = 1U;
+    return 0;
 }
 
 static int vfs_symlink_reserved_zero(const uint32_t *reserved) {
@@ -6821,14 +7285,14 @@ static int vfs_namespace_mutate(x86os_vfs_namespace_frame_t *frame) {
 
 static int vfs_shadow_request(vfs_shadow_request_t *request,
         int32_t owner_pid, uint32_t owner_generation,
-        uint32_t service_generation) {
+        uint32_t service_generation, uint64_t deadline) {
     if (request == 0) return -22;
     if (request->stat.operation == X86OS_VFS_SHADOW_OBJECT_DELEGATE)
         return vfs_object_delegate(&request->object_delegate, owner_pid,
                                    owner_generation, service_generation);
     if (request->stat.operation == X86OS_VFS_SHADOW_OBJECT_READ)
         return vfs_object_read(&request->object_read, owner_pid,
-                               owner_generation, service_generation);
+                               owner_generation, service_generation, deadline);
     if (request->stat.operation == X86OS_VFS_SHADOW_OBJECT_OPEN ||
         request->stat.operation == X86OS_VFS_SHADOW_OBJECT_OPEN_RIGHTS ||
         request->stat.operation == X86OS_VFS_SHADOW_OBJECT_OPEN_FLAGS ||
@@ -6848,6 +7312,171 @@ static int vfs_shadow_request(vfs_shadow_request_t *request,
     if (request->stat.operation == X86OS_VFS_SHADOW_FS_SYMLINK)
         return -22;
     return vfs_shadow_stat(&request->stat);
+}
+
+/* R3.42 repair host. No mount, path, object grant or raw transport; immutable
+ * retained extent + one kernel token. The same allocation walker is reused
+ * with a non-file certificate. No new journal format or per-sector flush. */
+typedef struct {
+    reist_file_repair_request_t request;
+    ata_undo_journal_t journal;
+    uint64_t last_ms, scan_deadline;
+    uint32_t phase, cursor, retry_mask, scanned, restore_pending;
+    int error;
+} vfs_repair_job_t;
+static vfs_repair_job_t vfs_repair_job;
+
+static int vfs_repair_clock(vfs_repair_job_t* job, uint64_t* now) {
+    if (x86os_monotonic_ms(now) || *now < job->last_ms) return -5;
+    job->last_ms = *now;
+    return vfs_repair_active && *now >= job->request.deadline_ms ? -110 : 0;
+}
+
+static bool vfs_repair_io(vfs_repair_job_t* job, uint32_t operation, uint32_t sector, uint32_t count, void* data) {
+    if (!vfs_repair_active || !job->request.token || job->error) return false;
+    uint64_t now;
+    int result = vfs_repair_clock(job, &now);
+    if (!result) {
+        reist_storage_journal_request_t q = {REIST_STORAGE_JOURNAL_VERSION, sizeof(q), operation,
+            job->request.token, job->request.resource, sector, count, 0};
+        result = x86os_storage_journal_io(&q, data);
+    }
+    if (result) job->error = result;
+    return !result;
+}
+static bool vfs_repair_read(void* context, unsigned short base, uint32_t sector, void* data, bool master) {
+    return !base && master && vfs_repair_io(context, REIST_STORAGE_JOURNAL_READ, sector, 1, data);
+}
+static bool vfs_repair_write_many(void* context, unsigned short base, uint32_t sector, uint32_t count, const void* data, bool master) {
+    return !base && master && vfs_repair_io(context, REIST_STORAGE_JOURNAL_WRITE_DEFERRED, sector, count, (void*)data);
+}
+static bool vfs_repair_write(void* context, unsigned short base, uint32_t sector, const void* data, bool master) {
+    return vfs_repair_write_many(context, base, sector, 1, data, master);
+}
+static bool vfs_repair_flush(void* context, unsigned short base, bool master) {
+    return !base && master && vfs_repair_io(context, REIST_STORAGE_JOURNAL_FLUSH, 0, 0, NULL);
+}
+static bool vfs_repair_write_ordered(void* context, unsigned short base, uint32_t sector, const void* data, bool master) {
+    vfs_repair_job_t* job = context;
+    bool header = sector == job->journal.header_lba || (job->journal.mirror_lba && sector == job->journal.mirror_lba);
+    /* The core validates ALL before-images before calling us. Restored data
+     * is verified deferred IO, durable as one group before the first CLEAN
+     * publication. Each redundant CLEAN header is durable independently. */
+    if (header && job->restore_pending) {
+        if (!vfs_repair_flush(context, base, master)) return false;
+        job->restore_pending = 0;
+    }
+    if (!vfs_repair_write(context, base, sector, data, master)) return false;
+    if (header) return vfs_repair_flush(context, base, master);
+    job->restore_pending = 1;
+    return true;
+}
+static const ata_journal_transport_t vfs_repair_transport = {
+    .read=vfs_repair_read, .write=vfs_repair_write_ordered, .commit_write=vfs_repair_write_ordered,
+    .write_deferred=vfs_repair_write, .write_sectors_deferred=vfs_repair_write_many, .flush=vfs_repair_flush
+};
+static const ata_journal_transport_t vfs_repair_clean_transport = {
+    .read=vfs_repair_read, .write=vfs_write_probe_deny
+};
+static int vfs_repair_info(void* context, uint32_t resource, x86os_drive_info_t* info) {
+    const vfs_repair_job_t* job = context;
+    if (resource != job->request.resource) return 0;
+    vfs_object_zero(info, sizeof(*info));
+    info->type = X86OS_DRIVE_PARTITION; info->sectors = job->request.sector_count;
+    return 1;
+}
+static int vfs_repair_sector(void* context, uint32_t resource, uint32_t sector, uint8_t* data) {
+    vfs_repair_job_t* job = context;
+    if (resource != job->request.resource || sector >= job->request.sector_count ||
+        sector > UINT32_MAX-job->request.first_sector) return -22;
+    return vfs_repair_io(job, REIST_STORAGE_JOURNAL_READ, job->request.first_sector+sector, 1, data) ? 0 :
+        job->error ? job->error : -5;
+}
+static int vfs_repair_failed(vfs_repair_job_t* job, int error) {
+    if (vfs_repair_active) {
+        job->request.operation = REIST_FILE_REPAIR_ABORT;
+        (void)x86os_file_repair(&job->request);
+    }
+    vfs_repair_active = 0; vfs_write_cache_pin = 0;
+    return error < 0 ? error : -5; /* caller exits; existing supervisor reaps/restarts */
+}
+static int vfs_repair_poll(void) {
+    vfs_repair_job_t* job = &vfs_repair_job;
+    if (vfs_write_job.active || job->scanned) return 0;
+    uint64_t now;
+    int result = vfs_repair_clock(job, &now);
+    if (result) return vfs_repair_failed(job, result);
+    if (!vfs_repair_active) {
+        if (!job->scan_deadline) {
+            if (now > UINT64_MAX-5000) return -110;
+            job->scan_deadline = now+5000;
+        }
+        uint32_t resource = job->cursor++;
+        if (resource >= REIST_VFS_SHADOW_MAX_RESOURCES) return -22;
+        reist_file_repair_request_t q = {.version=REIST_FILE_REPAIR_VERSION, .struct_size=sizeof(q),
+            .operation=REIST_FILE_REPAIR_QUERY, .resource=resource};
+        result = x86os_file_repair(&q);
+        if (!result) {
+            if (q.version != REIST_FILE_REPAIR_VERSION || q.struct_size != sizeof(q) || q.token || q.flags ||
+                !q.generation || !q.fingerprint || !q.sector_count || q.sector_count > UINT32_MAX-q.first_sector ||
+                q.reserved_sectors < ATA_JOURNAL_DATA_OFFSET+ATA_JOURNAL_MAX_ENTRIES ||
+                q.reserved_sectors > UINT16_MAX || q.reserved_sectors >= q.sector_count ||
+                q.reserved[0] || q.reserved[1] || q.resource != resource || now > UINT64_MAX-5000) return -5;
+            q.operation = REIST_FILE_REPAIR_BEGIN; q.deadline_ms = now+5000;
+            result = x86os_file_repair(&q);
+            if (!result) {
+                job->request = q; job->phase = 1; job->error = 0; job->restore_pending = 0;
+                vfs_repair_active = 1; vfs_write_cache_pin = 0;
+                job->retry_mask &= ~(1U << resource);
+                if (!q.token) return vfs_repair_failed(job, -5);
+            }
+        }
+        if (result == -16 || result == -11) job->retry_mask |= 1U << resource;
+        else if (result && result != -2) return vfs_repair_failed(job, result);
+        else if (result == -2) job->retry_mask &= ~(1U << resource);
+        if (job->cursor == REIST_VFS_SHADOW_MAX_RESOURCES) {
+            job->cursor = 0;
+            if (!vfs_repair_active && !job->retry_mask) job->scanned = 1;
+            else if (job->retry_mask && now >= job->scan_deadline) return vfs_repair_failed(job, -110);
+        }
+        return 0;
+    }
+    const reist_vfs_shadow_io_t io = {job, vfs_repair_info, vfs_repair_sector};
+    if (job->phase == 1) {
+        reist_vfs_shadow_fat_view_t view;
+        result = reist_vfs_shadow_fat_volume_view(&io, job->request.resource, &view);
+        if (!result && (view.sectors != job->request.sector_count || view.reserved_sectors != job->request.reserved_sectors ||
+            view.backup_sector != job->request.backup_sector)) result = -116;
+        if (!result) {
+            ata_undo_journal_init(&job->journal, &vfs_repair_transport, job);
+            if (!ata_undo_journal_attach(&job->journal, 0, true, job->request.first_sector,
+                job->request.sector_count, (uint16_t)job->request.reserved_sectors) || !job->journal.enabled) result = -5;
+        }
+        if (!result) result = reist_fat32_recovery_begin(&vfs_write_proof, &io, job->request.resource, job->request.generation);
+        if (!result) job->phase = 2;
+    } else if (job->phase == 2) {
+        result = reist_fat32_ownership_step(&vfs_write_proof, &io, job->request.generation);
+        if (result == 1) return 0;
+        if (!result) job->phase = 3;
+    } else if (job->phase == 3) {
+        /* Fresh CLEAN readback cannot repair/change evidence after the scan. */
+        ata_undo_journal_init(&job->journal, &vfs_repair_clean_transport, job);
+        if (!ata_undo_journal_attach(&job->journal, 0, true, job->request.first_sector,
+            job->request.sector_count, (uint16_t)job->request.reserved_sectors) || !job->journal.enabled ||
+            !vfs_repair_flush(job, 0, true)) result = -5;
+        if (!result) result = vfs_repair_clock(job, &now);
+        if (!result) {
+            job->request.operation = REIST_FILE_REPAIR_COMMIT;
+            result = x86os_file_repair(&job->request);
+        }
+        if (!result) {
+            vfs_repair_active = 0; vfs_write_cache_pin = 0;
+            vfs_write_proof.ready = 0; /* fresh objects require their own pin/evidence */
+            x86os_puts("STORAGE REPAIR_QUALIFIED resource=");
+            x86os_print_number((int)job->request.resource); x86os_puts("\n");
+        }
+    } else result = -22;
+    return result || job->error ? vfs_repair_failed(job, job->error ? job->error : result) : 0;
 }
 
 int main(void) {
@@ -6872,16 +7501,21 @@ int main(void) {
     uint8_t delegation_marker_emitted = 0U;
     for (;;) {
         vfs_object_reap_one();
+        if (vfs_repair_poll() != 0) return 4;
+        int write_progress = vfs_write_poll();
+        if (write_progress != 0 && write_progress != -22 && write_progress != -13 &&
+            write_progress != -116 && write_progress != -125 && write_progress != -110) return 3;
         boot_success_ack_poll(boot_ack_deadline, &boot_ack_active);
-        x86os_storage_descriptor_v2_t request;
+        x86os_storage_descriptor_v3_t request;
         uint8_t data[X86OS_STORAGE_BLOCK_SIZE];
-        int claim = x86os_storage_claim_identity(&request, data);
+        int claim = x86os_storage_claim_identity_v3(&request, data);
         if (claim == -11) {
-            if (x86os_sleep_ms(5U) != 0) (void)x86os_yield();
+            if (vfs_write_job.active || vfs_repair_active) (void)x86os_yield();
+            else if (x86os_sleep_ms(5U) != 0) (void)x86os_yield();
             continue;
         }
         if (claim != 0 ||
-            request.version != X86OS_STORAGE_DESCRIPTOR_V2_VERSION ||
+            request.version != X86OS_STORAGE_DESCRIPTOR_V3_VERSION ||
             request.struct_size != sizeof(request) || request.handle == 0U ||
             request.length > sizeof(data) || request.client_pid <= 0 ||
             request.client_generation == 0U ||
@@ -6905,6 +7539,16 @@ int main(void) {
         uint8_t object_open_completed = 0U;
         uint8_t object_adopt_completed = 0U;
         uint32_t object_reply_token = 0U;
+        if (request.operation == X86OS_STORAGE_VFS_OBJECT_MUTATE &&
+            request.length == X86OS_STORAGE_BLOCK_SIZE) {
+            reist_vfs_write_frame_t frame;
+            for (uint32_t index = 0U; index < sizeof(frame); ++index)
+                ((uint8_t *)&frame)[index] = data[index];
+            int completed = vfs_write_start(&frame, &request);
+            if (completed != 0 && completed != -22 && completed != -13 &&
+                completed != -116 && completed != -125 && completed != -110) return 3;
+            continue;
+        }
         if (request.operation == X86OS_STORAGE_BLOCK_READ &&
             request.length == X86OS_STORAGE_BLOCK_SIZE) {
             result = x86os_storage_block_read(request.resource,
@@ -6923,7 +7567,7 @@ int main(void) {
                 frame_bytes[index] = data[index];
             result = vfs_shadow_request(
                 &frame, request.client_pid, request.client_generation,
-                request.service_generation);
+                request.service_generation, request.deadline_ms);
             if (result == 0 &&
                 (frame.stat.operation == X86OS_VFS_SHADOW_OBJECT_OPEN ||
                  frame.stat.operation ==
@@ -6972,7 +7616,7 @@ int main(void) {
                 frame_bytes[index] = data[index];
             result = vfs_object_bulk_read(
                 &frame.object_bulk_read, request.client_pid,
-                request.client_generation, request.service_generation);
+                request.client_generation, request.service_generation, request.deadline_ms);
             if (result == 0) result = x86os_storage_bulk_publish(
                 request.handle, vfs_bulk_data,
                 frame.object_bulk_read.transferred);

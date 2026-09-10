@@ -163,9 +163,12 @@ class SchedulerTimeSourceTests(unittest.TestCase):
         compact = re.sub(r"\s+", " ", wake)
         self.assertIn("sleep_waiters.head->key <= now_ms", compact)
         self.assertIn(
-            "wait_queue_wake_one_task_locked(&sleep_waiters, NULL)",
+            "wait_queue_wake_one_task_locked(&sleep_waiters, &reschedule_mask)",
             compact,
         )
+        self.assertIn("preemption_pending = true;", compact)
+        self.assertLess(wake.index("spinlock_release(&task_table_lock)"),
+                        wake.index("preemption_pending = true;"))
 
     def test_timed_waiters_use_bounded_task_scan(self) -> None:
         wake = function_block(

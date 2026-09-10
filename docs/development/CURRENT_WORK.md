@@ -1,6 +1,1219 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 9. September 2026
+Stand: 10. September 2026
+
+## R3.42: alle37 Abnahmegruppen bestanden
+
+Abschlussstand: candidate32, acceptance-builds-24, artifacts-final24,
+guest-final29 und runtime-final29/runtime-final32.24 gezielte Hostgruppen,
+zwei Referenzbuilds und elf Runtimegruppen bestanden. Der letzte FAT32-
+Hostlauf umfasst24 Tests (53.370s). Guard-Reap-Regressionsgruppe9 Tests
+(22.701s), native O0/O2-Nachweise samt allen bisherigen Negativfaellen.
+
+VMware62.414s/QEMU56.659s; sieben echte Datei-/Fehler-/Recovery-Gastfaelle
+321.427s; Admin22.805s, alte FAT32-Recovery93.575s, JS-Dateirechte62.962s,
+Restricted-Worker19.622s, Browser46.422s, Performance36.334s, Scheduler
+APIC20.669s/PIT20.650s/SMP4 37.577s. Originale Fristen, drei Recovery-
+Versuche,20 Journalziele und vier Barrieren wurden nicht vergroessert.
+
+Ein einziges authentifiziertes QEMU-TCG-Benchmarkpaar bei1024MiB/1CPU,
+unveraendertem BENCHMARK.PRG: CPU5711.39->6100.80MOp/s (1.068x),
+seq.Schreiben73.58->89.95KiB/s (1.222x), seq.Lesen988.41->6736.84KiB/s
+(6.816x). Kein verworfener gemessener Vergleich, keine VMware-/Hardware-
+Durchsatz-, WCET-, Power-loss- oder Zertifizierungsaussage.
+
+Finales Archiv: build/codex-agent/r342-fat32-write/accepted-final/ mit
+Quellhashes, beiden Images/passenden Kerneln und37 konkreten Gatebelegen.
+Historische Fehlversuche bleiben erhalten; R341-H1/H2 bleiben offene
+Altrisiken. Kernel-/ABI-/Cleanup-/Scope-Diff direkt geprueft, keine fremden
+Aenderungen eingeschlossen. Lokaler Commit nach Archiv und Queueuebergang;
+kein Push. Formales Folgepaket R3.6b bleibt gemaess Nutzerprioritaet vertagt.
+
+Grenze: bestehende regulaere FAT32-Dateien auf ATA-PIO, kein neuer persistenter
+Journaltyp, kein Create-/FAT12-/EXT2-Schreibbackend und keine neuen JS-Rechte.
+Bei erschoepftem Storage-Neustartbudget bleiben normale File-Object-Zugriffe
+geschlossen. Der gepruefte unabhaengige Root-Rettungslesepfad bleibt verfuegbar;
+das ist kein verdeckter Fallback in normalen Anwendungen. Explizite JS-
+Schreibdelegation benoetigt das naechste eigenstaendige Host-Autoritaetspaket.
+
+## R3.42: unterbrochene Reparatur nach exaktem Reap wieder aufnehmen
+
+runtime-final29:23 FAT32-Hosttests PASS/53.265s; endlich alle sieben Objekt-
+Gastfaelle gemeinsam PASS/321.427s. Admin22.805s, bestehende FAT32-Recovery
+93.575s, JS-Datei-Capabilities62.962s, Restricted-Worker19.622s und Browser-
+External46.422s PASS. Zusammen mit den bisherigen gebundenen Host-/Build-/
+Artefaktbelegen sind33 von37 Gruppen bestanden. Performance29 bleibt FAIL
+vor dem ersten VM-Start: Pruefer suchte bin/benchmark.prg statt des in beiden
+Buildlayouts vorhandenen usr/bin/benchmark.prg. Ein gemeinsamer Helfer
+authentifiziert jetzt exakt diese Nutzlast in beiden Images und verweigert
+geaenderte/leere Bytes; Regression fuer Pfad, Gleichheit und Ablehnung.
+runtime-final30 prueft Host, erstes tatsaechliches Benchmarkpaar und die drei
+offenen Schedulergaeste. Keine OS-/Imageaenderung seit build24, kein Commit.
+
+acceptance-builds-24: VMware62.414s/QEMU56.659s PASS; FS-Hostgate1.732s
+und Artefaktguard5.833s PASS. guest-final24 besteht die ersten sechs Faelle
+einschliesslich echtem Repair-Cut, COMMIT, frischem Mount/Sync und exaktem
+Medienvergleich. Exhaust erreicht drei Repair-UD2, Reap aller vier Storage-
+Generationen und SERVICE_DEGRADED; abschliessendes CAT scheitert, da sein
+File-Object-Client genau den nun erschoepften Dienst benoetigt. Kampagne bleibt
+FAIL/320.536s. Kein weiterer Neustart oder Ruecksetzen eines Budgets erlaubt.
+
+Gezielter privater Pruefernachweis fuer Exhaust: CAT muss weiter geschlossen
+bleiben; FWRITEST-Testinjektion liest dieselbe echte Root-Datei unabhaengig
+ueber vorhandenes SYS_OPEN_FLAGS(RDONLY)/READ/CLOSE.512Byte/5s-Limit,
+EOF/Short-read/Fehler/Close-Pruefung, keine neuen Rechte oder Runtimeaenderung.
+Die bereits vorhandene Legacy-Lesestrecke ist Migrationsschuld, kein neuer
+Kernelparser oder Rueckfall in normalen File-Object-Clients. Der Gast muss
+reale Dateibytes, unveraenderte Serviceidentitaeten und den kompletten exakten
+Aux-Medienzustand nachweisen. Native Regression prueft neun Erfolgs-/Fehler-
+varianten jeO0/O2. runtime-final25 prueft diesen Stand;37 Gates bleiben offen,
+soweit noch nicht bestanden. Referenzimages/-kernel bleiben build24.
+
+guest-final25: erneut erste sechs Faelle PASS, Exhaust scheitert an der
+Programmsuche fuer den nicht im Rettungscache enthaltenen FWRITEST. Keine
+Shell-/Cacheaenderung: nur private Variante6 haelt den urspruenglichen Client
+begrenzt am Leben. Der Host bestaetigt erst SERVICE_DEGRADED und gibt dann
+per PS/2 den Lesebeobachter frei. Kein Schlaf-Timing als Erfolgsannahme,
+neuer Prozess, weiteres Restartbudget oder Rueckfall in normale Clients.
+exhaust-probe26 bleibt FAIL: Legacy-OPEN_FLAGS unterstuetzt entgegen dem
+ersten Testadapter kein NOFOLLOW. Der fest vorgegebene, hashgepruefte FAT32-
+Rootpfad wird nun mit dem unterstuetzten RDONLY geoeffnet; keine Symlink-/
+NOFOLLOW-Kompatibilitaetsbehauptung. Zwei gezielte Hosttests bestanden;
+exhaust-probe27 PASS/22.359s: drei echte Repair-Cuts, DEGRADED, unabhaengiger
+Root-Leseinhalt, anschliessende CAT-Abweisung und kompletter Medienvergleich.
+runtime-final28:23 Hosttests PASS/53.429s; erste sechs Gastfaelle PASS.
+Exhaust liest die Root-Datei erfolgreich, scheitert aber an verschachteltem
+STALE_REJECTED (Quarantaene/Retirement mitten im Wort); der Lauf bleibt FAIL.
+Die vorhandene beschraenkte Rekonstruktion kennt jetzt beide exakten Stale-
+Quittungen REJECTED und ACCEPTED, damit auch ein fehlerhaft akzeptierter
+Alt-Handle niemals durch Verschachtelung verborgen wird. Exhaustive Trenn-
+stellenregression, unveraenderte Bytes/Fristen/Identitaeten/Medienorakel.
+candidate29/runtime-final29 pruefen nur diese weitere Prueferkorrektur;
+Runtimequellen und beide Referenzimages bleiben build24.
+
+Performance30 scheitert ebenfalls vor einer VM-Messung: der bestehende
+Pruefleser unterstuetzt nur8.3-Namen, nicht die VFAT-Langnamen im Buildlayout.
+Der Pruefer verwendet nun den vorhandenen image_program_path-Adapter
+(usr/bin/benchm~1.prg). Eine echte, vom normalen Imagebuilder erzeugte
+FAT32-Fixture reproduziert die Ablehnung des Langnamens und prueft die
+richtigen Nutzlastbytes; Gleichheits-/Aenderungs-/Leerheits-Negativtests bleiben.
+Host31 bleibt FAIL wegen unpassend gewaehlter Fixture-Geometrie; fuer den
+Adaptertest wird nun eine gueltige70000-Sektor-Fixture verwendet, ohne den
+Imagebuilder zu aendern. benchmark-alias-green.log PASS/0.226s.
+candidate32/runtime-final32 pruefen diesen Stand. Bisher keine einzige
+Benchmark-VM im Performancepaar gestartet, kein gemessener Wert verworfen.
+
+runtime-final23:21 FAT32-Hosttests PASS/52.672s, Normal/Fault/Hang/Cancel/
+Lost-reply im Gast bestanden. Repair-cut erreicht jetzt alle Shellaufrufe,
+aber kein Repair-COMMIT: Generation3 meldet nur Nullstatistik. Die erste
+Reparatur starb mit342FA018; der Kernel behielt ihren ACTIVE-Eintrag, weil
+das bereits quarantinierte Medium kein zweites Medienwechselereignis erzeugt.
+Der Lauf bleibt FAIL/299.199s, keine Umwertung oder Fristverlaengerung.
+
+Gezielte Korrektur ausschliesslich in der kalten vfs_file_repair_request:
+gueltiges QUERY auf gefenctem ACTIVE-Eintrag wartet auf exakt bestaetigtes
+Reap des alten PID/Generation-Paars, bereinigt dessen Guard und ueberfuehrt
+den Eintrag generationserhoeht nach FAILED. Keine neue IO-/Schreibautoritaet;
+BEGIN prueft weiterhin Identitaet, Pool, frische Lease und originales Limit
+von drei Versuchen. Kein Poll-/Schedulerhotpath und keine zweite Medienmeldung
+als Voraussetzung. Alte Token bleiben ungueltig, andere Ressourcen gefenct.
+
+reaped-repair-red.log reproduziert das vergessene ACTIVE; der erweiterte
+O0/O2-VFS-/Syscalltest prueft sowohl abgeschlossene als auch vertagte Guard-
+Bereinigung, Reap-Abweisung, einen erfolgreichen Folgeversuch und Erschoepfung
+nach drei Repair-Cuts. Alle9 Guardgruppen bestanden (reaped-repair-green.log).
+acceptance-builds-24 und runtime-final24 pruefen den neuen Kernel; alle37
+Gruppen bleiben verbindlich. Noch kein Abschluss, Queuewechsel oder Commit.
+
+## R3.42: ATA-PIO-Korrektur umgesetzt; grosser Datei-Gast besteht
+
+10.September: neue Nutzerfreigabe fuer geschuetzten ATA-Mehrsektorpfad samt
+Tests. Alle58 Dateien des pio-checkpoint hashgleich wiederaufgenommen.
+Scope um ATA_PIO_TRANSFER_CONTRACT und zwei vorhandene ATA-Hostdateien
+erweitert; alle37 Gruppen unveraendert erforderlich. Kein neuer Treiber,
+DMA-, AHCI-/FDD- oder Journalpolicyumbau, keine groesseren Quoten/Fristen.
+
+Tokengebundene externe Writes nutzen T13 WRITE MULTIPLE/C5h bzw. EXT/39h.
+Frische IDENTIFY-Aushandlung gilt nur fuer Schreiben und vollstaendiges
+Ruecklesen unter einer durchgehend gehaltenen ATA-Sperre. Kein Moduscache
+ueber Rueckkehr/Reset/Medienwechsel hinweg. Legacy-Writes bleiben sektorweise;
+Reads ohne lokalen Modus behalten ihre frische Aushandlung. Bereichs-/LBA-,
+Zeit-, Autoritaets-, DRQ- und Abschlusspruefungen unveraendert. Letzter Block
+wird exakt gekuerzt; keine nachtraegliche Wiederholung bei Fehlern.
+Der Sourceguard rekonstruiert die bisherigen Helfer aus exakt aufgezaehlten
+Transformationen; neue Negativmutanten fuer Blockgrenzen/Restblockvalidierung.
+
+pio-multiple-red.log reproduziert fehlendesC5h. pio-multiple-final.log:
+O0/O2 je320 Schreib-/Lesekombinationen, Restbloecke, LBA28/48, Datenbytevergleich,
+alle direkten Abbruch-/Fristpunkte und unveraenderte Legacy-Tests bestanden.
+pio-pool-green.log:20 Handofftests PASS/8.912s inklusive echter Request-Pool-
+Cancellation nach16er-Schreibblock, keine spaeteren Effekte, korrekte Fence;
+75431 Journalchecks jeO0/O2. Hostassertionen melden normalen Fehlerexit.
+
+acceptance-builds-19: VMware67.421s/QEMU62.025s PASS. post-build19/0.log:
+18 FAT32-Tests PASS/48.312s. artifacts-final19 PASS/5.844s: geschuetzte
+Programme, normale Kernelpfade, Verbraucher und beide Images geprueft.
+guest-final19/normal.json PASS/33.746s:128KiB pwrite,4097Byte Append,
+Nullwachstum auf4206611Byte,8215 Cluster in57 Schritten bis513Byte frei,
+Sync, Grossbuchstaben-Dispatch, Root-CAT.72 Plaene/289 Barrieren plus Sync
+und kompletter Datentraeger exakt. Gemessene Shrink-WRITE-IO1114ms statt
+2618ms im fehlerhaften final17; keine Aussage ueber Hardware/WCET.
+guest-final19/fault.json PASS/33.071s: echter Storage-UD2, UNKNOWN,
+alter Handle-116, Quarantaene/Reap/Ersatz, Repair-COMMIT, Admin-Unmount/
+Neumount und frisches Sync; gesamtes Medium exakt und Root-CAT lebendig.
+guest-final19/hang.json bleibt FAIL/24.867s: der Pruefer ordnete den beim
+Boot absichtlich ausgeloesten Probe-UD2 (EIP4000020F/EAX0, vor Shellstart)
+faelschlich dem spaeteren Storage-Hang zu. Der Storage-Auftrag selbst endet
+mit-110/UNKNOWN, Quarantaene und Ersatz ohne eigenen Exceptioneintrag.
+Gezielte Prueferkorrektur samt Red/Green-Regression: Beobachtungsgrenze ist
+der konkrete Shellprompt vor Testbeginn; JEDE Prozess-Exception danach
+bleibt Fehler, erneut geprueft nach Gastende. Keine geaenderte Fehler-
+injektion, Gastbinaerdatei, Deadline oder abgeschwaechte Recoveryforderung.
+post-witness20:19 FAT32-Hosttests PASS/46.044s. guest-final20 besteht Normal-
+und Faultbetrieb; Hang erreicht alle Gastnachweise und den kompletten
+Medienvergleich, scheitert aber beim Speichern des erwarteten Images an
+Host-ENOSPC. Dieser Lauf bleibt FAIL, keine nachtraegliche Umwertung.
+566 abgeschlossene native/Quellbelege und fuenf explizite historische
+Diagnose-/Zwischenimages verlustfrei komprimiert; SHA256 jeweils unveraendert
+(closed-file-compression20.json, historical-image-compression20.json).
+runtime-final21 startet erst nach3GiB freiem Platz. Kein unveraenderter
+Timing-Retry; reine Host-Ressourcenkorrektur, keine geloeschten Belege,
+veraenderten Referenz-/aktiven VM-Images oder Gastbudgets. Alle alten
+Fehlbelege bleiben erhalten. Kein Commit/Queuewechsel vor allen37 Erfolgen.
+
+guest-final21: Normal/Fault/Hang/Cancel/Lost-reply jeweils vollstaendig PASS;
+anschliessend private Variante5 mit fehlender memcmp-Deklaration nicht
+uebersetzbar (compile-5.log, Kampagne FAIL/248.868s). Ausschliesslich der
+private Hook nutzt jetzt die vorhandene format_equal-Funktion. Neuer echter
+i386-Freestanding-Uebersetzungstest fuer alle sieben Varianten erkennt diese
+Fehler vor dem Gastlauf. Zusaetzlich erkennt der Hangpruefer auch den separaten
+USER PROCESS PAGE FAULT-Marker; Negativtest reproduziert die vorherige Luecke.
+runtime-final22/-1.log:20 Tests PASS/56.218s; -2.log: bestehendes eingefrorenes
+ATA-Wrappergate PASS/1.382s. Referenz-/Runtimequellen seit build19 unveraendert.
+candidate22/manifest.json bindet alle61 eigenen Pfade und die37 Gatebefehle;
+die uebrigen Hostbelege sind gegen den hashgleichen pio-checkpoint abgeglichen.
+guest-final22: erste fuenf Varianten PASS; Repair-cut FAIL/180s beim Warten
+auf RESOURCE_QUARANTINED. Der Marker war vollstaendig, aber mitten in
+FWRITE FAIL stage=2 result=-22 verschachtelt; die Shell war bereits zurueck,
+Generationen1/2 wurden nach den echten Schreib-/Repair-UD2 reaped und3 bereit.
+Gezielte lokale Auswertung akzeptiert nur die vollstaendig rekonstruierte
+Fehlerquittung mit exaktem Quarantaene-Marker und optionalem Retirementrecord.
+Keine allgemeine Teilstringsuche; Offset-, Bereichs-, Frist-, Generation- und
+Mediennachweise bleiben bestehen. Regression reproduziert alle Trennstellen,
+LF/CRLF und verweigert unvollstaendige/falsche Quittungen/IDs. Der alte Lauf
+bleibt FAIL. runtime-final23 prueft die Korrektur und danach die offenen Gates;
+keine veraenderten Runtimequellen/Referenzimages seit build19.
+
+## R3.42: 24 Hostgruppen gruen; ATA-PIO-Performancegrenze noch offen
+
+Final18: VMware66.752s/QEMU65.065s PASS; artifacts-final18/protected.json
+PASS/6.379s. Alle24 gezielten Gruppen auf dem aktuellen Stand bestanden:
+integrity-byte-green.log (5 Tests,326479 Checks jeO0/O2),
+guard-byte-final18.log (9 Tests/24.229s), post-build18/1.log (18 Tests/49.894s)
+und targeted-final18/result.json (21 weitere Gruppen). Native Crashdialoge
+unterdrueckt, keine sichtbare VM und kein paralleler Build.
+
+guest-final18/normal.json bleibt FAIL/27.446s: volle128KiB pwrite, Append und
+Nullwachstum gelingen; Shrink erreicht309248Byte/7613 freigegebene Cluster in53
+Schritten, dann originale5s-Frist/-110/UNKNOWN. Alter Handle bleibt-116.
+Hostkontinuitaet gueltig (maxgap0.121s); keine Standby-Erklaerung und kein
+unveraenderter Gate-Wiederholungsversuch. Sechs Faultvarianten sowie die acht
+alten weiteren Runtimegruppen wurden noch nicht ausgefuehrt. Admin-Gastbeleg
+admin-deadline15 bleibt gueltiger Zwischenstandsbeleg, kein final18-Neulauf.
+
+Gezielte read-only Diagnose shrink-pc-final18/diagnostic.json:29 CPU-Snapshots
+nur waehrend Shrink, keine Abnahmewiederholung. kernel-map-final18 rekonstruiert
+den Referenzkernel bytegleich. Neun Samples liegen im ATA-PIO-Lesen bzw. dessen
+Befehlsvorbereitung; weitere betreffen Schutz-/Pool-/Zeit-/Schedulingcode.
+Die Stichprobe quantifiziert keinen exakten Zeitanteil. Inspektion bestaetigt:
+ata_pio_read_block_size_checked fuehrt vor JEDEM Mehrsektor-READ erneut IDENTIFY
+aus; volatile Mehrsektoreinstellungen werden bisher absichtlich nicht gecacht.
+Der verbleibende Engpass ist deshalb nicht als alleiniger CRC-Fehler belegt.
+
+Naechste notwendige Freigabe: gezielte ATA-PIO-Mehrsektoroptimierung samt
+test/test_ata_multiple.py und test/test_ata_multiple_host.c. Die derzeitige
+ATA-Sourceguard erlaubt dort nur Autorisierungsaufrufe/NULL-Adapter, keine
+solche Verhaltensaenderung. Keine stille Erweiterung, kein Umgehen des Guards,
+kein ungepruefter Moduscache ueber Reset/Medienwechsel. Deadline-, Fencing-,
+Generation-, Readback- und Vier-Barrieren-Vertraege bleiben verbindlich.
+R3.42 bleibt aktiv und uncommittet; R3.6b weiter aufgeschoben.
+
+Abgeschlossene alte Beweismedien wurden verlustfrei NTFS-komprimiert,
+Hashes jeweils unveraendert (closed-media-compression18.json). Der Gastpruefer
+komprimiert jetzt auch beobachtete/erwartete Hilfsmedien erst nach Gastende
+und Oraclepruefung; enge Namen/Pfade und Regressionstest, keine geloeschten
+Belege oder komprimierten laufenden VM-Datentraeger.
+
+## R3.42: Genehmigter Admin-Flush korrigiert, Abschlusspruefung laeuft
+
+10.September: Nutzer genehmigt den gezielten Adminpfad samt Tests.
+52-Datei-Checkpoint vollstaendig hashgleich wiederaufgenommen. Keine fremden
+Aenderungen, Agenten, sichtbaren VMs oder Pushes; R3.42 bleibt aktiv.
+Queue/Vertrag um admin_maintenance.c, vorhandene Admin-Tests, nativen
+admin_maintenance_transition_host.c und run_qemu_admin_ata.py erweitert;
+35 vorhandene Gruppen bleiben, zwei Admin-Gruppen hinzugefuegt (37 gesamt).
+
+Separater ATA-FLUSH-Einstieg prueft den aktuellen geschuetzten Adminauftrag,
+Prozess/Generation, Ressource/Rootmaske und urspruengliche Wartungslease.
+Normale Writes bleiben im Uebergang gesperrt; kein temporaeres Unfencing.
+Vor dem ATA-Befehl werden Lease, Zustands-/Treiberfences und Supervisor erneut
+geprueft. Nach unsicherem Effekt bleibt die normale Fehlerbehandlung aktiv.
+Controllerdeadline=min(urspruengliche15s-Lease, bestehende10s-Operation);
+Draining bleibt separat500/2000ms. Keine Fristerneuerung, neue Userspace-ABI
+oder groessere Ressourcen-/Journal-/Restartbudgets.
+
+admin-lock-green.log:11 Admin-Tests PASS/1.086s,204 reale zusammengesetzte
+Funktionspruefungen jeO0/O2; Rechteverlust/Fencing/Expiry vor und nach dem
+Befehl, Topologie, Rootschutz und Cleanup. Sourceguard rekonstruiert den
+normalen Storage-Schreibpfad exakt. Fruehe Host-/Gastfehler bleiben erhalten;
+admin-diagnostic14 belegt-16 wegen der frueher ungeschnittenen15s-Lease,
+admin-lock-red.log reproduziert dieses Controllerlimit nativ.
+
+admin-deadline15/result.json PASS/22.734s: frischer Referenzgast, ATA1
+umount/mount/down/up, Statuspruefungen, Root0-Ablehnung, unabhaengiges CAT.
+Referenz und kompletter Hilfsdatentraeger bytegleich, Hostkontinuitaet gueltig.
+VMware66.386s/QEMU60.039s und Artefaktguard des Zwischenstands13 bestanden;
+erneute finale Referenzbuilds16 nach Deadlinekorrektur werden abgelegt.
+Noch kein Commit/Queuewechsel und keine Annahme der ausstehenden Fault-,
+Kompatibilitaets-, JS-/Browser-/Scheduler-/Performancegaeste.
+
+Final16: VMware61.834s/QEMU58.501s und artifacts-final16 PASS. Danach
+guest-final16/normal FAIL: Shrink erreicht459264Byte/7320 freigegebene Cluster
+in51 Schritten, dann originale5s-Frist/-110/UNKNOWN, alter Handle-116.
+Hostkontinuitaet gueltig; private Storage-Quelle UND PRG sind hashgleich zum
+bestandenen build12-Normallauf. Kein unveraenderter Wiederholungsversuch.
+Die fehlerhafte Kampagne bleibt erhalten, die Frist wird nicht verlaengert.
+
+Gezielte VFS-Korrektur innerhalb bestehender Scope: Der frische
+vfs_journal_authorize_context-Probe prueft Control/Pin/Medium und Poolabbruch.
+Bei bereits attempted+pending unter weiterhin gehaltener VFS-Sperre wird
+derselbe idempotente WRITE nicht nochmals durch drei Schutzreads geschickt.
+Erster WRITE nach jeder Barriere publiziert pending weiterhin; kein Snapshot
+ueber IO, Warten, Befehle oder Userspace-Rueckkehr hinweg. Echter VFS/Guard-
+Regressionstest admission-pending-red.log reproduziert6 statt3 Reads.
+Abnahme nach dieser fokussierten Korrektur laeuft; noch keine Gastzusage.
+
+Final17: VMware66.680s/QEMU62.019s, Artefaktvergleich PASS. Normalgast weiterhin
+FAIL nach45 Shrinkschritten/-110/UNKNOWN, gueltige Hostkontinuitaet. Die
+VFS-Duplikatkorrektur allein liefert keine ausreichende Zeitreserve.
+admission-pending-green.log:18 Tests PASS/51.900s, echter VFS/Guard115 Checks
+jeO0/O2. Handoff20 Tests PASS/8.871s. Zwei alte Guard-Hostfixtures an aktuelle
+Deadline-/Wakeup-Signaturen angepasst, keine Schutzassertion entfernt.
+
+Weiterer Schritt NUR innerhalb genehmigter CRC/SECDED-Arithmetik: immutable
+Bytebeitragstabellen statt mehrfacher Paritaets-/Nibbleberechnung. Beide
+geschuetzten Kopien werden weiterhin voll geprueft und unveraendert publiziert.
+1024 Tabelleneintraege einzeln plus Ueberlagerungen gegen Originalreferenz;
+integrity-byte-green.log:5 Tests PASS/3.068s,326479 Checks jeO0/O2. Hostprobe
+10000 Reads O2 vorher15ms/nachher8ms (keine Gast-/WCET-Zusage). Referenzbuilds18
+und anschliessende unveraenderte Gastanforderungen stehen noch aus.
+
+## R3.42: Normalbetrieb abgenommen; bestehender Admin-Flush blockiert Abschluss
+
+Aktuell10.September14:55: weiterhin52 eigene Dateien, HEADd96a01e7,
+R3.42 aktiv, kein Commit/Push/Queuewechsel und keine parallelen Agenten.
+acceptance-builds-12: VMware86.948s/QEMU55.621s PASS; artifacts-idempotent PASS.
+shrink-idempotent-green.log:18 Dateisystemtests PASS/45.473s; anschliessender
+guest-keys-green.log prueft echte Shift-Eingabe fuerFWRITEST, keine Umgehung.
+
+guest-final-build12/normal.json PASS/35.382s: volle131072Byte pwrite,
+4097Byte Append, Nullwachstum auf4206611Byte,8215 Cluster in57 bestaetigten
+Schritten freigegeben, Ziel513Byte, Sync und Grossbuchstaben-Shelldispatch.
+Alle72 Datenplaene/289 Barrieren plus separater Sync und gesamter Datentraeger
+bytegenau geprueft; unabhaengige Root/Shell bleibt ansprechbar. Alle vorherigen
+5s-Fehler bleiben archiviert. Keine Deadline-/Journal-/Ressourcenlockerung.
+
+Die letzte Ring3-Variante journalisiert bereits unbekannte FSInfo-Hints nicht
+erneut. Das exakte EOC wird aus der ersten frischen Undo-FAT-Kopie erfasst
+und gegen jede weitere Kopie sowie den finalen Plan geprueft (kein separater
+Begin-Read mehr). Native Teilschritte25 Reads/9-11 RPCs, Refill171 Reads/31
+RPCs; alle negativen Spiegel-/Cut-/Reentry-/Range-/Budgettests erhalten.
+
+guest-final-build12/fault.json erreicht echtenOwnerfault0x342FA017, Reap der
+alten Generation, Replacement und bestaetigten Repair-COMMIT. Alter Handle
+bleibt-116, alter Mount unbrauchbar. Danach ADMIN UMOUNT_FAILED. Der Lauf
+bleibt FAIL, folgende5 Faultvarianten und weitere Runtimegates NICHT akzeptiert.
+admin-unmount-diagnostic/offline.json bestaetigt unabhaengig den exakten
+gesamten Rollback-Datentraeger inklusive Journal/Undo nach dieser Reparatur.
+
+Separater frischer Referenzgast (keine private Storage/Faultinjektion) zeigt
+ONLINE -> umount1/FAILED -> FAILED/BLOCKED in15.020s; Medium und Referenz
+bleiben unveraendert, Root/Shell leben. raw fresh-admin.log enthaelt BEIDE
+Statusaufrufe; diagnostic.json.outputs hat wegen gleichem Dictionarykey nur
+den letzten devctl-Status, deshalb fuer die Reihenfolge raw Log verwenden.
+execute_umount setzt admin_transition VOR flush_resources. ata_flush_cache
+ruft storage_write_begin auf; dessen resource_available lehnt exakt diesen
+Uebergang ab. Alle sechs betreffenden Funktionskoerper sind gegen die
+akzeptierte3e7c02ad unveraendert (offline.json). Kein VFS-Pin-/Scope-Workaround.
+
+Noetige gezielte Erweiterung: kernel/init/admin_maintenance.c und die
+zugehoerigen Admin-Regressionstests fuer leasegebundenen Flush/Unmount.
+Diese Datei ist NICHT in R3.42 allowed_files; deshalb keine Implementierung
+dort, keine Freigabe alter Handles, kein vorzeitiges Oeffnen der Ressource.
+Die35 bestehenden Gates bleiben verbindlich. Fortsetzungscheckpoint unter
+build/codex-agent/r342-fat32-write/continuation-20260910-admin-checkpoint/.
+
+## R3.42: Idle-Wakeup korrigiert; lange Reads und Shrink-Lokalitaet in Abnahme
+
+10.September: Nutzer "ja mach das alles was noetig ist" autorisiert die
+gezielte Schedulererweiterung. Alle48 Eingangsdateien stimmten mit dem eigenen
+continuation-20260910-integrity-checkpoint ueberein. Kein fremder Writer,
+keine Agenten/Visible-VM/Push.52 eigene geaenderte Dateien im aktiven R3.42.
+
+Nur drei Schedulerfunktionen aendern sich: Timed Sleep/Wait setzt nach READY
+und Lockfreigabe den vorhandenen CPU-lokalen Pending-Hinweis. Der bestehende
+PIT-Hook NACH PIC-EOI/Hard-IRQ-Ende dispatcht eine freie gespeicherte CPU sofort.
+Laufende Tasks behalten ihren10ms-Takt. Auswahl, Accounting, Claims, Stack,
+Preemption und SMP-ABI sind byte-/quellgeschuetzt; Lockdeferral behaelt pending.
+wakeup-red-behavior.log zeigt den echten Fehler, wakeup-green.log8351 Checks
+jeO0/O2 plus negative Scope-Mutanten. wakeup-hosts/: Schedulerzeit, Slack und
+SMP sowie alle damaligen16 Dateisystemtests PASS. Original28 Gruppen plus4
+Host- und3 APIC/PIT/SMP-Gaeste =35. Legacy-FAT32-Gast nur auf seinen bestehenden
+zulaessigen r340-Evidencepfad korrigiert, kein anderer Gateparameter gelockert.
+
+acceptance-builds-09: VMware61.001s/QEMU60.295s PASS; artifacts-wakeup PASS.
+guest-wakeup beweist erstmals volle131072Byte pwrite in13 Schritten und4097Byte
+Append. Danach scheitert der alte Read am4MiB-Ende mit-110 (Stage4). Hostzeit
+gueltig; kein Standbyvorbehalt. Dieser Lauf bleibt als FAIL erhalten.
+
+Der Ring3-Objektleser verwendet jetzt kontrollierte128-Work-Abschnitte mit
+max320 Reads, persistenter Zyklus-/Rangepruefung und Volumen-Clustergrenze,
+statt der alten6400-Schritt-Gesamtgrenze. Inline/Bulk erhalten die urspruengliche
+Descriptor-v3-Deadline; Clock vor/nach IO, Pinpruefung/Yield je Abschnitt,
+vollstaendiges Nullsetzen bei Fehler. Alte Parser-/Pfadwrapper unveraendert.
+long-read-red.log reproduziert den Fehler, long-read-data-green.log6134 Checks
+jeO0/O2 inklusive echter Nutzbytes und Abbruch nach dem Kopieren. Read-Host:
+12 Clock/Pin/IO-Pruefungen jeO0/O2; long-read-hosts PASS fuer alle18 damaligen
+Dateitests, Legacy-FAT-Parser und Storage-Domain/Service/Recovery-Hosts.
+acceptance-builds-10: VMware86.776s/QEMU54.492s PASS; artifacts-long-read PASS.
+guest-long-read erreicht Wachstum auf4206611Byte; beim Shrink nur2493 Cluster
+in18 Schritten freigegeben, dann5s/-110/UNKNOWN. Dieser neue Fehler bleibt rot.
+
+Gezielte Shrink-Korrektur innerhalb des vorhandenen Ring3-Planners: komplette
+RAM-Zielliste vor Staging sortieren, damit der unveraenderte Journalcode FAT-
+Sektoren/Mirrors buendeln kann. Zusaetzlich64 sparse Suchmarken mit adaptiver
+Zweierpotenz-Schrittweite im WEITERHIN <48KiB grossen Ownershipcache. Nur
+validierte Ketten und eigene bestaetigte Commits aktualisieren sie; Shrink
+entfernt freigegebene Hinweise. Jede Nachfuellung prueft Links/Mirrors bis zum
+bekannten Suffix, jeder Epoch-/Pin-/Hintfehler entwertet den Cache.
+shrink-order-red.log / shrink-refill-red.log sichern beide Fehler ab;
+Nachfuellkosten1026 ->330 Sektorreads. shrink-all-hosts.log:18 Tests PASS
+in45.312s, <=10 Schreib-RPCs je geprueftem gebuendeltem Shrink-Commit bei exakt4
+Flushes, falsche Hint-Schrittweiten/-Cluster vor Effekten abgewiesen. Keine
+Quoten-/Deadline-/Journalformat-/Kernel-ATA-Ausweitung. Referenzbuilds11 und
+die35-Gruppen-Gastabnahme laufen weiter; noch kein Implementierungscommit.
+
+Fortsetzung10.September: Referenzbuilds11 beide PASS (VMware86.307s,
+QEMU54.962s), artifacts-shrink-locality PASS. Gast normal weiterhin rot:
+shrink-locality3224 / shrink-batch4979 / shrink-validation5418 /
+shrink-window6881 freigegebene Cluster, danach jeweils5s/-110/UNKNOWN.
+Keine Ergebnisse verworfen oder Fristen erhoeht. Pwrite131072, Append4097,
+High-offset-Read und Nullwachstum bestehen in diesen Laeufen. Neue private
+Beobachtung trennt Shrink-Read-/Write-Zeit (stats3/7), ohne Konsolenrecht.
+
+Weitere Ring3-Korrekturen innerhalb des bestehenden R3.42:
+Der Transaktionsadapter liest den vollstaendigen sortierten Shrink-Zielplan
+in zusammenhaengenden Bloecken. Ein reiner Transform bekommt frische Bytes;
+der UNVERAENDERTE Undo-Kern erhaelt genau diese Originaldaten. Der synchrone
+20-Sektor-Scratch wird vor Finish genullt, Reentry abgewiesen, Geometrie und
+Write-Readback bleiben frisch. Alle geloeschten/predecessor FAT-Links werden
+in ALLEN Spiegeln vor jedem Effekt und nochmals gegen den Plan geprueft;
+das beim Begin frisch gelesene gespiegelte EOC muss exakt uebereinstimmen.
+Teilschritt72 ->27 Sektorreads/13 RPCs, keine entfernte Linkpruefung.
+
+Nachfuellungen erweitern um1024 statt pauschal2561 Eintraege. Zwei private
+64-Sektor-Lesefenster verwenden den vorhandenen Bulk-READ, mit voller
+Anrechnung jeder physischen Vorlesesektormenge auf das256-Sektorenbudget.
+Weiterhin128 Workitems und<300 Reads pro Plannerschritt, originaler Pin/Token/
+Deadline, kein Cache fuer Commit-Readback oder ueber Transaktionen hinweg.
+Job<256KiB/Ownership<48KiB jetzt auch Compile-Time-Assertions. Refill alt1026,
+dann271 Einzelreads, jetzt173 Sektoren in33 statt113 RPCs im gezielten Host.
+shrink-prefetch-final-hosts.log:18 Tests PASS. shrink-prefetch-cuts.log:
+4151005 Checks jeO0/O2, inkl136 Cuts innerhalb beider vorgelesener FAT-Runs,
+Korruption nach Begin, beider Spiegel und unterschiedlicher gueltiger EOCs.
+Die roten Entwicklungsbelege bleiben erhalten. guest-shrink-prefetch laeuft;
+seine private Storage wird aus aktuellem Quellstand mit dem unveraenderten
+Build11-Kernel erstellt. Release-Neubuild nach stabiler Gastkorrektur offen.
+
+Testimages werden erst NACH gestopptem Gast einzeln verlustfrei komprimiert,
+mit identischem SHA256 vor/nach Archivierung. Keine Belege geloescht. Die
+Pruefung des engen Zielpfads und der Aufrufreihenfolge steht im Dateitest.
+
+## R3.42: CRC/SECDED-Scope freigegeben, arithmetische Korrektur hostgeprueft
+
+10.September, Nutzerantwort "ja" autorisiert exakt critical_object.c und die
+beiden vorhandenen Tests. Queue/Vertrag halten die27 bisherigen Gates fest und
+ergaenzen eine Integritaetsgruppe (28 total). Alle48 jetzigen Aenderungen sind
+eigene Fortsetzung; die vorherigen45 stimmten beim Einstieg vollstaendig mit
+continuation-20260910-io-checkpoint ueberein. Kein anderer Agent, kein Push.
+
+SECDED verwendet dieselben sechs Paritaetsgleichungen als feste Bitmasken;
+CRC32 dieselbe reflektierte0xEDB88320-Rechnung mit16 unveraenderlichen Nibbles.
+Alle Kopie-/Korrektur-/Fehler-/Validator-/Sequenz-/Lock-/IRQ-/Publikationspfade
+und critical_object.h bleiben unveraendert. Der Artefaktguard prueft diese
+Trennung einschliesslich negativer Mutanten gegen die akzeptierte3e7c02ad.
+
+test_reist_critical_object.py vergleicht echte alte/neue Routinen jeweilsO0/O2:
+321359 Checks mit Basisvektoren, beliebigen Syndromen, allen Ein-/Zweibit-
+Positionen im39-Bit-Codewort, CRC-Streamaufteilung, Objektkorruption beider
+Kopien und identischen kompletten Rueckgabe-/Publikationszustaenden. Logs:
+integrity-before.log, integrity-after.log, integrity-scope.log. Der isolierte
+Hostkostenvergleich fuer10000 Objekt-Reads ergibt O2 alt39ms/neu16ms,
+O0 alt99ms/neu30ms. Das ist keine Aussage ueber OS-/VMware-Durchsatz oder WCET.
+
+Alle18 bisherigen gezielten Gruppen bestehen auf diesem Kern:
+build/codex-agent/r342-fat32-write/integrity-consumers/result.json.
+acceptance-builds-08/result.json: VMware PASS/61.794s, QEMU PASS/58.620s.
+artifacts-integrity/protected.json: PASS/6.4s, einschliesslich des neuen engen
+Integritaetsguards, beider Referenzkernel und exakt19 erlaubter Relinks.
+
+guest-integrity/normal.json bleibt FAIL/25.874s: nur61437Bytes innerhalb5s,
+danach-110/UNKNOWN; altes Handle korrekt mit-116 abgelehnt. IO-Zaehler:
+225Reads/1447ms,159Writes/3200ms,26Flushes/274ms. Host-Continuity gueltig
+(237Samples, max0.114872s); kein Standby-/Uhrvorbehalt fuer diesen Fehler.
+Die schnellere CRC/ECC-Arithmetik allein behebt den Schreib-Timeout nicht.
+Die nachfolgenden Recovery-/Kompatibilitaets-/Performance-Gates wurden nach
+diesem Fehler nicht gestartet. Kein Commit, keine Queuefortschaltung.
+
+Gezielte Diagnose ohne Quellcode-/Referenzimageaenderung:
+io-pc-samples-corrected/diagnostic.json erfasst22 von31 EIP-Stichproben in
+wait_for_process+0x54, unmittelbar nach HLT mitHLT=1. Der Kern wartet, statt
+in einer CRC-/PIO-Rechenschleife ausgelastet zu sein. Die Diagnose veraendert
+durch HMP-Abfragen das Timing und ist ausdruecklich keine Abnahme; sie hat
+zusaetzlich einen Prompt-Timeout. Der erste fehlerhafte Mux-Diagnoseversuch
+unter io-pc-samples bleibt ebenfalls erhalten, ohne verwertbare PC-Proben.
+io-kernel-map/result.json bestaetigt: erneutes Linken derselben Objekte nur
+in einen ignorierten Diagnosepfad ergibt einen bytegleichen Referenzkernel;
+die Linkmap ordnet die PCs daher exakt dem ausgefuehrten Code zu.
+
+Quellbefund: ATA schlaeft beim QEMU-Poll1ms. PIT setzt faellige Schlaefer
+und Waiter auf READY, fordert aber keine neue lokale Ausfuehrung an.
+scheduler_pit_interrupt_handler kehrt bei aktivem LAPIC sofort zurueck;
+erst dessen unveraenderter10ms-Takt dispatcht wieder. Der bestehende generische
+SMP-Weckaufruf hilft hier nicht: er schliesst die lokale CPU aus und lehnt
+IRQ-Kontext ab. Dieser zusaetzliche Dispatch-Verzug ist ein konkreter
+Engpasskandidat, sein Anteil am128KiB-Timeout ist noch nicht durch einen
+korrigierten Gast nachgewiesen.
+
+Naechster erforderlicher Scope: eng begrenzte lokale Idle-Wiederaufnahme in
+kernel/sched/scheduler.c samt Host-/Gastregressionen. Vorhandenen IRQ0-Hook
+NACH EOI verwenden; weder Busy-Wait noch hoehere Timerfrequenz, laengere
+Deadlines, geaenderte Scheduling-Klassen/Budgets oder abgeschwaechte SMP-
+Ownership-/Preemption-Pruefungen. Diese Erweiterung ist noch NICHT freigegeben
+oder implementiert; bisheriger Scheduler bleibt geschuetzt/unveraendert.
+Quellencheckpoint: continuation-20260910-integrity-checkpoint/.
+
+## R3.42: weniger IO-Pruefaufwand;128KiB-Gastdeadline noch nicht bestanden
+
+10.September, juengste Fortsetzung: alle45 vorhandenen Aenderungen wurden gegen
+continuation-20260910-d4-checkpoint als eigene Paketarbeit identifiziert.
+Keine fremden Aenderungen, kein anderes Paket, kein Commit/Push. Die folgenden
+Korrekturen bleiben innerhalb der unveraenderten allowed_files/27 Gruppen:
+
+- Frischer journal_probe prueft Control, exakten Pin und Medium gemeinsam:
+  drei statt neun echte CRC/ECC-Reads im Admission-Regressionsfall. Pool-
+  Cancellation, Generationen, Reparaturlease und jede ATA-Kommandogrenze bleiben
+  live geprueft. Ein zunaechst abweichendes Timeout-errno wurde gezielt auf-110
+  korrigiert; der erste fehlgeschlagene VFS-Lauf bleibt erhalten.
+- Idempotente WRITE/FLUSHED-Ereignisse pruefen weiterhin alle Schutzrecords,
+  publizieren aber keinen identischen Control-Inhalt erneut. Der Test verlangt
+  fuer WRITE/WRITE/FLUSHED/FLUSHED/WRITE exakt1/0/1/0/1 Updates.
+- Interner VFS-Beginn liefert Modus, pending und urspruengliche Deadline aus
+  derselben NACH dem Mutex-Warten geprueften Momentaufnahme. Keine Autoritaet
+  wird ueber IO hinweg gecacht; alte interne Wrapper und alle Wire-ABIs bleiben.
+- Vollstaendig ueberschriebene Sektoren benoetigen keinen zusaetzlichen
+  Erhaltungs-Read. Das unveraenderte Journal liest weiterhin jedes Vorabbild;
+  Teilsektoren behalten den frischen Read fuer unberuehrte Bytes. Native
+  Negativtests und exakte Medienorakel bestehen mit den strengeren IO-Zaehlern.
+
+Belege unter build/codex-agent/r342-fat32-write/:
+redundant-work-red.log zeigt beide beabsichtigten Regressionen; green prueft
+70 Guard- und1391674 Overwrite-Checks jeweilsO0/O2. io-snapshot-guard.log:
+9Tests PASS/26.336s. io-correction-targeted/:16 Pakettests PASS/66.384s und
+20 Journaltests PASS/9.723s. acceptance-builds-07/: VMware PASS/65.552s,
+QEMU PASS/58.991s. artifacts-io-correction/protected.json PASS: exakt19
+Verbraucher, unveraenderte andere Payloads, beide Kernel und Rescuebudgets.
+
+Gastpruefer: keine privaten Konsolenmeldungen aus Storage mehr. Der private
+Foreground-Client liest feste Plan-/IO-Zaehler, prueft alte Handles erneut
+und kann erfolgreiche Reparatur-COMMITs abfragen. Fault-Cuts verwenden echte
+Exception-Register; verlorene alte Service-RAM-Traces werden nicht vorausgesetzt.
+Normalbetrieb muss gemessene Flushanzahl gegen vier Barrieren je Plan pruefen.
+private-observer-qualified.log besteht; Fault-/Recovery-Gastabnahme steht aus.
+
+Gastfehler bleibt offen: guest-probe-06 bestaetigt71677Bytes, guest-probe-07
+81917Bytes statt der urspruenglichen61437Bytes innerhalb des festen5s-Budgets.
+Danach weiterhin-110/UNKNOWN, Ressource quarantiniert; Wiederverwendung des
+alten Handles wird mit-116 abgelehnt. Keine Deadline-/Quote-/Cacheaufweichung
+und kein128KiB-Erfolg. Die kurzen16KiB-Diagnosen sind ausdruecklich keine Gates.
+
+Der D4-Hostblocker ist aktuell entfallen: ab12:19 kein D4-Prozess sichtbar,
+letztes Kernel-General/ID1-Ereignis12:05:20. guest-probe-07 hat gueltige
+Continuity (225Samples, max0.114s Abstand), Lauf24.521s. Der Timeout ist also
+ein aktueller Gastfehler, keine Hostuhr-Ausrede. Alte ungueltige Laeufe bleiben.
+Nur erzeugte, nicht laufende private Images wurden verlustfrei NTFS-komprimiert;
+keine Quellen oder Belege geloescht.
+
+Naechster Schritt: verbleibenden Integritaets-/IO-Aufwand eingrenzen. Fuer eine
+gezielte Untersuchung/Optimierung von kernel/init/critical_object.c und den
+zugehoerigen Tests wurde eine explizite Scope-Freigabe angefragt. Diese liegt
+noch nicht vor; die gemeinsame CRC/ECC-Implementierung ist unveraendert.
+Rechnerische Gleichwertigkeit, alle Fehlerkorrektur-/Doppelkorruptionsnachweise,
+Formate, Schutzgrenzen und die27 bisherigen Gates bleiben Voraussetzung.
+Danach128KiB- und alle offenen Recovery/Kompatibilitaets-/Performance-Gaeste
+bestehen, erst dann Abnahme, Queueuebergang und lokaler Implementierungscommit.
+Quellencheckpoint: continuation-20260910-io-checkpoint/.
+
+### Historischer Zwischenstand vor der IO-Korrektur
+
+10.September, aktuelle Fortsetzung: artifacts-approved/protected.json besteht.
+Die exakt19 erlaubten Relinks, unveraenderten indirekten Audiodependenzen,
+beide Referenzimages samt Kernel/allen Payloads und die festen Rescuebudgets
+sind geprueft. test_fat32_writable_objects.py -v besteht erneut vollstaendig;
+Log: build/codex-agent/r342-fat32-write/targeted-current.log. Produktion und
+Referenzbuilds wurden in dieser Fortsetzung nicht erneut veraendert.
+
+Echter neuer Gastfehler, kein Waiver: guest/normal.json startet bis zur Ring3-
+Shell, aber128KiB-pwrite auf der fragmentierten4MiB-Datei laeuft in das bestehende
+5s-Gesamtlimit (61437 bestaetigte Bytes, UNKNOWN fuer den Rest). Die begrenzte
+normal-timing-observation bestaetigt den Fehler mit71677 bestaetigten Bytes.
+Keine automatische Wiederholung unsicherer Schreiboperationen, keine gelockerten
+Zeit-/Cache-/Neustartbudgets. Ursache und Korrektur bleiben offen.
+
+Prueferkorrektur in Arbeit: Storage besitzt absichtlich keine Konsolenrechte;
+private x86os_puts-Planmeldungen konnten deshalb nie als Gastnachweis dienen.
+Der private Storage speichert jetzt hoechstens256 Planrecords und IO-Zaehler;
+ein ebenfalls privater FWRITEST liest sie ausschliesslich ueber einen vorhandenen
+Anfragekanal und druckt kurze Vierergruppen. Beide privaten Quellen muessen
+exakt zum Original rueckfuehrbar sein, die Referenzprogramme bleiben unveraendert.
+Inverse-/Parser-Negativtests bestehen. Gastabnahme dieser Instrumentierung steht
+aus: nach dem langen fehlgeschlagenen Schreiben misslang auch die Diagnoseabfrage.
+Die Fault-/Recovery-Kriterien, die noch auf Storage-Konsolenmeldungen warten,
+muessen ebenfalls auf beweisbare Beobachtung umgestellt werden, nicht entfallen.
+Der kurze16KiB-Diagnoselauf ist ausdruecklich KEIN Ersatz fuer das128KiB-Gate.
+
+Externer Blocker: Windows-Systemereignisse Kernel-General/ID1 belegen D4.exe
+(Program Files (x86)/D4, PID5832), das etwa alle15s die Uhr verstellt, darunter
+negative Spruenge. guest-observer-corrected bricht deswegen nach7.865s ab
+(mono+0.109s/wall-0.115s), short-write-diagnosis-02 ebenfalls
+(mono+0.109s/wall-0.184s). Keine Gastdeadline verlaengert, kein Continuity-Check
+deaktiviert. Der Nutzer wurde gebeten, D4 fuer die Abnahme kurz zu pausieren;
+keine fremde Hostanwendung oder Zeitkonfiguration wurde eigenmaechtig geaendert.
+
+Zusaetzlicher Hostfehler: short-write-diagnosis konnte wegen vollem Laufwerk
+kein vollstaendiges privates Image erzeugen (ENOSPC). Alte erzeugte img/vmdk
+unter genau build/codex-agent/r342-fat32-write wurden NTFS-komprimiert:
+2329978880 logische Bytes belegen danach97583104 Bytes. Keine Loeschung,
+alle alten Fehlnachweise bleiben erhalten; das unvollstaendige Image ist kein
+Pruefreferenzimage. Rund1.65GB waren nach dem naechsten privaten Build frei.
+
+Naechster Schritt nach stabiler Hostuhr: kurzen Diagnoselauf zur Ursachenmessung
+abschliessen, Schreib-Timeout innerhalb des unveraenderten5s-Budgets beheben,
+betroffene Host-/Referenz-/Artefaktgates nachziehen und alle noch offenen Gast-
+und Performancegruppen bestehen. Active_id/Status bleiben unveraendert; kein
+Commit/Push und kein Abschlussanspruch. Aktueller eigener Quellencheckpoint:
+build/codex-agent/r342-fat32-write/continuation-20260910-d4-checkpoint/.
+
+10.September: Nutzerfreigabe "mach es wie es am besten passt" ergaenzt genau
+WAVPLAY.PRG und SOUNDPLAYER.PRG als indirekte Relinkverbraucher. Jetzt19 statt17
+Ausnahmen; Audiocode, Anwendungen, SDK-Archivbau und vfs_path bleiben gegen die
+akzeptierte Baseline geschuetzt. Alle27 Gates und Cache-/Rechtebudgets bleiben
+unveraendert. Der nachfolgend dokumentierte Blocker ist damit eng aufgeloest;
+alte Fehlnachweise bleiben erhalten. Artefakt-/Gastabnahme wird fortgesetzt,
+noch kein Commit und keine Runtime-Erfolgsaussage.
+
+Historischer Blocker10.September: Die unveraenderte AUDIO_LIBRARY_SOURCES-Liste
+in scripts/build_user_sdk.py linkt vfs_file_client.c indirekt in WAVPLAY.PRG
+und SOUNDPLAYER.PRG. Der eingefrorene Vertrag nennt aber nur17 direkte
+Clientverbraucher und verlangt fuer diese beiden Programme Bytegleichheit.
+Die aktuelle Referenzpruefung lehnt deshalb WAVPLAY ab; die anschliessende
+rein diagnostische Hashinventur identifiziert genau diese zwei zusaetzlichen
+geschuetzten Payloads. Ihre Anwendungssourcen und die Audiobibliothek wurden
+nicht geaendert. Keine pauschale Ausnahme, kein Unterschieben alter PRGs und
+kein Abschalten des Schutzes. Fuer die notwendige Ergaenzung dieser zwei
+indirekten Linkverbraucher ist eine ausdrueckliche Vertragsfreigabe erforderlich.
+
+Beide aktuellen Referenzbuilds sind erfolgreich: acceptance-builds-05,
+VMware88.180s und QEMU53.996s. Der unveraenderte VMwarekernel stimmt weiterhin
+mit kernel-vmware.bin ueberein. Artefaktfehler bleiben unter artifacts/ und
+artifacts-corrected/ erhalten. Der erste war ein zu strenger Registryabgleich:
+HELLO ist der separat gewaehlte usr/bin/hello.prg-Payload, nicht Bestandteil
+der94 statisch registrierten Programme; er wird jetzt zusaetzlich gegen das
+akzeptierte Image geprueft, nicht freigestellt. Danach blieb die oben benannte
+echte Consumer-Vertragsluecke. Keine Runtimegruppe ist abgenommen; die private
+Boot-Rotprobe mit Cacheueberlauf bleibt als echter Fehler erhalten.
+
+Der vollstaendige eigene Quellenstand wird unter
+build/codex-agent/r342-fat32-write/artifact-scope-checkpoint/ archiviert.
+Active_id/Status unveraendert, keine Staging-/Commit-/Push-Aktion. Die beiden
+Consumer duerfen erst nach Freigabe in Vertrag/Pruefer aufgenommen werden;
+danach alle fehlenden Artefakt-/Gast-/Performance-/Review-Schritte fortsetzen.
+
+10.September, Fortsetzung im selben Hauptworktree: Alle18 gezielten Gruppen
+wurden ausgefuehrt. Alte Testausschnitt-/Kommentaranker in FileObjectGuard und
+StorageDomain wurden nach ihren protokollierten Fehlern gezielt korrigiert;
+die korrigierten Gruppen sind gruen. Der kombinierte Servicehost besteht nun
+1565987 Checks je O0/O2, einschliesslich des letzten Reparatur-Flushschnitts.
+Alle urspruenglichen Fehler bleiben unter acceptance-targeted-01..04 erhalten.
+
+Neue Gast- und Performancepruefer sind angelegt, aber noch nicht abgenommen.
+Der unabhängige Disk-Oracle rekonstruiert Datei-/FAT-/Journal-Effekte statt
+Service-Erfolgsmeldungen zu vertrauen. Private Quellen muessen exakt zum
+Original rueckfuehrbar sein; Referenzkernel/andere Payloads bleiben unveraendert.
+Negative Oracle-/Payload-/Cache-Budget-Tests sind hinzugefuegt.
+
+Buildabnahme deckte implizite memcpy-Aufrufe bei grossen Client-Structkopien
+auf: behoben mit dem vorhandenen bounded file_copy; i386-O0/O2-Assemblerpruefung
+schliesst die ungewollte libc-Abhaengigkeit aus. FAT32-Clusterrundung verwendet
+nun Division vor Aufrundung, ohne64-Bit-Division oder UINT32_MAX-Ueberlauf.
+Reale Planer/Servicehosts und ein mathematischer Extremwerttest O0/O2 sind gruen.
+Damit wird nicht das komplette Compiler-RT-Objekt in Storage hineingezogen.
+
+Die vorlaeufigen Referenzbuilds acceptance-builds-04 waren erfolgreich, aber
+der erste private Gastlauf scheiterte vor Shellstart am Gesamtbudget des
+Rescue-Caches. Kein Runtime-PASS. Korrektur innerhalb des Pakets: der optionale
+Schreibteil der Clientbibliothek bekommt eine eigene ELF-Textsektion, damit
+read-only CAT/CHKDSK ihn nicht unbenutzt mittragen. Storage bleibt O2, ohne
+Inlining/Loop-Unrolling, mit entfernbaren Sektionen und kompakter Funktions-
+ausrichtung. Kein Cache-/Restart-/Deadline-Limit oder Kernel-Hotpath vergroessert.
+Per-Image224KiB und Gesamt448KiB werden jetzt schon vor Gaststart geprueft.
+Die korrigierten Referenzbuilds laufen unter acceptance-builds-05. Alte Images,
+Fehlversuche und native Belege bleiben erhalten. Gate-/Queue-Abschluss, alle
+sieben Runtimegruppen, Performancevergleich, Review und Commit stehen noch aus.
+
+## R3.42 in Umsetzung: generationsgebundene Reparatur und FWRITEST
+
+Fortsetzung10.September: Der kernelgeschuetzte64-Byte-Reparaturdatensatz haelt
+Originalbereich/BPB-Geometrie, Fingerprint, Owner/Generation, Versuche und
+unveraenderliche Frist ueber Widerruf/Unmount. Der separate Sys129-v3-Rahmen
+erlaubt QUERY/BEGIN/COMMIT/ABORT ausschliesslich dem aktuellen Storage-Dienst.
+Alte Besitzer muessen vollstaendig gereapt sein. Reparatur-I/O benutzt Sys130
+mit einem ausschliesslichen Guard-Token; normale Schreibrechte bleiben gesperrt.
+Pool-Receipts und laufende Kopien verhindern eine vorzeitige Freigabe.
+Widerrufene FAT32-Mounts koennen ohne Medien-I/O abgebaut werden; ihre alten
+Handles werden auch nach erfolgreicher Reparatur nicht aufgefrischt.
+
+Ring3 benutzt den unveraenderten RSTJ-Algorithmus, prueft alle Before-Images vor
+Restaurierung, sammelt restaurierte Writes vor CLEAN in einer Flush-Gruppe und
+prueft danach die gesamte Allokation mit dem vorhandenen Fenster-Walker.
+Leere Volumes benoetigen keinen erfundenen Dateideskriptor. Dieser reine
+Reparaturnachweis kann keinen Dateiplaner autorisieren. Abschliessend erfolgen
+frischer CLEAN-Readback/Flush, Medienidentitaet und generationsgebundene
+Freigabe. Teilfehler sperren erneut; andere unsichere Ressourcen bleiben gesperrt.
+Abbruch/Haenger laufen durch bestehende Retirement-/Restart-Budgets, ohne
+Fristerneuerung oder zusaetzliche Kernel-Bulk-Slots.
+
+Gezielte Entwicklungspruefungen, noch keine vollstaendige eingefrorene Gruppe:
+Guard262 und Pool336 Checks je O0/O2; echte VFS-/Syscall-Integration in neun
+Varianten einschliesslich Copyout-Verlust, altem Mount, Unmount, unvollstaendigem
+Flush, Fristablauf und Teilfreigabe; bestehende VFS-Integration weiterhin PASS.
+ATA-Transport bei gesetzter Sperre und Negativtests des Source-Schutzes PASS.
+Allokation13304 Checks je O0/O2; kombinierter Client/Storage/Guard/RSTJ-Host
+zuletzt1550169 Checks je O0/O2 in19.237s inklusive33 Reparaturvarianten.
+Danach wurde der noch fehlende letzte Flush-Fehlerschnitt hinzugefuegt; dessen
+Wiederholungsnachweis steht noch aus. Lifecycle-/Freigabe-Host O0/O2 PASS.
+
+FWRITEST ist als explizit destruktives Testdateiprogramm in beiden Image-Layouts
+registriert. Keine Raw-/Repair-API, kein Erstellen einer Datei; Aufruf verlangt
+absoluten bestehenden Testpfad und --test-data. Native Programmlogik und echte
+Ring3-Shell-Aufloesung1173 Checks je O0/O2 PASS.
+Der neue Artefaktpruefer validiert akzeptierte Referenzimages,94 Payloads,
+die17 eingefrorenen Shared-Client-Ausnahmen und unveraenderte Anwendungssourcen.
+
+Offen im selben Paket: neue Gast-/Performance-Pruefer, vollstaendige27 Gruppen,
+abschliessender Scope-/ABI-/Cleanup-Review, Archiv und lokaler Commit. Noch kein
+Build/VM/Gate/Commit/Queue-Wechsel; keine JS-Schreibrechte oder spaeteres Paket.
+
+## Vorheriger R3.42-Stand: lange Client-Operationen mit bestaetigtem Fortschritt
+
+Fortsetzung10.September: write/pwrite/append/resize_bounded sind implementiert.
+Ein separates128-Byte-Client-Ergebnis haelt bestaetigte Bytes, freigegebene
+Cluster, erste Datenposition, Anfangs-/letzte bestaetigte Groesse und das letzte
+64-Byte-Step-Ergebnis auseinander. Ein spaeteres UNKNOWN, ENOSPC, ACK-/Input-
+Fehler oder Fristablauf verliert keinen sicheren Praefix. Nullwachstum vor
+pwrite zaehlt explizit als Groessenfortschritt, nicht als geschriebene Nutzdaten.
+Keine neue Wire-ABI, Rechteausweitung, automatische Wiederholung oder Session.
+
+Die gemeinsame Originalfrist von maximal5000ms gilt auch ueber kurze Schritte
+und Eingabekopien hinweg; SUBMIT erhaelt nur die verbleibende Zeit. Zusaetzlich
+behoben und rot/gruen abgesichert: Ein Zeitruecksprung wurde bisher nur unter
+den Anfangswert erkannt. Jetzt wird jeder Rueckschritt seit der letzten
+Zeitbeobachtung abgelehnt. Keine Mutation bei Nullinput, lokal ungueltigen
+Bereichen oder fehlenden Rechten; pwrite veraendert den Seek-Zeiger nicht.
+
+Neue gezielte Entwicklungsnachweise (keine vollstaendige eingefrorene Gruppe):
+Client O0/O2 je18792 Assertions, einschliesslich2MiB+17Byte mit >200 echten
+Client-Schritten gegen modellierte Antworten,28 Antwortkorruptionen, dauerhaften
+Fehlerresultaten, Nulloperationen,37 Zeitgeberfehler-/Ruecksprungpositionen,
+saettigender UINT64-Frist und60s-Session mit weiterhin maximal5s-Operation.
+Der kombinierte Servicehost verbindet jetzt auch den echten Client mit den
+extrahierten Storagefunktionen, realen Planern/Guard/RSTJ und modelliertem SDK-
+Transport/Medium. Elf zusaetzliche Ablaeufe: mehrstufige32KiB-Operationen,
+Kuerzen von400 fragmentierten Clustern, Nullwachstum/pwrite-Luecke, Nulleingaben,
+No-op-Resize sowie Schreib-/ACK-Verlust nach bestaetigtem Praefix. Echte
+Medienbytes werden verglichen; vier Flushes pro Commit und <10000 Reads fuer
+jede warme Gesamtoperation sind geprueft. Kein erneuter Ownership-Kaltscan
+pro Datenpaket. Kernel-Pool-Lost-Receipt-Fencing und Recovery bleiben separate
+Nachweise, nicht Behauptung dieses modellierten Transports.
+
+Letzter Client-Nachweis:
+write-client-9869d8902b0f417eaaaaee07049ada07/result.json, PASS18792 je O0/O2.
+Letzter kombinierter Host inklusive vorbestehender Planer-/Journaltests:
+write-service-5e5687985c094bf1a329d295a19a95dd/result.json,
+PASS1489908 je O0/O2,16.879s. C++17-Header-Syntax/ABI-Assertions PASS.
+Missing-API- und Zeitruecksprung-Rotproben sowie zwei korrigierte Integrations-
+Testfehler (Legacy-Opcode-Name, ACK eines validen UNKNOWN ist kein Commit)
+bleiben in den UUID-Verzeichnissen erhalten.
+Quellenstand: build/codex-agent/r342-fat32-write/bounded-client-checkpoint/.
+
+In dieser Fortsetzung nur Client, zwei Testharnesses/Testeinbindung und diese
+Dokumentation geaendert;34 eigene geaenderte Pfade bleiben erhalten. Keine
+Kernel-/Service-/ATA-Quellenaenderung, kein Build/VM/Gate/Commit/Queue-Wechsel.
+Noch offen im selben Paket: reale fenced Repair-/Requalifikationsfreigabe,
+FWRITEST und Gast-/Artefakt-/Performance-Abnahme; alle27 eingefrorenen Gruppen
+bleiben vor dem Implementierungscommit erforderlich.
+
+## Vorheriger R3.42-Stand: Writable Client und Storage-Anbindung
+
+Fortsetzung10.September: neue separate512-Byte-v2-Frames mit64-Byte-Ergebnis,
+explizite Schreib-/Append-/Resize-/Sync-Rechte sowie Client-Step-APIs und
+attenuierte Uebergabe/Adoption sind jetzt implementiert. Alte DATA7/ALL15-
+Rechte und Script-Denial bleiben unveraendert. Antworten werden semantisch vor
+ACK geprueft; keine Mutation wird automatisch wiederholt. Verlorene Antworten
+machen die lokale Schreibsession stale. pwrite aendert den Seek-Zeiger nicht.
+Die ersten noch ausstehenden Convenience-Loops duerfen einen dauerhaften
+Praefix vor unbekanntem Suffix nicht verlieren oder die Gesamtfrist erneuern.
+
+Storage verwendet jetzt v3-Claims mit Originalfrist und einen festen,
+schrittweise bearbeiteten Job. Öffnen qualifiziert FAT32/Allokation/CLEAN ohne
+Reparaturrechte, dann folgen reale Owned-Pin-Transaktionen fuer Ueberschreiben,
+Append, explizites Nullwachstum vor pwrite-Luecken, tail-first Resize und Sync.
+Der gepruefte Pin-/Epochen-Cache bleibt zwischen eigenen Commits erhalten.
+Legacy-Adopt uebernimmt weder unqualifizierte noch schreibbare Pending-Slots.
+Verlorene neue Open-/Adopt-Antworten binden keinen Pin unbegrenzt: erste
+verifizierte Benutzung innerhalb5000ms bestaetigt die Uebergabe, andernfalls
+Reap. Diese v2-Lebensdauerabweichung ist im Paketvertrag dokumentiert.
+
+Zusatzkorrektur: Ein beim Journal-Attach intern abgebrochener Token behaelt
+last_outcome. Scheitert auch END, darf Storage dies nicht als NO_EFFECT
+zurueckgeben. Dauerhafter Fortschritt trotz danach verlorenem Cache bleibt
+explizit; der Locator wird dann stillgelegt statt fremd aufgefrischt.
+
+Gezielte Entwicklungspruefungen, weiterhin KEINE vollstaendigen Paketgates:
+Client inklusive bisheriger Lese-Sessiontests1434 Assertions je O0/O2 PASS
+(write-client-9a0af5b74e0d40919f0c24a26bf70fa9/result.json). Enthalten sind28
+unterschiedliche Antwortkorruptionen, ACK-/Collect-/Input-Fehler, Fristablauf,
+alte Rechte, Short Writes und erweiterte Rechteuebergabe. Service plus bisherige
+Planer-/Journal-Medienpruefungen1424784 je O0/O2 PASS,14.973s
+(write-service-330a03be80434dd6a7ec6a8f0331767a/result.json). Echte extrahierte
+Servicefunktionen mit Guard, Planern und RSTJ; SDK-Transport/Medium im Host
+modelliert, daher kein Gastnachweis. Warmes Folge-Append <160 Reads, keine
+Volume-Neupruefung. Nachgewiesen sind ausserdem Fristen, konkurrierender Pin,
+Busy-Job ohne Austausch, Input-CRC, UNKNOWN bei Schreib-/Attach-End-Fehler,
+verlorene unbenutzte Open-Antworten, Resize-DONE und separate Adoption.
+JournalHandoffTests.test_native_o0_o2:75431 je O0/O2 PASS,2.963s.
+Storage-Syntaxpruefung PASS; zentrale und SDK-ABI-Datei byteidentisch.
+Rote Entwicklungsproben bleiben erhalten; letzte Busy-Testkorrektur erzeugt
+einen frischen Eingabeframe statt eines bereits beschriebenen Antwortframes.
+
+34 eigene geaenderte Dateien; keine Quelle ausserhalb allowed_files, kein
+weiterer Kernel-/ATA-Eingriff in dieser Fortsetzung. Vollstaendiger Quellen-
+Checkpoint: build/codex-agent/r342-fat32-write/writable-service-checkpoint/.
+Noch offen im selben Paket: Convenience-/Praefix-Integration, reale fenced
+Repair-/Requalifikationsfreigabe, FWRITEST und Gast-/Artefakt-/Performance-
+Abnahme. Kein neuer Build, Image, Commit, Queue-Wechsel oder JS-Schreibgrant;
+alle27 eingefrorenen Gruppen bleiben vor dem Implementierungscommit noetig.
+
+## Vorheriger R3.42-Stand: private Owned-Dateiplaner
+
+Kandidatenbeginn auf sauberem Definitionscommit d96a01e7. Eigene, noch nicht
+abgenommene Aenderungen im Hauptarbeitsbaum; keine Agents, Images oder Commits.
+Die Queue bleibt auf R3.42 aktiv mit allen27 unveraendert eingefrorenen Gruppen.
+Die anschliessend explizit freigegebene Umfangserweiterung um ata_journal.c
+ist jetzt in Queue und Paketvertrag dokumentiert; nur allowed_files und die
+Amendment-Notiz sind geaendert, nicht Paketstatus, Folgepakete oder Gates.
+Der unten erhaltene Primary-only-Attach-Blocker ist behoben und gezielt getestet.
+
+Neu im anschliessenden Lauf10.September: Nullwachstum und Append teilen jetzt
+denselben privaten Ring-3-Planer. EOF wird unter der bestehenden Reservation
+gewaehlt; vollstaendige immutable Eingabe bleibt auf128KiB begrenzt. Dateigroesse,
+initialisierte Daten, neue FAT-Verknuepfungen, Startcluster und gueltige FSInfo-
+Hinweise passen gemeinsam in die tatsaechliche20-Sektoren-Journalgrenze. Kein
+Prewrite ausserhalb des Journals, neuer Header, extra Commit-Flush oder Heap.
+Bei grossen Clustern werden nur bereits initialisierte Bytes sichtbar; deren
+unsichtbarer Rest wird erst mit spaeteren Schritten publiziert. Offset-/Grow-
+Luecken benoetigen weiterhin ausdruecklichen Fortschritt, keine versteckte
+Groessenaenderung hinter einem gewoehnlichen erfolglosen pwrite.
+
+Die Freiplatzsuche laeuft fortsetzbar ueber das ganze Volume, mit maximal128
+Arbeitseinheiten/300 Reads pro Schritt; ENOSPC erst nach vollstaendiger Suche.
+Nur ein verifizierter eigener Commit uebernimmt neue Belegung, Locator und
+Suchhinweis. Vier aufeinanderfolgende Appends planen im nativen Test jeweils
+in einem Schritt mit <80 Reads, ohne erneuten Datei-/Volume-Praefixscan.
+Abwesende/beschaedigte FSInfo-Hinweise verleihen keine Allokationsautoritaet.
+Ein eigener leerer Sync-Abschluss prueft Objekt/Pin/Frist, fuehrt genau einen
+vermittelten Flush aus und erhaelt den Suchcache. Er darf keine vorgemerkten
+Daten vorzeitig flushen. Fehler/UNKNOWN bleiben explizit; die vier Barrieren
+normaler RSTJ-Schreibtransaktionen bleiben unveraendert.
+
+Gezielte Entwicklungspruefungen: Planer jetzt1399284 Assertions je O0/O2,
+13.924s, PASS (overwrite-c7853bca654b4a49a2aab5685e041eb0/result.json).
+Enthalten sind alle Schreib-/Flush-Cuts fuer Append/Nullwachstum in beiden
+Persistenzmodellen, Read-Cuts, Metadaten- und Restmedienorakel samt Gegenproben,
+leere Dateien, Teilsektoren,128-Sektor-Cluster, FAT-Spiegel/aktives FAT,
+Primary-only-Journal, Vollbelegung, Suchumlauf mit Startcluster66001,
+Kuerzen+Nullwachstum ohne Altbyte-Freigabe, ungueltige Eingabe und Sync-Fehler.
+Ownership weiterhin11865 je O0/O2, PASS; zusammen mit dem vorletzten
+Planerlauf17.609s (ownership-25880c5718184ae6bb787d766b32c54b/result.json).
+Bestehender Journal-Host nach Adaptererweiterung75431 je O0/O2,3.019s, PASS.
+Rote Missing-Grow/Missing-Sync-Proben bleiben erhalten. Neuer Quellenstand:
+build/codex-agent/r342-fat32-write/growth-sync-checkpoint/, weiter29 eigene
+Dateien, acht in diesem Lauf geaendert. Keine vollstaendige Paketgate-Gruppe,
+kein Build/Gast/Image/Commit und keine neue Kernel-/Script-Autoritaet.
+Naechster zusammenhaengender Schritt: versionierte Rechte/Ergebnisframes und
+Client-/Storage-Dispatch, danach die weiterhin ausstehende fenced Requalifikation.
+
+Fortsetzung10.September, Fokus auf commitrelevante Implementierung:
+Der private Ring-3-Planer kann jetzt Dateien schrittweise von hinten kuerzen,
+einschliesslich Teilcluster, ueberallokierter/leerer Dateien und des letzten
+Schritts auf null. FAT-Freigaben, verbleibendes Kettenende, Dateigroesse und
+gueltige FSInfo-Hinweise bilden eine gemeinsame RSTJ-Transaktion. Hohe FAT-Bits,
+inaktive FATs und unbeteiligte Sektorbytes bleiben erhalten. FSInfo wird als
+unbekannter Hinweis publiziert, nie als Allokationsautoritaet benutzt.
+Resultat enthaelt Groesse und explizite Zahl freigegebener Cluster; auch bei
+unveraenderter sichtbarer Groesse wird Allokationsfortschritt nicht versteckt.
+
+Die Besitzpruefung behaelt1024 Schlusscluster im insgesamt weiterhin <48KiB
+grossen Kontext. Fehlende Suffixe werden mit128 Arbeitseinheiten/Schritt
+nachgeladen, nicht durch einen neuen Volume-Scan. Die Transaktionsgrenze folgt
+der wirklichen20-Sektoren-Zielmenge, nicht der Cachelaenge: ein dichter FAT-
+Test gibt in einem Schritt mehr als1024 Cluster frei. Fuenf aufeinanderfolgende
+fragmentierte Kuerzungen planen jeweils in einem Schritt mit weniger als80
+Reads ohne erneuten Dateipraefixlauf. Kein allgemeiner Durchsatznachweis.
+
+Gemeinsamer Owned-Abschluss fuer Overwrite/Shrink, unveraenderte vier Barrieren;
+nur dauerhafter Commit plus exakte Epoche alt+2 und urspruenglicher Pin erlauben
+die projizierte Locator-/Groessen-/Cache-Fortschreibung. UNKNOWN/Abbruch und
+Fremdmutation invalidieren sie. Neue tokengebundene read_media-Adapterfunktion
+prueft vor Commit die wirklichen Metadaten statt der eigenen Pending-Ansicht.
+Der alte Transaktionslesepfad behaelt seine Read-your-writes-Semantik.
+
+Gezielte Entwicklungspruefungen, KEINE der27 vollstaendigen Paketgates:
+
+- Overwrite/Shrink:530117 Assertions je O0/O2,7.992s, PASS; Journal-/Lese-/
+  Flush-Cuts in beiden Cache-Persistenzmodellen, unabhaengiger vollstaendiger
+  Metadaten-/Restmedienvergleich, Gegenproben mit fehlender FAT-Kopie/fremdem
+  Datenbyte, stale Pin/Frist/Entry/Plan, bis65999 Cluster und Locatorwechsel.
+  evidence: overwrite-6511a232a3224f5ba7048292cfb39604/result.json.
+- Ownership:11865 je O0/O2, PASS; zusammen mit dem vorherigen erweiterten
+  Planerlauf11.147s. evidence: ownership-12e1ce198d0946d29d48374492b6a382/result.json.
+- Bestehender Journal-Host mit geaendertem Adapter:75431 je O0/O2,2.667s, PASS.
+Alle Belege unter build/codex-agent/{r342-fat32-write,r341-journal-handoff}/.
+Erste rote Missing-Shrink-Probe und folgende Entwicklungsfehler bleiben erhalten.
+Aktueller29-Pfade-Quellencheckpoint: r342-fat32-write/shrink-checkpoint/;
+Vorgaenger build-confirmation-checkpoint und akzeptierte Referenzen bleiben.
+Kein Build/Image/Commit, keine Queue-Transition und kein Dienst-/Gastnachweis.
+
+Umgesetzt und gezielt nativ geprueft:
+
+- Kernel-interne Owned-Pin-Admission erhaelt genau den geprueften Pin. Andere
+  Pins desselben Clients bleiben Konflikte; Release/Ownerverlust/Media-Revoke
+  retirieren und fencen die Reservation vor dem Pinverlust. Geschuetzter Record
+  bleibt innerhalb64Byte. Jetzt an echte VFS-/Request-/Journal-Admission
+  angebunden; der gesamte Service-Schreibdispatch fehlt noch.
+- Op35 fuer opake Objektmutationsframes, INPUT_PENDING vor vollstaendiger
+  128KiB-Eingabe, CRC-gepruefte einmalige Uebernahme und Request-Kontext mit
+  urspruenglicher Deadline. Zwei bestehende Bulk-Puffer, keine Quotenerhoehung.
+  Cancel waehrend Copy verhindert Slot-Reuse bis zur Quieszenz.
+- Descriptor-v3(48Byte, Deadlineoffset40) ueber Arg3=3 von Syscall119; alte
+  output-only v1/v2-Wrapper bleiben bestehen. Bulk-Control-v2(32Byte) auf124
+  hat INPUT_PUBLISH3/INPUT_TAKE4; alte v1-Operationen bleiben unveraendert.
+  SDK-Inlines und echte Syscallfunktionen sind gemeinsam nativ geprueft.
+  Compositor/Script/Admin/Maintenance erhalten keine Objektmutationsrechte.
+- Kernel-interne Request-/Ressourcenbindung und Wirkung/Abschluss-Metadaten
+  bleiben im bisherigen <=64Byte-Record. Cancel/Reap/Antwortverlust nach
+  moeglicher Wirkung publizieren vor Slotfreigabe eine redundante, bleibende
+  Unsicherheitssperre. Ein zusaetzlicher kleiner Record, keine groesseren
+  Request-/Bulk-/Objektquoten, kein Callback unter dem Poollock.
+- Op35 kann nicht mehr ueber den alten, vor Copyout freigebenden Collector
+  abgeholt werden. Bulk-Control-v3(weiter32Byte), COLLECT5/ACK6 auf Syscall124:
+  vollstaendige Bereichspruefung -> kernelinterner Copyabschnitt -> ausgelieferte
+  Antwort -> separate Client-Quittierung nach semantischer Pruefung. Copy-Cancel
+  haelt den Requestslot bis Copier-Quieszenz; falsche Generation, doppelte/fruehe
+  Quittierung, verlorene/beschaedigte Antwort und Fristablauf geben keine
+  Mutationsautoritaet zurueck. Keine automatische Mutation wiederholen.
+- VFS uebernimmt die deny-only Requestsperre vor der naechsten Admission;
+  der bestehende Poll prueft ausserdem maximal acht Antwortdeadlines. Normale
+  VFS-Einstiege lesen nur die Sperrmaske, nicht alle Requestrecords. Bestehende
+  Guard-Fences bleiben erhalten und werden ueber den bisherigen Supervisor
+  publiziert. Noch keine Entsperr-/Requalifikations-API.
+- Append-only Owned-Guard-v2(128Byte, alter112Byte-Praefix) auf Syscall129
+  Arg3=2, zentraler und generierter SDK-Header sowie Inline-Wrapper. Die echte
+  VFS-Admission prueft Pin, geclaimten Request, beide Generationen, Medium und
+  urspruengliche Deadline. Guard-END/Copyout-Rollback und Request-Ergebnis sind
+  korreliert; bekannte wirkungslose Abbrueche behalten den Pin ohne Media-Fence.
+- Expliziter kernelinterner Stack-Kontext reicht diese Admission bis zu den
+  echten ATA-Kommandostellen, nach Geraetewartephasen und vor Daten-/Cache-
+  Publikation. Supervision startet beim ersten moeglichen Kommandoeffekt,
+  nicht schon vor der Select-Wartephase. Legacy-Wrapper reichen NULL weiter;
+  Batchgroessen, LBA28/48, Readback, alte Fristen und Flushbarrieren bleiben.
+  Eine bereits zugelassene/in-flight Operation kann weiter UNKNOWN bedeuten;
+  keine atomare Abbruch-/Hardware-Stoppbehauptung.
+- Ring-3-Transaktionsadapter hat eine getrennt injizierte Owned-Admission.
+  Kein frischer Snapshot, erneuerbare Deadline oder Legacy-Fallback. Normale
+  Objekttransaktionen duerfen beim Attach/Stage weder Journalreparatur noch
+  automatische/direct Writes ausloesen. Der bestehende Recovery-Adapter und
+  RSTJ-Core behalten die bisherigen Recovery-Pfade und vier Barrieren; die
+  freigegebene CLEAN-Primary-only-Attach-Korrektur ist unten dokumentiert.
+- Neue Ring-3-FAT32-View und epochgebundener Kettencursor:128 Links pro Schritt,
+  maximal258 Sektorlesungen einschliesslich BPB/Entry, zwei feste FAT-Caches,
+  keine Heapallokation oder6400-Cluster-Gesamtgrenze. BPB und gesamter Eintrag
+  bleiben identisch; Spiegel/aktives FAT, Schleifen, kurze/beschaedigte Ketten
+  und Epochwechsel werden geprueft. 1 bedeutet Fortsetzung, 0 nur geprueftes
+  Kettenende. Dies ist KEIN Allocation-/Crosslink-Zertifikat und noch keine
+  Freigabe fuer Writes oder Erweiterung des alten READ-Dienstes.
+- Neuer Artefaktpruefer schuetzt vorerst nur die ATA-Quellendeltas: normale
+  Helfer muessen nach Entfernen exakt benannter Checks/NULL-Adapter zum
+  akzeptierten R3.41-Code werden. Keine pauschale Hotpath-Ausnahme. Alter
+  privater R3.41-Deadline-Injektor wird gegen seinen akzeptierten Quellstand
+  geprueft, aktueller PIO-Code separat nativ. Neuer Image-/Payload-CLI-Pruefer
+  bleibt absichtlich unvollstaendig/ablehnend bis zur Paketimplementierung.
+- Neu in fat32_file_write.{h,c}: fortsetzbarer, rein lesender Besitzabgleich
+  zwischen allen FAT-Verweisen und dem erreichbaren Verzeichnisbaum. Fuenf
+  Bitmaps fuer65536 Cluster plus den Zielverzeichniscluster, drei Sektorcaches
+  und32 feste Verzeichnisframes; insgesamt unter48KiB, kein Heap und keine
+  neue Storage-Domain-Autoritaet. Pro Schritt maximal1024 Arbeitseinheiten und
+  320 Reads, Zustand/Fehler/Medium/Objekt an dieselbe Kernel-Epoche gebunden.
+  Eine lokale Fensterpruefung ist nicht die komplette Schreibzulassung.
+- Die neue Volume-Variante prueft alle Fenster derselben Epoche vor READY;
+  ein verwaister Cluster erst im letzten Fenster verhindert die Freigabe.
+  Geprueft werden freie/referenzierte Cluster, gemeinsam benutzte Starts und
+  Suffixe, verwaiste FAT-Verweise, verlorene Allokationen, FAT-Spiegel,
+  Verzeichniszyklen, Dot/Dotdot, Directory-Tails nach dem Endmarker und der
+  genaue Eintrag samt eindeutigem ASCII-Kurznamen im Zielverzeichnis. Die
+  standardgemaessen Grenzen von4GiB Allokationskette/UINT32_MAX Dateigroesse
+  und2MiB Verzeichniskette werden beachtet. Reservierte hohe Attributbits
+  werden ignoriert und nicht als Rechte interpretiert; FSInfo bleibt Hinweis.
+  Referenz: Microsoft FAT v1.03, Link im neuen Header. Kein allgemeiner
+  VFAT-Namensvalidator, schreibender Reparaturpfad oder POSIX-Kompatibilitaet.
+- Das fertige Pruefergebnis bleibt bei Reads erhalten (nur zwei Identitaets-
+  Reads bei erneuter Pruefung). Der neue private Overwrite-Planer bindet es an
+  den unveraendert gespeicherten Owned-Admission-Request samt Pin/Client/Frist,
+  kanonischem Dateischluessel und zugelassener Geometrie. Alle IO laufen durch
+  denselben Journal-Token, nicht durch normale Shadow-/VFS-Leseautoritaet.
+  Nur vollstaendige Volume-Pruefung berechtigt zur Planung, nie ein einzelnes
+  Fenster. Kein Wiedereroeffnen, neuer Pin oder erneuerte Deadline.
+- Vorhandene Dateibereiche koennen jetzt im privaten Planer ueberschrieben
+  werden:128 Links/Schritt, maximal300 Reads/Schritt, hoechstens20 eindeutige
+  Zielsektoren, erst vollstaendige Planung, dann RAM-Staging im bestehenden
+  RSTJ-Core. Teilsektoren werden ausserhalb der Eingabe erhalten. Vor Commit
+  werden Zielmenge und vollstaendige Pending-/Undo-/Eingabebytes verglichen.
+  Kein Dirty-Writeback beim Schliessen, Heap, Dateigroessenlimit oder neuer
+  Journalcode im Kernel. Dieser Overwrite-Einstieg lehnt Groessenaenderung ab;
+  Shrink/Growth/Append sind jetzt separate private, noch nicht im Dienst
+  freigegebene Einstiege.
+- Genau dieser datenveraendernde, aber metadatenneutrale Commit darf die
+  Belegungspruefung auf Epoche alt+2 fortschreiben: wirklicher dauerhafter
+  RSTJ-Abschluss, frischer Kernel-Snapshot und Verify des urspruenglichen Pins.
+  Ein eigener Sequential-Hinweis vermeidet den erneuten Dateipraefixlauf beim
+  Folgechunk. Abbruch/UNKNOWN/Fremdmutation/Pinverlust invalidieren den Cache.
+  Verlorene Wiederverwendbarkeit verschweigt keinen bereits bewiesenen
+  dauerhaften Bytefortschritt. Keine generische Epochensetzung oder JS-Rechte;
+  Release-Service, Objekt-Wireformat und echte Gastintegration bleiben offen.
+
+Entwicklungsbelege unter build/codex-agent/r342-fat32-write/:
+Owned-Pin90 Checks je O0/O2(1.533s), Eingabetransport einschliesslich beiden
+Copy-Cancel-Richtungen(1.411s), SDK/Syscall34 Checks je O0/O2(1.449s).
+Erhaltene Rotlaeufe belegen alte EBUSY-/unbekannte-Operation-Ablehnung;
+der erste Input-Rotlauf war nur eine danach korrigierte Test-Compilerwarnung.
+Gezielte Altpfade bestehen ebenfalls: Guard-Metadaten/128 Threads O0/O2
+(5.514s), echter alter Request-Pool(0.532s), VFS/Lifetime/Journal/Syscall O0/O2
+(2.276s). Dies sind Entwicklungspruefungen, keine27-Gruppen-Paketabnahme.
+
+Fortsetzung: neuer Rotbeleg
+mutation-receipt-1c08818317604f89b05b86c26c8aafe4/result.json zeigt echte
+destruktive Alt-Collection von Op35 vor der Reparatur. Aktuelle O0/O2-Belege:
+Antwortlebensdauer270 Checks je Lauf und Owned-Pin90(gezielt zusammen2.978s),
+SDK/Syscall112 Checks je Lauf einschliesslich beiden Copyout-Schnitten,
+Copy-Cancel und Client-Rejection(3.053s zusammen mit damaligem179-Check-
+Antwortlauf); Eingabetransport bleibt geprueft(3.091s zusammen mit vorherigem
+35-Check-Syscalllauf). Request-Pool-Alttest0.532s, echtes VFS/Guard/Pool-
+Zusammenspiel samt bisherigem Journal-/Lifecycle-Test2.912s, Guard-Metadaten
+mit128 Threads3.735s und unveraenderte native Script-Domain1.030s bestehen.
+Die per-Byte-Assertions des128KiB-Copytests sind keine unabhaengigen Testfaelle.
+Diese aelteren Quellencheckpoints bleiben unveraendert erhalten:
+build/codex-agent/r342-fat32-write/{foundation,receipt}-checkpoint/.
+
+Aktuelle gezielte Entwicklungspruefungen (weiter keine eingefrorene Abnahme):
+
+- Echter VFS/Guard/Pool/Owned-Syscall einschliesslich Abbruch vor/nach Wait und
+  beide Copyout-Schnitte sowie Guard-Metadaten/128 Threads O0/O2:6.722s PASS.
+- Ring-3-Adapter/RSTJ-Faultkampagne, reale PIO-Deadline-/Abbruchtests,
+  aeusserer ATA-Mediator und negative Hotpath-Schutztests:5.737s PASS. Der
+  erhaltene Rotlauf native-d25e8567961a460b8612a8ff46b50331 unter r341 zeigt
+  die unerlaubte Reparatur/direct-Write-Auswahl vor der Adapterkorrektur.
+- Native Eingabe, SDK/Syscall112, Receipt270, Pin101 sowie Kettencursor2530
+  Checks je O0/O2:7.908s PASS. Byte-/Medienassertions sind keine unabhaengigen
+  Testfaelle. long-chain-d93d7b52c392414f9897c029662a9f25 zeigt die alte
+  Ablehnung einer validen fragmentierten10000-Cluster-Datei. Aktuell auch
+  70000 Cluster/128 Sektoren je Cluster mit UINT32_MAX Dateigroesse geprueft:
+  synthetische Metadaten, kein4GiB-Datentransfer oder Gast-/Performancebeleg.
+- Bestehende ATA-Produktionstransaktionen0.565s, alter FAT-Parser0.505s,
+  native Script-Domain O0/O2 0.986s PASS. Keine neuen Script-/JS-Rechte.
+
+Der pio-chain-checkpoint mit24 eigenen Pfaden bleibt unveraendert erhalten.
+Voriger Stand: ownership-checkpoint/ mit26 eigenen Pfaden unter demselben
+build/codex-agent/r342-fat32-write/. Queue und100 akzeptierte Referenzartefakte
+bleiben nachvollziehbar erhalten; keine eigenen Builds, Images, Agents,
+Abnahme-Gates oder Commits. Achtung: vier aktive Build-Ausgaben wurden extern
+erneuert, siehe den Artefaktbefund unten; NICHT100 unveraenderte Live-Dateien.
+
+Neue gezielte Belege: Besitzpruefung O0/O2 11865 Assertions je Lauf,2.580s PASS,
+ownership-a81cfc9d79ac45f7b704d25b8a03fa61/result.json. Enthalten sind lokale und
+vollstaendige Zwei-Fenster-Pruefung, Dateigroesse UINT32_MAX mit65536 Clustern
+zu128 Sektoren,21 Volumenvarianten,15 lokale Varianten, elf Lese-Abbruchpunkte
+und fuenf malformed-state-Pruefungen. Die Assertions sind keine eigenstaendigen
+Testfaelle. Ein beibehaltenes Positivbeispiel zeigt, dass der alte lokale
+Kettentest auch bei fremden Besitzverweisen bestehen konnte. Der echte Rotlauf
+ownership-b2b247ea35c1463ca6cffe14a9947ff0 belegt die noch zugelassene uebergrosse
+Allokationskette vor der Korrektur; Compiler-Fehllaeufe bleiben ebenfalls erhalten.
+Kettentest2530, SDK/Syscall112 und128KiB-Eingabe zusammen mit der damaligen
+9623-Assertion-Besitzpruefung in7.385s PASS. Nur gezielte Entwicklungstests,
+keine eingefrorene27-Gruppen-Abnahme. Der neue Backend-Baustein ist noch nicht
+im Release-Service verlinkt oder fuer Mutationen erreichbar.
+
+Artefaktbefund beim Checkpoint: build/kernel.bin und die drei SDK-Dateien
+crt0.o/libreistc.a/libreistos.a tragen neue Bytes vom9.September21:41:12-14.
+Kein entsprechender Build wurde in diesem Lauf gestartet; Herkunft beim Nutzer
+angefragt, noch nicht bestaetigt. Der erste Checkpointversuch save-ownership.ps1
+brach korrekt am Referenzvergleich ab. Keine Quell-/HEAD-/Queue-Aenderung und
+kein Compiler-/VM-Prozess mehr aktiv zum Inspektionszeitpunkt.96 aktive
+Referenzartefakte einschliesslich beiden Images bleiben hashgleich. Der alte
+Kernel in deadline-repair/corrected-reference/ und exakt die drei SDK-Dateien
+in resume-arp/unaccepted-checkpoint/build/sdk/usr/lib/ sind bytegleich zu den
+vier fehlenden akzeptierten Hashes; damit sind alle100 Referenzbytes erhalten.
+Das qualifiziert nicht die anderen Inhalte jenes alten unaccepted-Verzeichnisses.
+ownership-checkpoint/ bewahrt nur diese hashgeprueften Ersatzreferenzen und die
+vier neuen, ausdruecklich nicht abgenommenen Live-Ausgaben separat auf. Kein
+Restore/Ueberschreiben und kein Rueckgriff auf die gemischten Live-Ausgaben
+fuer Laufzeitbehauptungen. Beide Referenzbuilds/Artefaktgates bleiben erforderlich.
+
+Fortsetzung9.September: anfangs alle26 Quellhashes des ownership-checkpoint
+verifiziert, HEAD/Queue unveraendert. Nur sieben dieser eigenen Pfade geaendert:
+CURRENT_WORK, die beiden FAT32-Adapter-/Planer-Header und Quellen sowie die
+zwei neuen Pakettestdateien. Keine Images/SDK-Builds/Agents oder Commits.
+Neuer Quellencheckpoint: build/codex-agent/r342-fat32-write/overwrite-checkpoint/.
+
+Gezielte Entwicklungsbelege, NICHT eingefrorene Abnahme:
+
+- test_owned_overwrite_planner O0/O2 PASS4.227s,24834 Assertions je Lauf,
+  overwrite-a76a26c170eb4dc9948be0dc0e0dc37f/result.json. Echte Guard-/Token-/
+  RSTJ-Kette, sieben Normalvarianten,16 Admission-Negative, neun Stage-/
+  Finish-Abbrueche, alle Read-Cuts sowie48 Schreib-/Flush-Cuts in beiden
+  Cache-Persistenzmodellen. Medienoracle prueft auch fehlende Zielsektoren und
+  unerlaubte Aenderungen ausserhalb des Bereichs, mit eigenen Negativtests.
+  Recovery hier nur der echte transportneutrale Core im Crashmodell, NICHT
+  die noch fehlende produktive fenced Requalifikation.
+- Der zweite Chunk hinter Cluster9000 braucht im Modell genau einen
+  Planerschritt und weniger60 Reads statt erneutem Volumen-/Praefixscan.
+  Das ist ein deterministischer Arbeitsnachweis, keine VM-Durchsatzbehauptung.
+- Besitzpruefung11865/O0/O2 und damaliger Overwrite-Test23886/O0/O2 zusammen
+  PASS7.300s; alte JournalHandoffTests.test_native_o0_o2 PASS2.499s,
+  jeweils68990 Assertions. Alle vorherigen Belege bleiben erhalten.
+- Rotlauf overwrite-8b5368548b2144d7bb65390d70c61a65 belegt die bisher fehlende
+  Planer-/Besitzgrenze des allgemeinen Adapters. overwrite-f58c723e19b64dc390c30e8e5ec24a67
+  entdeckte Pinverlust nach Commit bei unveraenderter Epoche; anschliessend
+  durch explizites Verify vor Cache-Fortschreibung korrigiert. Compilerfehler
+  der neuen Testfixture sind separat erhalten, nicht als Laufzeitfehler gewertet.
+
+VORHERIGER UMFANGSBLOCKER (nach Nutzerfreigabe behoben, siehe Fortsetzung):
+Der anschliessend erweiterte Layouttest scheitert reproduzierbar bei einem
+gueltigen CLEAN-v2-Journal mit29 reservierten Sektoren ohne zweiten Header:
+overwrite-ee6fd1ef561f4055b511fc15cd69d940/result.json,1.651s, O0 FAIL,
+"reserved=29 spc=1 FATs=2 status=-13 effects=0". O2 danach nicht gestartet.
+Der vorhandene ata_undo_journal_attach setzt im Nur-Primary-Zweig immer
+repair_headers=true und versucht deshalb auch einen identischen CLEAN-Header
+neu zu schreiben. Der Owned-Adapter lehnt dies korrekt vor jedem Effekt ab.
+Die vorgelagerten Varianten mit2/128 Sektoren je Cluster, einem FAT und
+inaktivem abweichendem FAT wurden in diesem O0-Lauf erreicht; noch keine
+vollstaendige neue O0/O2-Layoutabnahme. Der alte PASS umfasst sie nicht.
+
+Saubere Korrektur gehoert in drivers/block/ata_journal.c: vorhandener gueltiger
+CLEAN-v2-Primary ohne vorgesehenen Mirror braucht keine Header-Reparatur;
+echte Inkonsistenz/ACTIVE/v1-Upgrade muessen weiterhin Recovery verlangen.
+Diese Quelldatei fehlte damals in allowed_files. Daher nicht editiert und
+kein Fake-Write-/Flush-Erfolg oder alternativer Journalparser als Umgehung.
+Gezielte Umfangsfreigabe fuer diese Datei war erforderlich; vorhandene Journal-
+und Pakettests bleiben Pflicht. Der damalige Rotlauf bleibt erhalten.
+
+Fortsetzung nach ausdruecklichem "ja" zur Journal-Datei:
+
+- Alle26 Hashes des overwrite-checkpoint stimmten zu Beginn. Nur die
+  genehmigte eine Datei in allowed_files aufgenommen; alle27 eingefrorenen
+  Gruppen, Invarianten und Queue-Zustaende bleiben unveraendert. Im
+  Journal-Core genau eine Entscheidung korrigiert: ein gueltiger Primary
+  braucht bei nicht vorgesehenem Mirror keine Header-Reparatur. CRC,
+  widerspruechliche Header, ACTIVE/v1, Undo/Readback und Barrieren bleiben.
+  Kein Fake-Write-Erfolg, neuer Parser, erweitertes Recht oder Format.
+- Neue40 reale Attach-Konstellationen:20 Medienfaelle je Owned- und
+  Recovery-Host, inklusive29/30/31/32 Reserved-Sektoren, unvollstaendigem
+  Mirror, beiden Sequenzrichtungen, CLEAN/ACTIVE-Konflikt, v1 CLEAN/ACTIVE,
+  falschem Daten-CRC und unzulaessigem Recovery-Ziel. Ganze Testmedien werden
+  verglichen; sauberes Attach braucht null Writes/Flushes, echte Reparatur
+  bleibt im Owned-Host gesperrt. Rotbeleg vor Korrektur:
+  r341-journal-handoff/native-22317af0fe204282b3a5b4c18555ac86/.
+- JournalHandoffTests.test_native_o0_o2 und der neue streng verankerte
+  test_primary_only_journal_source_scope_is_exact bestehen zusammen2.608s;
+  jeweils75431 Assertions, native-61dbefda5a79456f8b42ee20bb2b0ef7 unter r341.
+  Der Quellguard erlaubt ausschliesslich diese Entscheidung und rekonstruiert
+  sonst den akzeptierten R3.41-Core, mit negativen CRC-/Recovery-/Barrier-
+  und Fremdcode-Aenderungen. Kein pauschaler Attach-/Datei-Bypass.
+- test_owned_overwrite_planner besteht mit dem aktuellen gesamten Layouttest
+  O0/O2:40909 Assertions je Lauf,4.877s,
+  overwrite-1037164d14ea48079e5ca9e3c897598c/result.json. Auch das
+  Primary-only-Journal durchlaeuft jetzt alle46 Schreib-/Flush-Schnitte in
+  beiden Cachemodellen und saemtliche Lese-Schnitte; der bisherige
+  Zwei-Header-Lauf behaelt seine48 Schnitte. Vier Commit-Barrieren in beiden
+  Layouts, genaue alte-oder-final-Medienoracles, keine pauschale "weniger
+  Writes = haltbar"-Behauptung. Assertions sind keine unabhaengigen Testfaelle.
+- Drei ausgewaehlte vorhandene Undo-Journal-Quelltests fuer Reihenfolge,
+  CRC-vor-Recovery und konservative Headerwahl:PASS0.001s. Der erste neue
+  Quellguard-Test hatte einen falschen Testanker fuer Flush, der korrigiert
+  wurde; keine Produktionsbarriere wurde fuer den Test geaendert.
+
+Aktueller Quellencheckpoint: journal-attach-checkpoint/ unter r342-fat32-write,
+29 eigene Pfade. Keine Images/SDK-Dateien neu gebaut, keine Abnahme-Gates,
+keine Queue-Transition oder Commits. Der gemischte externe Build-Stand bleibt
+gesondert erhalten und ist weiterhin keine neue Referenz. Die Korrektur ist
+nativ geprueft, noch nicht in einem neuen Gastimage abgenommen.
+Beim Checkpoint wurde ein weiterer externer Kernelbuild bemerkt:
+build/kernel.bin vom9.September22:43:56, Hash8fba7520dacb9756..., statt des
+vorherigen nicht abgenommenen426d6edf5ef5a3f1.... Die anderen99 Live-Ausgaben
+einschliesslich SDK und beider Images sind unveraendert zum vorigen Checkpoint;
+alle100 akzeptierten Referenzen bleiben erhalten. Kein Build dieser Sitzung,
+kein Compiler-/VM-Prozess um22:44:57 aktiv. Neue Kerneldatei separat in
+journal-attach-checkpoint/unaccepted-external-build/ gesichert, nicht ins
+Image uebernommen oder als Abnahmebasis akzeptiert. Der Checkpoint-Helfer
+hatte vorher historische scope_amendment-Zeilen mitgezaehlt; seine Auswahl
+wurde auf die genehmigte aktive Notiz begrenzt, der vollstaendige Vergleich
+der restlichen Queue einschliesslich aller Gates bleibt strikt.
+Anschliessend hat der Nutzer seinen manuellen Buildversuch bestaetigt. Das
+ist Herkunftsklaerung, kein Nachweis eines erfolgreichen oder vollstaendigen
+Builds; Referenzimages und Abnahmestatus bleiben unveraendert. Dokumentations-
+Nachtrag und aktuelle29 Quellhashes: build-confirmation-checkpoint/; die
+unveraenderten Quellen und Build-Ausgaben liegen weiterhin im oben genannten
+journal-attach-checkpoint, nur CURRENT_WORK ist als Nachtrag kopiert.
+
+Noch offen: append-only Schreibobjekt-Rechte/Wireformate, versionierter
+inhaltlicher Ergebnisframe, Client-/Service-Anbindung der jetzt nativ geprueften
+Dateiplaner samt Metadaten-/Locator-Fortschreibung sowie Requalifikation
+bei weiterhin gesperrten normalen Writes, FWRITEST, beide Referenzbuilds,
+Artefaktschutz und vollstaendige Gast-/Performanceabnahme. Die jetzt real
+angebundenen Admission-/Abbruchpfade benoetigen weiterhin den neuen Gastbeleg.
+Vor vollstaendigem Planer und Requalifikation keine Schreibobjekte freigeben.
+Der Release-Dienst verwendet weiterhin v2-Claim und bearbeitet Op35 nicht.
+Keine neuen JS-Rechte, keine fertigen Dateischreibfunktionen behauptet.
+R341-H1/H2 bleiben offen; keine neue Abnahme oder Performancebehauptung.
 
 ## R3.42 definiert: schreibbare FAT32-Objekte und Wiederqualifikation
 

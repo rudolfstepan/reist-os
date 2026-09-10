@@ -36,13 +36,18 @@ nach ausdruecklicher Benutzerfreigabe unter den offenen Altrisiken R341-H1/H2
 im Handoff-Vertrag. Die historischen Fehlerursachen sind nicht als behoben
 anzusehen. Tokengebundene128KiB-IO, vier Barrieren und die durchgaengige
 maximal5s-Reservation sind qualifiziert; keine neuen JS-Schreibrechte.
-Der einheitliche FAT32-Schreibobjektbackend ist jetzt als R3.42 definiert:
+Der einheitliche FAT32-Schreibobjektbackend R3.42 ist am10.September mit
+allen37 eingefrorenen Pruefgruppen abgenommen:
 [FAT32_WRITABLE_OBJECT_CONTRACT.md](../architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md).
 Writes, Append, zero-filled Growth, inkrementelles Resize und fsync teilen die
 stabile Objekt-/Transaktionsgrenze mit Bulk-Eingabe und Wiederqualifikation.
 Resize meldet dauerhaften Fortschritt explizit, statt partielles ftruncate zu
-behaupten.27 Pruefgruppen sind eingefroren; noch keine Implementierungsabnahme.
-Erst danach explizite Schreib-Capabilities delegieren. JS4 und die weiterhin
+behaupten. Bestehende regulaere FAT32-Dateien auf ATA-PIO, unveraenderte
+20 Journalziele/vier Barrieren und5s-Operationsfristen; reale Gastnachweise
+fuer Fault/Hang/Cancel/Replyverlust/Repair-Cut/Erschoepfung sowie Browser und
+JS-Kompatibilitaet. Archiv: build/codex-agent/r342-fat32-write/accepted-final/.
+Noch keine JS-Schreibrechte: explizite Delegation ist das naechste gesonderte
+Host-Autoritaetspaket, kein impliziter Effekt dieses Backends. JS4 und die weiterhin
 zurueckgestellte VMware-Pointerabnahme werden nicht vorgezogen.
 
 ## Ziel und Sicherheitsgrenze

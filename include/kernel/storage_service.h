@@ -28,12 +28,18 @@ bool storage_service_resource_recovering(uint32_t resource);
 bool storage_service_media_fingerprint(uint32_t resource, uint32_t *fingerprint);
 bool storage_service_expected_fingerprint(uint32_t resource,
                                           uint32_t *fingerprint);
+/* Private repair publication; only VFS's retained-extent reservation calls it.
+ * No caller-supplied range, old mount refresh or implicit ordinary write grant. */
+bool storage_service_repair_check(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint);
+bool storage_service_repair_publish(uint32_t resource, int pid, uint32_t generation, uint32_t fingerprint);
 bool storage_service_requalify_media(uint32_t resource,
                                      uint32_t *fingerprint);
 bool storage_service_accept_formatted_media(uint32_t resource,
                                             uint32_t *fingerprint);
 bool storage_service_accept_partition_layout(uint32_t parent_resource);
 bool storage_service_admin_begin(uint32_t resource_mask, bool require_down);
+/* Flush-only admission; never makes a transitioning resource available. */
+bool storage_service_admin_flush_allowed(uint32_t resource);
 bool storage_service_admin_finish_down(uint32_t resource_mask);
 bool storage_service_admin_finish_online(uint32_t resource_mask);
 bool storage_service_admin_finish_up(uint32_t resource_mask);

@@ -22,6 +22,8 @@
 #define ATA_WRITE_SECTORS_EXT 0x34             // 48-bit PIO write
 #define ATA_READ_MULTIPLE     0xC4             // PIO data-in, sectors per DRQ block
 #define ATA_READ_MULTIPLE_EXT 0x29             // 48-bit PIO multiple read
+#define ATA_WRITE_MULTIPLE    0xC5             // PIO data-out, sectors per DRQ block
+#define ATA_WRITE_MULTIPLE_EXT 0x39            // 48-bit PIO multiple write
 #define ATA_SET_MULTIPLE_MODE 0xC6             // Volatile sectors-per-block setting
 #define ATA_FLUSH_CACHE      0xE7
 #define ATA_FLUSH_CACHE_EXT  0xEA
@@ -122,6 +124,29 @@ bool ata_journal_recover_resource(uint32_t resource);
 int ata_external_journal_handoff(unsigned short base, bool is_master, uint64_t deadline_ms);
 int ata_external_journal_io(uint32_t resource, uint32_t operation,
     uint32_t sector, uint32_t count, void* buffer, bool pending, uint64_t deadline_ms);
+/* Explicit kernel-owned admission, valid only while the caller holds VFS and
+ * this transport holds ATA. No userspace function pointer or retained lease. */
+typedef struct {
+    int (*check)(void* context, bool effect);
+    void* context;
+    int error;
+} ata_journal_admission_t;
+static inline bool ata_journal_check(ata_journal_admission_t* admission, bool effect) {
+    if (!admission) return true;
+    if (!admission->error) admission->error = admission->check ?
+        admission->check(admission->context, effect) : -13;
+    return admission->error == 0;
+}
+int ata_external_journal_io_checked(uint32_t resource, uint32_t operation,
+    uint32_t sector, uint32_t count, void* buffer, bool pending, uint64_t deadline_ms,
+    ata_journal_admission_t* admission);
+/* Kernel-private: mandatory exact repair-token admission, fences stay set. */
+int ata_repair_journal_io_checked(uint32_t resource, uint32_t operation,
+    uint32_t sector, uint32_t count, void* buffer, bool pending, uint64_t deadline_ms,
+    ata_journal_admission_t* admission);
+/* Dedicated administrative FLUSH, mandatory live lease callback, no data IO. */
+int ata_admin_flush_checked(uint32_t resource, uint64_t deadline_ms,
+    ata_journal_admission_t* admission);
 void ata_fence_writes(void);
 void ata_restore_writes_after_recovery(void);
 bool ata_writes_quiescent(void);
