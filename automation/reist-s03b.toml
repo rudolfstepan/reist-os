@@ -1,7 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
-next_user_request = "2026-09-10: R3.42 passed all37 frozen groups; reviewed source, matching reference images/kernels and gate evidence are archived under build/codex-agent/r342-fat32-write/accepted-final. Existing FAT32 writable objects are accepted, but no new JS write rights are granted. Explicit JS-host write delegation requires its own next package definition. The formal next-queued transition activates R3.6b only for bookkeeping; its user-approved browser-priority deferral and every original requirement remain binding. Preserve R3.41 evidence, original stash and historical risks R341-H1/H2; no waiver for new failures. Interactive main agent only; no nested agent, visible VM or push."
+active_id = "R3.43-js-shell-examples"
+next_user_request = "2026-09-10: User asks for several JS test files executable from the shell. R3.43 packages six bounded examples using only the accepted runner and explicit read grants. No JS write delegation or production runtime change. Preserve accepted R3.42 references and R341-H1/H2; deferred R3.6b retains all original gates. Interactive main agent only, no nested agent, visible VM or push."
 
 [policy]
 one_package_per_run = true
@@ -10,6 +10,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R3.43-js-shell-examples"
+status = "active"
+phase = "post-s0"
+risk = "low"
+title = "Packaged self-checking JavaScript shell examples"
+scope = "Read docs/development/JS_SHELL_EXAMPLES.md fully. Six bounded examples, usage, both image layouts and real shell execution on accepted f808b558. Data/test integration only; no runtime or authority changes."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/JS_SHELL_EXAMPLES.md", "htdocs/jsargs.js", "htdocs/jsmath.js", "htdocs/jsjson.js", "htdocs/jserror.js", "htdocs/jssafe.js", "htdocs/jsread.js", "scripts/build-windows.ps1", "Makefile", "test/test_js_examples.py", "scripts/run_qemu_js_runner.py", "scripts/verify_js_examples_artifacts.py"]
+invariants = ["No kernel/engine/runner/broker/ABI/resource budget changes, no implicit file/network/process/admin authority. Examples use ECMA-262 and existing REIST profile1 APIs, not Node.js. Read grant explicitly selected by CLI; bounded reads and explicit finally-close.", "Existing guest validation and180s/1024MiB limits unchanged. New opt-in examples require exact ordered twice-repeated results and continued shell progress. Native fault dialogs/visible VMs/agents/push forbidden; retain failed evidence.", "Both reference kernels and every packaged PRG must be byte-identical to accepted R3.42 images. This protects existing code/performance, not a new throughput claim. No later writable host or deferred VMware work."]
+targeted_tests = ["python test/test_js_examples.py -v"]
+package_tests = [".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga", ".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga"]
+runtime_tests = ["python scripts/verify_js_examples_artifacts.py --evidence build/codex-agent/r343-js-examples/artifacts", "python scripts/run_qemu_js_runner.py --file-capabilities --examples --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r343-js-examples/guest.log"]
+acceptance = "All five frozen groups; host negatives for missing/duplicate/reordered/fatal results and image drift, exact source bytes in both images, existing runner/lifecycle/capability proof plus six examples twice through real Ring3 shell. Direct diff/scope review and local commit only after all pass."
+stop_conditions = ["Unattributed changes", "Runtime source change required", "Failed gate without focused in-scope correction"]
+commit_message = "feat: add self-checking JavaScript shell examples"
+evidence = []
 
 [[packages]]
 id = "R3.42-fat32-writable-objects"
@@ -2597,7 +2614,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
