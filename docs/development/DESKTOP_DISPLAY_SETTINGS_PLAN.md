@@ -17,6 +17,16 @@ Speicherklick jetzt anhand des akzeptierten Paints bestaetigt; die erwartete
 Boot-Probe wird getrennt vom bewaffneten Applet-Fault validiert.
 Ergebnisse und unveraendert erhaltene Fehlerbelege in CURRENT_WORK.
 
+Statusabgleich 10. September 2026: R3.21a hat zusätzlich die VMware-Kapazität
+berichtigt: `VRAM_SIZE` beschreibt den möglichen Speicher, `FB_SIZE` nur den
+aktuell aktivierten Scanout. Beide bleiben gegen die versiegelten BAR-Grenzen
+geprüft. R3.33 hebt unabhängig davon die alte Clientgrenze auf und prüft
+Browser-Resize bis 2560x1440. Details im
+[Videovertrag](../architecture/VIDEO_SUBSYSTEM.md) und
+[Surface-Vertrag](../architecture/HIGH_RESOLUTION_SURFACE_CONTRACT.md).
+Eine größere Modusliste allein beweist keinen korrekt mitwachsenden Client.
+Die eigenständige VMware-Pointerabnahme R3.6b bleibt zurückgestellt.
+
 ## Gewuenschtes Ergebnis
 
 - Eigenes `DISPLAY.PRG` unter `/usr/gui/bin/display.prg`, als **Anzeige** aus

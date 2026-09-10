@@ -1,6 +1,7 @@
 # VMware Workstation
 
-Stand: 30. August 2026.
+Stand: 10. September 2026. Referenzen bis R3.43; die formale Pointerabnahme
+R3.6b bleibt ausdrücklich zurückgestellt, siehe [offene Probleme](../development/KNOWN_ISSUES.md).
 
 Der native Windows-Build erzeugt eine vollständige Legacy-BIOS-VM. ISO, GRUB
 und manuelles Anlegen einer VM sind nicht erforderlich.
@@ -20,8 +21,8 @@ das Überschreiben einer über `vmrun` laufenden Paket-VM.
 |---|---|
 | Firmware | Legacy BIOS |
 | Boot | `sata0:0` |
-| CPU/RAM | 4 vCPUs, 512 MiB |
-| Festplatte | persistente monolithic-flat SATA-VMDK |
+| CPU/RAM | 4 vCPUs, 1024 MiB |
+| Festplatte | persistente monolithic-flat SATA-VMDK, 512 MiB Referenzgröße |
 | Grafik | VMware SVGA, 3D aus, standardmäßig VGA-Text |
 | Skalierung | Free Stretch (`gui.stretchGuestMode=fullfill`) |
 | Eingabe | virtuelle PS/2-Tastatur und virtuelle USB-HID-Maus über xHCI |
@@ -37,6 +38,13 @@ Das Raw-Image enthält MBR, Bootpartition und die FAT32-Systempartition
 Die generierte VMX aktiviert VMwares „Free Stretch“. Das Gastbild füllt damit
 das VMware-Fenster auch ohne VMware Tools und ohne Änderung der vom Gast
 gesetzten Auflösung; das Seitenverhältnis wird dabei nicht erzwungen.
+
+Davon getrennt wählt das Anzeige-Applet den validierten Gastmodus für den
+nächsten Desktopstart. R3.21a unterscheidet `VRAM_SIZE` von der aktuellen
+`FB_SIZE`; die momentane Auflösung begrenzt daher nicht automatisch die
+Auswahlliste. XRGB8888 bleibt 32 Speicherbits/24 RGB-Bits. R3.33 führt
+bestätigte große Clientgeometrien bis in den Browserinhalt nach. Kein Live-
+Monitorwechsel oder VMware-Tools-Protokoll wird behauptet.
 
 Die generierte VMX setzt `usb.generic.allowHID=FALSE`, enthält keine
 `usb.autoConnect`- oder HID-Quirk-Regel und bietet keine Buildoption für
@@ -103,8 +111,8 @@ geöffnete Sitzung und handelt eine neue Sitzung mit der finalen
 Grafikmodus-Geometrie aus; die absolute Trajektorie kann daher weder den
 Textmodus noch eine veraltete VMware-Viewportgröße verwenden. Sie bewegt
 dieselbe virtuelle xHCI-Basic-Mouse in begrenzten 60-Hz-Schritten zum
-Startknopf und danach geordnet über alle sechs Menüeinträge. Der Nachweis
-akzeptiert ausschließlich sechs gemessene Hot-Frames ohne Vollbild-Fallback,
+Startknopf und danach geordnet über alle sieben Menüeinträge. Der Nachweis
+akzeptiert ausschließlich die geforderten gemessenen Hot-Frames ohne Vollbild-Fallback,
 höchstens zwei Schadensregionen, maximal 17 ms je Hot-Frame und maximal 34 ms
 zwischen Pointer-Presents während kontinuierlicher Motion. Button-Eingabe,
 `DESKTOP_MOUSE_OK`, Desktop-Exit, neue Ring-3-Shell und zehn Sekunden stabiler
@@ -195,7 +203,7 @@ Abnahme noch einen p99-Latenznachweis oder eine Windows-95-Paritätsbehauptung.
 C:\> DRIVES
 C:\> DIR
 C:\> TYPE README.TXT
-C:\> RUN HELLO.PRG
+C:\> HELLO.PRG
 C:\> GTEST
 ```
 

@@ -2,6 +2,12 @@
 
 Frozen 7 September 2026 on accepted a09d8841, before implementation.
 
+Status 10 September 2026: R3.24 accepted. Canonical shared sources now live
+under userspace/js (R3.35); browser adapters preserve their prior entry points.
+R3.34 restricts the native worker before untrusted evaluation, and R3.36 adds
+explicit read grants only for the CLI host. Original lifecycle requirements
+below remain binding; [current status](../development/PROJECT_STATUS.md).
+
 ## Boundary and standard reference
 
 ECMA-262 execution semantics remain those of the accepted QuickJS core.

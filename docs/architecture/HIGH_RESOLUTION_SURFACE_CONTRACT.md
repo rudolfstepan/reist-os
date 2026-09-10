@@ -3,6 +3,12 @@
 Frozen on bd421a50, 2026-09-08. Direct main-worktree execution; one mediated
 Surface geometry/publication/resource-lifecycle boundary, no later package.
 
+Status 10 September 2026: R3.33 accepted; original failure and frozen
+requirements below are retained as history, not an unresolved resize claim.
+The tested 2560x1440 browser path follows matching configure/ACK and includes
+fault/recovery. No promise for every combination inside the admission envelope.
+Evidence: [CURRENT_WORK](../development/CURRENT_WORK.md).
+
 ## Failure and scope
 
 A high-resolution desktop can grow decorations beyond the old1024x768

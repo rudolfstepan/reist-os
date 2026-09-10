@@ -1,6 +1,16 @@
 # REIST-OS-Zielarchitektur
 
-Stand: 3. September 2026
+Stand: 10. September 2026. Aktueller Ist-Snapshot:
+[Projektstatus](../development/PROJECT_STATUS.md), abgenommen bis R3.43.
+
+Die Zielregeln dieses Dokuments bleiben verbindlich. Datierten Paketbeschreibungen
+liegt jeweils der damalige Stand zugrunde; sie sind keine alternative Queue.
+Seit R3.34 läuft JSWORK im irreversibel eingeschränkten Scriptprofil. Der
+allgemeine Shell-Host und der Browser verwenden dieselbe Engineimplementierung,
+aber getrennte Prozesse/Heaps. R3.36 delegiert nur explizite Lesedateiobjekte;
+R3.42 ergänzt FAT32-Schreibobjekte auf ATA-PIO, keine JS-Schreibrechte.
+R3.43 liefert sieben Shell-Beispiele. Einfache Farben, CLI-System-/Dateifassade
+und Shell-Exitstatus bleiben geplante, separat abzunehmende Hostgrenzen.
 
 ## Standard-first-Kompatibilitätsregel
 
@@ -37,7 +47,9 @@ begrenzte Kernelvertrag bleibt eindeutig und klein.
 
 Die append-only Syscall-ABI v1 besitzt genau eine autoritative Liste in
 `include/reist/abi/syscall.h`. Sie umfasst lückenlos die unveränderten Indizes
-0 bis 127 einschließlich des gesperrten IRQ-Slots 8. Ein begrenzter Generator
+0 bis 130 (131 Einträge) einschließlich des gesperrten IRQ-Slots 8.
+Append-only ergänzt wurden `PROCESS_RESTRICT` (128), `FILE_OBJECT_GUARD`
+(129) und `STORAGE_JOURNAL_IO` (130). Ein begrenzter Generator
 projiziert daraus die historischen `SYS_*`- und `X86OS_SYS_*`-Namen; Make- und
 Windows-Build prüfen diese Projektionen vor der Kompilierung fail-closed auf
 Drift. Derselbe Header benennt den bereits verwendeten POSIX-`errno`-Subset,

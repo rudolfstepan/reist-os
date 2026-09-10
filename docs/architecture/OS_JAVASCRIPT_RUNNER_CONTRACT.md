@@ -2,6 +2,13 @@
 
 Frozen on ef9fb2de, 8 September 2026, before implementation.
 
+Accepted as R3.35; status synchronized 10 September 2026. R3.36 separately
+adds explicitly granted read objects, R3.43 packages seven shell examples.
+The original JS2 requirements below remain unchanged. `system.*`, path-based
+`fs.*`, colors and an observable shell exit variable are proposals, not this
+profile's API. See the [current plan](../development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md)
+and [examples](../development/JS_SHELL_EXAMPLES.md).
+
 ## Boundary and references
 
 This is the second cohesive step of OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.

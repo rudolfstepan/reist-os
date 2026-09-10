@@ -1,6 +1,6 @@
 # Netzwerkstack
 
-Stand: 30. August 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 R3.27a,8.September (abgenommen): vier feste32KiB-TCP-Empfangsringe statt
 der Kopplung an die2048-Byte-Anwendungskopie. Die oeffentliche512-Byte-
@@ -148,14 +148,18 @@ Runtime-Probe baut ausschließlich unter `build/curl-https-runtime` und ersetzt
 weder das Produktionsabbild noch dessen `CURL.PRG`.
 
 Der grafische Befehl `browser [Pfad|http(s)://URL]` liegt unter
-`/usr/gui/bin`. Für Netzwerkziele startet er `CURL.PRG` mit
-`--max-bytes 65536` und einer PID-eigenen Tempdatei. Erst erfolgreicher
-Child-Exit, exaktes generationgebundenes VFS-Lesen, Close, UTF-8-Prüfung,
-HTML-Parse und Layout dürfen die sichtbare Seite ersetzen. Dadurch besitzt
-der Browser selbst weder Socket- noch TLS- oder Zertifikatsautorität. Der
-HTML-Teilsatz ist keine allgemeine Webkompatibilitätszusage; JavaScript bleibt
-in diesem Schnitt inert und wird später nur als isolierter Ring-3-Dienst
-angebunden.
+`/usr/gui/bin`. Netzwerkabruf/TLS bleiben am getrennten `CURL.PRG`-Prozess,
+HTML/CSS und Bild-/Schriftverarbeitung am isolierten HTMLWORK-Worker. Abrufe
+besitzen ressourcenspezifische Größen-, Zeit- und Cachegrenzen; die frühere
+pauschale 64-KiB-Seitengrenze beschreibt nicht mehr den aktuellen Browser.
+Nur validierte, generationgebundene Ergebnisse dürfen die sichtbare Seite
+ersetzen. JavaScript läuft inzwischen in einem eigenen, eingeschränkten
+JSWORK-Prozess: begrenzte DOM-Bindings und klassische externe Skripte, aber
+noch keine allgemeine Fetch-/Timer-/DOM-Event-API. Browser-Skripte erhalten
+keine CLI-Dateigrants. Aktueller Umfang und Grenzen stehen im
+[JS-Work-Paper](../development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md) und
+[Projektstatus](../development/PROJECT_STATUS.md), nicht in einer Zusage
+allgemeiner Webkompatibilität.
 `netstat` zeigt
 neben dem Interfacezustand auch aktive UDP-/TCP-Sockets, Queuefüllung, Drops
 und TCP-Retransmissionen. Die bisherigen Shell-Built-ins bleiben aus

@@ -1,6 +1,6 @@
 # GUI-Komponenten, Controls und Dialoge
 
-Stand: 27. August 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 Dieses Dokument ist der technische Katalog für sichtbare und interaktive
 REIST-GUI-Komponenten. Es trennt bereits nutzbare API von compositorinternen
@@ -14,13 +14,21 @@ Occlusion-Culling, atomare Frames und messbare Interaktionslatenz steht in
 
 ## Ziel und Schichten
 
-R3.21-Anzeigekandidat: `DISPLAY.PRG` verwendet den vorhandenen Listen-Controller
+R3.21 ist abgenommen: `DISPLAY.PRG` verwendet den vorhandenen Listen-Controller
 und Push-Button-Controller, lokale Koordinaten, Tab/Pfeile/Enter, Maus-Capture
 und opt-in Wheel-Ereignisse. Die Malfunktionen stellen diese Controller im
 klassischen Surface-Stil dar; die Fenstertitelleiste bleibt beim Compositor.
 Zu kleine Clientflaechen zeigen einen vergroesserbaren Hinweis statt negativer
 Geometrien. Konfigurationsschreiben ist ein asynchroner eigener CONFIG-Prozess,
 keine blockierende Warteoperation im Eingabepfad.
+
+Auch `MOUSE.PRG` ist ein eigenständiger Surface-Client; sein
+[Mausvertrag](MOUSE_SETTINGS_CONTRACT.md) definiert Range-/Button-Bedienung
+und wirksame Werte. Minimieren, Maximieren/Wiederherstellen und die vollständige
+Resize-Ecke gehören zum Window Manager, nicht zu nachgezeichneten Clientcontrols.
+Browser, Sound Player und Einstellungs-Applets nutzen ebenfalls die Surface-
+Grenze. Die [große Geometrie](HIGH_RESOLUTION_SURFACE_CONTRACT.md) verändert
+weder diese Zuständigkeit noch die festen Control-/Eingabebudgets.
 
 REIST übernimmt etablierte Interaktionsmodelle, aber behauptet keine
 Binärkompatibilität zu Win32, Qt, GTK oder Wayland. Wiederverwendbare Controls

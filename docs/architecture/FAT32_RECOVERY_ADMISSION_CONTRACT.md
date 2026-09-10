@@ -6,6 +6,11 @@ it does not implement the subsequent Ring-3 writable-object backend.
 
 ## Failure and boundary
 
+Status update 10 September 2026: R3.40 passed all ten groups; subsequent
+R3.41/R3.42 separately accepted handoff and writable objects. The pre-fix
+failure description below is historical, not a statement that the fixed
+admission bug still exists. [Evidence](../development/CURRENT_WORK.md).
+
 The transport-neutral drivers/block/ata_journal.c currently validates and
 restores entries one at a time. A late bad CRC/read/range can therefore reject
 a mount after earlier target sectors were changed. Recovery also admits the

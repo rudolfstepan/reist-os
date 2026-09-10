@@ -1,12 +1,18 @@
 # Video subsystem
 
-## Startup mode selection (R3.21)
+Status: 10 September 2026, accepted software through R3.43.
+
+## Startup mode selection (R3.21, R3.21a, R3.33)
 
 The Display applet/configuration consumer and append-only mode envelope are
 specified in [DISPLAY_SETTINGS_CONTRACT.md](DISPLAY_SETTINGS_CONTRACT.md).
 The existing DISPI/SVGA-II mediators admit explicit startup geometry within
-device and 16-MiB shadow/staged limits. Per-window Surface buffers remain at
-1024x768 / 3 MiB. VBE is restricted to the validated boot handoff; neither
+device and 16-MiB shadow/staged limits. R3.33 admits per-window Surface buffers
+up to 4096 per axis AND 4,194,304 XRGB8888 pixels (16 MiB), with a bounded
+64-MiB aggregate store and preserved recovery reserve. This does not admit
+4096x4096 windows. Matching configure/ACK and browser raster resizing are
+specified in [HIGH_RESOLUTION_SURFACE_CONTRACT.md](HIGH_RESOLUTION_SURFACE_CONTRACT.md).
+VBE is restricted to the validated boot handoff; neither
 live resize nor new pixel formats are implemented. Acceptance evidence, not
 this code inventory, determines platform qualification.
 

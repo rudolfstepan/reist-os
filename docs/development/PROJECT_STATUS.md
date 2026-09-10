@@ -1,11 +1,55 @@
 # Projektstatus
 
-Stand: 27. August 2026. Maßgeblich sind ausführbarer Code, die Tests und die
+Stand: 10. September 2026. Angenommener Softwarestand: `a3fa8dfb` (R3.43).
+Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
 REIST OS ist ein nicht zertifizierter High-Assurance-Forschungsprototyp. Die
 vorhandenen Schutzmechanismen dürfen nicht als klinische, industrielle oder
 sonstige sicherheitsbezogene Freigabe verstanden werden.
+
+## Aktueller Kurzstand
+
+| Bereich | Belegter Stand | Weiterhin offen / Grenze |
+|---|---|---|
+| Plattform | i386, eigener BIOS-/MBR-Boot, signiertes Manifest v3, Ring-3-Shell; 512 MiB Referenzplatte, 1024 MiB VM-RAM | x86_64 bleibt isolierter Prototyp; kein UEFI-/allgemeiner Secure-Boot-Claim |
+| Resilienz | Generationen, Capabilities, Fencing, begrenzte Recovery; privater Ring-3-Speicher und FPU-Kontextisolation | monolithische Treiber-/VFS-Altlasten; kein Nachweis physischer DIMM-/DMA-/Supervisor-Isolation für jede Plattform |
+| Browser | HTML5, CSS, externe Stylesheets, begrenztes Flex/Grid, Bilder, GET-Formulare, Wheel, TrueType (R3.29), große Surface-Geometrien (R3.33) | keine allgemeine Websitekompatibilität, Webfonts/Shaping/Bidi, vollständiges DOM/Events/fetch noch offen |
+| Browser-JS | QuickJS in eigenem eingeschränkten Ring-3-Worker; Inline/externe klassische Skripte, Text/Attribute/Klassen | keine impliziten VFS-/Netz-/Prozessrechte, keine Node.js-API |
+| Shell-JS | Runner R3.35, explizite Lesecapabilities R3.36, sieben Beispiele samt Mandelbrot R3.43 | Farbausgabe, system-/fs-Fassade, auswertbarer Shell-Exitstatus, JS-Schreibrechte und Verzeichnisrechte offen |
+| Desktop | Anzeige-/Maus-Applets, vollständige Resize-Ecke, Minimieren/Maximieren/Wiederherstellen, Taskleisten-Restore | Einstellungen beim nächsten Desktopstart; formale VMware-Pointerabnahme R3.6b bleibt zurückgestellt |
+| C++ | SDK-Teilprofil und bounded Types sowie Response-/Ressourcen-/Modellpiloten R3.17–R3.20 abgenommen | kein kompletter Browser-/Kernelumbau, öffentliche Grenzen bleiben C-kompatibel |
+| Dateisysteme | stabile Objektlebensdauer, Storage-Reap vor Ersatz, FAT32-Recovery/Handoff und R3.42-Schreibobjekte | neue Schreibobjekte nur bestehende reguläre FAT32-Dateien auf ATA-PIO; kein Create-/FAT12-/EXT2-/AHCI- oder JS-Schreibrecht daraus |
+
+R3.42 wurde mit allen 37 Gruppen als `f808b558` angenommen. R3.43 hat alle
+fünf Gruppen bestanden, einschließlich zweimaliger Ausführung aller sieben
+Skripte in der echten Shell und exakter 64×24-Mandelbrot-Ausgabe. Beide
+Referenzkernel und alle 94 Programme sind gegenüber R3.42 bytegleich.
+Kommandos, Zeiten und archivierte Hashes: [CURRENT_WORK](CURRENT_WORK.md).
+
+Der einzelne authentifizierte QEMU-TCG-Vergleich aus R3.42 ergab bei
+1024 MiB/1 CPU CPU 1,068×, sequenzielles Schreiben 1,222× und Lesen 6,816×.
+Das ist kein VMware-/Hardware-Durchsatz-, Langzeit- oder WCET-Nachweis;
+R3.43 hat keine neue Geschwindigkeitsmessung vorgenommen.
+
+Offen bleiben insbesondere **R341-H1** (damals verweigerter Stage-5-Read ohne
+ursprünglichen errno) und **R341-H2** (STAT-Erfolg ohne folgenden Prompt,
+Ursache ungeklärt). Spätere bestandene Tests schließen diese Datensätze nicht.
+Bei erschöpftem Storage-Recoverybudget bleiben normale File-Object-Zugriffe
+geschlossen; ein geprüfter begrenzter Rettungslesepfad ist kein transparenter
+Fallback für alle Programme. Siehe [offene Probleme](KNOWN_ISSUES.md).
+
+Nach dem aktuellen Dokumentationsauftrag folgen sichere einfache Farbausgabe,
+die konkret zu definierende CLI-API-/Exitstatus-Stufe und explizite JS-
+Dateirechte. Keine globale `fs`-Autorität. Die formale Queue-Auswahl von R3.6b
+nach jedem Abschluss hebt die vom Nutzer festgelegte Zurückstellung nicht auf.
+
+## Historische Paketstände und Detailbelege
+
+Die folgenden Abschnitte dokumentieren die jeweiligen damaligen Schritte.
+Formulierungen wie „noch nicht“, „nächster“ oder „aktiv“ gelten für diesen
+historischen Paketstand, nicht als zweite aktuelle Queue. Anforderungen und
+offene Hardwarebelege bleiben erhalten; der Kurzstand oben ist der Einstieg.
 
 `R6.1-smp-bootstrap` aktiviert auf i386 erstmals echte zusätzliche xAPIC-
 Prozessoren. Ein checksum- und längengeprüfter ACPI-MADT-Pfad inventarisiert

@@ -1,10 +1,16 @@
 # Build-Modi
 
-Stand: 16. August 2026.
+Stand: 10. September 2026.
 
 Der Kernel kennt drei Zielprofile und zwei Videoausgaben. Die Profile ändern
 Timing- und Validierungsdefinitionen, nicht das CPU-Ziel: Alle Varianten sind
 freestanding i386.
+
+Ein getrennter x86_64-[Bootstrap](../architecture/X86_64_BOOTSTRAP.md) ist
+kein vollständiger 64-Bit-Systembuild. Die normalen VM-Vorgaben sind 1024 MiB
+RAM und 512 MiB Plattenkapazität. `build-windows.ps1` hat ohne expliziten
+`-Target` den Wert `real_hw`; für Referenzen daher immer das Ziel angeben.
+Keine parallelen Zielbuilds oder Cleans im selben Ausgabebaum ausführen.
 
 ## Verbindlicher Windows-Build
 

@@ -1,11 +1,20 @@
-# Externe Programme für die Kernel-Shell bauen
+# Externe Ring-3-Programme für die Userspace-Shell bauen
 
-Stand: 20. August 2026.
+Stand: 10. September 2026.
 
 Das Projekt enthält eine native Windows-Toolchain, die fremden C-Quelltext in
 das ausführbare `MYPR`-Format übersetzt. WSL, GRUB und ein Cross-GCC werden
 nicht benötigt; der Build verwendet Zig/Clang, LLD und den Python-Packer aus
 diesem Repository.
+
+C++20 ist opt-in verfügbar: keine Exceptions/RTTI, keine C++-ABI über IPC
+oder Syscalls. R3.17–R3.20 haben bounded Types und Browser-Response-/Ressourcen-/
+Modellpiloten abgenommen; dies ist kein kompletter Sprachumbau. Details:
+[C++-Plan](../REIST_CPP_MIGRATION_PLAN.md).
+
+JavaScript-Dateien sind kein MYPR-Programm und werden nicht umbenannt/gepackt:
+`js /htdocs/mandel.js` startet sie über den eingeschränkten JSWORK.
+[Shell-Beispiele](JS_SHELL_EXAMPLES.md), [Hostvertrag](../architecture/OS_JAVASCRIPT_RUNNER_CONTRACT.md).
 
 Compiler, Assembler, Linker und statisches Archivformat sind unveränderte
 Upstream-Werkzeuge. Der Python-Anteil validiert und verpackt ausschließlich das
@@ -18,8 +27,9 @@ Schichten- und Portabilitätsvertrag steht unter
 R3.9 baut außerdem `/usr/bin/htmlwork.prg` in Windows- und Makefile-Images.
 R3.10 linkt dort zusätzlich die echte LibCSS-Kaskade und die freestanding
 i386-Compiler-Builtins der ausgewählten Zig-Installation. `libcss.pc` beschreibt
-die statischen Upstream-Abhängigkeiten; Fonts und Pixelrasterung bleiben in
-der Chrome, die LibCSS nicht linkt. `/htdocs/browser-css-test.html` ist in
+die statischen Upstream-Abhängigkeiten. Seit R3.29 liegen TrueType-Rasterung
+und proportionale Metriken im HTMLWORK; die Chrome linkt keine LibCSS.
+`/htdocs/browser-css-test.html` ist in
 beiden Images als sichtbare Normalfluss-/Style-Demonstration enthalten.
 Die Shell-Auflösung von `htmlwork` bleibt unverändert; der private `--ipc`
 Aufruf benötigt einen ausdrücklich vom Parent delegierten Endpoint.
@@ -28,9 +38,10 @@ Die Ausgabeobjekte sind getrennt, die Archivreihenfolge bleibt deterministisch;
 ein Compilerfehler verhindert die Rueckgabe des Batches und damit dessen
 Archivpublikation. Der Pool wartet vor dem Entfernen seines Temporaerbereichs
 auf die laufenden Jobs. Die bestehende 60-s-SDK-Testfrist bleibt unveraendert.
-Der Ring-3-Shell-Suchpfad `/usr/bin` erreicht den Worker auch direkt; er benötigt
-zwei private Auftrags-/Antwortpfade und ist kein interaktives Anzeigeprogramm.
-Der Browser startet ihn mit argv, nicht über die Kernel-Rescue-Shell. Der SDK
+Der Ring-3-Shell-Suchpfad `/usr/bin` erreicht den Worker auch direkt; der
+Browser verwendet den delegierten privaten IPC-Modus. Der Worker ist kein
+interaktives Anzeigeprogramm und wird nicht über die Kernel-Rescue-Shell
+gestartet. Der SDK
 installiert Hubbub 0.3.8 und LibParserUtils 0.2.5 als opt-in Archive samt Headern,
 pkg-config-Metadaten und MIT-Lizenzen. Für die unveränderten Upstream-
 Tabellengeneratoren werden auf dem Host Perl und GNU gperf benötigt (Windows:
@@ -71,7 +82,7 @@ Danach in der Shell:
 
 ```text
 C:\> DIR
-C:\> RUN HELLO.PRG
+C:\> HELLO
 ```
 
 Ohne eigene Parameter wird automatisch

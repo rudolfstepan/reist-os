@@ -4,7 +4,7 @@ Definition on clean `3e7c02add995b5c33aed045913382dc7ccce2d0f`, 9 September 2026
 Status: all37 frozen acceptance groups passed, 10 September2026.
 Evidence/source/images: build/codex-agent/r342-fat32-write/accepted-final/;
 final candidate32, reference builds24, guest29 and remaining runtime32.
-Local commit follows the reviewed archive and existing queue transition.
+Accepted local commit: `f808b558`; reviewed archive and queue transition complete.
 10September recovery correction: a valid cold QUERY for a fenced ACTIVE
 repair first requires the exact previous PID/generation to be fully reaped.
 It retires that owner's guard and advances the retained record to FAILED,

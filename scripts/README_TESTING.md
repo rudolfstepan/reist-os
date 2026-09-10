@@ -1,9 +1,23 @@
 # Tests ausführen
 
-Stand: 20. August 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 REIST trennt hostseitige Quell-/Harness-Tests, den sauberen Paketbuild und
 echte Gast-Laufzeitgates. Keine einzelne Ebene ersetzt die anderen.
+
+Verbindlich ist genau die eingefrorene Liste des aktiven Pakets in
+`automation/reist-s03b.toml`. Die interaktive Sitzung führt sie im sichtbaren
+Hauptarbeitsbaum selbst aus; keine verschachtelten Agenten, parallelen
+Clean/Builds oder impliziten sichtbaren Testfenster. Native Windows-Harnesses
+verwenden den vorgesehenen dialogfreien Hosttest-Wrapper beziehungsweise den
+bereits eingebauten Prozessmodus; unterdrückte Fehlerdialoge sind kein PASS.
+Volltexte und Laufzeitbelege bleiben unter `build/codex-agent/`.
+
+Der reine Dokumentationsschnitt D1.1 verwendet nur
+`python test/test_documentation.py -v`, `python test/test_js_examples.py -v`
+und `git diff --check`. Er prüft lokale Links/Anker, Inventar, ausgewählte
+Quellfakten, erhaltene alte Gates und JS-Beispiele; keine neue Runtime- oder
+Hardwareabnahme. Externe URLs werden dabei nicht abgefragt.
 
 ## Vollständige Hostsuite
 

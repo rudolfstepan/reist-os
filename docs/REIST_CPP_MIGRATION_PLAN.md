@@ -24,8 +24,17 @@ later implementation outside that package. Current acceptance status:
 |---|---|
 | TASK-0001 | Accepted in `8ff162a3`; baseline linked above |
 | TASK-1001/1002 | Accepted in `478289b7`; [SDK profile 1](architecture/USERSPACE_SDK_AND_PORTABILITY.md) |
-| TASK-2001 | Active as R3.17; regression-first work started, not accepted |
-| TASK-3001 onward | Planned; no browser C++ migration acceptance |
+| TASK-2001 | Accepted as R3.17: bounded value/ownership types |
+| TASK-3001 | Accepted as R3.18: browser response pilot behind unchanged C boundary |
+| TASK-3002 | Accepted as R3.19: resource snapshots / ownership boundary |
+| TASK-3003 | Accepted as R3.20: browser model; paired input/scroll gates passed |
+| TASK-3004 / TASK-4001 onward | Further evaluation/selective migration planned; not a whole-browser/OS rewrite |
+
+Status synchronized 10 September 2026 against the executable queue and
+[current evidence](development/CURRENT_WORK.md). Revision 1.1 approval remains
+unchanged: completing the pilot does not approve a wider kernel/GUI migration.
+Browser functionality, explicit JS host boundaries and requested shell colors
+have priority over optional broad language conversion.
 
 ## 1. Goals
 

@@ -2,6 +2,13 @@
 
 Stand: 22. August 2026.
 
+Einordnung beim Dokumentationsabgleich vom 10. September 2026: Die vorhandenen
+Aufnahmen behalten ihren ursprünglichen Laufzeitstand. Sie zeigen nicht die
+späteren Browser-/TTF-/Maus-/Fensterfunktionen und sind keine erneute Abnahme
+von R3.43. Für den aktuellen Funktionsumfang gilt der
+[Projektstatus](../../development/PROJECT_STATUS.md). Es wurden für den
+reinen Dokumentationsschnitt keine neuen Gastaufnahmen erzeugt.
+
 Dieser Ordner enthält bewusst versionierte Laufzeitaufnahmen für die
 öffentliche Repository-Dokumentation. Sie sind keine Mock-ups und werden nur
 verwendet, wenn eine sichtbare Systemeigenschaft dadurch schneller erfassbar

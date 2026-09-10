@@ -2,6 +2,46 @@
 
 Stand: 10. September 2026
 
+## D1.1: Dokumentation bis R3.43 abgeglichen
+
+Softwareausgang bleibt `a3fa8dfb`; Vertragscheckpoint `baaa962b`.
+105 projekteeigene Markdown-Dokumente sind im vollständigen Index erfasst
+(104 bisherige plus neuer Abgleichbericht). Aktuelle Bedienung, Build-/VM-
+Vorgaben, Architektur-/C++-/JS-Status, Dateisysteme, Desktop, Tests und lokale
+Navigation wurden abgeglichen. Historische Chroniken und Fehlerbelege bleiben
+erhalten; unveränderte normative/upstream Texte erhalten kein neues Abnahmedatum.
+Der defekte FAT12-TOC-Anker ist korrigiert.
+
+Die beiden ergänzten Nutzerideen sind im JS-Work-Paper als **geplant** getrennt:
+`system`-/`fs`-Fassade und auswertbarer Shell-Exitstatus sowie konkrete
+Capability-Anträge/Policies/Signaturmanifeste. Keine implementierten CLI-
+Schalter daraus ableiten. Signaturen erteilen keine Rechte; Host, Dienst und
+Kernel sichern gemeinsam die delegierte Grenze. Shellfarben und explizite
+JS-Schreibrechte bleiben ebenfalls noch offen.
+
+Leichte Dokumentationsabnahme, Belege unter `build/codex-agent/d11-documentation/`:
+
+- `python test/test_documentation.py -v`: 7 Tests PASS, 1.021s; `host-scope-final.log`.
+  Alle 105 Dokumente indexiert, lokale Markdownlinks/Anker ohne Befund;
+  ausgewählte Quellfakten, negative Scannerfälle, keine Runtime-Änderung,
+  unveränderte alte Paketverträge/Evidenz und eingefrorene D1.1-Gates geprüft.
+  Inventar: `inventory-af3390dfaadb448bb58d0a1d9afd86fb.json`.
+- `python test/test_js_examples.py -v`: 6 Tests PASS, 0.112s;
+  `examples-final.log`. Bestehende Beispieldateien und Imageintegration unverändert.
+- `git diff --check`: PASS, 0.169s; abschließendes Whitespace-Gate vor lokalem
+  Commit, `diff-check-final.log`. Alle drei eingefrorenen Gruppen bestanden.
+
+Der anfängliche negative Dokumentationstest bleibt in `host-red.log` erhalten.
+Der erste grüne Lauf (0.940s, `host-final.log`) bleibt ebenfalls erhalten.
+Bei der direkten Schlusskontrolle wurde die Scopeprüfung auf D1.1-Kandidaten
+begrenzt: Sie darf spätere autorisierte Runtime-Pakete nicht pauschal ablehnen.
+Nur die geänderte Dokumentationstestgruppe wurde dafür erneut geprüft;
+die übrigen Gates/Anforderungen wurden nicht abgeschwächt.
+Keine neuen Builds, VMs, sichtbaren Fenster, externen URL-Prüfungen oder
+Geschwindigkeits-/Hardwarezusagen. R341-H1/H2 und VMware-GUI-001 bleiben offen;
+die R3.6b-Queueaktivierung nach diesem Paket ist nur Buchführung und hebt die
+ausdrückliche Zurückstellung nicht auf. Keine spätere Implementierung in D1.1.
+
 ## R3.43: sieben JavaScript-Shell-Beispiele abgenommen
 
 Nutzerauftrag fuer direkt ausfuehrbare JS-Testdateien, erweitert um ASCII-

@@ -12,7 +12,8 @@ ohne WSL oder ISO.
 
 ![REIST Workspace mit Explorer und windowed Ring-3-Image-Viewer in QEMU](docs/assets/screenshots/reist-desktop-apps.png)
 
-*Automatisch aus dem aktuellen QEMU-Gast aufgenommen; kein Mock-up.*
+*Echte QEMU-Aufnahme; keine Aussage über den jüngsten Build. Herkunft und
+Aufnahmeverfahren stehen im [Screenshot-Verzeichnis](docs/assets/screenshots/README.md).*
 
 > **Safety-Status:** REIST verfolgt einen generischen High-Assurance-Kern mit
 > getrennten Referenzprofilen. Das System ist ein Forschungsprototyp, nicht
@@ -26,21 +27,24 @@ ohne WSL oder ISO.
 Die bestehende öffentliche SDK-ABI behält vorerst ihre `x86os_*`-Symbolnamen,
 damit vorhandene PRG-Programme binär und quelltextlich kompatibel bleiben.
 
-Stand dieser Dokumentation: 20. August 2026.
+Stand dieser Dokumentation: 10. September 2026, angenommener Softwarestand
+`a3fa8dfb` (R3.43). Der kompakte [Projektstatus](docs/development/PROJECT_STATUS.md)
+trennt implementierte Funktionen, Teilprofile und weiterhin offene Nachweise.
 
 ## Schnellstart unter Windows
 
-Benötigt werden GNU Make, NASM, Zig, Python und eine MSYS2-Shell. Das
-Buildskript sucht die Programme zuerst im `PATH` und kennt zusätzlich die im
-Skript dokumentierten portablen Verzeichnisse unter `C:\tmp`.
+Benötigt werden GNU Make, NASM, Zig, Python, OpenSSL 3 und eine MSYS2-Shell;
+die Parsergeneratoren benötigen außerdem Perl und GNU gperf. Das Buildskript
+prüft seine dokumentierten Werkzeugpfade und danach `PATH`. Es lädt keine
+fehlenden Werkzeuge automatisch herunter. Details: [Quickstart](docs/development/QUICKSTART.md).
 
 ```powershell
-.\scripts\build-windows.ps1 -Target vmware -RunTests
+.\scripts\build-windows.ps1 -Target vmware -Video vga
 ```
 
 Das erzeugt unter anderem:
 
-- `build/reist-os.img`: bootfähiges 64-MiB-Raw-Image
+- `build/reist-os.img`: bootfähiges Raw-Image mit 512 MiB Plattenkapazität
 - `build/reist-os-floppy.img`: bootfähiges 1,44-MB-FAT12-Diskettenimage
 - `build/reist-os.vmdk` und `.vmx`: VMware-Artefakte
 - `build/vmware/reist-os/`: vollständig startbare VMware-VM
@@ -50,6 +54,45 @@ Das erzeugt unter anderem:
   `TOUCH`, `TREE`, `FIND`, `RM`, `SPAWN`, `PS` und `KILL`
 - `build/programs/DESKTOP.PRG`, `NOTEPAD.PRG`, `IMAGEVIEWER.PRG`,
   `SOUNDPLAYER.PRG` und `GUIDEMO.PRG`: grafische Session und Anwendungen
+
+QEMU und das VMware-Paket verwenden standardmäßig 1024 MiB RAM; RAM und
+Plattenkapazität sind verschiedene Größen. `-RunTests` ergänzt bewusst die
+gesamte Hostsuite; für einen normalen inkrementellen Build ist es nicht nötig.
+
+## Browser, Desktop und JavaScript
+
+`browser` startet REIST Web als Ring-3-Surface-Client. HTML5-Baumaufbau,
+LibCSS-Kaskade, externe Stylesheets, begrenztes Flex/Grid-Layout, Bilder,
+native GET-Formulare und Mausrad sind implementiert. TrueType-Schriften werden
+mit FreeType im isolierten HTMLWORK gerastert; der Browser nutzt proportionale
+Serif-/Sans-Schriften. Inline- und externe klassische JavaScript-Dateien laufen
+im getrennten JSWORK, mit begrenzten DOM-Text-/Attribut-/Klassenänderungen.
+Das ist noch kein vollständiger moderner Browser: DOM-Ereignisse, Timer,
+asynchrones fetch, dynamische HTML-Fragmente und Webfonts bleiben offen.
+Einzelheiten: [Browserplan](docs/architecture/BROWSER_ENGINE_PORT_PLAN.md).
+
+Die Systemsteuerung enthält eigene Anzeige- und Maus-Applets (`display`,
+`mouse`). Einstellungen gelten beim nächsten Desktopstart; unterstützte
+Auflösungen werden am jeweiligen Backend geprüft. Fenster besitzen
+Minimieren, Maximieren und Wiederherstellen. Der Browser passt seinen Inhalt
+an bestätigte große Surface-Geometrien an; die VMware-Pointerabnahme bleibt
+trotz sichtbarer Verbesserungen [offen](docs/development/KNOWN_ISSUES.md).
+
+Die gleiche QuickJS-Implementierung ist als Shell-Runtime nutzbar, aber mit
+eigenem Worker und ohne implizite Browser-/OS-Rechte:
+
+```text
+js /htdocs/jsargs.js hallo 42
+js /htdocs/mandel.js
+js --read /htdocs/hello.js /htdocs/jsread.js
+```
+
+Sieben [selbstprüfende Beispiele](docs/development/JS_SHELL_EXAMPLES.md) sind in
+beiden Images enthalten. Argumente, stdout/stderr, Exceptions und geordnetes
+Reap sind geprüft. Nur ausdrücklich delegierte Dateien sind lesbar. Einfache
+Farbausgabe, `system.*`/`fs.*`, Shell-Exitstatus-Auswertung und JS-Schreibrechte
+sind **noch nicht implementiert**; der [Scripting-Plan](docs/development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md)
+führt sie als Folgearbeit, nicht als vorhandene API.
 
 Native Programme erhalten klassische `argc`/`argv`-Argumente und erben das
 Arbeitsverzeichnis der Shell. Beispielsweise zeigt `cat README.TXT` eine Datei
@@ -129,7 +172,7 @@ int main(void) {
 }
 ```
 
-In der Kernel-Shell:
+In der normalen Ring-3-Shell:
 
 ```text
 C:\> DIR
@@ -160,7 +203,9 @@ BIOS
 Das Image enthält eine kleine RAW-Bootpartition und eine FAT32-Datenpartition
 mit dem Label `X86 SYSTEM`. QEMU kann den ATA/IDE- oder den expliziten
 AHCI/SATA-Pfad verwenden; das generierte VMware-Paket verwendet AHCI/SATA.
-Der Kernel wird über CRC32 und seine ELF32-Struktur geprüft. `README.TXT` und
+Stage 2 prüft Manifest v3, SHA-256, RSA-PSS und die ELF32-Struktur; CRC32 ist
+nur zusätzliche Beschädigungsdiagnose. Der öffentliche Research-Testschlüssel
+ist kein produktiver Secure-Boot-Vertrauensanker. `README.TXT` und
 das gebaute `.PRG` liegen auf der Datenpartition. Einen GRUB-/ISO-Buildpfad
 gibt es nicht mehr.
 
@@ -176,9 +221,9 @@ Wichtige Befehle:
 | Bereich | Befehle |
 |---|---|
 | Navigation | `DIR`, `LS`, `CD`, `CHDIR`, `DRIVES`, `MOUNT` |
-| Dateien | `TYPE`, `OPEN`, `COPY`, `DEL`, `ERASE`, `MKFILE`, `EDIT` |
+| Dateien | `CAT`, `TYPE`, `COPY`, `DEL`, `ERASE`, `TOUCH`, `EDIT` |
 | Verzeichnisse | `MD`, `MKDIR`, `RD`, `RMDIR` |
-| Programme | `RUN`, `EXEC`, `PS`, `KILL`, `BASIC` |
+| Programme | direkter Programmname, `PS`, `KILL`, `BASIC`, `JS` |
 | Netzwerk | `GETIP`, `IFCONFIG`, `PING`, `ARP`, `NET` |
 | System | `HELP`, `CLS`, `MEMINFO`, `SYSINFO`, `USBINFO`, `AUDIOINFO`, `DATETIME` |
 
@@ -187,8 +232,9 @@ Beispiele und die genaue Pfadsemantik stehen in
 
 ## Netzwerk und VMware
 
-Die bereitgestellte VMware-VM verwendet einen Intel-E1000-Adapter an
-`VMnet0` im Bridge-Modus. Für das ASUS H81M-K ist zusätzlich der Realtek-
+Die bereitgestellte VMware-VM verwendet einen Intel-E1000-Adapter mit NAT
+und DHCP. Bridging ist eine ausdrücklich vorzunehmende Hostkonfiguration,
+nicht der Standard des erzeugten Pakets. Für das ASUS H81M-K ist zusätzlich der Realtek-
 RTL8111G/RTL8168-Treiber für PCI-ID `10EC:8168` enthalten. Der überwachte
 Ring-3-Dienst `REIST.PRG` verarbeitet die begrenzten Netzwerkentscheidungen
 einschließlich DHCP. Der aktuelle Stack umfasst Ethernet, ARP, IPv4, ICMP,
@@ -245,6 +291,9 @@ userspace/sdk/     öffentliche API und Startup-Code für externe Programme
 userspace/gui/     Compositor, GUI-SDK, Controls und grafische Anwendungen
 userspace/audio/   öffentliche Audio-API und WAV-Hilfsbibliothek
 userspace/image/   öffentliche BMP-/GIF-Rasterbibliothek
+userspace/js/      gemeinsamer JS-Transport, isolierter Worker und CLI-Host
+userspace/quickjs/ eingebetteter, begrenzter ECMAScript-Kern
+userspace/storage/ Ring-3-VFS-Clients, Parser und FAT32-Schreibtransaktionen
 userspace/programs Console- und Systemprogramme
 scripts/           Windows-, Image- und Testwerkzeuge
 test/              hostseitige Regressionstests
@@ -259,9 +308,14 @@ Buildschritte müssen explizit ergänzt werden.
 
 - Externe `.PRG`-Programme laufen in Ring 3 mit eigenen Adressräumen. Die
   Prozess- und Syscall-API ist jedoch noch klein und besitzt beispielsweise
-  keine Pipes, Signale oder allgemeine Socket-Schnittstelle.
-- FAT32-LFN ist derzeit auf druckbares ASCII begrenzt; vollständiges Unicode
-  samt Normalisierung ist noch nicht implementiert.
+  keine Shell-Pipelines oder vollständige POSIX-Signal-/Socket-Schnittstelle.
+- R3.42 bietet stabile beschreibbare Objekte für bestehende reguläre FAT32-
+  Dateien auf ATA-PIO, nicht automatisch für AHCI, FAT12, EXT2 oder JavaScript.
+  Dauerhafter Teilfortschritt ist explizit; unbekannter Ausgang sperrt weitere
+  Mutationen. [Vertrag](docs/architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md).
+- FAT32-LFN verwendet validiertes UTF-8/UTF-16LE, Unicode-15-NFC und Default
+  Case Folding innerhalb fester Pfad-/Komponentengrenzen; das ist keine
+  unbeschränkte Pfad- oder allgemeine Unicode-Layout-Unterstützung.
 - Der Netzwerkstack besitzt noch kein IPv6 oder vollständiges POSIX-Socket-API;
   die vorhandene UDP-/TCP-/TLS-ABI ist bewusst klein und begrenzt. TLS besitzt
   keine Widerrufsprüfung und keine gegen manipulierte Hardware geschützte Uhr.
@@ -273,8 +327,10 @@ Buildschritte müssen explizit ergänzt werden.
   PS/2 ist der robuste Eingabefallback; Grafik und VBE besitzen noch keine
   breite reale Hardwarematrix.
 - Der Desktop besitzt eine versionierte, generationsgebundene Surface-/Event-
-  Grenze. Notepad und Image Viewer sind migriert; Control Gallery, Sound
-  Player, Terminal und Systemwerkzeuge benötigen noch eigene Surface-Clients.
+  Grenze. Browser, Notepad, Image Viewer, Sound Player, Control Gallery und
+  Einstellungs-Applets besitzen eigene Surface-Pfade. Weitere Legacy-Programme
+  verwenden die dokumentierte Vollbildbrücke. Kein allgemeiner Terminal-
+  Emulator oder systemweiter TrueType-Pfad wird behauptet.
 - AHCI/SATA ist in QEMU, VMware und auf realer SATA-Hardware gebootet worden;
   das ist noch keine allgemeine Controller- oder Langzeitqualifikation.
 

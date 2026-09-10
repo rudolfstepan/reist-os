@@ -1,6 +1,6 @@
 # Quickstart
 
-Stand: 20. August 2026.
+Stand: 10. September 2026; angenommener Softwarestand bis R3.43.
 
 Diese Anleitung beschreibt den bevorzugten, vollständig nativen Windows-Weg.
 WSL, GRUB und ein Cross-GCC sind dafür nicht nötig.
@@ -12,12 +12,13 @@ WSL, GRUB und ein Cross-GCC sind dafür nicht nötig.
 - NASM
 - Zig
 - Python 3
+- OpenSSL 3, Perl und GNU gperf (Bootsignatur und Parsergeneratoren)
 - MSYS2 mit `sh.exe` und den grundlegenden Unix-Werkzeugen
 - VMware Workstation zum Starten der fertigen VM
 - optional QEMU für den Raw-Image-Test
 
-`scripts/build-windows.ps1` sucht Werkzeuge zunächst im `PATH`. Unterstützte
-Fallbackpfade stehen direkt am Anfang des Skripts. Fehlende Werkzeuge werden
+`scripts/build-windows.ps1` prüft konfigurierte Werkzeugpfade und danach
+`PATH`. Unterstützte Pfade stehen im Skript. Fehlende Werkzeuge werden
 mit ihrem Programmnamen gemeldet; es findet keine automatische Installation
 statt.
 
@@ -26,13 +27,18 @@ statt.
 Im Projektstamm:
 
 ```powershell
-.\scripts\build-windows.ps1 -Target vmware -RunTests
+.\scripts\build-windows.ps1 -Target vmware -Video vga
 ```
 
 Der Build arbeitet inkrementell: unveränderte Kernelobjekte und Ring-3-
 Programme bleiben erhalten. Ein Konfigurationswechsel löst gezielt einen
 sauberen Neubau aus; `-Clean` erzwingt ihn ausdrücklich. Danach werden beide
 BIOS-Stufen, das Raw-Image und das VMware-Paket aktualisiert.
+
+`-RunTests` ergänzt bewusst die gesamte Hostsuite. Für gezielte Änderungen
+gelten die eingefrorenen Pakettests; keine parallelen Builds/Cleans starten.
+Das Skript hat `real_hw` als Standard: Ziel immer explizit angeben.
+Die Referenzplatte hat 512 MiB, die VM-Startwege verwenden 1024 MiB RAM.
 
 Wichtige Ergebnisse:
 
@@ -59,6 +65,10 @@ VMware:
 ```
 
 QEMU mit bereits gebautem Raw-Image:
+
+Den QEMU-Stand zuvor mit
+`.\scripts\build-windows.ps1 -Target qemu -Video vga` bauen.
+`-NoBuild` wandelt ein vorhandenes VMware-Profil nicht in ein QEMU-Profil um.
 
 ```powershell
 .\scripts\run-windows.ps1 -NoBuild
@@ -116,13 +126,29 @@ erscheinen. Danach:
 ```text
 C:\> DIR
 C:\> TYPE README.TXT
-C:\> RUN HELLO.PRG
+C:\> HELLO
 C:\> GETIP
 C:\> NET STATUS
 ```
 
 `HELLO.PRG` meldet bei Erfolg `USERSPACE-E2E-OK`. Bei einer gebridgten
-VMware-Verbindung zeigt `GETIP` die per DHCP bezogene LAN-Adresse.
+VMware-Verbindung zeigt `GETIP` die per DHCP bezogene VM-Netzadresse.
+
+Das erzeugte VMware-Paket verwendet standardmäßig NAT-DHCP, nicht Bridging.
+`browser`, `display` und `mouse` sind über den Shell-Suchpfad erreichbar.
+Anzeige-/Mauseinstellungen gelten beim nächsten Desktopstart; keine freie
+Farbtiefenwahl oder Live-Modusumschaltung. Die Systemsteuerung bietet eigene
+Applets, Fenster besitzen Minimieren/Maximieren/Wiederherstellen.
+
+```text
+js /htdocs/jsargs.js hallo 42
+js /htdocs/mandel.js
+js --read /htdocs/hello.js /htdocs/jsread.js
+```
+
+Sieben [JS-Beispiele](JS_SHELL_EXAMPLES.md) liegen in beiden Images.
+`js DATEI` ergänzt kein `.js`. Die Shell hat keine Quote-Auswertung, Pipes
+oder `%ERRORLEVEL%`; einfache Farben und `system`-/`fs`-APIs sind noch geplant.
 
 ## Eigenes Programm
 
@@ -180,8 +206,9 @@ einer laufenden paketierten VM.
 
 ### Kein LAN
 
-Im VMware Virtual Network Editor `VMnet0` dem richtigen Hostadapter zuordnen.
-WLAN-Client-Isolation kann gebridgte Gäste blockieren. Danach mit `NET DHCP`
+Zuerst NAT-/DHCP-Dienste und den verbundenen E1000 prüfen. Nur bei bewusst
+gewähltem Bridging `VMnet0` dem Hostadapter zuordnen; WLAN-Client-Isolation
+kann dann Gäste blockieren. Danach mit `NET DHCP`
 den automatisch durch `REIST.PRG` verwalteten Lease-Zustand und mit `GETIP`
 die aktive Konfiguration prüfen.
 

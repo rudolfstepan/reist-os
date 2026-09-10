@@ -1,6 +1,6 @@
 # System- und Programmkonfiguration
 
-Stand: 7. September 2026 (R3.21-Anzeigekandidat noch in Abnahme).
+Stand: 10. September 2026; Anzeige R3.21/R3.21a und Maus R3.31 abgenommen.
 
 `reist.desktop/1` besitzt den optionalen Schluessel `resolution`: fehlend oder
 `auto` verwendet die bisherige automatische Geometrie; `1280x720` ist ein
@@ -11,6 +11,16 @@ getrennt. Erst ein neuer Desktopstart wendet die Wahl an; ein syntaktisch
 gueltiger, aber nicht verfuegbarer Modus faellt einmal auf `auto` zurueck.
 Farbtiefe bleibt 32 Bit (24 RGB-Bits); keine Live-Umschaltung oder neue Palette.
 Details und Fehlergrenzen: [Anzeigevertrag](DISPLAY_SETTINGS_CONTRACT.md).
+
+**Systemsteuerung > Maus** öffnet das eigene `/usr/gui/bin/mouse.prg`.
+`reist.input/1` verwendet `mouse.primary_button=left|right`,
+`mouse.speed_percent=25..200`, `mouse.acceleration=flat|adaptive|off`,
+`mouse.natural_scroll=false|true` und `mouse.double_click_ms=200..1000`.
+Vorgaben: links, 100 Prozent, flat, normales Scrollen, 500 ms. `off` bedeutet
+rohe 1:1-Bewegung, nicht Prozentverstärkung. Speichern erfolgt über denselben
+CONFIG-Prozess; wirksam beim nächsten Desktopstart. Das Applet bietet einen
+lokalen Doppelklicktest, aber keine globalen Geräte- oder Framebufferrechte.
+Siehe [Mausvertrag](MOUSE_SETTINGS_CONTRACT.md).
 
 Die grafische Systemsteuerung liest ihre festen Konfigurationsdateien über
 generationgebundene Ring-3-Storage-Objekte mit ausschließlich `READ|STAT`.
@@ -144,8 +154,8 @@ Schluessel und Werte. Sie validiert zuerst die vollstaendige vorhandene Datei
 und publiziert dann ueber `TEMP -> fsync -> close -> rename`. Unbekannte
 Eintraege einer gueltigen Version bleiben beim Umschreiben erhalten.
 
-`control.prg` zeigt Tastatur, Maus, System und Desktop als vier feste Applets
-in einem getrennten Surface-Fenster. Ohne gueltige Konfiguration oder
+`control.prg` bietet die festen Konfigurationsbereiche sowie separate Anzeige-
+und Maus-Applets in Surface-Fenstern. Ohne gueltige Konfiguration oder
 erfolgreiche Schreibberechtigung bleibt es im Nur-Lese-Modus. Die aktuell
 ausgewaehlten Werte werden persistent geaendert, aber noch nicht von allen
 laufenden Treibern und Diensten dynamisch neu geladen; das Fenster bezeichnet

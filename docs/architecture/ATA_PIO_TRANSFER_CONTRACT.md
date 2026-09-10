@@ -1,8 +1,8 @@
 # ATA-PIO-Lesetransfer: Performance und Resilienz
 
-Stand: 6. September 2026. Pakete R7.1n und R3.14 abgenommen.
+Stand: 10. September 2026. Pakete R7.1n, R3.14 und R3.42 abgenommen.
 
-R3.42,10.September: genehmigter Kandidat, noch NICHT abgenommen. Der
+R3.42 ist als `f808b558` mit allen 37 Gruppen abgenommen. Der
 tokengebundene externe Schreibtransport darf WRITE MULTIPLE (C5h) bzw.
 WRITE MULTIPLE EXT (39h) verwenden. Eine frische IDENTIFY-/SET-MULTIPLE-
 Aushandlung gilt ausschliesslich unter der durchgehend gehaltenen ATA-Sperre
@@ -15,8 +15,10 @@ Nicht geeignete Faehigkeiten waehlen vor Datenbeginn READ/WRITE SECTORS;
 fehlgeschlagene IDENTIFY/SET-Befehle sind Fehler, kein stiller Fallback.
 Legacy-Aufrufe ohne private Admission bleiben unveraendert. Ergaenzende
 Referenz fuer48bit-Kommandos ist die unten verlinkte Seagate-Befehlsreferenz.
-Die bestehenden ATA-Hosts werden um reale O0/O2 Schreib-/Readback-/Fault-
-Pruefungen erweitert; alle R3.42-Gaeste bleiben erforderlich.
+Die ATA-Hosts enthalten reale O0/O2 Schreib-/Readback-/Fault-Pruefungen;
+die vorgeschriebenen R3.42-Gaeste haben bestanden. Quellen/Images/Belege:
+[aktueller Arbeitsstand](../development/CURRENT_WORK.md). Keine Übertragung
+des einzelnen QEMU-Leistungsnachweises auf VMware oder reale Hardware.
 
 R3.14, 6. September: Der ausdruecklich freigegebene Loader-Lesepfad
 trennt die reine PIO-Lesequote (128 Sektoren / 64 KiB) von der bisherigen

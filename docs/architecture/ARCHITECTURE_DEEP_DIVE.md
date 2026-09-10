@@ -1,6 +1,6 @@
 # Architekturüberblick
 
-Stand: 20. August 2026
+Stand: 10. September 2026; Software bis R3.43.
 
 Dieses Dokument beschreibt die aktuelle 32-Bit-x86-Architektur. Das System
 startet ausschließlich über den eigenen BIOS-Bootloader. Einen alternativen
@@ -15,10 +15,14 @@ Dokument beschreibt weiterhin ehrlich den ausführbaren Ist-Zustand.
 
 ## High-Assurance-Grenze und Wiederherstellungsmodell
 
-Der heutige modulare Monolith ist eine gemeinsame Fehlerdomäne: Ein Ring-0-
-Speicherfehler kann Scheduler, Treiber, Dateisystem und Diagnose gleichzeitig
-beschädigen. `panic()` sichert Diagnose und hält danach die CPU an. Das ist ein
-kontrollierter Stopp, aber noch kein fail-operationaler Betrieb.
+Die geschützte Zielgrenze ist der Microkernel. Bereits migrierte Dienste,
+Treiber, Desktop, HTMLWORK und JSWORK laufen in getrennten Ring-3-Prozessen.
+Dateiobjekt-Lebensdauer, Storage-Reap und R3.42-Schreibobjekte erweitern diese
+Grenze; sie beseitigen nicht alle verbliebenen monolithischen Treiber-/VFS-Pfade.
+Ein Ring-0-Speicherfehler kann weiterhin gemeinsame Mechanismen beschädigen.
+Der Fatal-/Supervisorpfad bedeutet keine allgemeine Fail-operational-Zusage.
+Maßgeblich sind [Zielarchitektur](REIST_ARCHITECTURE.md) und
+[belegter Projektstatus](../development/PROJECT_STATUS.md).
 
 Das Zielmodell ordnet Fehler nach ihrer nachweisbaren Reichweite:
 
@@ -58,7 +62,7 @@ BIOS
   -> arch/x86/boot/bios/stage1_mbr.asm
   -> Manifest in der aktiven RAW-Bootpartition
   -> arch/x86/boot/bios/stage2_bios.asm
-  -> A20, E820, ELF32-Laden und CRC32-Prüfung
+  -> A20, E820, Manifest-v3-/SHA-256-/RSA-PSS-Prüfung und ELF32-Laden
   -> optional VBE-LFB (1024x768x32, Rückfall 800x600x32)
   -> Protected Mode
   -> Multiboot-1-kompatibler Handoff
@@ -75,6 +79,10 @@ veröffentlicht dessen Metadaten. Jeder Fehler stellt BIOS-Modus 03h wieder her
 und lässt das Framebuffer-Flag ungültig. Die Multiboot-Struktur bleibt eine
 interne Übergabeschnittstelle; sie bedeutet nicht, dass der native Weg GRUB
 benötigt.
+
+CRC-Prüfungen ersetzen keine Signaturprüfung. Der mitgelieferte öffentliche
+Forschungsschlüssel und der unversiegelte BIOS-Einstieg sind keine produktive
+Hardware-Root-of-Trust; siehe [Bootdatenträger](../development/BOOTABLE_DISK.md).
 
 ## Kernelinitialisierung
 

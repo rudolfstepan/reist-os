@@ -1,6 +1,8 @@
 # Work Paper: gemeinsame JavaScript-Laufzeit, getrennte Host-Autorität
 
-Stand: 9. September 2026. Ausgangspunkt: `270754bd`.
+Stand: 10. September 2026. Ausgangspunkt: `270754bd`, aktueller Abschluss
+`a3fa8dfb` (R3.43). Aktuelle API und vorgeschlagene nächste Stufe stehen unten;
+die nachfolgenden Paketbeschreibungen behalten ihren historischen Scope.
 Status: R3.34 ist mit allen11 Prüfgruppen abgenommen. JS2 / R3.35 ist ebenfalls
 umgesetzt und mit allen10 Prüfgruppen abgenommen: allgemeiner isolierter Runner
 mit Argumenten/Konsole, noch ohne Datei-/Prozess-/Admin-Bindings. Dieses Papier
@@ -50,7 +52,115 @@ Noch keine JS-Schreibrechte: explizite Delegation ist das naechste gesonderte
 Host-Autoritaetspaket, kein impliziter Effekt dieses Backends. JS4 und die weiterhin
 zurueckgestellte VMware-Pointerabnahme werden nicht vorgezogen.
 
+R3.43 ist als `a3fa8dfb` mit allen fünf Gruppen abgenommen: sieben direkt
+aufrufbare [Shell-Beispiele](JS_SHELL_EXAMPLES.md), einschließlich ASCII-
+Mandelbrot, zweimalige reale CLI-Ausführung und identische Kernel/94 PRGs.
+Vor weiterer Schreibdelegation stehen jetzt der Dokumentationsauftrag und
+die ausdrücklich gewünschte sichere einfache Shell-/JS-Farbausgabe.
+
+## CLI-API: vorhanden und vorgeschlagen
+
+Referenz bleibt ECMA-262 plus ein ausdrücklich versionierter REIST-Host,
+nicht Node.js. Dieselbe Engineimplementierung bedeutet getrennte Worker,
+Heaps und Capability-Sets für Browser und Shell.
+
+| Zweck | Heute implementiert | Nutzer-Vorschlag / noch nicht implementiert |
+|---|---|---|
+| Argumente | `scriptArgs[0]` = übergebener Quellname, danach Stringargumente | `system.args` als klar dokumentierte Fassade, ohne alten Aufruf zu brechen |
+| Arbeitsverzeichnis | Host lädt relative Quellen aus dem geerbten cwd | `system.cwd()` liefert begrenzte Hostmetadaten; der String erteilt keine Dateiautorität |
+| Ausgabe | `print`, `console.log`, `console.error`; validierte gepufferte Records an stdout/stderr | einfacher sicherer Farbteilumfang, keine freie Terminal-Steuerautorität |
+| Exit | `reist.setExitCode(0..125)` setzt nur den normalen Abschlusscode | `system.exit(code)` beendet die Ausführung mit ausdrücklich festzulegendem Cleanup-/Ausgabe-/Jobverhalten |
+| Lesen | `--read FILE`, opake `reist.files[i]` mit read/readText/seek/size/close | `fs.readText(path)` nur über explizit delegierte Datei- oder Verzeichnisobjekte |
+| Schreiben | kein JS-Binding; R3.42 liefert erst den FAT32-Backend | `fs.writeText(path, data)` erst nach delegierten Schreibrechten und vollständig definierter Persistenz-/Fehlersemantik |
+| Existenz / Listing | keine pfadbasierte JS-API oder Verzeichnisrechte | `fs.exists(path)`, `fs.list(path)` nach stabilem Directory-Resolver, mit begrenztem Ergebnis und Rechteprüfung |
+| Shell-Auswertung | Shell wartet und reapt, keine Statusvariable | `%ERRORLEVEL%` oder ein explizites REIST-Äquivalent; Syntax und Fehlercodes separat festlegen |
+
+`system.exit` darf nicht stillschweigend als Alias von `setExitCode` erscheinen:
+nach einem wirksamen Exit darf kein weiterer Skriptcode/Job ausgeführt werden.
+Host-Grants müssen auch dann explizit geschlossen und der Worker gereapt werden.
+Abbruch, Ausnahme, Protokollfehler und normaler gewählter Status bleiben
+unterscheidbar. Bestehende 0..125-Codes und reservierte Hostdiagnosen dürfen
+nicht ohne versionierten Vertrag umgedeutet werden. Ein nicht abgefragter
+Kindstatus ist noch keine Shell-Automatisierung; Pipes/Verkettung fehlen.
+
+Eine globale `fs`-Fassade darf nur ausdrücklich injizierte Authority bedienen,
+nicht beliebige Pfadstrings mit ambienten Hostrechten ausführen. Der Browser
+erhält sie nicht. Relative Namen binden an ein stabiles delegiertes Wurzelobjekt,
+nicht an nachträglich ausgetauschte cwd-/Präfixstrings. Traversal, Symlinks,
+Rename, Revoke und Generationswechsel brauchen negative Nachweise.
+`exists` darf verweigerte Autorität oder I/O-Fehler nicht als „Datei fehlt“
+verschleiern oder fremde Namen verraten. `list` benötigt feste Mengen-/Zeit-
+budgets. `writeText` darf Teilfortschritt nicht als vollständigen Erfolg und
+unbekannten Commit nicht als sichere Wiederholbarkeit darstellen.
+
+Die folgenden Wunschbeispiele beschreiben spätere Scripts, keine gelieferten
+Dateien und keine automatische Spawn-/Admin-Freigabe:
+
+```text
+js backup.js source target
+js build.js --release
+js tools\convert.js input.dat
+```
+
+Vor Implementierung werden je zusammenhängender Autoritäts-/Fehlergrenze
+Dateien, Profilversion, Codes, Budgets und Host-/Gastgates eingefroren. Diese
+Dokumentation erteilt weder neue Standardrechte noch lockert sie alte Gates.
+
 ## Ziel und Sicherheitsgrenze
+
+### Beantragte Fähigkeiten sind keine selbst erteilten Rechte
+
+Der ergänzte Nutzer-Vorschlag wird als **zukünftiger Policy-/Manifest-Schnitt**
+geführt, nicht als heute gültige CLI-Syntax. `js script.js` startet weiterhin
+ohne zusätzliche Datei-, Prozess-, Netzwerk-, Geräte- oder Konfigurationsrechte.
+„Normale Benutzerrechte“ bedeutet hier ausdrücklich nicht alle ambienten
+Rechte des aufrufenden Shell-Prozesses.
+
+Begriffe wie `fs.read`, `fs.write`, `process.spawn`, `net`, `device` und
+`system.config` bezeichnen zunächst gewünschte Fähigkeitsklassen, keine
+pauschalen globalen Schalter. Ein Antrag wie
+`js --grant=fs.write,process.spawn admin.js` ist **noch nicht implementiert**
+und allein zu unbestimmt: Zielobjekt, Operation, Lebensdauer, Budget sowie die
+autoritative Freigabestelle fehlen. Auch künftig darf ein CLI-Schalter nur
+bereits delegierbare Rechte anfordern, niemals Privilegien erzeugen.
+
+Ein späteres versioniertes Manifest darf konkrete Rechte beantragen; ein
+vertrauenswürdiger Host/Broker entscheidet anhand expliziter Policy und seiner
+eigenen delegierbaren Autorität. Signaturen belegen Herkunft und Integrität,
+nicht automatisch Sicherheit oder administrative Zulassung. Prüfung und Start
+müssen an dieselben geladenen Skriptbytes gebunden sein; ein Pfadname oder eine
+nachträglich austauschbare Datei reicht nicht. Unbekannte Manifestversionen,
+fehlende Freigaben und nicht unterstützte Fähigkeiten werden vor Wirkung
+abgelehnt. Kein `isSystemScript`-Flag, Dateisuffix oder Downloadherkunft ersetzt
+diese Prüfung. Aus dem Browser heraus entsteht kein privilegierter JS-Startweg.
+
+Der Host exponiert nur die passenden Bindings. Kernel und zuständiger
+Ring-3-Dienst prüfen zusätzlich Endpointrechte, Objektidentität, Operation und
+aktuelle Generation; **fehlende Bindings allein sind keine Sandbox**. Die
+Engine bleibt ohne implizite OS-Autorität, auch bei einem nativen Enginefehler.
+System-Skripte erhalten weder direkten Kernelzugriff noch beliebige I/O-Ports,
+MMIO oder DMA. Administrative Funktionen bleiben vermittelte Brokeroperationen.
+
+Vor einer solchen Implementierung sind mindestens diese Grenzen einzufrieren:
+
+- Datei-/Verzeichnisgrants binden stabile Objekte statt beliebiger Pfadpräfixe;
+  Lesen, Schreiben, Erzeugen und Namensänderung bleiben getrennte Rechte.
+- Spawn bindet das erlaubte Programm, Argumentregeln und delegierbare
+  Kindfähigkeiten; Kindprozesse erben nicht automatisch alle Hostrechte.
+- Netzwerk-, Konfigurations- und Geräteoperationen erhalten jeweils eigene
+  Ziel-, Operations-, Mengen- und Zeitgrenzen, keine allgemeine OS-API.
+- Widerruf, Worker-/Broker-Crash, Dienstneustart und Budgeterschöpfung müssen
+  alte Grants unwirksam lassen; Diagnose/Audit bleibt begrenzt und darf keine
+  Skriptgeheimnisse ungeprüft protokollieren.
+- Negativgates prüfen gefälschtes IPC/Manifest, Signatur- oder Byteaustausch,
+  überbreite Grants, Browser-zu-Shell-Übergänge, Kindvererbung und Revoke/Reap.
+
+Das ergänzt den bestehenden Capability-Kern, nicht ein zweites paralleles
+Rechtesystem. Es behauptet weder ein fertiges Unix-UID/GID-Modell noch dessen
+allgemeinen Ersatz. Farben und CLI-Exitstatus bleiben unabhängig lieferbar;
+Dateischreiben und privilegierte Hosts benötigen eigene Autoritätsabnahmen.
+
+### Gemeinsame Sprache, getrennte Prozesse
 
 Eine gemeinsame QuickJS-Sprachimplementierung dient Browser-, Benutzer- und
 autorisiertem System-Scripting. Gemeinsam ist der Code, nicht ein privilegierter

@@ -1,12 +1,21 @@
 # REIST Userspace-Dateisystemwerkzeuge
 
-Stand: 3. September 2026
+Stand: 10. September 2026; Software bis R3.43.
 
 Diese Liste beschreibt den tatsächlich vorhandenen Userspace-Stand aus
 `userspace/programs`, `userspace/bin`, `scripts/build_system_programs.py`,
 dem Shell-Dispatcher und der VFS-/SDK-ABI. Ein Quellprogramm gilt erst dann
 als Systemwerkzeug, wenn es auch in die Systemprogrammliste und damit in das
 Boot-Image aufgenommen wird.
+
+Aktuelle Ergänzungen: `/usr/bin/js.prg` führt die sieben
+[JS-Beispiele](JS_SHELL_EXAMPLES.md) aus; `js --read FILE SCRIPT` delegiert nur
+das explizite Leseobjekt. Eine pfadbasierte `fs`-API und JS-Schreibrechte fehlen
+weiterhin. `/bin/fwritest.prg` ist in beiden Image-Layouts enthalten und übt
+die R3.42-FAT32-/ATA-Schreibobjekte aus. **FWRITEST verändert und überschreibt
+die gewählte bestehende Datei** und gehört ausschließlich auf entbehrliche
+Testdateien/-medien, nicht in normale Dateiprüfung oder Reparatur. Seine
+Erfolgsmeldung qualifiziert kein anderes Dateisystem oder Transportprofil.
 
 ## Bereits vorhanden und als Systemprogramm gepackt
 

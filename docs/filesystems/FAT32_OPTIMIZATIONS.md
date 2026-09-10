@@ -1,13 +1,29 @@
 # FAT32-Status
 
-Stand: 29. August 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 FAT32 ist das Systemdateisystem des nativen Festplattenimages. Die Partition
 beginnt bei LBA 8192, trägt das Label `X86 SYSTEM` und wird bei eindeutiger
 Erkennung als `/` beziehungsweise `C:` gemountet. Auf SATA ist dies
 typischerweise die Partition `hdd0p2`, nicht das physische Elternlaufwerk.
 
-## Implementiert
+## Aktuelle Ring-3-Schreibobjekte
+
+R3.42 (`f808b558`) ergänzt generationgebundene Schreibobjekte für **bestehende
+reguläre FAT32-Dateien auf ATA-PIO**: Überschreiben, Anhängen, Nullerweiterung,
+inkrementelle Größenänderung und `fsync`. Alle 37 eingefrorenen Gruppen sind
+abgenommen. Das ersetzt weder die unten beschriebene Legacy-VFS-API noch
+erteilt es Create-, Verzeichnis-, AHCI-, EXT2- oder JavaScript-Schreibrechte.
+
+Der [Schreibobjektvertrag](../architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md)
+definiert 128-KiB-Bulkzugriffe, eine durchgehende 5-s-Operationsgrenze und
+dauerhaften Teilfortschritt. `UNKNOWN` sperrt weitere Wirkung; kein blinder
+Retry. Gemeinsame Objektguards, Journalbesitzer-Handoff und Recovery verhindern
+die Wiederverwendung alter Autorität nach Dienst-/Medienwechsel. Die alten
+R341-H1/H2-Beobachtungen bleiben in [Known Issues](../development/KNOWN_ISSUES.md)
+offen; ein später bestandener Lauf ersetzt keine Ursachenklärung.
+
+## Vorhandene Legacy-VFS-Funktionen
 
 - BPB-/FSInfo- und FAT-Konsistenzprüfung
 - Datei-I/O, Seek, Truncate und Freigabe von Clusterketten

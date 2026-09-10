@@ -1,5 +1,10 @@
 # R3.41a: Ring-3 ARP request lifecycle
 
+Status update 10 September 2026: R3.41a is accepted. The prerequisite/stash
+description below records its starting point; R3.41 was subsequently accepted
+with the explicitly retained R341-H1/H2 risks. No old failed evidence is waived.
+[Current status](../development/PROJECT_STATUS.md).
+
 User-approved independent prerequisite, 9 September2026. Clean source baseline
 e44215a9 (runtime7d87119c). The unaccepted R3.41 candidate is preserved in stash
 c8cd59ea26548e97ad1a7e9ef69a9a4d4421f22a and under

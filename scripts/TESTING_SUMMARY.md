@@ -1,6 +1,27 @@
 # Testabdeckung
 
-Stand: 20. August 2026.
+Stand: 10. September 2026; akzeptierter Softwarestand R3.43 (`a3fa8dfb`).
+
+## Neuere abgenommene Schnitte
+
+- Browser: isolierte HTML5-/CSS-/Bild-/TrueType-Verarbeitung, C++-Piloten,
+  Surface-Eingabe/Resize sowie begrenzte interne und externe JavaScript-Ausführung
+- Gemeinsame JS-Domäne, CLI-Runner und explizite Datei-Lesecapabilities:
+  native Negativfälle, getrennte Realms, Crash/Hang/Cancel/Reap und Browserregression
+- R3.37–R3.42: EXT2-Commit-Recovery, gemeinsame Dateiobjekt-Lebensdauer,
+  Storage-Generation vor Ersatz reapen, FAT32-Recovery/Journal-Handoff und
+  bestehende FAT32-/ATA-Schreibobjekte mit dauerhaften Teilergebnissen
+- R3.43: sieben Shell-Skripte in beiden Images, zweimaliger realer Gastlauf,
+  exaktes 64x24-Mandelbrot und unveränderte Kernel/94 PRGs gegenüber R3.42
+- Anzeige-/Maus-Applets, Fensteraktionen, Resize-Ecke und große Browser-Surfaces;
+  keine pauschale Freigabe aller VMware-/Hardwarevarianten
+
+Exakte eingefrorene Gruppen und Einzelbelege: Paketqueue und
+[CURRENT_WORK](../docs/development/CURRENT_WORK.md). R341-H1/H2 bleiben
+offene historische Befunde trotz späterer bestandener Gates; die formale
+VMware-Pointerabnahme R3.6b bleibt zurückgestellt. QEMU-Verhältnisse sind keine
+VMware-/WCET-Leistungszusage. Der Dokumentationsabgleich führt keine neue
+Softwareabnahme aus und verändert diese Evidenz nicht.
 
 ## Host- und Strukturtests
 

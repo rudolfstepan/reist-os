@@ -21,7 +21,7 @@ The FAT12 implementation is **functional but has significant professional qualit
 2. [Code Quality Analysis](#code-quality-analysis)
 3. [Memory Management](#memory-management)
 4. [Error Handling](#error-handling)
-5. [Comparison with FAT32](#comparison-with-fat32)
+5. [Comparison with FAT32](#comparison-with-fat32-implementation)
 6. [Recommendations](#recommendations)
 
 ---

@@ -1,10 +1,23 @@
 # VFS-Architektur
 
-Stand: 3. September 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 VFS ist die einzige reguläre Dateisystemschnittstelle für Shell,
 Programmlader und Ring-3-Datei-ABI. Direkte globale FAT-Sonderpfade gehören
 nicht zum aktuellen Design.
+
+Die Migration besitzt inzwischen autoritative Ring-3-Dateiobjekte,
+prozessübergreifenden [Lebensdauerschutz](../architecture/FILE_OBJECT_LIFETIME_CONTRACT.md),
+[Storage-Reap vor Ersatz](../architecture/STORAGE_GENERATION_RETIREMENT_CONTRACT.md)
+und [FAT32-/ATA-Schreibobjekte](../architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md).
+Legacy-VFS und Kernel-Dateisystemcode bleiben sichtbare Migrationsschuld,
+nicht das Architekturziel. JS delegiert bisher nur explizite Leseobjekte;
+ein allgemeines `fs`-Modul folgt daraus nicht.
+
+Die folgende Schattengrafik und nummerierte Einführung dokumentieren den
+Migrationsweg und die weiterhin erhaltenen alten Operationen, nicht die Grenze
+des heutigen Ring-3-Funktionsumfangs. Aktuelle Erweiterungen sind anschließend
+jeweils getrennt beschrieben; die verlinkten Verträge sind maßgeblich.
 
 ```text
 Ring-3-Programm / Shell
@@ -369,8 +382,8 @@ Storage-Quarantäne und globales Write-Fencing werden unterhalb von VFS
 durchgesetzt. Markierte FAT32- und FAT12-Volumes besitzen eigene
 Persistenzprotokolle. Fremde FAT12- und FAT32-Medien bleiben lesbar, sind aber
 ohne gültigen REIST-Journalmarker grundsätzlich read-only. Der Legacy-EXT2-
-VFS-Adapter bleibt ebenfalls read-only; ausschließlich Storage-Operation 33
-darf die oben begrenzte, eigene Symlinktransaktion ausführen. Ein unklarer
+VFS-Adapter bleibt ebenfalls read-only; die begrenzten Ring-3-Symlink- und
+Namespace-Operationen besitzen ihren eigenen Transaktionsadapter. Ein unklarer
 Commit darf nicht als Erfolg erscheinen.
 Für FAT12 schneidet ein fest begrenzter Hosttest eine vollständige
 Cross-Cluster-VFS-Erweiterung nach jedem tatsächlich abgeschlossenen
@@ -398,7 +411,9 @@ beide FAT-Kopien, die Zweicluster-Nullerweiterung und eine unabhängige Datei.
 - FAT12: Lesen auf validen Standardmedien; Schreiben, Verzeichnismutationen,
   beide FAT-Kopien, REIST-Journal, Remap und kritische Replikate ausschließlich
   auf explizit markierten und erfolgreich wiederhergestellten Medien.
-- EXT2: grundlegende VFS- und indirekte Blockpfade; kein REIST-Journal.
+- EXT2: lesender Legacy-VFS-Adapter; autoritative Ring-3-Lese-, Symlink- und
+  begrenzte Namespace-Pfade mit eigenem REIST-Transaktionsjournal. Keine
+  EXT3-/EXT4- oder allgemeinen Datei-Schreibobjekte; siehe [EXT2-Status](EXT2_SUPPORT.md).
 
 Hosttests prüfen Mountpräfixe, Lebenszyklen und Adapterinvarianten. QEMU-
 Gasttests bleiben erforderlich, weil nur sie Treiber, Partitionstransport,

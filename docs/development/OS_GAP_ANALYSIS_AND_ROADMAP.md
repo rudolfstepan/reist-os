@@ -1,6 +1,42 @@
 # Fehlstellenanalyse und Implementierungsfahrplan
 
-Stand: 3. September 2026
+Stand: 10. September 2026, angenommener Runtime-Stand `a3fa8dfb` (R3.43).
+
+## Aktuelle Einordnung und Reihenfolge
+
+R3.30–R3.33 (Resize-Ecke, Maus-Applet, Fensterzustände, große Surface-
+Geometrien), R3.34–R3.36 (Scriptdomäne, Shell-Runner, explizite Leserechte),
+R3.37–R3.42 (EXT2-Recovery, Dateiobjektlebensdauer, Storage-Retirement,
+FAT32-Recovery/Handoff/Schreibobjekte samt ARP-Voraussetzung) und R3.43
+(sieben JS-Beispiele mit ASCII-Mandelbrot) sind laut Queue abgenommen.
+Der C++-Response-/Ressourcen-/Modellpilot R3.17–R3.20 ist ebenfalls fertig.
+Aktuelle Funktionsgrenzen und Belege: [PROJECT_STATUS](PROJECT_STATUS.md)
+und [CURRENT_WORK](CURRENT_WORK.md).
+
+Der Nutzerauftrag für den gesamten Dokumentationsabgleich hat jetzt Vorrang.
+Danach: sichere einfache Shell-/JS-Farbausgabe; die vorgeschlagene CLI-Fassade
+mit ausdrücklich definiertem Exitstatus sowie explizite JS-Dateirechte nach
+dem [Scripting-Workpaper](OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md). Eine
+`fs`-Fassade erzeugt keine impliziten Rechte. Verzeichnisrechte brauchen einen
+stabilen objektgebundenen Resolver. Browser-Events/fetch/Webfonts bleiben
+separate Funktionsgrenzen. JS4-/Adminrechte werden nicht vorgezogen.
+
+Die ergänzte Policy-/Manifest-Idee bleibt ein eigener späterer Autoritätsschnitt:
+Antrag oder Signatur erzeugt kein Recht; konkrete Objekt-/Operationsgrants
+benötigen eine autoritative Freigabe und Durchsetzung in Host, Dienst und Kernel.
+Keine ambienten Shell-Rechte, kein privilegierter Browser-zu-Shell-Startpfad.
+
+R3.6b bleibt trotz formaler Queue-Aktivierung nach Paketabschlüssen gemäß
+Nutzerpriorität zurückgestellt; kein VMware-Abnahmeverzicht. R341-H1/H2
+bleiben offen und werden nicht durch spätere erfolgreiche Läufe umgedeutet.
+
+## Chronik vorheriger Paketstände
+
+Die folgenden datierten Einträge beschreiben frühere Entscheidungen und
+Abnahmen. Ihre jeweiligen „nächsten“ oder „offenen“ Schritte sind im heutigen
+Kurzstand oben und in der ausführbaren Queue nachzuführen, nicht blind zu
+erneuten Aufträgen zu machen. Historische Anforderungen und Fehlerbelege
+werden durch diesen Dokumentationsabgleich nicht abgeschwächt.
 
 8. September, R3.29 nach `f2dbc2d5` abgenommen: echte FreeType2.14.3-
 TrueType-Glyphen aus gepinnten Liberation2.1.5-Faces im HTMLWORK, Serif/Sans

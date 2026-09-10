@@ -1,6 +1,6 @@
 # Anzeige: VGA, Framebuffer und Desktop-MVP
 
-Stand: 20. August 2026.
+Stand: 10. September 2026; Software bis R3.43.
 
 VGA-Text bleibt der robuste Standardweg. Ein `VIDEO=framebuffer`-Build richtet
 über den eigenen BIOS-Loader einen linearen RGB-Framebuffer ein und startet
@@ -44,8 +44,10 @@ Pixelschrift. Console-Ausgaben werden auch im Framebuffer-Modus einmal nach
 COM1 gespiegelt; dadurch bleiben Bootdiagnose und Bereitschaftsmarker headless
 sichtbar.
 
-Für Modi bis 1024x768x32 zeichnet der Treiber zunächst in einen festen
-Shadowbuffer. Ein Frame-Commit überträgt nur die begrenzten Damage-Rechtecke
+Der Treiber zeichnet innerhalb der validierten 16-MiB-Geometriegrenze in einen
+fest begrenzten Shadowbuffer. Höhere Startmodi sind über Anzeige/Config
+wählbar; VBE bleibt auf den versiegelten Bootmodus beschränkt. Ein
+Frame-Commit überträgt nur die begrenzten Damage-Rechtecke
 zeilenweise mit gebündelten Dword-Kopien in den LFB und führt bei aktivem PAT
 genau eine Write-Combining-Barriere pro Publikation aus. Der Softwarezeiger ist
 ein transparenter klassischer Pfeil mit Kontur, Füllung und Schatten; beim
@@ -102,8 +104,9 @@ Binärkompatibilität zu behaupten. Der Desktop delegiert genau einen
 generationengebundenen IPC-Endpunkt an den gestarteten Client. Configure,
 Ack, Retained-Fill/Text beziehungsweise XRGB8888-Buffer, Damage und Commit
 sind fest begrenzt; Prozessende widerruft Endpoint und Surfaces idempotent.
-Notepad und Image Viewer laufen auf diesem Weg als getrennte, verschieb- und
-skalierbare Ring-3-Fenster. Anwendungen erhalten weder globale Koordinaten
+Notepad, Image Viewer, Sound Player, Browser und Einstellungs-Applets laufen
+auf diesem Weg als getrennte, verschieb- und skalierbare Ring-3-Fenster.
+Anwendungen erhalten weder globale Koordinaten
 noch direkten Framebufferzugriff.
 
 Noch nicht migrierte Programme laufen über die geprüfte Vollbildbrücke. Der
@@ -116,15 +119,32 @@ Surface-Gastnachweis. Die verbindliche Zuordnung und weitere Umsetzung stehen im
 
 ## Grenzen
 
-- noch keine allgemeine Hardwarebeschleunigung
+- begrenzte VMware-SVGA-II-2D-Beschleunigung, keine allgemeine GPU-/3D-API
 - kein direktes LFB-Mapping für Ring 3
 - Surface-Clients sind auf feste Kapazitäten und die derzeitigen Fill-, Text-
   und XRGB8888-Bufferoperationen begrenzt; Shared Memory, GPU-Buffer und frei
   wählbare Glyphen-Cliprechtecke fehlen
 - Resize komponiert die betroffenen Dirty-Clips vollständig; reine
   Fensterbewegungen verwenden einen atomaren gecachten Vollinhalts-Blit
-- Control Gallery, Sound Player, Terminal und Systemwerkzeuge laufen bis zur
-  Migration weiterhin einzeln im Vollbild
+- nicht migrierte Vollbildprogramme bleiben getrennte Kompatibilitätspfade;
+  der Sound Player gehört inzwischen zu den Surface-Clients
+
+## Aktuelle Bedienung und Schriftgrenzen
+
+Titelleisten besitzen Minimieren in die Taskleiste und Maximieren/Wiederherstellen;
+Drag/Resize bleiben beim Compositor. **Systemsteuerung > Anzeige/Maus** bietet
+jeweils ein eigenes Applet, wirksam beim nächsten Desktopstart. Farbtiefe ist
+weiterhin XRGB8888 (32 Speicherbits, 24 RGB-Bits), kein frei gewählter Modus.
+Die Browser-Clientfläche wächst nach passendem Configure/ACK mit; R3.33 hat
+2560x1440 einschließlich Fehler-/Recoverypfad geprüft. Die Zulassungsgrenze
+ist Dimension **und** Fläche, keine allgemeine 4096x4096-Unterstützung.
+
+HTMLWORK rastert die gelieferten Liberation-TTF-Schriften mit FreeType;
+Browser-Chrome, Shell und Desktop verwenden weiterhin Pixelschriften. Daraus
+folgen weder allgemeine Webfonts noch Shell-ANSI-Farben. Details:
+[Video](../architecture/VIDEO_SUBSYSTEM.md),
+[große Surfaces](../architecture/HIGH_RESOLUTION_SURFACE_CONTRACT.md),
+[Schriftassets](../../assets/fonts/README.md).
 
 Für frühe Boot- und Hardwarefehlersuche bleibt `VIDEO=vga` der einfachste
 Referenzpfad.

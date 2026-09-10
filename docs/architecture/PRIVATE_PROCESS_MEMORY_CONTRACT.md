@@ -28,7 +28,8 @@ Automatische Rueckgewinnung bedeutet hier: vollstaendiges Reaping bei Exit,
 Fault oder Kill und Rueckgabe leerer Backingregionen durch die C-Laufzeit.
 Ein tracing Garbage Collector fuer noch lebende Objekte benoetigt dagegen
 sprachspezifische Wurzeln und Referenzinformationen und gehoert in die jeweilige
-Ring-3-Laufzeit (spaeter beispielsweise JavaScript). Der Kernel darf keine
+Ring-3-Laufzeit. Seit R3.23 übernimmt das die isolierte QuickJS-Runtime für
+ihre JS-Objekte; OS-Grants benötigen weiterhin explizites Close/Reap. Der Kernel darf keine
 vermeintlich unbenutzten C-Objekte erraten und freigeben. Cacheverdrängung muss
 ebenfalls mit dem jeweiligen Besitzer vereinbart werden, nicht dessen live
 Speicher unbemerkt widerrufen.

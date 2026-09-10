@@ -1,6 +1,6 @@
 # Dokumentationsindex
 
-Stand: 20. August 2026.
+Stand: 10. September 2026; Software bis R3.43 (`a3fa8dfb`).
 
 Die Dokumentation unterscheidet zwischen aktuellen Referenzen und
 historischen Arbeitsberichten. Für Aufbau, Start und Bedienung sind die hier
@@ -24,14 +24,12 @@ keine vollständigen Statuslisten, ABI-Tabellen oder Bedienungsabläufe.
 | `docs/development/` | Build-/Testworkflows, Roadmap und klar markierte Arbeitspakete | normative API-Verträge |
 | `userspace/*/README.md`, `assets/*/README.md`, `scripts/*.md` | lokale Quellbaum-, Asset- oder Werkzeugreferenz | globalen Projektstatus |
 
-Für konkurrierende Aussagen gilt folgende Reihenfolge:
-
-1. ausführbarer Code und bestandene Tests;
-2. `automation/reist-s03b.toml` für Paketstatus und aktiven Scope;
-3. normative Architektur- und Subsystemreferenz;
-4. `PROJECT_STATUS.md` als komprimierter Snapshot;
-5. Roadmap und abgeschlossene Arbeitspakete;
-6. historische Berichte.
+Für Anforderungen und Arbeitsreihenfolge gilt: Paketqueue, Zielarchitektur,
+Roadmap, Core-/Subsystemvertrag, dann Code und Tests als Bestandsaufnahme.
+Code und bestandene Gates belegen nur den tatsächlich implementierten Umfang;
+sie setzen die normative Fehlergrenze nicht außer Kraft. Bestehende monolithische
+Altlasten sind kein Präzedenzfall für neue Kernelpolitik. Der Projektstatus
+komprimiert diese Belege, historische Berichte behalten ihren damaligen Kontext.
 
 Pflegevorgaben:
 
@@ -84,6 +82,14 @@ Pflegevorgaben:
 
 ## Bedienung und Laufzeit
 
+- [JS-Shell-Beispiele](development/JS_SHELL_EXAMPLES.md) – sieben gelieferte
+  Skripte einschließlich ASCII-Mandelbrot, Argumente und explizite Leserechte
+- [Gemeinsame JS-Laufzeit](development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md) –
+  aktuelle API, geplante CLI-Fassade/Exitstatus und Policy-/Manifest-Delegation
+- [Bekannte Fehler und Grenzen](development/KNOWN_ISSUES.md) – einschließlich
+  offener R341-H1/H2-Belege und zurückgestellter VMware-Abnahme
+- [Aktueller Arbeitsnachweis](development/CURRENT_WORK.md) und
+  [Dokumentationsabgleich](development/DOCUMENTATION_REFRESH.md)
 - [Shell und Pfade](features/SHELL_ENHANCEMENTS.md) – DOS-artige Befehle und Tastaturbearbeitung
 - [Laufwerke und Mounts](filesystems/DRIVE_MOUNTING_SYSTEM.md) – Zuordnung, VFS-Pfade und Laufwerkswechsel
 - [VFS-Architektur](filesystems/VFS_ARCHITECTURE.md) – gemeinsame Dateisystemschnittstelle
@@ -141,3 +147,129 @@ Abgeschlossene Arbeitspakete wie
 `development/PCI_AUDIO_WORK_PACKAGE.md` dokumentieren Scope und Abnahme eines
 bestimmten Entwicklungsstands. Für den heutigen Betriebsweg gelten die oben
 verlinkten Referenzdokumente.
+
+
+## Vollständiges Register
+
+105 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
+Abgleichberichts. Upstream-Texte, Lizenzen, AGENTS.md und generierte Belege
+werden nicht zu aktuellen Produktanleitungen umgeschrieben. Ein Vertrag
+beschreibt Anforderungen und abgegrenzte Teilabnahmen, nicht automatisch
+einen vollständig implementierten Funktionsumfang. Normative Zielprofile,
+Arbeitspläne und historische Texte behalten ihre jeweilige Rolle und Datierung.
+
+### Architekturverträge und technische Referenzen
+
+- [architecture/ARCHITECTURE_DEEP_DIVE.md](architecture/ARCHITECTURE_DEEP_DIVE.md)
+- [architecture/ATA_PIO_TRANSFER_CONTRACT.md](architecture/ATA_PIO_TRANSFER_CONTRACT.md)
+- [architecture/AUDIO_SUBSYSTEM.md](architecture/AUDIO_SUBSYSTEM.md)
+- [architecture/BROWSER_ENGINE_PORT_PLAN.md](architecture/BROWSER_ENGINE_PORT_PLAN.md)
+- [architecture/BROWSER_FORM_INTERACTION_CONTRACT.md](architecture/BROWSER_FORM_INTERACTION_CONTRACT.md)
+- [architecture/BROWSER_PUBLIC_NAVIGATION_CONTRACT.md](architecture/BROWSER_PUBLIC_NAVIGATION_CONTRACT.md)
+- [architecture/BROWSER_SCRIPTING_CONTRACT.md](architecture/BROWSER_SCRIPTING_CONTRACT.md)
+- [architecture/DISPLAY_SETTINGS_CONTRACT.md](architecture/DISPLAY_SETTINGS_CONTRACT.md)
+- [architecture/EXTERNAL_SAFETY_MONITOR_CONTRACT.md](architecture/EXTERNAL_SAFETY_MONITOR_CONTRACT.md)
+- [architecture/FAT32_RECOVERY_ADMISSION_CONTRACT.md](architecture/FAT32_RECOVERY_ADMISSION_CONTRACT.md)
+- [architecture/FAT32_RING3_HANDOFF_CONTRACT.md](architecture/FAT32_RING3_HANDOFF_CONTRACT.md)
+- [architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md](architecture/FAT32_WRITABLE_OBJECT_CONTRACT.md)
+- [architecture/FILE_OBJECT_LIFETIME_CONTRACT.md](architecture/FILE_OBJECT_LIFETIME_CONTRACT.md)
+- [architecture/FPU_CONTEXT_ISOLATION_CONTRACT.md](architecture/FPU_CONTEXT_ISOLATION_CONTRACT.md)
+- [architecture/GUI_CONTROLS_AND_DIALOGS.md](architecture/GUI_CONTROLS_AND_DIALOGS.md)
+- [architecture/GUI_RENDERING_INPUT_AND_LATENCY_CONTRACT.md](architecture/GUI_RENDERING_INPUT_AND_LATENCY_CONTRACT.md)
+- [architecture/HIGH_ASSURANCE_CORE_CONTRACT.md](architecture/HIGH_ASSURANCE_CORE_CONTRACT.md)
+- [architecture/HIGH_RESOLUTION_SURFACE_CONTRACT.md](architecture/HIGH_RESOLUTION_SURFACE_CONTRACT.md)
+- [architecture/IMAGE_SUBSYSTEM.md](architecture/IMAGE_SUBSYSTEM.md)
+- [architecture/JAVASCRIPT_SERVICE_CONTRACT.md](architecture/JAVASCRIPT_SERVICE_CONTRACT.md)
+- [architecture/KERNEL_LOG.md](architecture/KERNEL_LOG.md)
+- [architecture/MEDICAL_HIGH_ASSURANCE_CONTRACT.md](architecture/MEDICAL_HIGH_ASSURANCE_CONTRACT.md)
+- [architecture/MEMORY_RESILIENCE.md](architecture/MEMORY_RESILIENCE.md)
+- [architecture/MOUSE_SETTINGS_CONTRACT.md](architecture/MOUSE_SETTINGS_CONTRACT.md)
+- [architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md](architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md)
+- [architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md](architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md)
+- [architecture/OS_JAVASCRIPT_FILE_CAPABILITY_CONTRACT.md](architecture/OS_JAVASCRIPT_FILE_CAPABILITY_CONTRACT.md)
+- [architecture/OS_JAVASCRIPT_RUNNER_CONTRACT.md](architecture/OS_JAVASCRIPT_RUNNER_CONTRACT.md)
+- [architecture/PRIVATE_PROCESS_MEMORY_CONTRACT.md](architecture/PRIVATE_PROCESS_MEMORY_CONTRACT.md)
+- [architecture/PROCESS_ARGUMENT_CONTRACT.md](architecture/PROCESS_ARGUMENT_CONTRACT.md)
+- [architecture/REIST_ARCHITECTURE.md](architecture/REIST_ARCHITECTURE.md)
+- [architecture/RESILIENCE_AND_DEGRADATION_CONTRACT.md](architecture/RESILIENCE_AND_DEGRADATION_CONTRACT.md)
+- [architecture/RING3_FILE_WRITE_CONTRACT.md](architecture/RING3_FILE_WRITE_CONTRACT.md)
+- [architecture/RING3_JAVASCRIPT_CORE_CONTRACT.md](architecture/RING3_JAVASCRIPT_CORE_CONTRACT.md)
+- [architecture/RING3_MATH_RUNTIME_CONTRACT.md](architecture/RING3_MATH_RUNTIME_CONTRACT.md)
+- [architecture/RING3_STRING_FORMAT_CONTRACT.md](architecture/RING3_STRING_FORMAT_CONTRACT.md)
+- [architecture/SCHEDULER_BACKGROUND_SLACK_CONTRACT.md](architecture/SCHEDULER_BACKGROUND_SLACK_CONTRACT.md)
+- [architecture/SMP_SUBSYSTEM.md](architecture/SMP_SUBSYSTEM.md)
+- [architecture/STORAGE_GENERATION_RETIREMENT_CONTRACT.md](architecture/STORAGE_GENERATION_RETIREMENT_CONTRACT.md)
+- [architecture/SYNCHRONIZATION_CONTRACT.md](architecture/SYNCHRONIZATION_CONTRACT.md)
+- [architecture/SYSTEM_CONFIGURATION.md](architecture/SYSTEM_CONFIGURATION.md)
+- [architecture/TERMINAL_INPUT_OWNERSHIP_CONTRACT.md](architecture/TERMINAL_INPUT_OWNERSHIP_CONTRACT.md)
+- [architecture/USB_SUBSYSTEM.md](architecture/USB_SUBSYSTEM.md)
+- [architecture/USERSPACE_DRIVER_MODEL.md](architecture/USERSPACE_DRIVER_MODEL.md)
+- [architecture/USERSPACE_SDK_AND_PORTABILITY.md](architecture/USERSPACE_SDK_AND_PORTABILITY.md)
+- [architecture/VIDEO_SUBSYSTEM.md](architecture/VIDEO_SUBSYSTEM.md)
+- [architecture/WINDOW_STATE_CONTROLS_CONTRACT.md](architecture/WINDOW_STATE_CONTROLS_CONTRACT.md)
+- [architecture/X86_64_BOOTSTRAP.md](architecture/X86_64_BOOTSTRAP.md)
+
+### Entwicklung, Bedienung und Fachgebiete
+
+- [REIST_CPP_MIGRATION_PLAN.md](REIST_CPP_MIGRATION_PLAN.md)
+- [assets/screenshots/README.md](assets/screenshots/README.md)
+- [development/BOOTABLE_DISK.md](development/BOOTABLE_DISK.md)
+- [development/BUILD_MODES.md](development/BUILD_MODES.md)
+- [development/CPP_MIGRATION_BASELINE.md](development/CPP_MIGRATION_BASELINE.md)
+- [development/CURRENT_WORK.md](development/CURRENT_WORK.md)
+- [development/DESKTOP_DISPLAY_SETTINGS_PLAN.md](development/DESKTOP_DISPLAY_SETTINGS_PLAN.md)
+- [development/DOCUMENTATION_REFRESH.md](development/DOCUMENTATION_REFRESH.md)
+- [development/FLOPPY_BOOT.md](development/FLOPPY_BOOT.md)
+- [development/GRAPHICAL_DESKTOP_WINDOW_MANAGER_WORKFLOW.md](development/GRAPHICAL_DESKTOP_WINDOW_MANAGER_WORKFLOW.md)
+- [development/JS_SHELL_EXAMPLES.md](development/JS_SHELL_EXAMPLES.md)
+- [development/KNOWN_ISSUES.md](development/KNOWN_ISSUES.md)
+- [development/OS_GAP_ANALYSIS_AND_ROADMAP.md](development/OS_GAP_ANALYSIS_AND_ROADMAP.md)
+- [development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md](development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md)
+- [development/PCI_AUDIO_WORK_PACKAGE.md](development/PCI_AUDIO_WORK_PACKAGE.md)
+- [development/PROJECT_STATUS.md](development/PROJECT_STATUS.md)
+- [development/QUICKSTART.md](development/QUICKSTART.md)
+- [development/RUNTIME_GRAPHICS_DESKTOP_WORK_PACKAGE.md](development/RUNTIME_GRAPHICS_DESKTOP_WORK_PACKAGE.md)
+- [development/SOURCE_DOCUMENTATION_STANDARD.md](development/SOURCE_DOCUMENTATION_STANDARD.md)
+- [development/USB_KEYBOARD_IMPLEMENTATION_PLAN.md](development/USB_KEYBOARD_IMPLEMENTATION_PLAN.md)
+- [development/USERSPACE_DRIVER_DOMAIN_WORK_PACKAGE.md](development/USERSPACE_DRIVER_DOMAIN_WORK_PACKAGE.md)
+- [development/USERSPACE_FILESYSTEM_TOOLS.md](development/USERSPACE_FILESYSTEM_TOOLS.md)
+- [development/USER_PROGRAM_TOOLCHAIN.md](development/USER_PROGRAM_TOOLCHAIN.md)
+- [features/BASIC_INTERPRETER.md](features/BASIC_INTERPRETER.md)
+- [features/FRAMEBUFFER.md](features/FRAMEBUFFER.md)
+- [features/KEYBOARD_SHORTCUTS.md](features/KEYBOARD_SHORTCUTS.md)
+- [features/SHELL_ENHANCEMENTS.md](features/SHELL_ENHANCEMENTS.md)
+- [filesystems/DRIVE_MOUNTING_SYSTEM.md](filesystems/DRIVE_MOUNTING_SYSTEM.md)
+- [filesystems/EXT2_SUPPORT.md](filesystems/EXT2_SUPPORT.md)
+- [filesystems/FAT12_IMPROVEMENTS.md](filesystems/FAT12_IMPROVEMENTS.md)
+- [filesystems/FAT32_OPTIMIZATIONS.md](filesystems/FAT32_OPTIMIZATIONS.md)
+- [filesystems/VFS_ARCHITECTURE.md](filesystems/VFS_ARCHITECTURE.md)
+- [hardware/PCI_DEVICES.md](hardware/PCI_DEVICES.md)
+- [hardware/USB_DESIGN.md](hardware/USB_DESIGN.md)
+- [hardware/VMWARE.md](hardware/VMWARE.md)
+- [networking/NETWORK.md](networking/NETWORK.md)
+- [networking/TAP_NETWORKING.md](networking/TAP_NETWORKING.md)
+
+### Historische Analysen
+
+- [architecture/ARCHITECTURE_IMPROVEMENTS.md](architecture/ARCHITECTURE_IMPROVEMENTS.md)
+- [development/DEBUGGING_BOOT_SECTOR.md](development/DEBUGGING_BOOT_SECTOR.md)
+- [development/DIAGNOSTIC_REPORT.md](development/DIAGNOSTIC_REPORT.md)
+- [development/FIXES_ISSUE_1_INTERRUPT_MANAGEMENT.md](development/FIXES_ISSUE_1_INTERRUPT_MANAGEMENT.md)
+- [development/PRIORITY3_CURSOR_POSITIONING.md](development/PRIORITY3_CURSOR_POSITIONING.md)
+- [development/REORGANIZATION.md](development/REORGANIZATION.md)
+- [features/BASIC_INTERPRETER_UPDATES.md](features/BASIC_INTERPRETER_UPDATES.md)
+- [filesystems/FAT12_ANALYSIS.md](filesystems/FAT12_ANALYSIS.md)
+- [hardware/KEYBOARD_ANALYSIS.md](hardware/KEYBOARD_ANALYSIS.md)
+- [hardware/KEYBOARD_IMPROVEMENTS.md](hardware/KEYBOARD_IMPROVEMENTS.md)
+- [networking/NE2000_LOOPBACK_FIX.md](networking/NE2000_LOOPBACK_FIX.md)
+
+### Lokale Quellbaum- und Werkzeugreferenzen
+
+- [README.md](../README.md)
+- [assets/audio/README.md](../assets/audio/README.md)
+- [assets/fonts/README.md](../assets/fonts/README.md)
+- [assets/icons/README.md](../assets/icons/README.md)
+- [drivers/usb/usb_recommendations.md](../drivers/usb/usb_recommendations.md)
+- [scripts/README_TESTING.md](../scripts/README_TESTING.md)
+- [scripts/TESTING_SUMMARY.md](../scripts/TESTING_SUMMARY.md)
+- [userspace/gui/README.md](../userspace/gui/README.md)

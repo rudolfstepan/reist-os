@@ -46,3 +46,27 @@ dieses neuen Berichts), prueft ihre lokalen Verweise und schreibt den
 maschinenlesbaren Bestandsbericht in den ignorierten Belegordner. Historische
 Texte erhalten kein falsches neues Abnahmedatum. Normative Zielvertraege sind
 keine Behauptung, dass bereits die gesamte Zielarchitektur implementiert sei.
+
+## Ergebnis und Grenzen des Abgleichs
+
+Softwarestand bleibt R3.43 (`a3fa8dfb`), keine Produktionsquelle geändert.
+105 projekteeigene Dokumente sind vollständig indexiert. Der lokale Linktest
+hat nach der Korrektur des FAT12-Inhaltsverzeichnisankers keine fehlenden
+Dateien/Überschriften gefunden. Aktuelle Übersichten trennen die abgenommenen
+C++-/Browser-/TTF-/JS-/Storage-Schritte von den unveränderten historischen
+Einträgen und den offenen VMware-/R341-H1/H2-Belegen.
+
+Bedienung ist an die echte Ring-3-Shell angeglichen: direkter Programmstart,
+exakter JS-Quellname, keine Quote-/Variablen-/Pipe-Auswertung; 512 MiB
+Referenzplatte und 1024 MiB VM-RAM; NAT als VMware-Vorgabe. Anzeige/Maus,
+große Surface-Geometrie, EXT2-Recovery und FAT32-/ATA-Schreibobjekte sind
+aktualisiert. Der neue JS-API-/Exitstatus- und Policy-/Manifest-Vorschlag
+bleibt ausdrücklich geplant: Signaturen oder CLI-Anträge erzeugen keine Rechte.
+
+Dokumentationstest: 7 PASS/1.021s. Unveränderte JS-Beispieltests: 6 PASS/0.112s.
+Das abschließende `git diff --check` bestand als drittes Gate in 0.169s;
+Belege und ursprünglicher negativer Test bleiben im genannten Belegordner.
+Die JSON-Inventarliste enthält Pfade, Hashes und lokale Linkanzahlen zum
+Prüfzeitpunkt; abschließende Ergebnis-/Queuebuchführung folgt danach.
+Dies ist kein Beweis jeder Prosa-Aussage durch einen neuen Runtime-Test,
+keine Prüfung externer URLs und keine erneute Hardware-/Performanceabnahme.

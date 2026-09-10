@@ -6,6 +6,12 @@ boundary, not the independent persistent-write protocol still required by JS3.
 
 ## Inventory and references
 
+Status update 10 September 2026: R3.36 is accepted. The original inventory
+below predates R3.42, which now supplies bounded FAT32 writable objects for
+existing ATA-PIO files. It does not change this read-only JS grant contract.
+Path-based `fs.*`, directory roots and JS writes remain proposed follow-up work:
+[current scripting plan](../development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md).
+
 Reuse userspace/js, restricted JSWORK and the existing four-slot Ring-3
 vfs_file_client. Open pins a service-owned regular object to client/service/
 slot generations; later read/seek/stat/close never resolve its path again.
@@ -20,7 +26,7 @@ Access, synchronous Web APIs, or a directory sandbox. No standard API name is
 reused for ambient path access. Language code uses opaque native objects, not
 path strings, descriptor numbers or a privileged-mode flag.
 
-Inventory limitation: vfs_file_client exposes only READ/SEEK/STAT/DELEGATE,
+Historical R3.36 inventory limitation: vfs_file_client exposed only READ/SEEK/STAT/DELEGATE,
 and namespace mutation is not a general regular-file write-by-object API.
 General writes therefore require a separate Ring-3 object/persistence package:
 explicit write rights, stable identity, bounded transaction admission, durable

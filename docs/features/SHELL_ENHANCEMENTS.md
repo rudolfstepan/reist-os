@@ -1,6 +1,6 @@
 # Shell, Befehle und Pfade
 
-Stand: 20. August 2026.
+Stand: 10. September 2026, normale `/bin/shell.prg`.
 
 Die Shell orientiert sich bei Navigation und Dateibefehlen an MS-DOS, nutzt
 intern aber ausschließlich kanonische VFS-Pfade. Der Prompt zeigt das aktuelle
@@ -16,11 +16,11 @@ DOS-Laufwerk und Verzeichnis, beispielsweise `C:\TOOLS>`.
 | Verzeichnis wechseln | `CD [pfad]`, `CHDIR [pfad]` |
 | Verzeichnis anlegen | `MD pfad`, `MKDIR pfad` |
 | Verzeichnis entfernen | `RD pfad`, `RMDIR pfad` |
-| Datei anzeigen | `TYPE datei`, `OPEN datei` |
+| Datei anzeigen | `TYPE datei`, `CAT datei` |
 | Datei anlegen/löschen | `TOUCH datei`, `DEL datei`, `ERASE`, `RM datei` |
 | Kopieren/Umbenennen | `COPY`, `CP`, `RENAME`, `REN`, `MV` |
 | Laufwerke | `DRIVES`, `MOUNT laufwerk`, `C:`, `hdd0p2:` |
-| Programme | direkter Name oder Pfad, `PS`, `KILL`, `BASIC`, `DESKTOP` |
+| Programme | direkter Name oder Pfad, `PS`, `KILL`, `BASIC`, `DESKTOP`, `BROWSER`, `JS` |
 | Netzwerk | `GETIP`, `IFCONFIG`, `PING`, `ARP`, `NET` |
 | Diagnose | `MEMINFO`, `SYSINFO`, `DRIVES`, `USBINFO`, `AUDIOINFO`, `DATETIME` |
 
@@ -88,10 +88,10 @@ dagegen bewusst Laufwerk und Verzeichnis.
 
 ## Einheitliche VFS-Verwendung
 
-`DIR`, `CD`, `TYPE`, Mutationen, `COPY`, `RUN` und `EXEC` rufen keine globale
-FAT-Sonder-API mehr auf. Dadurch kann eine Datei nicht mehr in `DIR`
-erscheinen und gleichzeitig für `TYPE` „nicht gefunden“ sein, nur weil beide
-Befehle unterschiedliche Pfadschichten verwenden.
+`DIR`, `CD`, `TYPE`, Mutationen und `COPY` verwenden die VFS-/Objektadapter.
+Ein inzwischen entferntes oder gesperrtes Objekt darf nach einer Auflistung
+dennoch abgelehnt werden. Programme werden direkt mit Namen/Pfad gestartet.
+`RUN`, `EXEC`, `OPEN` und `MKFILE` sind keine Built-ins/Aliase dieser Shell.
 
 `TYPE` liest Dateien blockweise und benötigt weder eine NUL-Terminierung noch
 einen komplett im Speicher liegenden Inhalt. `COPY` überschreibt kein
@@ -101,17 +101,18 @@ bestätigt hat.
 
 ## Parser
 
-- maximal 256 Zeichen pro Eingabezeile
-- maximal 16 Argumente
+- 256 Byte Zeilenpuffer, höchstens 255 Eingabebytes plus NUL
+- maximal 16 Tokens einschließlich Programmname
 - Leerzeichen und Tabs trennen Argumente
-- doppelte Anführungszeichen schützen Leerzeichen in einem Argument
-- zu lange Eingaben, zu viele Argumente und offene Anführungszeichen werden
-  als Syntaxfehler gemeldet
+- keine Quote-Auswertung: Anführungszeichen sind gewöhnliche Zeichen
+- der Zeilenpuffer nimmt darüber hinaus keine Zeichen an; der Splitter
+  verarbeitet nur die ersten 16 Tokens, ohne behauptete Syntaxfehlermeldung
+- keine Pipes, Umleitungen, Variablenexpansion oder bedingte Verkettung
 
 Beispiel:
 
 ```text
-C:\> ECHO "ein Argument mit Leerzeichen"
+C:\> ECHO mehrere getrennte Argumente
 ```
 
 ## Zeilenbearbeitung
@@ -144,10 +145,10 @@ abschließenden Backslash.
 C:\> DIR
 C:\> MD TEST
 C:\> CD TEST
-C:\TEST> MKFILE INFO.TXT
+C:\TEST> TOUCH INFO.TXT
 C:\TEST> TYPE ..\README.TXT
 C:\TEST> COPY ..\HELLO.PRG APP.PRG
-C:\TEST> RUN APP.PRG
+C:\TEST> APP.PRG
 C:\TEST> CD \
 C:\> RD TEST
 ```
@@ -155,3 +156,24 @@ C:\> RD TEST
 Ein nicht leeres Verzeichnis oder ein aktives aktuelles Verzeichnis wird vom
 Dateisystem bzw. der Shell nicht blind entfernt; die konkrete Unterstützung
 hängt vom gemounteten Dateisystemadapter ab.
+
+## JavaScript, Exitstatus und Farben
+
+```text
+js /htdocs/jsargs.js test
+js /htdocs/mandel.js
+js --read /htdocs/hello.js /htdocs/jsread.js
+```
+
+`js` ist `/usr/bin/js.prg`. Der Quellname ist exakt und relativ zum aktuellen
+Verzeichnis, ohne automatische `.js`-Ergänzung. `scriptArgs[0]` trägt diesen
+Namen, weitere Argumente sind Strings. `print`/`console.log` und `console.error`
+liefern getrennte stdout-/stderr-Records, gepuffert und vor Ausgabe validiert.
+[Beispiele und Grenzen](../development/JS_SHELL_EXAMPLES.md).
+
+`reist.setExitCode(n)` setzt 0..125 für normalen Abschluss, beendet aber nicht
+die Ausführung. Die Shell wartet/reapt, stellt jedoch noch kein `%ERRORLEVEL%`
+oder anderes Skriptäquivalent bereit. `system.exit` ist nur ein Vorschlag.
+Einfache Farbausgabe ist noch nicht durchgängig implementiert: JS ersetzt ESC
+bewusst durch `?`. Ein zukünftiges Farbprofil muss Auswahl, Reset und
+Steuerinjektion kontrollieren; rohe ANSI-Sequenzen sind kein JS-Farbweg.

@@ -1,10 +1,11 @@
 # Optionales TAP-Netzwerk unter Linux/QEMU
 
-Stand: 16. August 2026.
+Stand: 10. September 2026.
 
 TAP ist ein zusätzlicher Entwicklungsweg für QEMU unter Linux. Er wird für
 den nativen Windows-/VMware-Build nicht benötigt. Die VMware-Referenzmaschine
-greift über E1000 und `VMnet0` direkt auf das LAN zu.
+verwendet standardmäßig E1000 mit NAT. Bridged Networking ist eine bewusst
+gewählte Alternative mit direkter LAN-Anbindung, nicht die erzeugte Vorgabe.
 
 ## Voraussetzungen und Sicherheitswirkung
 
