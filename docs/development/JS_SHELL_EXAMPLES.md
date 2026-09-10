@@ -1,5 +1,9 @@
 # JavaScript-Beispiele fuer die REIST-Shell
 
+Status 10. September 2026: alle fuenf Abnahmegruppen bestanden. Sieben Skripte
+in beiden Images, zweimaliger echter Shell-Lauf einschliesslich bytegenauem
+Mandelbrot-Bild. Farbausgabe ist weiterhin der separat vorgemerkte Folgeauftrag.
+
 ## Paketvertrag R3.43
 
 Definition vom 10. September 2026 auf `f808b558`. Nutzerauftrag: einige

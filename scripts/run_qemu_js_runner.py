@@ -4,6 +4,54 @@ from pathlib import Path
 import run_qemu_smoke as smoke
 from measure_cpp_baseline import suppress_windows_test_dialogs
 
+EXAMPLE_CASES = (
+    ("js /htdocs/jsargs.js hallo 42", "JS_EXAMPLE_ARGS_OK"),
+    ("js /htdocs/jsmath.js", "JS_EXAMPLE_MATH_OK"),
+    ("js /htdocs/jsjson.js", "JS_EXAMPLE_JSON_OK"),
+    ("js /htdocs/jserror.js", "JS_EXAMPLE_ERROR_OK"),
+    ("js /htdocs/jssafe.js", "JS_EXAMPLE_SAFE_OK"),
+    ("js --read /htdocs/hello.js /htdocs/jsread.js", "JS_EXAMPLE_READ_OK"),
+    ("js /htdocs/mandel.js", "JS_EXAMPLE_MANDEL_OK"),
+)
+
+
+def mandelbrot_reference():
+    """Host arithmetic reference, not loaded/generated from the JS source."""
+    rows = []
+    for y in range(24):
+        cells = []
+        for x in range(64):
+            real, imag = 0.0, 0.0
+            count = 0
+            while count < 48 and real * real + imag * imag <= 4:
+                real, imag = (real * real - imag * imag - 2.2 + (x + 0.5) * 0.05,
+                              2 * real * imag + (2 * y + 1 - 24) * 0.05)
+                count += 1
+            cells.append('@' if count == 48 else ' .:-=+*#%@'[min(8, count // 3)])
+        rows.append('|' + ''.join(cells) + '|')
+    return rows
+
+
+def validate_mandelbrot(text):
+    normalized = text.replace('\r\n', '\n')
+    begin = 'MANDELBROT_BEGIN width=64 height=24 iterations=48\n'
+    pattern = re.escape(begin) + r'(.*?)^MANDELBROT_END\n'
+    pictures = re.findall(pattern, normalized, re.M | re.S)
+    expected = '\n'.join(mandelbrot_reference()) + '\n'
+    if (pictures != [expected, expected] or normalized.count('MANDELBROT_BEGIN') != 2
+            or normalized.count('MANDELBROT_END') != 2):
+        raise ValueError('missing/changed/truncated Mandelbrot image')
+
+
+def validate_examples(text):
+    rows = re.findall(r"(?m)^JS_EXAMPLE_[A-Z]+_OK\r?$", text)
+    if [row.rstrip("\r") for row in rows] != [marker for _, marker in EXAMPLE_CASES] * 2:
+        raise ValueError("missing/duplicate/reordered example result")
+    if (smoke.failure_marker(text) or "KERNEL PANIC" in text or "*** USER PROCESS" in text or
+            "js: script exception" in text or "JS_EXAMPLE_" in
+            re.sub(r"(?m)^JS_EXAMPLE_[A-Z]+_OK\r?$", "", text)):
+        raise ValueError("failed example or guest")
+
 def inject(process,text):
     special={" ":"spc","/":"slash",".":"dot","-":"minus","(":"shift-9",")":"shift-0"}
     keys=[]
@@ -81,6 +129,7 @@ def run(args):
             stopped.wait(0.01)
         raise TimeoutError("deadline before "+marker)
     error=None
+    example_output = ""
     try:
         smoke.configure_qemu_host_timers(process)
         at=wait(smoke.SHELL_PROMPT,0)
@@ -94,8 +143,26 @@ def run(args):
             if args.file_capabilities:
                 inject(process,"js --read /htdocs/hello.js /htdocs/readfile.js")
                 at=wait("JS_FILE_SHELL_OK ",at);at=wait(smoke.SHELL_PROMPT,at)
+            if args.examples:
+                for command, marker in EXAMPLE_CASES:
+                    inject(process, command)
+                    # Scope the negative check to this normal example: existing
+                    # JSRUNTST intentionally tests exceptions and resource limits.
+                    begin = at
+                    at = wait("\n" + marker + "\n", at)
+                    at = wait(smoke.SHELL_PROMPT, at)
+                    if "js:" in transcript[begin:at] or "*** USER PROCESS" in transcript[begin:at]:
+                        raise ValueError("example did not finish normally: " + command)
+                    example_output += transcript[begin:at]
             inject(process,"help"); at=wait("Built-ins: cd path pwd history help exit",at); at=wait(smoke.SHELL_PROMPT,at)
         validate_transcript(transcript,args.file_capabilities)
+        if args.examples:
+            # Exception diagnostics from the existing intentional fault cases
+            # were checked there; sample spans were independently checked above.
+            validate_examples(example_output)
+            validate_mandelbrot(example_output)
+            if transcript.count("Argumente: hallo 42\n") != 2:
+                raise ValueError("example arguments missing")
     except (OSError,ValueError,RuntimeError,TimeoutError) as caught: error=str(caught)
     finally:
         stopped.set(); smoke.stop_process(process); thread.join(timeout=2)
@@ -113,6 +180,7 @@ def main():
     parser.add_argument("--image",type=Path,required=True)
     parser.add_argument("--log",type=Path,required=True)
     parser.add_argument("--file-capabilities",action="store_true")
+    parser.add_argument("--examples",action="store_true",help="also execute seven packaged shell examples twice")
     args=parser.parse_args()
     if args.log.exists(): parser.error("refusing to overwrite evidence")
     if not args.qemu.is_file() or not args.image.is_file(): parser.error("existing QEMU/image required")

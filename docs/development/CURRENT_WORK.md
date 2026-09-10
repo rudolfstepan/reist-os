@@ -2,6 +2,47 @@
 
 Stand: 10. September 2026
 
+## R3.43: sieben JavaScript-Shell-Beispiele abgenommen
+
+Nutzerauftrag fuer direkt ausfuehrbare JS-Testdateien, erweitert um ASCII-
+Mandelbrot: `jsargs.js`, `jsmath.js`, `jsjson.js`, `jserror.js`, `jssafe.js`,
+`jsread.js`, `mandel.js` liegen unter `/htdocs` in beiden neuen Images.
+Aufrufe und Grenzen: [JS_SHELL_EXAMPLES.md](JS_SHELL_EXAMPLES.md).
+
+Alle fuenf eingefrorenen Gruppen bestanden:
+
+- `python test/test_js_examples.py -v`: sechs Tests, 0.108s;
+  `build/codex-agent/r343-js-examples/host-final.log`.
+- `test-reist-package.ps1 -Target vmware -Video vga`: PASS/18s,
+  `build/codex-agent/20260910-182354-package-vmware-vga.log`.
+- `test-reist-package.ps1 -Target qemu -Video vga`: PASS/59s,
+  `build/codex-agent/20260910-182424-package-qemu-vga.log`.
+- `verify_js_examples_artifacts.py`: PASS/2.623s,
+  `build/codex-agent/r343-js-examples/artifacts/protected.json`.
+- `run_qemu_js_runner.py --file-capabilities --examples`: PASS/97.339s,
+  `build/codex-agent/r343-js-examples/guest.log`; alle bestehenden Runner-/
+  Realms-/Cancel-/Reap-/Dateirechtepruefungen plus sieben Beispiele zweimal,
+  zwei vollstaendige 64x24-ASCII-Bilder gegen unabhaengige Hostreferenz.
+
+Beide Kernel und alle94 verpackten Programme sind bytegleich zum akzeptierten
+R3.42-Stand `f808b558`. Keine Runtime-/ABI-/Rechte-/Quota-Aenderung oder neue
+Durchsatzmessung. Kein erneuter Benchmark fuer unveraenderten Code. Archiv:
+`build/codex-agent/r343-js-examples/accepted-final/` mit Quellen, Images,
+passenden Kerneln und Gatebelegen; keine alten Fehlerbelege ueberschrieben.
+Regression-first-Belege `host-red.log`/`mandel-red.log` bleiben erhalten;
+`host.log` deckte die fehlende nackte KERNEL-PANIC-Erkennung im neuen
+Beispielvalidator auf. Nur diese Negativpruefung korrigiert, dann Hostgruppe
+bestanden; keine Gast-/Buildwiederholung oder Fristlockerung.
+
+Naechster ausdruecklicher Nutzerauftrag: einfache Farben in Shell und JS.
+Noch NICHT implementiert: VGA besitzt einen begrenzten alten SGR-Parser,
+Framebuffer interpretiert diesen nicht; JS ersetzt ESC bewusst durch `?`.
+Ein separates Paket muss validierte Farbausgabe, einfaches Format, Reset/
+Cleanup und beide Darstellungswege abnehmen, ohne beliebige Steuersequenzen
+freizugeben oder einen neuen komplexen Kernelparser einzubauen. Dieser Auftrag
+steht vor der JS-Schreibdelegation. R3.6b wird nur formal aktiviert; seine
+Zurueckstellung und alle offenen Gates sowie R341-H1/H2 bleiben unveraendert.
+
 ## R3.42: alle37 Abnahmegruppen bestanden
 
 Abschlussstand: candidate32, acceptance-builds-24, artifacts-final24,

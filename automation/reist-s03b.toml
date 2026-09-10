@@ -1,7 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.43-js-shell-examples"
-next_user_request = "2026-09-10: User asks for JS shell examples, then explicitly adds an ASCII Mandelbrot demo and easy shell colors. R3.43 now packages seven bounded examples; only htdocs/mandel.js is added to the frozen data scope. Terminal colors require a separate output-boundary package: current JS sanitizes ESC and VGA/framebuffer differ. No unsafe ESC passthrough, JS write delegation or production runtime change here. Preserve accepted R3.42 references/R341-H1/H2 and R3.6b deferral. Main agent only, no visible VM/agent/push."
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
+next_user_request = "2026-09-10: R3.43 seven shell JS examples including ASCII Mandelbrot passed all five frozen groups; both kernels/all94 PRGs byte-identical to accepted R3.42. User-requested easy shell/JS colors remain the NEXT task, before JS write delegation: define the separate bounded output contract, inventory terminal/console ownership, no raw ESC bypass or new complex Ring0 parser. Formal R3.6b activation is bookkeeping only; preserve its user-approved deferral/all gates, R3.42 references and R341-H1/H2. Main agent only; no agents/visible VMs/push."
 
 [policy]
 one_package_per_run = true
@@ -13,7 +13,7 @@ push = false
 
 [[packages]]
 id = "R3.43-js-shell-examples"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "low"
 title = "Packaged self-checking JavaScript shell examples"
@@ -26,7 +26,8 @@ runtime_tests = ["python scripts/verify_js_examples_artifacts.py --evidence buil
 acceptance = "All five frozen groups; host negatives for missing/duplicate/reordered/fatal results, malformed Mandelbrot rows and image drift; exact source bytes in both images, existing runner/lifecycle/capability proof plus seven examples twice through real Ring3 shell. Direct diff/scope review and local commit only after all pass."
 stop_conditions = ["Unattributed changes", "Runtime source change required", "Failed gate without focused in-scope correction"]
 commit_message = "feat: add self-checking JavaScript shell examples"
-evidence = []
+evidence = ["python test/test_js_examples.py -v", ".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga", ".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga", "python scripts/verify_js_examples_artifacts.py --evidence build/codex-agent/r343-js-examples/artifacts", "python scripts/run_qemu_js_runner.py --file-capabilities --examples --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r343-js-examples/guest.log"]
+evidence_note = "All five groups passed: six host tests0.108s; VMware18s/QEMU59s; artifact comparison2.623s, both kernels/all94 PRGs byte-identical to f808b558; guest97.339s with unchanged runner/capability/lifecycle proof plus seven examples twice and exact64x24 Mandelbrot reference images. Initial regression reds and narrow missing-fatal-check repair retained under r343-js-examples. No runtime source, authority, budget or performance claim change. Shell colors remain explicitly pending, not implemented by ASCII samples."
 
 [[packages]]
 id = "R3.42-fat32-writable-objects"
@@ -2614,7 +2615,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
