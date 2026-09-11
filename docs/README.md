@@ -151,7 +151,9 @@ verlinkten Referenzdokumente.
 
 ## Vollständiges Register
 
-106 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
+- [JavaScript-Farbausgabe](architecture/JS_COLOR_OUTPUT_CONTRACT.md) – R3.45-Hostgrenze und Abnahme
+
+107 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
 Abgleichberichts. Upstream-Texte, Lizenzen, AGENTS.md und generierte Belege
 werden nicht zu aktuellen Produktanleitungen umgeschrieben. Ein Vertrag
 beschreibt Anforderungen und abgegrenzte Teilabnahmen, nicht automatisch
