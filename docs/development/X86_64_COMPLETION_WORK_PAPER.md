@@ -267,3 +267,40 @@ validiert, nicht vergeben; spätere Wiederverwendung muss weiterhin gegen
 Überlauf abgesichert werden. Die vollständige Queueprüfung ist linear in der
 konfigurierten Kapazität, alle Mutationen bleiben begrenzt. Belege und bewusst
 offene Prozess-/Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).
+
+## R8.3e: Reservierung und Lebensdauer nativer Taskidentitäten
+
+Nach `af0a07b4` sind Queues allgemein, aber Generationen werden noch direkt
+aus Probe-Konstanten in Taskrecords geschrieben. Eine zusammenhängende
+Identitätsgrenze löst Reservierung, Veröffentlichung und Retirement für die
+tatsächliche native Shell-/Kindbeziehung heraus. Andere historische Modi
+bleiben begrenzte Adapter, ihre bisherigen Nachweise werden nicht entfernt.
+
+Privater SysV-AMD64-Aufruf, keine öffentliche ABI. Ein24-Byte-Pooldescriptor
+referenziert bestehende256-Byte-Taskrecords und pro Slot einen32-Bit-
+Retirementvermerk; Kapazität1..64 und letzter vergebener Zähler sind intern.
+Keine zweite Zustandsautorität. FREE muss vollständig genullt sein; eine
+Reservierung verbraucht die nächste nichtnull Generation und setzt den neuen
+privaten Zustand RESERVED9. Erst nach validiertem Frame-/Kontextaufbau und
+Syscallprofil darf READY veröffentlicht werden. Counterwerte werden nicht
+abgeschnitten, zurückgesetzt oder über UINT32_MAX gewrappt. Rückabwicklung
+verbraucht ihre Generation ebenfalls. Neue Poolinstanzen sind getrennte
+Namespaces; diese Arbeit erlaubt keinen Neustart eines Pools mit alten Handles.
+
+Retirement ist nur für genau passende Generation und terminalen Zustand
+FAULTED/EXITED/ZOMBIE oder eine zurückzurollende Reservierung zulässig. CR3,
+Stack und private Frames müssen bereits freigegeben sein; Profil-/IPC-/FP-/
+Tabellenfreigabe bleibt Verantwortung des vorhandenen geprüften Adapters.
+Dann GPRrecord löschen und Tombstone veröffentlichen. Wiederholtes Retirement
+ist ausschließlich bei weiterhin freiem Slot und genau gleichem Tombstone
+erfolgreich; alte Generation darf niemals eine wiederbelegte Generation ändern.
+Poolzustand, Nullrecords, Generationen und Duplikate werden vor Mutation
+begrenzt geprüft. Caller besitzt alle Speicherbereiche und serialisiert IF=0.
+
+Neun Gruppen: echter Assembly-Hosttest O0/O2 mit Kapazitäten1/4/64, reserviertem
+Aufbau/Publish/Retire/Rollback, Wiederverwendung und Erschöpfung, Nichtmutation
+bei alten/oberen Bits, korrupten Identitäten und noch besessenen Ressourcen;
+bestehende Bootstrap-/Queue-/FP-/Dokutests, Normalbuild/-gast und24 Faultgäste,
+i386-Imageguard. Gast weiterhin4 Tasks/128MiB/eine CPU/maximal10s. Belege unter
+`build/codex-agent/r83e-identity/`. Allgemeine Prozess-/OOM-/Supervisorfreigabe
+und Speicher-/Dienstportierung bleiben offen. Keine Gesamtfertigmeldung.
