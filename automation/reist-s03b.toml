@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3b-x86_64-fp-ownership"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -10,6 +10,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3b-x86_64-fp-ownership"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Eager native x86_64 floating-point register ownership"
+scope = "Read the R8.3b section of X86_64_COMPLETION_WORK_PAPER.md. Close the missing extended-register ownership boundary across all existing native scheduler modes: deterministic fresh x87/MMX/XMM0..15 and control state, eager save/restore, terminal scrub and reuse. CPU admission before user execution, no lazy owner. Real host instruction witness and existing Ring3 yield/preemption/sleep/spawn/IPC/fault/reap fixtures exercise register isolation. This is a prerequisite within the general kernel lifecycle stage, not a general scheduler, arbitrary process admission or FP-exception dispatch completion. Retain the isolated bootstrap profile and old guest requirements."
+allowed_files = ["automation/reist-s03b.toml","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/development/CURRENT_WORK.md","docs/development/PROJECT_STATUS.md","Makefile","arch/x86_64/boot/entry.asm","arch/x86_64/cpu/fp_context.asm","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/user_execution.asm","arch/x86_64/user/probe.asm","arch/x86_64/user/child.asm","arch/x86_64/user/fp_probe.inc","test/x86_64_fp_host.asm","test/x86_64_fp_host.c","test/test_x86_64_fp.py","scripts/run_qemu_x86_64_fp.py","scripts/run_qemu_x86_64_boot.py"]
+invariants = ["Keep all existing bootstrap markers, 128MiB, four task slots, one CPU, old syscall numbers/profiles and two complete shell child generations. No arbitrary executable admission, SSE compiler enablement, AVX/XSAVE, SMP, memory-capacity change or production64-bit claim.","Intel legacy FXSAVE64/FXRSTOR64, private aligned512-byte areas, no heap/user-supplied restore/ambient authority/lazy #NM. Check CPU features and CR0/CR4 before use; reject unsupported profile. Preserve GPR record layout and i386 sources/images/performance paths.","Only main agent; bounded hidden tests, preserve prior evidence, no visible VM/native fault dialogs/push. Repeat only affected gates after focused repair. General user-exception containment remains required before arbitrary native applications."]
+targeted_tests = ["python test/test_x86_64_fp.py -v","python test/test_x86_64_sdk.py -v","python test/test_x86_64_boot.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83b-fp"]
+runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83b-fp/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83b-fp/guest.log","python scripts/run_qemu_x86_64_fp.py --image build/codex-agent/r83b-fp/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83b-fp/unsupported.log","python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All8 groups pass. Native compiled host witness at O0/O2 proves defaults, all x87/XMM registers/control state, repeated switches and scrub/reuse. Existing real guest proofs retain all markers and enforce distinct FP patterns across yield, timer quantum, sleep, spawn/wait, shell IPC and terminal/reuse. Missing SSE2 guest rejects before user code. No skipped binary or cleanup checks; inspect final diff and commit locally."
+stop_conditions = ["Unattributed change","Required source outside scope","Failed gate without focused in-scope correction","Need to grant arbitrary executable admission or change existing resource/authority budgets"]
+commit_message = "feat: isolate native x86_64 floating-point task state"
+evidence = []
 
 [[packages]]
 id = "R8.3a-x86_64-sdk-foundation"
@@ -2688,7 +2705,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

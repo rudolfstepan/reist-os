@@ -109,3 +109,39 @@ Nachtrag ist mit7 Hosttests und realen Images geprüft. Alle ursprünglichen
 Kernel-/PRG-Checks bleiben aktiv. Vollständige Belege und Grenzen stehen in
 [CURRENT_WORK](CURRENT_WORK.md). Nächster fachlicher Schritt ist der allgemeine
 Kernel-Lifecycle, ausdrücklich nicht die Erklärung des Prototyps zum fertigen OS.
+
+## R8.3b: vollständiger Besitz des FP-Registerzustands
+
+Bestandsprüfung nach `0ceed8e0`: Der Scheduler sichert nur GPRs; für x87/MMX,
+XMM0..15, MXCSR und Rundungskontrollen fehlt ein eigener Kontext. Dieser
+Fehlerbereich wird gemeinsam über alle vorhandenen Scheduler-Modi geschlossen,
+bevor der allgemeine Lifecycle neue Prozesse zulässt. Keine einzelnen Pakete
+je Register, Syscall oder Scheduler-Modus.
+
+Referenz ist das [Intel SDM](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+FXSAVE64/FXRSTOR64 und CR0/CR4, sowie die Empfehlung zum eager Restore in
+[INTEL-SA-00145](https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00145.html).
+Kernelprivate,16-Byte-ausgerichtete512-Byte-Abbilder stehen neben den bestehenden
+GPR-Records; deren Offsets und alle öffentlichen ABIs bleiben unverändert.
+Neue Generationen erhalten vollständig genullte Payloads, leere x87-Tags,
+FCW0x037f/MXCSR0x1f80. Save vor Verlassen eines fortsetzbaren Tasks, eager
+Restore vor jedem Eintritt; kein Userpointer, Lazy-Owner oder #NM-Replay.
+Terminale Zustände und fehlgeschlagener Aufbau werden gelöscht; Wiederverwendung
+bekommt einen frischen Zustand. Kernel-C bleibt ohne FP/SIMD-Codegenerierung.
+
+CPUID muss FPU/FXSR/SSE/SSE2 melden. CR0.MP/NE an, EM/TS aus;
+CR4.OSFXSR/OSXMMEXCPT an, OSXSAVE aus. Bereits aktives OSXSAVE wird abgewiesen,
+nicht still abgeschaltet; Readback vor erster Userausführung. Das Paket bleibt
+auf den bisherigen eingebetteten, zugelassenen Test-ELFs. Allgemeine #MF/#XM/
+#GP-Prozessbeendigung, freier Prozessstart, allgemeine Pools und SMP bleiben
+verpflichtende Lifecycle-Arbeit vor nativer JS-/Anwendungsfreigabe. Vorhandene
+Fault-/Reap-Probes prüfen hier die Registertrennung nach Prozessfehlern; daraus
+folgt ausdrücklich noch keine allgemeine FP-Ausnahmeabnahme.
+
+Acht eingefrorene Gruppen: neuer nativer Host-Instruktionstest O0/O2, bestehende
+SDK- und Bootstraptests, Dokumentation, isolierter Build, vollständiger echter
+QEMU-Dialog, negative CPU-Admission und unveränderter i386-Imageguard. Gast-
+Fixtures verwenden unterschiedliche FP-Muster bei Yield, Timerwechsel, Sleep,
+Spawn/Wait und IPC; alle bisherigen Markernachweise bleiben verpflichtend.
+Logs unter `build/codex-agent/r83b-fp/`, positive und negative Gäste höchstens10s,
+eine CPU/128MiB, keine sichtbare VM. R3.6b bleibt zurückgestellt.
