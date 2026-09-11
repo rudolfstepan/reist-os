@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "B1.1-windows-sdk-archive-publication"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "B1.1-windows-sdk-archive-publication"
+status = "active"
+phase = "post-s0"
+risk = "medium"
+title = "Atomic shared SDK archive publication without private temporary ACLs"
+scope = "User-reported Windows build failure: libm/libreisttext/libreistjs retain protected sandbox-owner-only ACLs after direct replacement from a private Python temporary directory. Publish validated archive bytes atomically through an exclusively created ordinary sibling that inherits the destination directory permissions. One common publication boundary for all three recipes; no kernel, toolchain flag, library algorithm or link-order changes. Restore directory inheritance only on the three identified generated archives, preserving bytes and old evidence."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "scripts/publish_sdk_archive.py", "scripts/build_user_math.py", "scripts/build_user_text.py", "scripts/build_user_js.py", "test/test_sdk_archive_publication.py"]
+invariants = ["Python os.replace atomic same-directory publication; ordinary exclusive-create file inherits destination directory ACL, never copy private source permissions. No blanket permission grants, ownership takeover, recursive ACL reset, compiler retries or linker relaxation. Old archive remains intact on copy/fsync/replace failure; remove only own staging file. Bounded archive size and copy chunks; valid ar signature; reject aliased source/destination. Existing extraction/archive validation and link order unchanged.", "Reproduce Windows private-temporary ACL retention, test actual published inherited DACL and byte identity, replacement and fault cleanup, exclusive staging collision, and all three recipe integrations. Include publisher source in each incremental dependency set. Actual VMware/vga build in separate output directory, no running VM or reference image overwrite. Verify normal-user read access to repaired main SDK archives and unchanged hashes. No native64 completion or guest-runtime-change claim; R3.6b remains deferred."]
+targeted_tests = ["python test/test_sdk_archive_publication.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-windows.ps1 -Target vmware -Video vga -OutputDirectory build/codex-agent/b11-sdk-publication/reference"]
+runtime_tests = ["python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All4 groups plus exact three-file ACL/hash and normal-user read verification. Real Windows ACL regression, atomic failure preservation and full isolated VMware build; no runtime gates needed for unchanged guest source. Review scope, commit locally, never push."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for broader ACL or runtime authority changes"]
+commit_message = "fix: preserve shared SDK access when publishing archives"
+evidence = []
 
 [[packages]]
 id = "R8.3p-x86_64-task-frame-retirement"
@@ -2981,7 +2998,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
