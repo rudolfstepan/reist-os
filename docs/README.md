@@ -160,6 +160,7 @@ Arbeitspläne und historische Texte behalten ihre jeweilige Rolle und Datierung.
 
 ### Architekturverträge und technische Referenzen
 
+- [architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md](architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md)
 - [architecture/ARCHITECTURE_DEEP_DIVE.md](architecture/ARCHITECTURE_DEEP_DIVE.md)
 - [architecture/ATA_PIO_TRANSFER_CONTRACT.md](architecture/ATA_PIO_TRANSFER_CONTRACT.md)
 - [architecture/AUDIO_SUBSYSTEM.md](architecture/AUDIO_SUBSYSTEM.md)

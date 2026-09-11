@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R3.44-terminal-color-output"
 next_user_request = "2026-09-10: D1.1 documentation refresh passed all three frozen groups; 105 first-party documents indexed, software remains a3fa8dfb/R3.43. NEXT implementation: user-requested bounded shell/JS colors, no raw ESC bypass or new complex Ring0 parser. Also capture user-proposed CLI system/fs facade and observable exit status, then explicit JS write/directory delegation and later policy/manifests in separately frozen authority packages. Grant requests/signatures never create rights; no ambient shell authority or privileged browser-to-shell launch. See updated JS work paper. R3.6b activation is bookkeeping only: retain user-approved deferral/all gates and R341-H1/H2. Main agent only; no agents/visible VMs/push."
 
 [policy]
@@ -10,6 +10,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R3.44-terminal-color-output"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Bounded typed terminal color publication and native shell integration"
+scope = "Read docs/architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md. Implement the prerequisite kernel admission/publication boundary with VGA/boot-framebuffer backends, SDK, echo --color and real foreground/negative guest proof. No JS wire/binding, parser, scheduler or general terminal emulator in this package."
+allowed_files = ["automation/reist-s03b.toml","docs/architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md","docs/README.md","docs/development/CURRENT_WORK.md","docs/development/PROJECT_STATUS.md","docs/development/KNOWN_ISSUES.md","docs/features/SHELL_ENHANCEMENTS.md","docs/features/FRAMEBUFFER.md","docs/development/QUICKSTART.md","docs/architecture/REIST_ARCHITECTURE.md","docs/development/OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md","include/reist/abi/syscall.h","userspace/sdk/include/reist/abi/syscall.h","userspace/sdk/include/x86os.h","userspace/sdk/x86os.c","lib/libc/stdlib.h","kernel/proc/process.h","kernel/syscall/syscall_table.c","drivers/video/display_control.c","drivers/video/display_control.h","drivers/video/display.c","drivers/video/display.h","drivers/video/video.c","drivers/video/video.h","drivers/video/framebuffer.c","drivers/video/framebuffer.h","userspace/programs/echo.c","userspace/programs/colortst.c","scripts/build_system_programs.py","scripts/build-windows.ps1","Makefile","test/test_terminal_color.py","test/terminal_color_host.c","test/test_syscall_abi_source.py","test/test_documentation.py","scripts/run_qemu_terminal_color.py","scripts/verify_terminal_color_artifacts.py"]
+invariants = ["Append-only syscall131, exact versioned inline request, at most64 ASCII/LF/TAB bytes and one LF; no persistent color/escape parser or OS authority expansion for Script. Validate entire request, FD and exact foreground identity before output.", "No input/process spinlock over rendering; existing bounded display-state mutex fences graphics/mode transitions. No allocation, raw user pointer, global color change or old rendering/benchmark hotpath modification. Preserve private heap/recovery/restart budgets.", "Main agent, one package, no visible VM/native crash dialogs/agents/push; each frozen group, only affected retries with preserved failure evidence. Preserve R341-H1/H2 and R3.6b deferral."]
+targeted_tests = ["python test/test_terminal_color.py -v", "python test/test_syscall_abi_source.py -v", "python test/test_script_domain.py -v", "python scripts/measure_cpp_baseline.py --host-test test/test_terminal_input.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga", ".\\scripts\\test-reist-package.ps1 -Target qemu -Video framebuffer", "python scripts/verify_terminal_color_artifacts.py --archive-framebuffer", ".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga"]
+runtime_tests = ["python scripts/verify_terminal_color_artifacts.py", "python scripts/run_qemu_terminal_color.py", "python scripts/run_qemu_js_runner.py --file-capabilities --examples --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r344-terminal-color/js-guest.log", "python scripts/run_qemu_browser_external.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r344-terminal-color/browser-guest.log"]
+acceptance = "All13 frozen groups. Real O0/O2 code admission/rendering and negatives; both layouts/build targets plus boot-framebuffer; independent pixels for red/green/blue/default and real echo, malformed/pointer/FD/background/Script denial, child exit/reap and shell progress on VGA and framebuffer. Existing JS/browser guests; authenticated previous benchmark/math/text payloads unchanged, not a new throughput claim. Direct diff and whitespace review before local commit."
+stop_conditions = ["Unattributed changes", "Missing required source outside frozen scope", "Failed gate without focused in-scope correction", "Unsafe persistent rendering state or unbounded authority"]
+commit_message = "feat: add bounded terminal colors for shell output"
+evidence = []
 
 [[packages]]
 id = "D1.1-documentation-refresh"
@@ -2633,7 +2650,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
