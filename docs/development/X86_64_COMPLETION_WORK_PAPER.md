@@ -4,6 +4,32 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3m: gemeinsamer Lebenszyklus der Syscall-Profile
+
+Basis31b6395b: Identität/Queues sind bereits private wiederverwendbare Kerne.
+Installation, syscallseitige Prüfung, IRQ-Prüfung und Widerruf von Profilen
+duplizieren dagegen Masken-/Generationslogik im Scheduler. Diese eine
+Autoritätsgrenze wird in einem gemeinsamen Assemblykern zusammengeführt.
+
+Bestehende16-Byte-Profile bleiben kompatibel. Privater32-Byte-Descriptor:
+Taskpointer, Profilpointer, erwartete Generation, explizite Vertrauensmaske.
+Keine Rollen/PIDs, Userpointer, Allokationen oder impliziten Rechte im Kern.
+Installation nur RESERVED, Syscallabfrage nur RUNNING, Widerruf vor
+Framefreigabe nur aus terminaler/reservierter Generation. Ein bereits leeres
+Profil darf nur bei unverändertem Taskbesitz idempotent widerrufen werden.
+IRQ prüft dieselbe Bindung. Eine verweigerte Nummer liefert lokal EACCES;
+beschädigte Bindung/Masken sind Kernelkorruption. Volle64-Bit-Nummer vor
+Bitabfrage prüfen. Bestehende Rollenpolitik bleibt ausdrücklich im Adapter.
+
+Abnahme20 Gruppen: tatsächlicher Kern O0/O2 mit beliebigen Generationen und
+Masken, Guard-/Nichtmutation-/Alias-/Lebenszyklusfällen. Im Gast prüfen beide
+Rollen alle nicht freigegebenen Nummern0..63 und High-Bit-Nummern, dann den
+normalen IPC/WAIT/Reap-Verlauf. Read-only-GDB protokolliert die echte
+Installation/Abfrage/Freigabe; Kernelmechanismen bleiben fixtureunabhängig.
+Alle bisherigen Matrizen und i386-Guard bleiben unverändert. Belege unter
+build/codex-agent/r83m-profiles. Keine neue Prozesskapazität/Autorität,
+keine allgemeinen Dienste oder Supervisor-Recovery aus diesem Nachweis.
+
 ## R8.3l: atomare Speicherreservierung vor Prozessidentität
 
 Basis a22c30ed. Eine zusammenhängende Spawn-Transaktion schließt OOM beim
