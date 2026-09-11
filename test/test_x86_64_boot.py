@@ -320,7 +320,12 @@ class X8664BootstrapContractTests(unittest.TestCase):
         self.assertIn("mov edi, ELF_IMAGE_SHELL", spawn_path)
         child_exit = scheduler.index("scheduler_handle_shell_child_exit64:")
         runqueue_exit = scheduler.index("scheduler_handle_runqueue_exit64:", child_exit)
-        reap_path = scheduler[child_exit:runqueue_exit]
+        self.assertIn("scheduler_retire_shell_child_fault64.normal_exit",
+                      scheduler[child_exit:runqueue_exit])
+        terminal = scheduler.index("scheduler_retire_shell_child_fault64:")
+        consume = scheduler.index("scheduler_consume_child_terminal64:", terminal)
+        reap_path = scheduler[terminal:consume]
+        self.assertIn("mov qword [r12 + TASK_STATE], TASK_ZOMBIE", reap_path)
         self.assertLess(reap_path.index("call scheduler_reap_terminal64"),
                         reap_path.index("call x86_64_elf64_release64"))
         self.assertIn("call x86_64_elf64_release_all64", scheduler)
@@ -431,7 +436,9 @@ class X8664BootstrapContractTests(unittest.TestCase):
         self.assertIn("scheduler_handle_shell_wait64:", scheduler)
         self.assertIn("scheduler_handle_shell_child_exit64:", scheduler)
         self.assertIn("mov qword [r12 + TASK_STATE], TASK_WAITING", scheduler)
-        self.assertIn("mov dword [r15], DYNAMIC_CHILD_EXIT_STATUS", scheduler)
+        consume = scheduler.split("scheduler_consume_child_terminal64:", 1)[1]
+        self.assertLess(consume.index("mov eax, dword [rel scheduler_child_terminal_status]"),
+                        consume.index("mov dword [r15], eax"))
         self.assertIn("REIST_X86_64_RING3_SHELL_RUN_OK", runner)
 
     def test_ring3_shell_spawnv_builds_bounded_system_v_child_stack(self):

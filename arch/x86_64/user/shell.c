@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_EXIT_STATUS
+#define X86_64_EXIT_STATUS -1
+#endif
 #ifndef X86_64_BUSY_CHILD
 #define X86_64_BUSY_CHILD 0
 #endif
@@ -34,7 +37,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_FAULT_PHASE
 #define X86_64_FAULT_PHASE 0
 #endif
-#if X86_64_CONTEXT_CASE
+#if X86_64_EXIT_STATUS >= 0
+#define SHELL_EXPECTED_CHILD_STATUS ((shell_u32)X86_64_EXIT_STATUS)
+#elif X86_64_CONTEXT_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (X86_64_CONTEXT_CASE <= 3 ? 257U : \
     X86_64_CONTEXT_CASE == 4 ? 256U : X86_64_CONTEXT_CASE == 7 ? 129U : 258U)
 #elif X86_64_BUSY_CHILD
@@ -297,13 +302,22 @@ void _start(void)
                 }
                 goto cpu_budget_wait;
 #endif
+#if X86_64_EXIT_STATUS >= 0
+                /* Wide EXIT rejection and noisy YIELD each schedule the parent.
+                 * Keep the admitted test phase pending until both checks finish. */
+                for (shell_u32 extra_yield = 0; extra_yield < 4U; ++extra_yield) {
+                    if (reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
+                        shell_exit(32ULL);
+                    }
+                }
+#endif
                 if (reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
                     shell_exit(20ULL);
                 }
-#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE < 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE < 2
                 goto child_fault_cleanup;
 #endif
                 clear_ipc_message(&ipc_message);
@@ -331,7 +345,7 @@ void _start(void)
                                    (shell_u64)ipc_handle,
                                    (shell_u64)&ipc_message,
                                    IPC_RECEIVE_TIMEOUT_MS) !=
-#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE == 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE == 2
                     REIST_EPIPE || !ipc_message_is_empty(&ipc_message)) {
 #else
                     0LL ||
@@ -339,7 +353,7 @@ void _start(void)
 #endif
                     shell_exit(17ULL);
                 }
-#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE == 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE == 2
                 goto child_fault_cleanup;
 #endif
                 clear_ipc_message(&ipc_message);
@@ -371,7 +385,7 @@ void _start(void)
                                    (shell_u64)ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(18ULL);
                 }
-#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE < 3
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE < 3
 child_fault_cleanup:
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;

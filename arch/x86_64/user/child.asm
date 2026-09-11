@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_EXIT_STATUS
+%define X86_64_EXIT_STATUS -1
+%endif
 %ifndef X86_64_CONTEXT_CASE
 %define X86_64_CONTEXT_CASE 0
 %endif
@@ -18,6 +21,9 @@ BITS 64
 %define X86_64_FAULT_PHASE 0
 %endif
 %macro FAULT_PROBE 1
+%if X86_64_EXIT_STATUS >= 0 && X86_64_FAULT_PHASE = %1
+    jmp child_exit_probe
+%endif
 %if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE = %1
     jmp child_fault_probe
 %endif
@@ -323,6 +329,30 @@ child_context_spin_end:
 %endif
 %endif
 child_context_fail:
+    ud2
+%endif
+%if X86_64_EXIT_STATUS >= 0
+child_exit_probe:
+    ; A rejected wide status is resumable, not truncated or terminal.
+    mov rdi, 0x10000004d
+    mov eax, REIST_SYS_EXIT
+    syscall
+    cmp rax, -22
+    jne child_exit_fail
+    ; YIELD is independent of IPC phase and unused argument registers.
+    mov rdi, 0xfedcba9876543210
+    mov rsi, 0x1111222233334444
+    mov rdx, 0x5555666677778888
+    mov eax, REIST_SYS_YIELD
+    syscall
+    test rax, rax
+    jnz child_exit_fail
+    mov edi, X86_64_EXIT_STATUS
+    mov eax, REIST_SYS_EXIT
+child_exit_instruction:
+    syscall
+child_exit_return:
+child_exit_fail:
     ud2
 %endif
 FP_PROBE_CODE

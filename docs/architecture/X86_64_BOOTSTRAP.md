@@ -108,6 +108,19 @@ gesampelte laufende Ticks sind keine exakte CPU-Zeit oder FTTI-Zusage.
 
 ## Zweck und Grenze
 
+R8.3i entfernt IPC-Probephasen als Voraussetzung für argumentloses YIELD
+und normalen Kindexit. Beide benutzen die vorhandenen generationsgeprüften
+Queue-/Terminalpfade. Normaler Exit erhält einen separaten privaten Grund
+und Zustand ZOMBIE; Fencing/FP-/Frame-/ELF-/Budgetfreigabe werden mit den
+Fehlerfällen geteilt. Die öffentliche Raw-uint32-WAIT-Publikation bleibt nach
+vollständigem Reap. Wide-EXIT liefert EINVAL vor Wirkung. Ein normaler
+Exitstatus128/256/258 ist deshalb kein Fault-/Quotagrund; keine POSIX-
+Waitkodierung oder Low8-Bit-Kompatibilität. Privates Grundfeld nach WAIT null
+und beim Teardown geprüft. Alle24 normalen Exitvarianten/48 Generationen
+und sämtliche alten Normal-/Fault-/Busy-/Contextgates bestehen; i386 und
+native Ressourcen-/Zeitquoten unverändert. Allgemeine Eltern-/Supervisor-
+und Prozesszulassung bleibt außerhalb dieses zugelassenen Kindprofils.
+
 R8.3h schließt die zugelassene Userkontextgrenze zwischen SYSCALL und IRQ:
 ungültiger SYSCALL-RSP wird nach exakter Kernelidentität/Profil lokal als
 Raw257 gereapt; User-NT bei beiden Eintrittsarten als Raw258, niemals per

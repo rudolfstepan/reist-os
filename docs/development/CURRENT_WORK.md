@@ -2,6 +2,58 @@
 
 Stand: 11. September 2026
 
+## R8.3i: reguläres YIELD/EXIT und gemeinsames Terminal-Reap
+
+Basis `d4560692`, Vertrag `e72d9e77`. YIELD hängt im zugelassenen Shellprofil
+nicht mehr von IPC-Probephasen oder unbenutzten Argumentregistern ab. Es
+benutzt dieselbe generationsgebundene Readyqueue, verändert weder IPC noch
+CPU-Budget. Normaler Kindexit läuft jetzt über denselben vollständigen
+Validierungs-/Fence-/Reap-/WAIT-Pfad wie terminale Fehler; die duplizierte,
+auf Status77 und bereits geschlossenes IPC beschränkte Exitbereinigung entfällt.
+Der normale terminale Zustand bleibt ZOMBIE, nicht FAULTED.
+
+Privater reiner Assemblyklassifikator unterscheidet normale uint32-Exitwerte
+von tatsächlichen Exception-/Budget-/Kontextstatus. Wide-Werte oberhalb
+UINT32_MAX liefern EINVAL und lassen das Kind weiterlaufen. Ein zusätzlicher
+privater8-Byte-Terminalgrund verhindert, dass normaler Exit128/256/258 als
+Fehler oder Quota umgedeutet wird. Grund und Quittung werden nach WAIT
+vollständig gelöscht und beim Teardown geprüft. Keine öffentliche ABI,
+POSIX-wait-Kodierung oder Low8-Bit-Semantik behauptet; keine neuen Rechte.
+Statuspublikation bleibt nach vollständigem Reap, bei exakt geprüftem
+Eltern-Waitslot. Unbekannte Kernelidentität/Ownership bleibt fail-closed.
+
+Zwölf Gruppen bestanden: neuer tatsächlicher Assemblyhost O0/O2 mit
+Status-/Grundgrenzen und negativen oberen Bits plus Instruktions-/Quittungs-
+oracles,3 Tests/0.858s; Bootstrap55/0.045s, Fault3/0.864s, Context2/1.092s,
+Dokumentation, Normalbuild/-gast, neue Exitmatrix24 Fälle/48 Generationen
+65.675s, alte Faultmatrix24/48 in67.045s, Busy2/4 in6.450s, Context7/14 in
+21.713s und i386-Byteguard5.384s. Exitstatus0/77/128/256/258/UINT32_MAX je
+über vier IPC-Zustände: vor Nachricht, Nachricht gepuffert, Receive-Elternwait
+und Prozess-WAIT. Jede Fixture prüft Wide-EXIT/EINVAL, YIELD mit nichtnull
+unbenutzten Registern und nicht zurückkehrenden normalen EXIT. Tatsächliche
+Opcodes im Objekt und gelinkten ELF, vollständige32-Bit-Statusquittung,
+Generation41/42, Eltern-/Queuezustand und Reap-vor-RUN unabhängig geprüft.
+Alle früheren Gastoracles bleiben erhalten; neun Kernelobjekte sind über
+Normalbuild und alle24 Exitvarianten bytegleich.
+
+Belege `build/codex-agent/r83i-control/`: finaler Normalbuild `normal-final/`
+und `normal-final-guest.log`; Exit
+`exit/attempt-3461facb42984156b6188df0bd49b5eb/`, Fault
+`fault/attempt-faef212cef1b4104a69ee1d78fe77d09/`, Busy
+`busy/attempt-e584fdcd7c2b406589dbe70780aeccd8/`, Context
+`context/attempt-5f67305063724418972a3bb4714ba291/`. Rote Host-/Buildbelege
+und der erste Exit-Fixturelauf bleiben erhalten. Die zusätzliche negative
+EXIT-Rückkehr und YIELD benötigen eigene Fixturewechsel; nur im neuen
+Exit-Testbild wartet der Elternprozess dafür vier weitere YIELDs vor dem
+Drain. Kein Kernelbudget und kein Altgastablauf wurde dafür gelockert.
+Eine alte Quellprüfung verfolgt die Exitfreigabe nun durch den gemeinsamen
+Terminalpfad statt durch die entfernte Kopie; reale Freigabegates unverändert.
+
+Weiter kein fertiges64-Bit-OS: eine CPU/128MiB/vier Slots, unveränderte Clock-
+und Samplebudgets. Allgemeine Eltern-/Supervisor-/Spawn-/Endpointzulassung,
+Speicherskalierung, native Dienste und Desktop/Browser bleiben offen.
+i386/Benchmark unverändert, R3.6b weiter zurückgestellt und R341-H1/H2 offen.
+
 ## R8.3h: lokale Userkontextfehler und vollständige Benutzerflags
 
 Basis `c57e9f8f`, Vertrag `5b0c4310`. Der native Shell-Syscallentry prüft

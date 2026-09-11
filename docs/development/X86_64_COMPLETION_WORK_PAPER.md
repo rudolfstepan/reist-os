@@ -471,3 +471,13 @@ EINVAL und YIELD mit unbenutzten, nichtnull Argumentregistern. Unabhängige
 ELF-/Status-/Generations-/Eltern-/Queue-/Reap-vor-RUN-Prüfung. Alle bisherigen
 24 echten Faultfälle, Busy-/Stack- und sieben Kontextfälle bleiben Gates,
 ebenso i386-Byteguard. Belege `build/codex-agent/r83i-control/`.
+
+Abnahme R8.3i: zwölf Gruppen bestanden. Normaler Exit nutzt statt der
+bisherigen duplizierten Status77-Bereinigung denselben generationsgebundenen
+Terminalpfad mit eigenem Normalgrund/ZOMBIE. Tatsächlicher O0/O2-Statuskern,
+24 Exitvarianten/48 Generationen über alle vier IPC-Phasen, Wide-EXIT/EINVAL
+und phasenunabhängiges YIELD geprüft; unabhängige Opcode-/Quittungsmutationen.
+Alte24 Faultvarianten, Busy-/Stack- und sieben Kontextfälle sowie Normaldialog
+und i386-Byteguard bestehen unverändert. Neun Kernelobjekte sind in allen
+25 Normal-/Exit-Testbildern identisch. Belege und verbleibende allgemeine
+Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).

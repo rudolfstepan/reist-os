@@ -6,7 +6,8 @@ param(
     [ValidateRange(0, 3)] [int]$FaultPhase = 0,
     [switch]$BusyChild,
     [switch]$InvalidBusyStack,
-    [ValidateRange(0, 7)] [int]$ContextCase = 0
+    [ValidateRange(0, 7)] [int]$ContextCase = 0,
+    [ValidateRange(-1, 4294967295)] [long]$ExitStatus = -1
 )
 
 Set-StrictMode -Version Latest
@@ -16,6 +17,9 @@ if (($BusyChild -and $FaultVector -ge 0) -or ($InvalidBusyStack -and -not $BusyC
 }
 if ($ContextCase -ne 0 -and ($BusyChild -or $FaultVector -ge 0)) {
     throw 'ContextCase is exclusive with BusyChild and FaultVector.'
+}
+if ($ExitStatus -ge 0 -and ($ContextCase -ne 0 -or $BusyChild -or $FaultVector -ge 0)) {
+    throw 'ExitStatus is exclusive with context, busy and fault fixtures.'
 }
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
@@ -197,6 +201,7 @@ try {
         "X86_64_BUSY_CHILD=$([int]$BusyChild.IsPresent)" `
         "X86_64_BUSY_INVALID_STACK=$([int]$InvalidBusyStack.IsPresent)" `
         "X86_64_CONTEXT_CASE=$ContextCase" `
+        "X86_64_EXIT_STATUS=$ExitStatus" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."
