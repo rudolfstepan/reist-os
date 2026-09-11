@@ -156,3 +156,47 @@ einen neuen Logpfad (`guest-stackless.log`); alle übrigen Gateanforderungen
 bleiben gleich. Belege in [CURRENT_WORK](CURRENT_WORK.md). Der verbleibende
 allgemeine Lifecycle ist weiterhin offen, insbesondere allgemeine Userfault-
 Beendigung und Ablösung der fest verdrahteten Probephasen.
+
+## R8.3c: Ausnahmebeendigung und vollständiges Kind-Retirement
+
+Nach `473ce58c` fehlt die normale Beendigung eines fehlerhaften Shellkindes.
+Der vorhandene Exceptionpfad kennt überwiegend exakte Probeadressen; der
+Shell-Kindexit akzeptiert ausschließlich77 bei bereits geschlossener IPC.
+R8.3c behandelt diese eine Fehler-/Ownershipgrenze zusammenhängend: frühe
+Fehler, noch gepufferte Nachrichten, wartender Receive-Elternprozess und
+bereits blockierendes WAIT. Keine Einzelpakete je Vektor oder IPC-Phase.
+
+Die Intel-Exceptionvektoren bleiben unverändert. Ein kleiner, auch nativ am
+Host ausführbarer Assembly-Klassifikator akzeptiert CPL3-Fehler0/1/3/4/5/6/
+13/14/16/17/19; Kernelherkunft, NMI, Double Fault, Machine Check, #NM und
+unbekannte Vektoren werden nicht als reparierbarer Prozessfehler behandelt.
+RIP/RSP sind Diagnosedaten und werden niemals dereferenziert oder als gültige
+Useradresse vorausgesetzt: gerade ein ungültiger Stack/Entry kann Fehlerursache
+sein. Der bestehende REIST-Raw-Status nutzt128+Vektor für Ausnahmebeendigung;
+kein POSIX-`waitpid`-Bitlayout und keine Linux-Binärkompatibilitätsbehauptung.
+
+Unter gesperrten Interrupts Identität, Generation, Elternbeziehung, Queue und
+Deadlinebesitz prüfen; anschließend Kind und dessen vorhandene exklusive
+Eltern-/Kind-IPC-Verbindung fencen, Nachrichten/Waits verwerfen, Timer abmelden,
+Profil/FP/Frames/Seitentabellen/ELF reapten. Erst danach darf der Elternprozess
+fortsetzen. Eine feste generationgebundene Terminalquittung bleibt bis WAIT,
+ohne Kindframes oder Rechte zu behalten. WAIT konsumiert genau einmal;
+nachträgliches CLOSE derselben bereits eingezäunten Verbindung ist idempotent.
+Ein blockierter Receive kehrt mit EPIPE zurück. Keine Policy für beliebige
+geteilte Endpoints oder verwaiste Eltern in diesem Paket.
+
+Normaler Kindexit und Ausnahme-Retirement behalten die bestehenden positiven
+Probes. Zusätzliche Build-Testparameter wählen ausschließlich die eingebettete
+Kindfixture (Vektor und vier Phasen); weder Kernelklassifikation noch Rechte
+werden davon abhängig. Der C-Shell-Prüfer erwartet den entsprechenden Raw-
+Status und prüft Recovery/Reap in beiden Generationen. Kein neuer Produkt-
+Shellbefehl, keine normale i386-Imageänderung.
+
+Neun eingefrorene Gruppen: Hostklassifikation O0/O2 mit negativen Frames und
+unzugänglichen Useradressen, bestehende FP-/SDK-/55 Bootstraptests, Doku,
+Normalbuild/Normalgast,24 reale TCG-Varianten (DE/BP/UD/GP/PF/MF je vier Phasen)
+und i386-Imageguard. Je Gast eine CPU/128MiB/maximal10s; je isoliertem Build
+maximal90s. Matrixbelege in eindeutigen Unterordnern, kein Überschreiben.
+#XM/#AC-Klassifikation ist kein echter Hardware-Ausnahmenachweis; deren
+Zielhardware-Abnahme bleibt vor allgemeiner nativer FP-Anwendungsfreigabe offen.
+R3.6b und R341-H1/H2 bleiben zurückgestellt beziehungsweise offen.
