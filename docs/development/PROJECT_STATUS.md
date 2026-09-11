@@ -4,6 +4,13 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R8.3n trennt die Freigabebilanz nativer gestagter Programmabbilder von
+unabhängigen Speichereigentümern. Tatsächlicher gemeinsamer Freigabekern,
+Restbesitz bei Teilfehlern und unveränderte Gesamtbilanz; Gastprüfung aller
+sechs Freigabereihenfolgen mit erhaltenen fremden Frames/Inhalten.
+Keine neue Prozess-/RAM-Kapazität oder Shared-RX-Autorität.
+Details in [CURRENT_WORK](CURRENT_WORK.md#r83n-unabhängige-freigabe-nativer-programmabbilder).
+
 R8.3m vereint Installation, Syscall-/IRQ-Prüfung und Widerruf nativer
 Syscallprofile im privaten generationsgebundenen Kern. Rollenpolitik und
 Rechte bleiben unverändert. Neuer Gast prüft222 verweigerte Aufrufe,

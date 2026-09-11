@@ -31,6 +31,19 @@ nicht bereits parallele Ring3-Dienste oder skalierbares RAM.
 Unverändert:128MiB/1CPU/vier Slots/zwei Kinder, alle Zeit-/Ressourcenlimits,
 i386-Referenz, R3.6b-Zurückstellung und offene Hardware-/Systemabnahmen.
 
+Abnahme R8.3n: alle22 Gruppen bestanden. Vorher-Gast belegt den falschen
+Ladebestand32343 gegen32340 nach Freigabe bei fremdem Restbesitz. Neuer
+Freigabekern O0/O2 über256 Belegungen und1024 einzelne Backendfehler;
+Restbesitz/Retry und unveränderte Nachbarn geprüft. Neuer Gast sechs
+Permutationen/18 Freigaben mit Read-only-IF0-/Freizählerbelegen in0.843s.
+Normalbild177300 Bytes; normale IPC0-Kinder bleiben Exit77 (echte RIP),
+nicht Exit91 aus der IPC1-Fixture.18 Mechanismen über71 Builds bytegleich,
+alle bisherigen17 Mechanismen und normalen User-ELFs gegenüber R8.3m
+unverändert. Sämtliche alten Gastmatrizen und i386-Guard bestanden.
+Ein alter Quelltest grenzt den Allokationspunkt jetzt ausdrücklich auf den
+Lader statt den vorgeschalteten Canary-Selbsttest ein. Negative Vorher- und
+Prüferbelege bleiben erhalten. [Abnahmebelege](CURRENT_WORK.md#r83n-unabhängige-freigabe-nativer-programmabbilder).
+
 ## R8.3m: gemeinsamer Lebenszyklus der Syscall-Profile
 
 Basis31b6395b: Identität/Queues sind bereits private wiederverwendbare Kerne.

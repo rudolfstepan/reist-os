@@ -216,7 +216,8 @@ class X8664BootstrapContractTests(unittest.TestCase):
 
     def test_elf64_loader_validates_standard_headers_before_allocation(self):
         source = self.read("arch/x86_64/exec/elf64_loader.asm")
-        allocation = source.index("call physical_frame_alloc64")
+        load = source.index("x86_64_elf64_load64:")
+        allocation = source.index("call physical_frame_alloc64", load)
         for validation in (
             "ELF_MAGIC           equ 0x464C457F",
             "ELFCLASS64          equ 2",
@@ -231,9 +232,9 @@ class X8664BootstrapContractTests(unittest.TestCase):
         ):
             self.assertIn(validation, source)
             self.assertLess(source.index(validation), allocation)
-        self.assertIn("jc elf64_load_fail", source[:allocation])
-        self.assertIn("cmp rax, rdx", source[:allocation])
-        self.assertIn("and edx, PF_W | PF_X", source[:allocation])
+        self.assertIn("jc elf64_load_fail", source[load:allocation])
+        self.assertIn("cmp rax, rdx", source[load:allocation])
+        self.assertIn("and edx, PF_W | PF_X", source[load:allocation])
 
     def test_elf64_staging_is_bounded_verified_and_fully_cleaned(self):
         source = self.read("arch/x86_64/exec/elf64_loader.asm")
@@ -250,6 +251,15 @@ class X8664BootstrapContractTests(unittest.TestCase):
         cleanup = source.index("call x86_64_elf64_release64")
         self.assertLess(cleanup, marker)
         self.assertIn("REIST_X86_64_ELF64_LOAD_OK", runner)
+
+    def test_image_release_preserves_independent_ownership_contract(self):
+        source = self.read("arch/x86_64/exec/elf64_loader.asm")
+        core = self.read("arch/x86_64/exec/image_frames.asm")
+        self.assertIn("call reist_x64_image_release", source)
+        self.assertIn("cmp eax, r13d", core)
+        self.assertIn("call elf64_context_selftest64", source)
+        self.assertIn("ELF_CONTEXT_SIZE    equ 88", source)
+        self.assertIn("$(X86_64_IMAGE_FRAMES_OBJ)", self.read("Makefile"))
 
     def test_ring3_shell_is_independently_linked_fixed_and_bounded(self):
         shell = self.read("arch/x86_64/user/shell.c")

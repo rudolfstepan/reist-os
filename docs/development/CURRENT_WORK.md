@@ -2,6 +2,54 @@
 
 Stand: 11. September 2026
 
+## R8.3n: unabhängige Freigabe nativer Programmabbilder
+
+Basisb9b82a5a, Vertrag62563b06. Der gemeinsame private Freigabekern prüft
+den bestehenden88-Byte-Bildkontext vor Effekten und gibt nur dessen maximal
+acht aufgezeichnete Seiten frei. Die Bilanz bezieht sich auf erfolgreich
+freigegebene Seiten dieses Aufrufs unter IF0, nicht auf den globalen Bestand
+vom Ladezeitpunkt. Andere Abbilder und unabhängig belegte Frames dürfen
+weiterleben. Der Ladebestand bleibt Diagnose; die Gesamtprüfungen beim
+Bootstrapende, Spawn-OOM und Task-Reap bleiben unverändert verpflichtend.
+
+Fehlgeschlagene Freigaben behalten Frame und Flags. Erfolgreiche Freigaben
+löschen genau ihre Records; Wiederholung gibt nichts doppelt frei. Ungültige
+Flags, doppelte/unausgerichtete Frames und beschädigte Metadaten werden vor
+Freigaben verworfen. Backend-/Bilanzfehler bleiben fatal, niemals ENOMEM.
+Dies ist keine neue Shared-RX-Referenzzählung: alle Konsumenten müssen vor
+Freigabe weiterhin gefenced/geerntet sein. Keine neue öffentliche ABI.
+
+Die erhaltene Vorher-Gastregression zeigt den Fehler bei der ersten
+PROBE-Freigabe: Ladebestand32343, tatsächlicher Bestand32340 wegen anderer
+Eigentümer. Der neue Gast prüft alle drei Abbilder plus einen gehaltenen
+Canaryframe in sechs Freigabereihenfolgen:18 Bildfreigaben, genaue Frame-IDs,
+vollständige Seitendiagnosechecksummen, Canaryinhalt und Abschlussbilanz.
+Read-only-GDB bestätigt die tatsächlichen Freigaben unter IF0. Der normale
+IPC0-Gast fordert weiterhin Exit77 und die echte Instruktionsadresse, nicht
+den Exit91 der separaten IPC1-Fixture. Die falsche erste Oracleannahme und
+der alte Quelltest mit unpassender erster Canaryallokation bleiben als
+negative Belege erhalten; die jeweiligen Prüfungen wurden gezielt korrigiert.
+
+Hostnachweis: tatsächlicher Assemblykern O0/O2, alle256 sparsamen
+Seitenbelegungen und1024 einzelne Freigabefehler mit Restbesitz/Retry,
+unveränderte Nachbarobjekte, Metadatenablehnung und falsche Freizähler.
+Belege build/codex-agent/r83n-images;22 eingefrorene Gategruppen.
+Weiterhin1CPU/128MiB/vier Slots/zwei Kindgenerationen. Keine Abnahme
+allgemeiner nativer Dienste, skalierbaren RAMs oder des vollständigen OS.
+R3.6b bleibt ausdrücklich zurückgestellt.
+
+Abnahme R8.3n: alle22 Gruppen bestanden. Neuer Host3/1.071s;
+Profile4/1.219s, OOM3/0.890s, Requests3/0.933s, Bootstrap56/0.034s,
+Startup4/1.236s, Exit3/0.860s und Context2/1.017s. Der neue beobachtete
+Gast besteht in0.843s; Normalbild177300 Bytes und regulärer Dialog bestanden.
+Profilgast4.895s, OOM6/12 in7.771s, Requests3/6 in8.435s,
+Argv4/8 in11.288s, Exit24/48 in66.864s, Fault24/48 in69.682s,
+Busy2/4 in6.908s, Context7/14 in22.409s, IPC4/8 in12.708s.
+18 Mechanismusobjekte sind über71 Builds bytegleich; die bisherigen17
+Mechanismen und beide normalen User-ELFs sind gegenüber R8.3m unverändert.
+i386-Referenzguard bestanden (5.946s inklusive Prozessstart). Negative
+Vorher- und Oracle-/Quelltestbelege bleiben erhalten, keine Quotenänderung.
+
 ## R8.3m: gemeinsamer generationsgebundener Syscall-Profilkern
 
 Basis31b6395b, Vertrag70e5d228. Installation vor READY, Zulassung am

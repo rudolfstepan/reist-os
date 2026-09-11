@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3n-x86_64-independent-image-lifetime"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3n-x86_64-independent-image-lifetime"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Independent staged ELF image frame lifetime and verified partial release"
@@ -27,7 +27,7 @@ runtime_tests = ["python scripts/run_qemu_x86_64_image_contexts.py --image build
 acceptance = "All22 groups. Regression first reproduces the old load-baseline dependency in a preserved headless guest. Actual production image-release assembly O0/O2 with disjoint owners, all sparse8-frame layouts, every free-failure position, unchanged errors and idempotent partial retry. Guest six permutations/18 independent image releases plus surviving canary and frame/data checks; read-only ordered receipts and negative oracle. Old profile/OOM/request/argv/exit/fault/busy/context/IPC matrices and normal+i386 remain mandatory. Review frozen scope/diff/queue, commit and continue from clean worktree."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for general shared image/loader authority, new memory profile or broader supervisor boundary"]
 commit_message = "fix: release native image frames independently of other owners"
-evidence = []
+evidence = ["python test/test_x86_64_image_contexts.py -v", "python test/test_x86_64_profiles.py -v", "python test/test_x86_64_spawn_oom.py -v", "python test/test_x86_64_requests.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_argv.py -v", "python test/test_x86_64_exit.py -v", "python test/test_x86_64_context.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83n-images/normal", "python scripts/run_qemu_x86_64_image_contexts.py --image build/codex-agent/r83n-images/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83n-images/contexts", "python scripts/run_qemu_x86_64_profiles.py --evidence build/codex-agent/r83n-images/profiles", "python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83n-images/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83n-images/normal-guest.log", "python scripts/run_qemu_x86_64_spawn_oom.py --evidence build/codex-agent/r83n-images/spawn_oom", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83n-images/requests", "python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83n-images/argv", "python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83n-images/exit", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83n-images/fault", "python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83n-images/busy", "python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83n-images/user_context", "python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83n-images/ipc_handoff", "python scripts/verify_js_colors_artifacts.py"]
 
 [[packages]]
 id = "R8.3m-x86_64-syscall-profile-lifecycle"
@@ -2942,7 +2942,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

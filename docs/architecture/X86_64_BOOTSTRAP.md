@@ -2,6 +2,22 @@
 
 Stand: 28. August 2026
 
+R8.3n (11. September2026): Der private88-Byte-ELF-Kontext bleibt unverändert.
+Ein gemeinsamer System-V-AMD64-Freigabekern validiert alle acht Frame-/Flag-
+Records vor Effekten (ELF PF_R, PF_R|PF_X oder PF_R|PF_W, eindeutige
+ausgerichtete Frames im128MiB-Profil). Markierte noch unallokierte Seiten
+bleiben für Ladefehler/OOM-Rollback zulässig. Erfolgreiche Freigaben löschen
+nur eigene Records; fehlgeschlagene behalten Besitz. Wiederholung ist
+idempotent. Der globale Freiframezähler muss um genau die erfolgreich
+freigegebenen Frames steigen, bei serialisiertem Single-CPU-Betrieb unter
+IF0. Der historische Ladefreizähler ist nur Diagnose: andere Eigentümer
+dürfen seit dem Laden Speicher belegt haben. Metadaten-/Backend-/Bilanzfehler
+bleiben fatal. Die abschließende Gesamtbilanz und alle Spawn-/Reap-Gates
+bleiben erhalten. Konsumenten vorher fencen/reapen; keine neue Referenzzählung,
+keine beliebigen Userpointer oder konkurrierende Eigentumsänderungen.
+Sechs Gastpermutationen mit drei Abbildern und einem unabhängigen Canary
+beweisen gestagte Lebensdauer, nicht allgemeine parallele Ring3-Dienste.
+
 R8.3m (11. September2026): Installation, Syscallabfrage, IRQ-Bindungsprüfung
 und Widerruf verwenden denselben privaten SysV-AMD64-Profilkern.32-Byte-
 Descriptor aus Task-/Profilpointer, Generation und expliziter Politikmaske;

@@ -72,6 +72,7 @@ global x86_64_elf64_select_image64
 extern physical_frame_alloc64
 extern physical_frame_free64
 extern physical_free_frame_count64
+extern reist_x64_image_release
 extern serial_write64
 
 x86_64_elf64_loader_selftest64:
@@ -87,9 +88,231 @@ x86_64_elf64_loader_selftest64:
     call x86_64_elf64_release64
     test eax, eax
     jz elf64_return_failure
+    call elf64_context_selftest64
+    test eax, eax
+    jz elf64_return_failure
     lea rsi, [rel elf64_load_ok_message]
     call serial_write64
     mov eax, 1
+    ret
+
+; Independence proof for staged images only: no new execution authority.
+; Each round retains a separate canary frame while releasing all three images
+; in one of the six possible orders. Every survivor keeps exact frame IDs and
+; a full-page diagnostic checksum. The final free-count balance is independent
+; of the release helper's per-operation delta check.
+elf64_context_selftest64:
+    mov byte [rel elf_context_selftest_active], 1
+    mov byte [rel elf_context_selftest_round], 0
+.round:
+    call physical_free_frame_count64
+    mov [rel elf_context_selftest_initial], eax
+    mov byte [rel elf_context_selftest_released], 0
+    mov byte [rel elf_context_selftest_image], 0
+.load:
+    movzx edi, byte [rel elf_context_selftest_image]
+    call x86_64_elf64_select_image64
+    cmp eax, 1
+    jne .fail
+    call x86_64_elf64_load64
+    cmp eax, 1
+    jne .fail
+    movzx eax, byte [rel elf_context_selftest_image]
+    shl eax, 6
+    lea rdi, [rel elf_context_selftest_frames]
+    add rdi, rax
+    lea rsi, [rel elf_page_frames]
+    mov ecx, USER_PAGE_COUNT
+    rep movsq
+    call elf64_context_checksum64
+    cmp edx, 1
+    jne .fail
+    movzx ecx, byte [rel elf_context_selftest_image]
+    lea rdi, [rel elf_context_selftest_hashes]
+    mov [rdi + rcx*8], rax
+    test ecx, ecx
+    jnz .next_load
+    call physical_frame_alloc64
+    test rax, rax
+    jz .fail
+    mov [rel elf_context_selftest_held], rax
+    mov rdi, DIRECT_MAP_BASE
+    add rdi, rax
+    mov rax, 0x7a51d30fc629b480
+    mov ecx, PAGE_SIZE / 8
+    rep stosq
+.next_load:
+    inc byte [rel elf_context_selftest_image]
+    cmp byte [rel elf_context_selftest_image], ELF_CONTEXT_COUNT
+    jb .load
+    mov byte [rel elf_context_selftest_cursor], 0
+.release:
+    movzx eax, byte [rel elf_context_selftest_round]
+    lea eax, [eax + eax*2]
+    movzx ecx, byte [rel elf_context_selftest_cursor]
+    add eax, ecx
+    lea rdx, [rel elf_context_release_orders]
+    movzx edi, byte [rdx + rax]
+    mov byte [rel elf_context_selftest_image], dil
+    call x86_64_elf64_select_image64
+    cmp eax, 1
+    jne .fail
+    call x86_64_elf64_release64
+    cmp eax, 1
+    jne .fail
+    movzx ecx, byte [rel elf_context_selftest_image]
+    mov eax, 1
+    shl eax, cl
+    or byte [rel elf_context_selftest_released], al
+    ; Idempotent image release must not free a survivor or the held frame.
+    call x86_64_elf64_release64
+    cmp eax, 1
+    jne .fail
+    mov byte [rel elf_context_selftest_image], 0
+.verify:
+    movzx ecx, byte [rel elf_context_selftest_image]
+    movzx eax, byte [rel elf_context_selftest_released]
+    bt eax, ecx
+    jc .next_verify
+    mov edi, ecx
+    call x86_64_elf64_select_image64
+    cmp eax, 1
+    jne .fail
+    cmp byte [rel elf_load_active], 1
+    jne .fail
+    movzx eax, byte [rel elf_context_selftest_image]
+    shl eax, 6
+    lea rdi, [rel elf_context_selftest_frames]
+    add rdi, rax
+    lea rsi, [rel elf_page_frames]
+    mov ecx, USER_PAGE_COUNT
+    repe cmpsq
+    jne .fail
+    call elf64_context_checksum64
+    cmp edx, 1
+    jne .fail
+    movzx ecx, byte [rel elf_context_selftest_image]
+    lea rdi, [rel elf_context_selftest_hashes]
+    cmp [rdi + rcx*8], rax
+    jne .fail
+.next_verify:
+    inc byte [rel elf_context_selftest_image]
+    cmp byte [rel elf_context_selftest_image], ELF_CONTEXT_COUNT
+    jb .verify
+    call elf64_context_canary64
+    cmp eax, 1
+    jne .fail
+    ; Compute the remaining ownership independently from saved frame lists.
+    mov r8d, 1
+    xor ecx, ecx
+.count_images:
+    movzx eax, byte [rel elf_context_selftest_released]
+    bt eax, ecx
+    jc .count_next
+    mov eax, ecx
+    shl eax, 6
+    lea rdx, [rel elf_context_selftest_frames]
+    add rdx, rax
+    xor edi, edi
+.count_frames:
+    cmp qword [rdx + rdi*8], 0
+    je .count_frame_next
+    inc r8d
+.count_frame_next:
+    inc edi
+    cmp edi, USER_PAGE_COUNT
+    jb .count_frames
+.count_next:
+    inc ecx
+    cmp ecx, ELF_CONTEXT_COUNT
+    jb .count_images
+    call physical_free_frame_count64
+    add eax, r8d
+    jc .fail
+    cmp eax, [rel elf_context_selftest_initial]
+    jne .fail
+    inc byte [rel elf_context_selftest_cursor]
+    cmp byte [rel elf_context_selftest_cursor], ELF_CONTEXT_COUNT
+    jb .release
+    mov rdi, [rel elf_context_selftest_held]
+    call physical_frame_free64
+    cmp eax, 1
+    jne .fail
+    mov qword [rel elf_context_selftest_held], 0
+    call physical_free_frame_count64
+    cmp eax, [rel elf_context_selftest_initial]
+    jne .fail
+    lea rsi, [rel elf_context_round_ok]
+    call serial_write64
+    inc byte [rel elf_context_selftest_round]
+    cmp byte [rel elf_context_selftest_round], 6
+    jb .round
+    xor edi, edi
+    call x86_64_elf64_select_image64
+    cmp eax, 1
+    jne .fail
+    mov byte [rel elf_context_selftest_active], 0
+    lea rsi, [rel elf_contexts_ok]
+    call serial_write64
+    mov eax, 1
+    ret
+.fail:
+    xor eax, eax
+    ret
+
+; Diagnostic FNV-1a over flags and every owned page byte, not an authority hash.
+elf64_context_checksum64:
+    mov r10, 0xcbf29ce484222325
+    mov r9, 0x100000001b3
+    xor ecx, ecx
+.page:
+    lea rdi, [rel elf_page_flags]
+    movzx eax, byte [rdi + rcx]
+    xor r10, rax
+    imul r10, r9
+    lea rdi, [rel elf_page_frames]
+    mov rax, [rdi + rcx*8]
+    test rax, rax
+    jz .next
+    test rax, PAGE_SIZE - 1
+    jnz .bad
+    cmp rax, 0x08000000
+    jae .bad
+    mov rdx, DIRECT_MAP_BASE
+    add rdx, rax
+    mov r8d, PAGE_SIZE
+.bytes:
+    movzx eax, byte [rdx]
+    xor r10, rax
+    imul r10, r9
+    inc rdx
+    dec r8d
+    jnz .bytes
+.next:
+    inc ecx
+    cmp ecx, USER_PAGE_COUNT
+    jb .page
+    mov rax, r10
+    mov edx, 1
+    ret
+.bad:
+    xor edx, edx
+    ret
+
+elf64_context_canary64:
+    mov rdi, [rel elf_context_selftest_held]
+    test rdi, rdi
+    jz .bad
+    mov rax, DIRECT_MAP_BASE
+    add rdi, rax
+    mov rax, 0x7a51d30fc629b480
+    mov ecx, PAGE_SIZE / 8
+    repe scasq
+    jne .bad
+    mov eax, 1
+    ret
+.bad:
+    xor eax, eax
     ret
 
 x86_64_elf64_load64:
@@ -542,45 +765,14 @@ elf_user_direct_pointer64:
     ret
 
 elf64_cleanup64:
-    mov byte [rel elf_cleanup_error], 0
-    xor ecx, ecx
-.cleanup_loop:
-    cmp ecx, USER_PAGE_COUNT
-    jae .cleanup_count
-    lea rdx, [rel elf_page_frames]
-    mov rdi, qword [rdx + rcx * 8]
-    test rdi, rdi
-    jz .clear_metadata
-    push rcx
-    call physical_frame_free64
-    pop rcx
-    test eax, eax
-    jnz .clear_frame
-    mov byte [rel elf_cleanup_error], 1
-    jmp .next_cleanup
-.clear_frame:
-    lea rdx, [rel elf_page_frames]
-    mov qword [rdx + rcx * 8], 0
-.clear_metadata:
-    lea rdx, [rel elf_page_flags]
-    mov byte [rdx + rcx], 0
-.next_cleanup:
-    inc ecx
-    jmp .cleanup_loop
-.cleanup_count:
-    call physical_free_frame_count64
-    cmp eax, dword [rel elf_initial_free_count]
-    jne .cleanup_failed
-    cmp byte [rel elf_cleanup_error], 0
-    jne .cleanup_failed
-    mov byte [rel elf_load_active], 0
-    mov byte [rel elf_load_segment_count], 0
-    mov byte [rel elf_entry_is_executable], 0
-    mov qword [rel elf_entry_address], 0
-    mov eax, 1
-    ret
-.cleanup_failed:
-    xor eax, eax
+    ; Normalize legacy assembly callers to the shared SysV AMD64 mechanism.
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    lea rdi, [rel elf_context_window]
+    call reist_x64_image_release
+    mov rsp, rbp
+    pop rbp
     ret
 
 section .rodata
@@ -600,8 +792,21 @@ user_child_elf_start:
 user_child_elf_end:
 
 elf64_load_ok_message db "REIST_X86_64_ELF64_LOAD_OK", 13, 10, 0
+elf_context_release_orders: db 0,1,2, 0,2,1, 1,0,2, 1,2,0, 2,0,1, 2,1,0
+elf_context_round_ok: db "REIST_X86_64_IMAGE_CONTEXT_ROUND_OK",13,10,0
+elf_contexts_ok: db "REIST_X86_64_IMAGE_CONTEXTS_OK",13,10,0
 
 section .bss
+alignb 16
+elf_context_selftest_frames: resq ELF_CONTEXT_COUNT * USER_PAGE_COUNT
+elf_context_selftest_hashes: resq ELF_CONTEXT_COUNT
+elf_context_selftest_held: resq 1
+elf_context_selftest_initial: resd 1
+elf_context_selftest_active: resb 1
+elf_context_selftest_round: resb 1
+elf_context_selftest_image: resb 1
+elf_context_selftest_cursor: resb 1
+elf_context_selftest_released: resb 1
 alignb 16
 elf_last_load_error:
     resq 1
