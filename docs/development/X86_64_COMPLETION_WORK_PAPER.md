@@ -4,6 +4,33 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3n: unabhängige Lebensdauer gestagter Programmabbilder
+
+Basisb9b82a5a: Der ELF-Cleanup vergleicht nach Freigabe noch mit dem globalen
+Freiframebestand vom Ladezeitpunkt. Später geladene unabhängige Bilder oder
+andere lebende Frames machen diesen Vergleich falsch. Die gemeinsame
+Eigentumsgrenze wird repariert, nicht die Kapazität künstlich vergrößert.
+
+Bestehender88-Byte-Kontext, maximal8 Frames, private System-V-AMD64-Schnittstelle.
+Vor Freigabe Frame-/Flag-/Eindeutigkeitsmetadaten prüfen, nur eigene Records
+freigeben und den Delta-Freizähler der tatsächlich erfolgreichen Freigaben
+innerhalb IF0 prüfen. Fehlgeschlagene Freigaben behalten ihren Besitz,
+Teilfortschritt wird explizit gespeichert, Wiederholung gibt nichts doppelt
+frei. Beschädigte Kernelmetadaten sind kein ENOMEM. Der alte Ladefreizähler
+bleibt Diagnose; Gesamtbilanz am Bootstrap-/Spawn-/Reap-Ende bleibt Pflicht.
+Konsumenten müssen weiterhin vorher gefenced/geerntet sein; keine neue
+Shared-RX-Referenzzählung oder allgemeine ELF-/VFS-Autorität.
+
+Reihenfolge: Gastregression für den bisherigen Fehler erhalten; tatsächlichen
+Freigabekern mit kontrolliertem Hostbackend O0/O2 prüfen; Loader anbinden;
+alle drei gestagten Abbilder und einen unabhängigen Canaryframe im Gast
+in allen sechs Freigabereihenfolgen prüfen; dann alle bestehenden Matrizen.
+Neue Gäste beweisen Frame-/Inhaltserhalt und18 unabhängige Bildfreigaben,
+nicht bereits parallele Ring3-Dienste oder skalierbares RAM.
+22 eingefrorene Gategruppen, Belege build/codex-agent/r83n-images.
+Unverändert:128MiB/1CPU/vier Slots/zwei Kinder, alle Zeit-/Ressourcenlimits,
+i386-Referenz, R3.6b-Zurückstellung und offene Hardware-/Systemabnahmen.
+
 ## R8.3m: gemeinsamer Lebenszyklus der Syscall-Profile
 
 Basis31b6395b: Identität/Queues sind bereits private wiederverwendbare Kerne.
