@@ -7,6 +7,82 @@ aktive Paketqueue in `automation/reist-s03b.toml`.
 R341-H1 und R341-H2 bleiben ausdrücklich offen; neue grüne Abnahmen lösen
 diese alten ungeklärten Fehlerbelege nicht ab. R3.6b bleibt zurückgestellt.
 
+R8.3p vereinheitlicht die native private Task-Frame-Freigabe und Rollbacks:
+vollständige Vorabprüfung, keine Freigabe der aktiven PML4, erhaltener
+Restbesitz bei Fehlern und unveränderte Generationen/Quoten. Der genehmigte
+IPC-Prüfernachtrag ordnet Eintritt/Rückkehr eindeutig zu; alle vier Gastfälle
+bestehen mit unveränderten exakten Verzweigungsbelegen. Keine Duplikatfilterung,
+keine Kernel-/User-Fixture-Änderung durch diesen Nachtrag. Tatsächliche
+Host- und Gastbelege sowie der28-Gruppen-Abnahmestand in
+[CURRENT_WORK](CURRENT_WORK.md#r83p-validierte-task-frame-freigabe-und-rollback).
+
+Der native Stand bleibt ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
+64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
+
+R3.44 ergänzt geprüfte native Farbausgabe mit
+`echo --color red Text` und `colortst`, für VGA und Boot-Framebuffer.
+Typisierte 96-Byte-Requests, höchstens 64 ASCII-Bytes/ein LF pro Aufruf,
+schreibbarer Terminaldescriptor, Vordergrundprüfung, kein Farbzustand.
+Alle 13 Prüfgruppen bestanden, inklusive VGA-/Boot-Framebuffer-Pixeln und
+bestehenden JS-/Browser-Gästen. Benchmark-/Mathematik-/Textprogramme bleiben
+in allen drei Images byteidentisch; keine neue Geschwindigkeitsmessung.
+R3.45 ergänzt `reist.printColor/errorColor`, Version2-Records mit vollständig
+geprüfter Hostpublikation und zwei Shellbeispielen (`jscolors.js`, `mandelc.js`).
+Alle17 Gruppen bestanden, einschließlich exakter Farb-/Mandelbrot-Ausgabe
+und Pixeln auf VGA/Framebuffer, eingeschränktem Worker und Browser-Recovery.
+Kernel und92 der95 Programme bytegleich, nur JS/JSWORK/JSRUNTST geändert.
+Keine neuen Workerrechte; alte Version1-Records bleiben gültig. Belege:
+[CURRENT_WORK](CURRENT_WORK.md).
+
+REIST OS ist ein nicht zertifizierter High-Assurance-Forschungsprototyp. Die
+vorhandenen Schutzmechanismen dürfen nicht als klinische, industrielle oder
+sonstige sicherheitsbezogene Freigabe verstanden werden.
+
+## Aktueller Kurzstand
+
+| Bereich | Belegter Stand | Weiterhin offen / Grenze |
+|---|---|---|
+| Plattform | i386, eigener BIOS-/MBR-Boot, signiertes Manifest v3, Ring-3-Shell; 512 MiB Referenzplatte, 1024 MiB VM-RAM | x86_64 bleibt isolierter Prototyp; kein UEFI-/allgemeiner Secure-Boot-Claim |
+| Resilienz | Generationen, Capabilities, Fencing, begrenzte Recovery; privater Ring-3-Speicher und FPU-Kontextisolation | monolithische Treiber-/VFS-Altlasten; kein Nachweis physischer DIMM-/DMA-/Supervisor-Isolation für jede Plattform |
+| Browser | HTML5, CSS, externe Stylesheets, begrenztes Flex/Grid, Bilder, GET-Formulare, Wheel, TrueType (R3.29), große Surface-Geometrien (R3.33) | keine allgemeine Websitekompatibilität, Webfonts/Shaping/Bidi, vollständiges DOM/Events/fetch noch offen |
+| Browser-JS | QuickJS in eigenem eingeschränkten Ring-3-Worker; Inline/externe klassische Skripte, Text/Attribute/Klassen | keine impliziten VFS-/Netz-/Prozessrechte, keine Node.js-API |
+| Shell-JS | Runner R3.35, explizite Lesecapabilities R3.36, sieben Beispiele R3.43; R3.45-Farbausgabe plus zwei Demos abgenommen | system-/fs-Fassade, auswertbarer Shell-Exitstatus, JS-Schreibrechte und Verzeichnisrechte offen; Farbtext nur ASCII |
+| Desktop | Anzeige-/Maus-Applets, vollständige Resize-Ecke, Minimieren/Maximieren/Wiederherstellen, Taskleisten-Restore | Einstellungen beim nächsten Desktopstart; formale VMware-Pointerabnahme R3.6b bleibt zurückgestellt |
+| C++ | SDK-Teilprofil und bounded Types sowie Response-/Ressourcen-/Modellpiloten R3.17–R3.20 abgenommen | kein kompletter Browser-/Kernelumbau, öffentliche Grenzen bleiben C-kompatibel |
+| Dateisysteme | stabile Objektlebensdauer, Storage-Reap vor Ersatz, FAT32-Recovery/Handoff und R3.42-Schreibobjekte | neue Schreibobjekte nur bestehende reguläre FAT32-Dateien auf ATA-PIO; kein Create-/FAT12-/EXT2-/AHCI- oder JS-Schreibrecht daraus |
+
+R3.42 wurde mit allen 37 Gruppen als `f808b558` angenommen. R3.43 hat alle
+fünf Gruppen bestanden, einschließlich zweimaliger Ausführung aller sieben
+Skripte in der echten Shell und exakter 64×24-Mandelbrot-Ausgabe. Beide
+Referenzkernel und alle 94 Programme sind gegenüber R3.42 bytegleich.
+Kommandos, Zeiten und archivierte Hashes: [CURRENT_WORK](CURRENT_WORK.md).
+
+Der einzelne authentifizierte QEMU-TCG-Vergleich aus R3.42 ergab bei
+1024 MiB/1 CPU CPU 1,068×, sequenzielles Schreiben 1,222× und Lesen 6,816×.
+Das ist kein VMware-/Hardware-Durchsatz-, Langzeit- oder WCET-Nachweis;
+R3.43 hat keine neue Geschwindigkeitsmessung vorgenommen.
+
+Offen bleiben insbesondere **R341-H1** (damals verweigerter Stage-5-Read ohne
+ursprünglichen errno) und **R341-H2** (STAT-Erfolg ohne folgenden Prompt,
+Ursache ungeklärt). Spätere bestandene Tests schließen diese Datensätze nicht.
+Bei erschöpftem Storage-Recoverybudget bleiben normale File-Object-Zugriffe
+geschlossen; ein geprüfter begrenzter Rettungslesepfad ist kein transparenter
+Fallback für alle Programme. Siehe [offene Probleme](KNOWN_ISSUES.md).
+
+Nach der nativen Farb-Publikationsgrenze folgen sichere JS-Farb-Records,
+die konkret zu definierende CLI-API-/Exitstatus-Stufe und explizite JS-
+Dateirechte. Keine globale `fs`-Autorität. Die formale Queue-Auswahl von R3.6b
+nach jedem Abschluss hebt die vom Nutzer festgelegte Zurückstellung nicht auf.
+
+## Historische Paketstände und Detailbelege
+
+Die folgenden Abschnitte dokumentieren die jeweiligen damaligen Schritte.
+Formulierungen wie „noch nicht“, „nächster“ oder „aktiv“ gelten für diesen
+historischen Paketstand, nicht als zweite aktuelle Queue. Anforderungen und
+offene Hardwarebelege bleiben erhalten; der Kurzstand oben ist der Einstieg.
+
+### Native64-Paketbelege
+
 R8.3o führt alle bisherigen nativen Task-Mappings über einen gemeinsamen
 vor Effekten validierten physischen Plan. Gültige schreibgeschützte Daten
 sind jetzt R/NX statt fälschlich abgewiesen; RW bleibt privat und NX,
@@ -96,67 +172,7 @@ sämtliche alten Normal-/Fault-/Busy-/Contextgates bestanden.
 Der native Stand bleibt ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 
-R3.44 ergänzt geprüfte native Farbausgabe mit
-`echo --color red Text` und `colortst`, für VGA und Boot-Framebuffer.
-Typisierte 96-Byte-Requests, höchstens 64 ASCII-Bytes/ein LF pro Aufruf,
-schreibbarer Terminaldescriptor, Vordergrundprüfung, kein Farbzustand.
-Alle 13 Prüfgruppen bestanden, inklusive VGA-/Boot-Framebuffer-Pixeln und
-bestehenden JS-/Browser-Gästen. Benchmark-/Mathematik-/Textprogramme bleiben
-in allen drei Images byteidentisch; keine neue Geschwindigkeitsmessung.
-R3.45 ergänzt `reist.printColor/errorColor`, Version2-Records mit vollständig
-geprüfter Hostpublikation und zwei Shellbeispielen (`jscolors.js`, `mandelc.js`).
-Alle17 Gruppen bestanden, einschließlich exakter Farb-/Mandelbrot-Ausgabe
-und Pixeln auf VGA/Framebuffer, eingeschränktem Worker und Browser-Recovery.
-Kernel und92 der95 Programme bytegleich, nur JS/JSWORK/JSRUNTST geändert.
-Keine neuen Workerrechte; alte Version1-Records bleiben gültig. Belege:
-[CURRENT_WORK](CURRENT_WORK.md).
-
-REIST OS ist ein nicht zertifizierter High-Assurance-Forschungsprototyp. Die
-vorhandenen Schutzmechanismen dürfen nicht als klinische, industrielle oder
-sonstige sicherheitsbezogene Freigabe verstanden werden.
-
-## Aktueller Kurzstand
-
-| Bereich | Belegter Stand | Weiterhin offen / Grenze |
-|---|---|---|
-| Plattform | i386, eigener BIOS-/MBR-Boot, signiertes Manifest v3, Ring-3-Shell; 512 MiB Referenzplatte, 1024 MiB VM-RAM | x86_64 bleibt isolierter Prototyp; kein UEFI-/allgemeiner Secure-Boot-Claim |
-| Resilienz | Generationen, Capabilities, Fencing, begrenzte Recovery; privater Ring-3-Speicher und FPU-Kontextisolation | monolithische Treiber-/VFS-Altlasten; kein Nachweis physischer DIMM-/DMA-/Supervisor-Isolation für jede Plattform |
-| Browser | HTML5, CSS, externe Stylesheets, begrenztes Flex/Grid, Bilder, GET-Formulare, Wheel, TrueType (R3.29), große Surface-Geometrien (R3.33) | keine allgemeine Websitekompatibilität, Webfonts/Shaping/Bidi, vollständiges DOM/Events/fetch noch offen |
-| Browser-JS | QuickJS in eigenem eingeschränkten Ring-3-Worker; Inline/externe klassische Skripte, Text/Attribute/Klassen | keine impliziten VFS-/Netz-/Prozessrechte, keine Node.js-API |
-| Shell-JS | Runner R3.35, explizite Lesecapabilities R3.36, sieben Beispiele R3.43; R3.45-Farbausgabe plus zwei Demos abgenommen | system-/fs-Fassade, auswertbarer Shell-Exitstatus, JS-Schreibrechte und Verzeichnisrechte offen; Farbtext nur ASCII |
-| Desktop | Anzeige-/Maus-Applets, vollständige Resize-Ecke, Minimieren/Maximieren/Wiederherstellen, Taskleisten-Restore | Einstellungen beim nächsten Desktopstart; formale VMware-Pointerabnahme R3.6b bleibt zurückgestellt |
-| C++ | SDK-Teilprofil und bounded Types sowie Response-/Ressourcen-/Modellpiloten R3.17–R3.20 abgenommen | kein kompletter Browser-/Kernelumbau, öffentliche Grenzen bleiben C-kompatibel |
-| Dateisysteme | stabile Objektlebensdauer, Storage-Reap vor Ersatz, FAT32-Recovery/Handoff und R3.42-Schreibobjekte | neue Schreibobjekte nur bestehende reguläre FAT32-Dateien auf ATA-PIO; kein Create-/FAT12-/EXT2-/AHCI- oder JS-Schreibrecht daraus |
-
-R3.42 wurde mit allen 37 Gruppen als `f808b558` angenommen. R3.43 hat alle
-fünf Gruppen bestanden, einschließlich zweimaliger Ausführung aller sieben
-Skripte in der echten Shell und exakter 64×24-Mandelbrot-Ausgabe. Beide
-Referenzkernel und alle 94 Programme sind gegenüber R3.42 bytegleich.
-Kommandos, Zeiten und archivierte Hashes: [CURRENT_WORK](CURRENT_WORK.md).
-
-Der einzelne authentifizierte QEMU-TCG-Vergleich aus R3.42 ergab bei
-1024 MiB/1 CPU CPU 1,068×, sequenzielles Schreiben 1,222× und Lesen 6,816×.
-Das ist kein VMware-/Hardware-Durchsatz-, Langzeit- oder WCET-Nachweis;
-R3.43 hat keine neue Geschwindigkeitsmessung vorgenommen.
-
-Offen bleiben insbesondere **R341-H1** (damals verweigerter Stage-5-Read ohne
-ursprünglichen errno) und **R341-H2** (STAT-Erfolg ohne folgenden Prompt,
-Ursache ungeklärt). Spätere bestandene Tests schließen diese Datensätze nicht.
-Bei erschöpftem Storage-Recoverybudget bleiben normale File-Object-Zugriffe
-geschlossen; ein geprüfter begrenzter Rettungslesepfad ist kein transparenter
-Fallback für alle Programme. Siehe [offene Probleme](KNOWN_ISSUES.md).
-
-Nach der nativen Farb-Publikationsgrenze folgen sichere JS-Farb-Records,
-die konkret zu definierende CLI-API-/Exitstatus-Stufe und explizite JS-
-Dateirechte. Keine globale `fs`-Autorität. Die formale Queue-Auswahl von R3.6b
-nach jedem Abschluss hebt die vom Nutzer festgelegte Zurückstellung nicht auf.
-
-## Historische Paketstände und Detailbelege
-
-Die folgenden Abschnitte dokumentieren die jeweiligen damaligen Schritte.
-Formulierungen wie „noch nicht“, „nächster“ oder „aktiv“ gelten für diesen
-historischen Paketstand, nicht als zweite aktuelle Queue. Anforderungen und
-offene Hardwarebelege bleiben erhalten; der Kurzstand oben ist der Einstieg.
+### Frühere i386-Paketbelege
 
 `R6.1-smp-bootstrap` aktiviert auf i386 erstmals echte zusätzliche xAPIC-
 Prozessoren. Ein checksum- und längengeprüfter ACPI-MADT-Pfad inventarisiert

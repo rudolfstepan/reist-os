@@ -2,6 +2,88 @@
 
 Stand: 11. September 2026
 
+## R8.3p: validierte Task-Frame-Freigabe und Rollback
+
+Basis a0f919a3, Vertrag083e89b2, genehmigter Prüfernachtrag d227a3ef.
+Der tatsächliche alte Freigabecode wird
+im Host erneut assembliert und zeigt bei doppeltem Privatframe zwei
+Backendaufrufe: erster Frame bereits frei, zweiter Record noch gesetzt.
+Der neue gemeinsame SysV-AMD64-Kern prüft alle vier gebundenen Recordbereiche,
+maximal13 Frame-IDs und CR3/PML4 vor dem ersten Free. Er benötigt weder
+Allocator-, Rollen- noch Prozesspolitik. Erster Backendfehler stoppt;
+erfolgreiche Freigaben werden sofort ausgetragen, Restbesitz bleibt erhalten.
+Ein lokaler Free-Delta-Vergleich bewahrt unabhängige Eigentümer.
+
+Alle bisherigen Reap-/Rollbackpfade verwenden diesen Kern. Der Adapter
+verweigert die aktuell aktive PML4 vor Effekten. Normale terminale Pfade
+schalten weiterhin auf Kernel-CR3; unveröffentlichte Baufehler besitzen
+keinen aktiven Kindadressraum. FP wird nach erfolgreicher Freigabe vollständig
+genullt; Profile, Budget, Identität und Generationen behalten ihre bestehende
+Reihenfolge. Kernelkorruption bleibt fatal, nicht als Ressourcenknappheit
+oder reparierter Dienstfehler umgedeutet. Keine neue ABI, Kapazität oder Rechte.
+
+Host O0/O2:8192 Sparse-Belegungen, jede der13 fehlschlagenden Freigaben,
+Restbesitz, Idempotenz, Pointer-/Framefehler vor Effekten und fremde Canaries.
+Read-only-Gast:20 echte Freigaben in sieben bestehenden Modi, alle tatsächlichen
+Free-Aufrufe gehören genau zum Plan und zur Reihenfolge; danach Privat-/Stack-/
+Tabellen-/CR3-Records und sämtliche512 FP-Bytes null. Zwei Kinder mit Exit77,
+WAIT und weiterlaufender Eltern-Shell. Normale User-ELFs unverändert.
+Belege build/codex-agent/r83p-retirement; Abnahmesatz nach Prüfernachtrag28
+Gategruppen.27 Code-/Build-/Laufzeitgruppen bestanden; Dokumentationsgate
+und verbindlicher vollständiger Paketstatus stehen in der Queue.
+Normalbild188408 Bytes. Allgemeine native Dienste/Systemabnahme bleiben offen.
+
+Erhaltene Diagnosefehler im neuen Beobachter: GDB behandelt `$fp` als
+schreibgeschützten Registeralias; umbenannt in reine Diagnosevariable.
+Die alten Präemptionsproben enden in Zustand5 vor geordneter Freigabe;
+das neue Oracle verlangt diesen Zustand ausschließlich für Slot1 in Modi2/3,
+nicht pauschal für andere Tasks. Kernel/Gastcode blieb dabei unverändert.
+
+Erhaltener erster Abnahmestopp nach24 von27 Gruppen: Der alte IPC-Prüfer meldet
+in Fall1 drei statt genau zwei `IPC_PLAN op=53 bits=0 generation=40`-Einträge.
+Fall0 besteht; Fall1 erreicht beide Exit91-/WAIT-/RUN-Abschlüsse und den
+normalen finalen Shellmarker, scheitert aber am unveränderten exakten Oracle.
+Roter Beleg: ipc_handoff/attempt-ddc5fef4ae26474fb11c9e4d5e5af759/1.
+Dokumentationsgate und i386-Guard wurden in diesem ersten Lauf nicht ausgeführt.
+
+Read-only-Diagnose mit zusätzlicher Aufruf-/Argument-/IF-Beobachtung und
+unveränderte Prüferläufe gegen aktuelles sowie abgenommenes R8.3o-Bild
+reproduzieren den zusätzlichen Eintrag bisher nicht. Damit ist weder ein
+weiterer Kernelaufruf noch ein doppelter Debuggerstopp als Ursache bewiesen.
+Verzeichnisse diagnose-ipc-8e4106bb98ab44d0ae05b395b539a292,
+diagnose-baseline-65d72bb8a6144108bad0ef089e0e6b01,
+diagnose-extra-25f260b534654c3ab8a5cb9ccf2f4f50 und
+diagnose-unmodified-5976bec2ff634b4293232b731b365bea bleiben erhalten.
+Grüne Diagnosewiederholungen ersetzen den roten Gatebeleg nicht.
+
+Genehmigter Nachtrag: Drei Hardware-Haltepunkte paaren nun Eintritt und echte
+Aufruferrückkehr. Stack, Task, Generation, User-RIP, Handle, Eingaben, IF0 und
+Planergebnis müssen zusammenpassen. Tatsächliche ELF-Instruktionsbytes und
+CALL-Ziel bestimmen die Rückkehrstelle. Erst eine vollständige Paarung liefert
+den bisherigen IPC_PLAN-Beleg; fehlende/doppelte Paare werden nie weggezählt.
+Das alte validate_trace mit exakten Anzahlen/Verzweigungen bleibt unverändert.
+
+Der erste gepaarte Lauf erfasste denselben Eintritt zweimal ohne Rückkehr,
+bei identischem Stack, Rücksprungziel und Eingaben. Er wurde korrekt abgewiesen
+(attempt-9d3c54e1307a4dc0b8be196ee89980ce/1). Der Beobachter führt jetzt bei
+abgeschaltetem betreffendem Haltepunkt genau eine geprüfte, nicht verzweigende
+CMP-Instruktion aus, prüft den erreichten PC und aktiviert den Haltepunkt sofort
+wieder. Weitere echte Eintritte bleiben sichtbar und führen bei offenem Paar
+zum Fehler. Keine Gastregister-/Speicherschreibzugriffe, kein automatischer
+Retry eines roten Gastlaufs, keine Änderung an Kernel oder User-Fixtures.
+Die interne Ursache des alten Debugger-Fortsetzungsverhaltens ist damit nicht
+abschließend bewiesen. Remote-Protokolldiagnose bleibt getrennt von Gatebelegen.
+
+GDB-Ausgabe geht direkt in eine begrenzte Diagnosedatei statt in eine erst am
+Ende geleerte Windows-Pipe. Maximal256 Planaufrufe,256KiB Beobachterausgabe,
+unverändert10s Gastdeadline. Fünf Hosttests prüfen Paar-/Metadatenfehler,
+Instruktionsdecoder und explizit: ein zusätzlicher echter abgeschlossener Aufruf
+scheitert weiterhin am alten Oracle. Alle vier frischen IPC-Gastfälle mit acht
+Kindgenerationen bestanden in13.733s, i386-Guard in5.353s. Belege13-observer-host.log,
+14-observer-ipc-gate.log,15-i386-guard.log sowie
+ipc_handoff/attempt-dc9f251f71654467bfd5f5325046f6aa. Die unveränderten24 bereits
+grünen Gruppen bleiben gemäß genehmigtem Vertrag gültig; rote Belege erhalten.
+
 ## R8.3o: gemeinsame Mappingprüfung und schreibgeschützte Daten
 
 Basis0e2d95c6, Vertrag a1fa3b42. Alle bisherigen nativen Taskaufbauten

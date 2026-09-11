@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3p-x86_64-task-frame-retirement"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3p-x86_64-task-frame-retirement"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Validated native private-task frame retirement and rollback"
@@ -28,7 +28,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_task_frames.py --image build/co
 acceptance = "All28 groups after explicit observer amendment, with the original27 groups and all exact IPC branch/count requirements retained. Actual pre-effect host proofs and real task release receipts; no source-only substitution, no weaker IPC/mapping/exit/fault/busy/context/OOM/profile/argv/image-lifetime/i386 oracle. Exact scope/frozen queue review, then local commit and clean next transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change allocator authority, task state/generation ABI, capacity or recovery policy"]
 commit_message = "fix: validate native task frame retirement before effects"
-evidence = []
+evidence = ["python test/test_x86_64_ipc_observer.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_x86_64_ipc_fixture.py -v", "python test/test_x86_64_mappings.py -v", "python test/test_x86_64_image_contexts.py -v", "python test/test_x86_64_profiles.py -v", "python test/test_x86_64_spawn_oom.py -v", "python test/test_x86_64_requests.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_argv.py -v", "python test/test_x86_64_exit.py -v", "python test/test_x86_64_context.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83p-retirement/normal", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83p-retirement/retirement", "python scripts/run_qemu_x86_64_mappings.py --evidence build/codex-agent/r83p-retirement/mappings", "python scripts/run_qemu_x86_64_image_contexts.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83p-retirement/contexts", "python scripts/run_qemu_x86_64_profiles.py --evidence build/codex-agent/r83p-retirement/profiles", "python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83p-retirement/normal-guest.log", "python scripts/run_qemu_x86_64_spawn_oom.py --evidence build/codex-agent/r83p-retirement/spawn_oom", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83p-retirement/requests", "python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83p-retirement/argv", "python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83p-retirement/exit", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83p-retirement/fault", "python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83p-retirement/busy", "python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83p-retirement/user_context", "python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83p-retirement/ipc_handoff", "python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All28 groups passed after approved observer amendment d227a3ef. The unchanged24 previously passed groups remain valid as frozen; new observer host5/0.079s, repaired IPC4 cases/8 generations13.733s, i386 guard5.353s, docs7/0.782s with one historical scope skip. Actual retirement ASM O0/O2:8192 sparse layouts, all13 failed-free positions and pre-effect negative cases; preserved actual legacy duplicate-after-free regression. Read-only guest20 real task releases, complete private/stack/table/CR3/FP clearing and both normal child generations1.581s. Original exact IPC validate_trace unchanged; entry/return receipts validate identity, stack, inputs and result, reject duplicate/missing calls. First paired run reproduced duplicate entry before return; explicit checked single-CMP stepping disarms/rearms only the current hardware breakpoint, no event filtering or guest writes. Old debugger internal cause not claimed proven. Direct bounded256KiB GDB log avoids undrained Windows pipe. All10s guest limits, rights, user programs unchanged by observer repair. Normal188408 bytes, all3 normal user ELFs byteidentical to a0f919a3;20 mechanisms identical across74 accepted builds,18 previous mechanisms unchanged. Evidence build/codex-agent/r83p-retirement: acceptance-3d2132f17de64f0dba7b2fd3b65e502c has21 unchanged passed groups and the preserved first IPC failure;13-observer-host.log,14-observer-ipc-gate.log,15-i386-guard.log,17-documentation-fixed.log,19-final-audit-fixed.log provide completion. All red evidence retained including duplicated hardware entry and first bounded-overview documentation failure; older package details moved to history, no doc oracle change. R3.6b formally reactivated but explicitly deferred. No complete native64 OS or larger RAM/SMP claim."
 
 
 [[packages]]
@@ -2980,7 +2981,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

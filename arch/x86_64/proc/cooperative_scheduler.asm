@@ -17,6 +17,7 @@ extern reist_x64_startup_stack
 extern reist_x64_request_admit
 extern reist_x64_profile_apply
 extern reist_x64_address_space_build
+extern reist_x64_task_frames_release
 global reist_x64_mapping_pointer64
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
@@ -6314,6 +6315,10 @@ scheduler_reap_terminal64:
     ret
 
 scheduler_release_task_frames64:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+    and rsp, -16
     lea rax, [rel scheduler_tasks]
     cmp r12, rax
     jb .fail
@@ -6324,58 +6329,38 @@ scheduler_release_task_frames64:
     sub rdx, rax
     test rdx, TASK_RECORD_SIZE - 1
     jnz .fail
-    ; Scrub on normal reap AND failed/forced construction rollback.
-    lea rdi, [rel scheduler_fp_states]
-    shl rdx, 1 ; 256-byte GPR stride -> 512-byte FP stride
-    add rdi, rdx
-    call x86_64_fp_clear64
-    xor ebp, ebp
-.private_loop:
-    mov rdi, qword [r12 + TASK_PRIVATE_FRAMES + rbp * 8]
-    test rdi, rdi
-    jz .next_private
-    call physical_frame_free64
-    test eax, eax
-    jz .fail
-    mov qword [r12 + TASK_PRIVATE_FRAMES + rbp * 8], 0
-.next_private:
-    inc ebp
-    cmp ebp, USER_PAGE_COUNT
-    jb .private_loop
-    mov rdi, qword [r12 + TASK_STACK_FRAME]
-    test rdi, rdi
-    jz .done
-    call physical_frame_free64
-    test eax, eax
-    jz .fail
-    mov qword [r12 + TASK_STACK_FRAME], 0
-.done:
-    mov rax, r12
+    shr rdx, 3 ;256-byte task stride ->32-byte table-record stride
+    lea rax, [rel scheduler_table_frames]
+    add rdx, rax
+    mov rax, cr3
+    cmp rax, [rdx + TASK_TABLE_PML4]
+    je .fail ;never release the currently active page-table root
+    lea rax, [r12 + TASK_PRIVATE_FRAMES]
+    mov [rsp], rax
+    lea rax, [r12 + TASK_STACK_FRAME]
+    mov [rsp + 8], rax
+    mov [rsp + 16], rdx
+    lea rax, [r12 + TASK_CR3]
+    mov [rsp + 24], rax
+    mov rdi, rsp
+    call reist_x64_task_frames_release
+    cmp eax, 1
+    jne .fail
+    ; Scrub on successful normal reap AND unpublished/forced rollback.
     lea rdx, [rel scheduler_tasks]
+    mov rax, r12
     sub rax, rdx
-    shr rax, 8
-    cmp eax, TASK_SLOT_CAPACITY
-    jae .fail
-    shl rax, 5
-    lea r13, [rel scheduler_table_frames]
-    add r13, rax
-    mov ebp, TASK_TABLE_LEVELS - 1
-.table_loop:
-    mov rdi, qword [r13 + rbp * 8]
-    test rdi, rdi
-    jz .next_table
-    call physical_frame_free64
-    test eax, eax
-    jz .fail
-    mov qword [r13 + rbp * 8], 0
-.next_table:
-    dec ebp
-    jns .table_loop
-    mov qword [r12 + TASK_CR3], 0
+    shl rax, 1 ;256-byte GPR stride ->512-byte FP stride
+    lea rdi, [rel scheduler_fp_states]
+    add rdi, rax
+    call x86_64_fp_clear64
     mov eax, 1
-    ret
+    jmp .return
 .fail:
     xor eax, eax
+.return:
+    mov rsp, rbp
+    pop rbp
     ret
 
 scheduler_append_event64:

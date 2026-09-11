@@ -1,6 +1,34 @@
 # REIST x86_64 bootstrap contract
 
-Stand: 28. August 2026
+Stand: 11. September 2026
+
+R8.3p (11. September2026): Ein privater32-Byte-SysV-AMD64-Bindungsrecord
+benennt die bereits gehaltenen8 Privatframe-, Stack-,4 Tabellen- und
+CR3-Records. Er ist kein Userpointervertrag. Alle gebundenen Bereiche sind
+gepinnte disjunkte Kernelobjekte; der Aufrufer serialisiert IF0 und fencet
+den Zieltask. Der Adapter verweigert seine aktuell aktive PML4 vor Effekten.
+Normaler Reap/Forced-Cleanup verwendet weiter Kernel-CR3, ein fehlgeschlagener
+unveröffentlichter Aufbau besitzt keinen aktiven Kindadressraum.
+
+Der gemeinsame Freigabekern prüft Pointerbereiche, alle maximal13 eindeutigen
+4KiB-Frame-IDs im bestehenden128MiB-Profil sowie CR3/PML4 vor jedem ersten
+Free. Privatseiten, Stack, PT, PD, PDPT, PML4 werden in dieser Reihenfolge
+freigegeben. Nur erfolgreiche Records werden genullt; erster Backendfehler
+stoppt mit erhaltenem Restbesitz. Der freie Framebestand muss um genau die
+erfolgreichen Freigaben dieses Aufrufs steigen. Kein erneutes Freigeben bereits
+gelöschter Records. FP-Scrub folgt erfolgreichem Cleanup; Generation/Profile/
+Budget/Identität bleiben außen im bisherigen Lifecycle. Normale Freigabe und
+Rollback sind gemeinsame Konsumenten. Kein Wiederanlauf nach Kernelkorruption,
+keine Behauptung allgemeiner Dienste, größerer Kapazitäten oder SMP-Freigabe.
+
+Genehmigter IPC-Prüfernachtrag d227a3ef: Drei read-only Hardware-Haltepunkte,
+gepaarte Plan-Eintritte/Aufruferrückkehr mit Identitäts-/Stack-/Eingabe-/
+Ergebnisprüfung. Reale Instruktionsbytes bestimmen CALL-Ziel/Rückkehrstelle;
+geprüftes Einzelschreiten ausschließlich der beiden nicht verzweigenden CMPs
+bei IF0, jeweiliger Haltepunkt sofort wieder scharf. Keine verworfenen oder
+deduplizierten Ereignisse. Alle alten exakten Branch-/Count-Anforderungen,
+maximal256 Aufrufe und10s Gastdeadline bleiben;256KiB Beobachterausgabe direkt
+in Datei verhindert GDB-Blockierung durch eine undrainierte Windows-Pipe.
 
 R8.3o (11. September2026): Gemeinsamer privater System-V-AMD64-Mappingkern
 für alle bisherigen Scheduler-Modi. Ein192-Byte-Plan benennt vier bereits

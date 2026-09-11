@@ -25,9 +25,22 @@ Produktionsassembly O0/O2 mit8192 Sparse-Belegungen, allen Fehlerpositionen,
 Nichtmutation, Restbesitz/Idempotenz und unabhängigen Eigentümern prüfen;
 alle Task-Freigaben/Rollbacks anbinden; echte Gast-Receipts inklusive
 FP-/Tabellen-/Privat-/CR3-Nullung und Elternfortschritt. Alle25 bisherigen
-Gates plus neuer Host-/Gastnachweis:27 Gruppen. User-ELFs bleiben gegenüber
+Gates plus neuer Host-/Gastnachweis zunächst27 Gruppen; genehmigter
+IPC-Beobachternachtrag d227a3ef ergänzt einen Hosttest auf insgesamt28.
+User-ELFs bleiben gegenüber
 a0f919a3 bytegleich,1CPU/128MiB/vier Slots/zwei Kinder und Zeitbudgets gleich.
 Belege build/codex-agent/r83p-retirement. Keine vollständige OS-Fertigmeldung.
+
+Produktionskern und20 reale Task-Freigaben geprüft. Der genehmigte IPC-Prüfer
+paart Eintritt/Rückkehr über Hardware-Haltepunkte und prüft echte CALL-/CMP-
+Instruktionen, Stack, Identität, Eingaben und Resultat. Explizites Einzelschreiten
+der nicht verzweigenden Vergleichsinstruktion verhindert unkontrolliertes
+Fortsetzen direkt auf dem scharfen Haltepunkt. Keine Duplikatfilterung und
+keine Lockerung des alten exakten Branch-/Count-Oracles. Alle vier neuen
+IPC-Gastfälle bestanden; alte Fehlbelege bleiben erhalten.27 Code-/Build-/
+Laufzeitgruppen grün, Dokumentationsgate/Paketabschluss in der Queue.
+Prüferumfang, unveränderte Abnahmeanforderungen und erhaltene Belege stehen
+in [CURRENT_WORK](CURRENT_WORK.md#r83p-validierte-task-frame-freigabe-und-rollback).
 
 ## R8.3o: gemeinsamer validierter Adressraumaufbau
 
