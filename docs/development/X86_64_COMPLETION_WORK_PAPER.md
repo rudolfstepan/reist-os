@@ -215,3 +215,39 @@ bleiben gültig. Endgültige Belege und erhaltene Fehlversuche in
 [CURRENT_WORK](CURRENT_WORK.md). Der nächste fachliche Schritt bleibt der
 allgemeine, nicht auf die festen Testgenerationen beschränkte Lifecycle;
 keine Freigabe beliebiger nativer Programme aus dieser Teilabnahme.
+
+## R8.3d: rollenunabhängiger Ready-/Deadline-Kern
+
+Bestand nach `bf471ba3`: FIFO, sortierte Deadline-Einfügung und Entnahme sind
+im großen Assembly-Proof mit Modusprüfung und teils rollenabhängiger Löschung
+vermischt. Diese eine Queue-/Besitzgrenze wird gemeinsam herausgelöst, nicht
+als Pakete pro Operation. Die tatsächlich benutzten Mechanismen erhalten
+einen privaten Kernel-Descriptor und kennen weder Testmodus noch PID/Token.
+Vorhandene Taskzustands-/Profil- und Tickregeln verbleiben im ausdrücklich
+begrenzten Bootstrapadapter. Keine zweite parallele Schedulerautorität.
+
+Interne SysV-AMD64-Aufrufkonvention; keine neue öffentliche API oder POSIX-
+Schedulerkompatibilitätsbehauptung. FIFO bewahrt Ankunftsreihenfolge, Deadlines
+sortieren nach absolutem monotonem Tick und bei Gleichstand nach Slot, wie
+bisher. Kapazität1..64 konfigurierbar, Bootstrap weiter4. Bestehende private
+Generation32-/Slotpackung bleibt erhalten; null und High-Bit-Eingaben werden
+abgewiesen, niemals abgeschnitten. Generationsüberlauf darf keine alte
+Identität reaktivieren. RAM-/Taskbudgetänderungen sind damit nicht freigegeben.
+
+Descriptor und Speicher sind ausschließlich kernel-eigen und unter IF=0 auf
+dem bisherigen Ein-CPU-Profil serialisiert. Vollständige begrenzte Prüfung
+von Metadaten, sortierter/zyklischer Form, Leerstellen und eindeutigem Besitz
+vor der ersten Mutation. Doppelte Queueaufnahme, fremde Generation, volle oder
+beschädigte Queue bewirken keine Mutation. Deadlineentfernung ist exakt
+generationgebunden und kompaktierend; fehlender Eintrag bleibt ohne Wirkung.
+Adapter verhindern gleichzeitige Ready-/Deadline-Mitgliedschaft. Kein Heap,
+I/O, Logging, Busy-Wait oder versteckte Reparatur korrupter Kernelmetadaten.
+
+Neun eingefrorene Gruppen: neuer echter Assembly-Hostnachweis O0/O2 mit
+Kapazitäten1/3/4/64, FIFO-Wrap/Fairness, Deadlinereihenfolge/Gleichständen/
+Cancel, negativen Generationen und Snapshot-Nichtmutation sowie modellbasiertem
+Stress; bestehende Bootstrap-/FP-/Fault-/Dokutests, Normalbuild/Normalgast,
+24 bestehende echte Faultvarianten und i386-Imageguard. Alte Gastmarker bleiben
+Pflicht; nur überholte Quellassertions werden auf Mechanismus plus Adapter
+umgestellt. Belege `build/codex-agent/r83d-queue/`, kein Überschreiben alter
+Fehlläufe. Keine SMP-/beliebige-Prozess-/vollständige64-Bit-Freigabe daraus.
