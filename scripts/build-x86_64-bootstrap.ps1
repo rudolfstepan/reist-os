@@ -155,8 +155,23 @@ $CText = Join-Path $RepoRoot "$OutputDirectory\x86_64\bootstrap_core_text.bin"
 $CRodata = Join-Path $RepoRoot "$OutputDirectory\x86_64\bootstrap_core_rodata.bin"
 $CData = Join-Path $RepoRoot "$OutputDirectory\x86_64\bootstrap_core_data.bin"
 
+$buildRoot = [IO.Path]::GetFullPath((Join-Path $RepoRoot 'build'))
+$outputRoot = [IO.Path]::GetFullPath((Join-Path $RepoRoot $OutputDirectory))
+if ($outputRoot -ne $buildRoot -and
+    -not $outputRoot.StartsWith($buildRoot + [IO.Path]::DirectorySeparatorChar,
+                               [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'x86_64 output must remain within the repository build directory.'
+}
+$savedZigGlobalCache = $env:ZIG_GLOBAL_CACHE_DIR
+$savedZigLocalCache = $env:ZIG_LOCAL_CACHE_DIR
+$savedBuildPath = $env:Path
 Push-Location $RepoRoot
 try {
+    # Keep compiler/linker caches inside the writable workspace, including lld.
+    $env:ZIG_GLOBAL_CACHE_DIR = Join-Path $buildRoot 'zig-global-cache'
+    $env:ZIG_LOCAL_CACHE_DIR = Join-Path $outputRoot 'x86_64\zig-cache'
+    New-Item -ItemType Directory -Force -Path $env:ZIG_GLOBAL_CACHE_DIR,
+        $env:ZIG_LOCAL_CACHE_DIR | Out-Null
     # GNU Make may execute simple recipes directly; make the native MSYS
     # mkdir available just like the production Windows build does.
     $env:Path = "$(Split-Path -Parent $MsysShell);$env:Path"
@@ -257,5 +272,8 @@ try {
     Write-Host "X86_64_C_CORE_BUILD_OK path=$CObject bytes=$($objectBytes.Length)"
     Write-Host "X86_64_C_PAYLOAD_BUILD_OK path=$CElf bytes=$($cElfBytes.Length)"
 } finally {
+    $env:ZIG_GLOBAL_CACHE_DIR = $savedZigGlobalCache
+    $env:ZIG_LOCAL_CACHE_DIR = $savedZigLocalCache
+    $env:Path = $savedBuildPath
     Pop-Location
 }

@@ -15,7 +15,10 @@ und [CURRENT_WORK](CURRENT_WORK.md).
 
 D1.1-Dokumentationsabgleich und R3.44-Terminalfarben sind abgeschlossen.
 R3.45 ergänzt sichere JS-Farbausgabe samt zwei Beispielen, ohne Workerrechte.
-Danach: die vorgeschlagene CLI-Fassade
+Neue Nutzerpriorität: native x86_64-Version fertigstellen. Bestand, SDK-Basis
+R8.3a und Reihenfolge bis zur vollständigen Systemabnahme:
+[X86_64_COMPLETION_WORK_PAPER](X86_64_COMPLETION_WORK_PAPER.md).
+Die weiteren JS-Funktionen sind nachgeordnet: die vorgeschlagene CLI-Fassade
 mit ausdrücklich definiertem Exitstatus sowie explizite JS-Dateirechte nach
 dem [Scripting-Workpaper](OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md). Eine
 `fs`-Fassade erzeugt keine impliziten Rechte. Verzeichnisrechte brauchen einen

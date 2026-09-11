@@ -252,14 +252,12 @@ class X8664BootstrapContractTests(unittest.TestCase):
         shell = self.read("arch/x86_64/user/shell.c")
         linker = self.read("config/x86_64_user_shell.ld")
         makefile = self.read("Makefile")
-        for syscall in (
-            "REIST_SYS_EXIT 9ULL", "REIST_SYS_READ 15ULL",
-            "REIST_SYS_WRITE 20ULL", "REIST_SYS_GETPID 22ULL",
-            "REIST_SYS_SPAWN 23ULL", "REIST_SYS_WAIT 24ULL",
-            "REIST_SYS_SPAWNV 30ULL",
-            "REIST_SYS_YIELD 40ULL",
-        ):
-            self.assertIn(syscall, shell)
+        abi = self.read("include/reist/abi/syscall.h")
+        self.assertIn('#include <reist/x86_64/syscall.h>', shell)
+        self.assertNotIn('#define REIST_SYS_', shell)
+        for name, number in (("EXIT",9),("READ",15),("WRITE",20),("GETPID",22),
+                             ("SPAWN",23),("WAIT",24),("SPAWNV",30),("YIELD",40)):
+            self.assertIn(f"X({name}, {name}, {number}U)", abi)
         self.assertIn("SHELL_COMMAND_CAPACITY 16U", shell)
         self.assertIn("SHELL_POLL_LIMIT 67108864U", shell)
         self.assertIn("while (polls < SHELL_POLL_LIMIT)", shell)
@@ -416,9 +414,9 @@ class X8664BootstrapContractTests(unittest.TestCase):
             "SHELL_CHILD_STATUS 77U", '"/shell/child"',
         ):
             self.assertIn(contract, shell)
-        getpid = shell.index("REIST_SYS_GETPID", shell.index('command_equals(command, "RUN",'))
-        spawn = shell.index("REIST_SYS_SPAWNV", getpid)
-        wait = shell.index("REIST_SYS_WAIT", spawn)
+        getpid = shell.index("REIST_X64_SYS_GETPID", shell.index('command_equals(command, "RUN",'))
+        spawn = shell.index("REIST_X64_SYS_SPAWNV", getpid)
+        wait = shell.index("REIST_X64_SYS_WAIT", spawn)
         run_ok = shell.index("shell_write_exact(run_ok", wait)
         self.assertLess(getpid, spawn)
         self.assertLess(spawn, wait)
@@ -437,7 +435,7 @@ class X8664BootstrapContractTests(unittest.TestCase):
         scheduler = self.read("arch/x86_64/proc/cooperative_scheduler.asm")
         self.assertIn('"token77"', shell)
         self.assertIn("shell_u64 child_argv[2]", shell)
-        self.assertIn("REIST_SYS_SPAWNV", shell)
+        self.assertIn("REIST_X64_SYS_SPAWNV", shell)
         self.assertIn("REIST_SYS_SPAWNV           equ 30", scheduler)
         self.assertIn("scheduler_handle_shell_spawnv64:", scheduler)
         self.assertIn("cmp qword [rel syscall_rdx], SHELL_ARGC", scheduler)
@@ -541,22 +539,22 @@ class X8664BootstrapContractTests(unittest.TestCase):
         )
         self.assertIn("_Static_assert(sizeof(shell_ipc_message_t) == IPC_MESSAGE_SIZE", shell)
         run = shell.index('command_equals(command, "RUN",')
-        create = shell.index("REIST_SYS_IPC_CREATE", run)
-        parent_send = shell.index("REIST_SYS_IPC_SEND", create)
-        parent_send_timeout = shell.index("REIST_SYS_IPC_SEND_TIMEOUT", parent_send)
-        parent_probe = shell.index("REIST_SYS_IPC_RECEIVE", parent_send_timeout)
-        empty_timeout = shell.index("REIST_SYS_IPC_RECEIVE_TIMEOUT", parent_probe)
-        spawn = shell.index("REIST_SYS_SPAWNV", empty_timeout)
-        delegate = shell.index("REIST_SYS_IPC_DELEGATE", spawn)
-        first_yield = shell.index("REIST_SYS_YIELD", delegate)
-        second_yield = shell.index("REIST_SYS_YIELD", first_yield + 1)
-        third_yield = shell.index("REIST_SYS_YIELD", second_yield + 1)
-        fourth_yield = shell.index("REIST_SYS_YIELD", third_yield + 1)
-        queued_receive = shell.index("REIST_SYS_IPC_RECEIVE", fourth_yield)
-        timeout_queued_receive = shell.index("REIST_SYS_IPC_RECEIVE", queued_receive + 1)
-        receive = shell.index("REIST_SYS_IPC_RECEIVE_TIMEOUT", timeout_queued_receive)
-        close = shell.index("REIST_SYS_IPC_CLOSE", receive)
-        wait = shell.index("REIST_SYS_WAIT", close)
+        create = shell.index("REIST_X64_SYS_IPC_CREATE", run)
+        parent_send = shell.index("REIST_X64_SYS_IPC_SEND", create)
+        parent_send_timeout = shell.index("REIST_X64_SYS_IPC_SEND_TIMEOUT", parent_send)
+        parent_probe = shell.index("REIST_X64_SYS_IPC_RECEIVE", parent_send_timeout)
+        empty_timeout = shell.index("REIST_X64_SYS_IPC_RECEIVE_TIMEOUT", parent_probe)
+        spawn = shell.index("REIST_X64_SYS_SPAWNV", empty_timeout)
+        delegate = shell.index("REIST_X64_SYS_IPC_DELEGATE", spawn)
+        first_yield = shell.index("REIST_X64_SYS_YIELD", delegate)
+        second_yield = shell.index("REIST_X64_SYS_YIELD", first_yield + 1)
+        third_yield = shell.index("REIST_X64_SYS_YIELD", second_yield + 1)
+        fourth_yield = shell.index("REIST_X64_SYS_YIELD", third_yield + 1)
+        queued_receive = shell.index("REIST_X64_SYS_IPC_RECEIVE", fourth_yield)
+        timeout_queued_receive = shell.index("REIST_X64_SYS_IPC_RECEIVE", queued_receive + 1)
+        receive = shell.index("REIST_X64_SYS_IPC_RECEIVE_TIMEOUT", timeout_queued_receive)
+        close = shell.index("REIST_X64_SYS_IPC_CLOSE", receive)
+        wait = shell.index("REIST_X64_SYS_WAIT", close)
         run_ok = shell.index("shell_write_exact(run_ok", wait)
         order = [create, parent_send, parent_send_timeout, parent_probe,
                  empty_timeout, spawn, delegate, first_yield, second_yield,
@@ -740,16 +738,16 @@ class X8664BootstrapContractTests(unittest.TestCase):
         shell = self.read("arch/x86_64/user/shell.c")
         scheduler = self.read("arch/x86_64/proc/cooperative_scheduler.asm")
         run = shell.index('command_equals(command, "RUN",')
-        final_receive = shell.index("REIST_SYS_IPC_RECEIVE_TIMEOUT",
-                                    shell.index("REIST_SYS_SPAWNV", run))
-        revoke_receive = shell.index("REIST_SYS_IPC_RECEIVE_TIMEOUT",
+        final_receive = shell.index("REIST_X64_SYS_IPC_RECEIVE_TIMEOUT",
+                                    shell.index("REIST_X64_SYS_SPAWNV", run))
+        revoke_receive = shell.index("REIST_X64_SYS_IPC_RECEIVE_TIMEOUT",
                                      final_receive + 1)
-        redelegate = shell.index("REIST_SYS_IPC_DELEGATE", revoke_receive)
+        redelegate = shell.index("REIST_X64_SYS_IPC_DELEGATE", revoke_receive)
         token78 = shell.index("prepare_ipc_token(&ipc_message, (shell_u8)'8')",
                               redelegate)
-        parent_send = shell.index("REIST_SYS_IPC_SEND", token78)
-        close = shell.index("REIST_SYS_IPC_CLOSE", parent_send)
-        wait = shell.index("REIST_SYS_WAIT", close)
+        parent_send = shell.index("REIST_X64_SYS_IPC_SEND", token78)
+        close = shell.index("REIST_X64_SYS_IPC_CLOSE", parent_send)
+        wait = shell.index("REIST_X64_SYS_WAIT", close)
         self.assertEqual([revoke_receive, redelegate, token78, parent_send,
                           close, wait],
                          sorted([revoke_receive, redelegate, token78,

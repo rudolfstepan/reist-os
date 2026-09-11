@@ -86,3 +86,26 @@ bestehenden Images oder Belege überschreiben. QEMU bleibt headless, eine CPU,
 128MiB/10s für diesen unveränderten Prototypnachweis. Keine Hardware-/SMP- oder
 Mehr-GiB-Zusage aus diesem Paket. R341-H1/H2 und die ausdrückliche R3.6b-
 Zurückstellung bleiben offen. JS-Folgefeatures sind zugunsten x86_64 nachgeordnet.
+
+### Genehmigter Prüfernachtrag vom 11. September 2026
+
+Der Nutzer hat die gezielte Erweiterung von
+`scripts/verify_js_colors_artifacts.py` samt `test/test_js_colors.py` genehmigt:
+Der vorhandene Hauptbuild ist VMware/VGA, nicht QEMU/VGA. Der Prüfer muss
+das konfigurierte Profil der Rohplatte verwenden und im Bericht benennen.
+Alle Kernel-, Programm-, Beispiel- und authentifizierten Archivprüfungen
+bleiben bestehen; VMware darf nicht als QEMU-Nachweis erscheinen.
+Framebuffer-Archivierung bleibt ausschließlich QEMU/Framebuffer.
+Die sechs ursprünglichen Gatebefehle bleiben unverändert, hinzu kommt
+`python test/test_js_colors.py -v` mit positiven und negativen Profil- und
+Binärregressionen. Keine vorhandenen Images neu bauen oder überschreiben.
+
+### Ergebnis R8.3a
+
+SDK-Basis abgenommen: C/C++ O0/O2, LP64 und Architekturabweisung,55 bestehende
+Bootstrapverträge, Dokumentation, separater nativer Build und echter QEMU-
+Dialog mit beiden IPC-Kindgenerationen bestanden. Der genehmigte Imageprüfer-
+Nachtrag ist mit7 Hosttests und realen Images geprüft. Alle ursprünglichen
+Kernel-/PRG-Checks bleiben aktiv. Vollständige Belege und Grenzen stehen in
+[CURRENT_WORK](CURRENT_WORK.md). Nächster fachlicher Schritt ist der allgemeine
+Kernel-Lifecycle, ausdrücklich nicht die Erklärung des Prototyps zum fertigen OS.

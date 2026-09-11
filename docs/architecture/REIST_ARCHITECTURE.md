@@ -14,6 +14,12 @@ speicherbasierte JS-Farbrecords mit vollständiger Hostvalidierung, ohne zusätz
 Scriptrechte; siehe [JS-Farbvertrag](JS_COLOR_OUTPUT_CONTRACT.md).
 CLI-System-/Dateifassade und Shell-Exitstatus bleiben separate Hostgrenzen.
 
+Seit 11. September hat die native x86_64-Fertigstellung Nutzerpriorität.
+R8.3a trennt den wiederverwendbaren 64-Bit-Syscalltransport von der Test-Shell;
+die allgemeinen Kernel-/Speicher-/Dienst-/Userspace-Portierungen folgen dem
+[Fertigstellungsplan](../development/X86_64_COMPLETION_WORK_PAPER.md).
+Der bisherige128MiB-Bootstrap ist ausdrücklich noch kein vollständiges64-Bit-OS.
+
 ## Standard-first-Kompatibilitätsregel
 
 R3.16 fuehrt ausschliesslich ein opt-in C++20-Teilprofil fuer Ring 3 ein;

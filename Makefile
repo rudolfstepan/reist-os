@@ -372,7 +372,7 @@ x86_64-bootstrap:
 	@$(AS) -f elf64 arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
 		-T config/x86_64_user_probe.ld -o $(X86_64_USER_PROBE_ELF) $(X86_64_USER_PROBE_OBJ)
-	@$(X86_64_CC) $(X86_64_USER_CFLAGS) -c arch/x86_64/user/shell.c \
+	@$(X86_64_CC) $(X86_64_USER_CFLAGS) -Iuserspace/sdk/include -c arch/x86_64/user/shell.c \
 		-o $(X86_64_USER_SHELL_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T config/x86_64_user_shell.ld \

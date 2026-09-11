@@ -2,6 +2,47 @@
 
 Stand: 11. September 2026
 
+## R8.3a: x86_64-SDK-Basis abgenommen
+
+Nutzerpriorität geändert: native64-Bit-Version vor weiteren JS-Funktionen.
+Vertragscheckpoint `85ae070e`, Basis `fd8dc3d7`,
+[Fertigstellungsplan](X86_64_COMPLETION_WORK_PAPER.md).
+Gemeinsamer C/C++-Transport0..6 Argumente, Nummern aus autoritativer Tabelle,
+vollständige64-Bit-Register und signed Ergebnisse; echte Shell als Verbraucher.
+Kernelprofile, Aufgaben-/Speicherkapazitäten und IPC-/Reap-Abfolge unverändert.
+Sechs ursprüngliche Gruppen plus genehmigter Prüfernachtrag bestanden;
+Belege unter `build/codex-agent/r83a-sdk/`.
+SDK3 Tests final1.885s (C/C++ O0/O2, alle0..6 Argumente, breite Werte,
+negative Ergebnisse, LP64-Compile und32-Bit-Ablehnung);55 bestehende
+Bootstrapverträge0.147s; Dokumentation7/0.605s mit historischem Scope-Skip.
+Nativer Build2.292s: Bootstrap155244 Bytes, ELF64-Shell3680 Bytes,
+Kind912 Bytes. Echter QEMU-Dialog INFO/RUN/RUN/EXIT bestanden1.300s,
+einschließlich aller vorherigen Schutz-/IPC-/Cleanupmarker.
+Die O0-Hosttoolchain injizierte eine unbenutzte rtlib-Option; nur deren
+Treiberwarnung ist im Test ausgenommen, Quellwarnungen bleiben Fehler.
+Der isolierte Build verwendet jetzt Workspace-Caches und restauriert die
+Umgebung; der ursprüngliche Benutzer-Cache war nicht beschreibbar.
+
+Der ursprünglich blockierende Imageprüfer ist nach ausdrücklicher
+Scopefreigabe repariert: Hauptbuild VMware/VGA verwendet die authentifizierte
+VMware-Basis und wird als `main-vmware` statt fälschlich als QEMU ausgewiesen.
+Alle Kernel-/Programm-/Beispiel-/Archivprüfungen bleiben erhalten; die
+Framebuffer-Archivierung bleibt QEMU-spezifisch. Zusätzliche7 Orakeltests
+bestanden10.397s, einschließlich beider Hauptprofile, aller95 Programme pro
+Image, falscher Kernel, geänderter Programme/Beispiele/Basis und Fehlprofile.
+Echte Imageprüfung4.207s bestanden, Bericht
+`build/codex-agent/r345-js-colors/artifacts-b4699a1dbc724d3fbf6b6901a9f32001.json`.
+Alle95 PRGs pro Image entsprechen dem Hauptbuild, davon92 zusätzlich der
+authentifizierten R3.44-Basis; drei JS-Programme bleiben die R3.45-Ausnahme.
+Kein erneuter i386-Build, keine Imageänderung, kein neuer i386-QEMU-Lauf.
+Nur betroffene Gates nach gezielter Korrektur wiederholt; alte Fehlbelege erhalten.
+Noch keine vollständige Systemmigration, Mehr-GiB-/Hardware-/SMP-Abnahme.
+i386-Images bleiben unangetastet; alte Risiken und R3.6b-Zurückstellung bleiben.
+Die Queue rückt formal auf das verbleibende R3.6b-Paket vor; dessen explizite
+Zurückstellung bleibt wirksam. Fachlich folgt laut Nutzerpriorität zuerst
+die Definition des allgemeinen x86_64-Kernel-Lifecycle-Pakets aus dem Workpaper,
+nicht die Wiederaufnahme der VMware-Pointerabnahme. Kein Folgepaket hier umgesetzt.
+
 ## R3.45: JavaScript-Farbausgabe abgenommen
 
 Vertragscheckpoint `4a5c6823`, Basis `c66f5de9`. `reist.printColor/errorColor`

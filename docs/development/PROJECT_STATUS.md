@@ -4,6 +4,12 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+Neue Priorität: native64-Bit-Systemversion. R8.3a-SDK-Basis abgenommen:
+gemeinsamer C/C++-Transport, echte ELF64-Shell und QEMU-IPC-/Reap-Nachweis;
+alle sieben Prüfgruppen bestanden, vorhandene i386-Images unverändert.
+R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
+64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
+
 R3.44 ergänzt geprüfte native Farbausgabe mit
 `echo --color red Text` und `colortst`, für VGA und Boot-Framebuffer.
 Typisierte 96-Byte-Requests, höchstens 64 ASCII-Bytes/ein LF pro Aufruf,

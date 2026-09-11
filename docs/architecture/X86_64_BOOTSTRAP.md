@@ -2,6 +2,13 @@
 
 Stand: 28. August 2026
 
+Ergänzung 11. September 2026: Die native64-Bit-Fertigstellung hat Vorrang.
+R8.3a hat die native Test-Shell auf den gemeinsamen C/C++-Syscalltransport
+umgestellt; Registerbreite, Nummern und echte IPC-/Reap-Abfolge sind geprüft.
+Der bisherige Bootstrapumfang bleibt unverändert begrenzt. Abnahmestand und
+weitere zusammenhängende Etappen im
+[Fertigstellungsplan](../development/X86_64_COMPLETION_WORK_PAPER.md).
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im

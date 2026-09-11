@@ -1,4 +1,4 @@
-"""R3.45: authenticate three images and protect every unaffected binary."""
+"""Authenticate main, VMware and framebuffer images with profile-specific baselines."""
 import argparse
 import json
 import re
@@ -33,13 +33,18 @@ def copy_checked(source, destination, wanted):
 
 def build_config(video):
     config = json.loads((ROOT/'build/.windows-build-config.json').read_text())
-    if (config['target'], config['video']) != ('qemu', video):
+    # The main raw disk is emitted by either reference target. Framebuffer
+    # archival remains strictly QEMU; never reinterpret a VMware disk as QEMU.
+    targets = ('qemu', 'vmware') if video == 'vga' else ('qemu',)
+    if config['target'] not in targets or config['video'] != video:
         raise ValueError('wrong final reference configuration')
     return config
 
 
 def verify():
-    build_config('vga')
+    config = build_config('vga')
+    main_target = config['target']
+    main_label = 'qemu' if main_target == 'qemu' else 'main-vmware'
     manifest = json.loads(FB_IMAGE.with_suffix('.json').read_text())
     if not manifest['passed'] or digest(FB_IMAGE) != manifest['sha256']:
         raise ValueError('changed framebuffer archive')
@@ -48,10 +53,11 @@ def verify():
     if len(paths) < 95 or not CHANGED | {'SHELL.PRG', 'BENCHMARK.PRG', 'BROWSER.PRG'} <= paths.keys():
         raise ValueError('incomplete program inventory')
     report = {}
-    for target, image in (('qemu', BASE_IMAGES['qemu'][0]), ('vmware', BASE_IMAGES['vmware'][0]),
-                          ('framebuffer', FB_IMAGE)):
-        source, wanted = BASE_IMAGES[target]
-        baseline = BASELINE/(target+'.img') if target != 'framebuffer' else source
+    for target, profile, image in ((main_label, main_target, BASE_IMAGES['qemu'][0]),
+                                   ('vmware', 'vmware', BASE_IMAGES['vmware'][0]),
+                                   ('framebuffer', 'framebuffer', FB_IMAGE)):
+        source, wanted = BASE_IMAGES[profile]
+        baseline = BASELINE/(profile+'.img') if profile != 'framebuffer' else source
         if digest(baseline) != wanted:
             raise ValueError('unauthenticated baseline: '+target)
         kernel = kernel_digest(image)
@@ -66,7 +72,8 @@ def verify():
                 same_payload(read_fat_file(baseline, path), actual, 'protected/'+target+'/'+name)
         examples = {name: same_payload((ROOT/'htdocs'/name).read_bytes(),
                     read_fat_file(image, 'htdocs/'+name), target+'/'+name) for name in EXAMPLES}
-        report[target] = {'sha256': digest(image), 'kernel_sha256': kernel,
+        report[target] = {'profile': profile, 'image': str(image),
+                          'sha256': digest(image), 'kernel_sha256': kernel,
                           'programs': programs, 'examples': examples}
     return report
 
