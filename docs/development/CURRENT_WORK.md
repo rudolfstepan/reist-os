@@ -2,6 +2,40 @@
 
 Stand: 11. September 2026
 
+## R8.3f: volle native Kontexte und Timerwechsel mit belegtem Stack
+
+Basis `4616b210`, Vertrag `b77ccbd1`. Der neue private Assemblykern übernimmt
+die tatsächlichen Syscall-/Quantum-Kontexte nach vollständiger Validierung in
+die bestehenden Taskrecords. Beide Eintrittsarten benutzen dieselbe normierte
+176-Byte-Frameform. Keine zweite dauerhafte Kontextablage, keine Allokation
+oder Userpointerdereferenzierung; Identität/Ressourcen/Accounting unverändert.
+RIP/RSP bleiben voll64-Bit, innerhalb des zugelassenen unteren48-Bit-Profils;
+die Timerprüfung akzeptiert belegte Stacks statt nur den ursprünglichen RSP.
+
+Alle neun Gruppen bestanden: Kontext2/1.037s, Bootstrap55/0.034s,
+Identität2/3.201s, FP2/1.074s, Dokumentation, Normalbuild/-gast,24 reale
+CPU-Fehlvarianten/48 Generationen und i386-Guard5.896s. Host O0/O2 vergleicht
+alle18 Register-/Controlfelder mit unabhängigem Layoutoracle, beide Framearten,
+4097 Stackpositionen einschließlich ungerader Adressen, erlaubte Flags und
+negative Snapshotfälle. Gastproben behalten Canaries über Timerwechsel hinweg;
+die abschließende Prüfung verlangt bei beiden Quantumtasks tatsächlich
+gespeicherte RSP unterhalb Stacktop. Alle bisherigen Gastmarker bleiben Pflicht.
+
+Ein echter erster Gast scheiterte an der zu strengen RF-Prüfung. Die kurze
+GDB-Diagnose zeigte IRQ-Flags0x10202. Resume Flag wird entsprechend dem
+Intel-Ereignisvertrag für IRQ/IRETQ bewahrt, für SYSCALL weiter abgewiesen;
+gezielter Hosttest zunächst rot, nach Korrektur grün. Belege und Fehlversuche
+unter `build/codex-agent/r83f-context/`, finale Normalartefakte `normal-fixed/`
+und `normal-fixed-guest.log` (nur Belegpfade geändert, nichts überschrieben).
+Bootstrap165444 Bytes, Probe12312, Shell3680, Kind1824. Matrix63.454s:
+`matrix/attempt-58e767e6304e45719aa9cf41290ee137/summary.json`.
+Keine i386-Image-/Benchmarkänderung und keine neue Performancezusage.
+
+Allgemeine native Shellpräemption und Hangbehandlung fehlen weiterhin:
+der vorhandene Timer ist noch an begrenzte Probe-/IPC-Deadlinephasen gebunden.
+R8.3f ist deren Kontextvoraussetzung, keine Fertigmeldung für Scheduler oder OS.
+R3.6b bleibt zurückgestellt; R341-H1/H2 bleiben offene Hardwarebefunde.
+
 ## R8.3e: generationgebundene native Taskidentitäten
 
 Vertrag `6ece2074`, Queuekernbasis `af0a07b4`. Shell und Kinder reservieren

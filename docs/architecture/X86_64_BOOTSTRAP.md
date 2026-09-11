@@ -11,7 +11,8 @@ weitere zusammenhängende Etappen im
 
 R8.3b ergänzt eager FXSAVE64/FXRSTOR64 mit privaten, bei Aufbau und Reap
 bereinigten Zuständen und CPU-Admission. Alle bestehenden Modi/Marker bleiben
-geprüft; die Gastsonden verändern den festen User-RSP nicht. Weiterhin nur
+geprüft; die ursprünglichen FP-Sonden selbst verändern den User-RSP nicht.
+R8.3f ergänzt unten ausdrücklich Timerproben mit belegtem Stack. Weiterhin nur
 eingebettete Testprogramme: keine allgemeine FP-Ausnahme-/Anwendungsfreigabe,
 kein AVX/XSAVE oder SMP. Abnahmebelege in
 [CURRENT_WORK](../development/CURRENT_WORK.md).
@@ -61,6 +62,23 @@ Gast weiterhin4; IF=0/eine CPU, keine Allokation oder öffentliche ABI. Ein
 neuer Pool ist ein neuer Namespace, kein Resetrecht für lebende Handles.
 Host O0/O2, Normalgast und24 Fehlvarianten/48 Generationen abgenommen; keine
 allgemeine Prozesszulassung, OOM-/Supervisor-Recovery oder Systemfreigabe.
+
+R8.3f verwendet einen gemeinsamen privaten Contextkern für die tatsächlich
+gesicherten Syscall-/Quantum-Kontexte. Ein48-Byte-Descriptor und eine normierte
+176-Byte-Frameform liegen nur auf dem Kernelstack; Taskrecords bleiben die
+einzige dauerhafte Autorität. Vor Capture: RUNNING, exakte Generation/CR3,
+Frameart/Selektoren, kanonische untere48-Bit-RIP und zugelassener Stackbereich,
+Flags. Keine Userpointerdereferenzierung, keine Änderung von Ressourcen oder
+Taskidentität. IRQ bewahrt15 GPRs/RIP/RSP/RFLAGS, SYSCALL initialisiert RAX=0
+und behält die architektonischen RCX/R11-Clobber. Handlerergebnisse bleiben
+unverändert. IF ist für IRQ erforderlich; RF darf im IRQ-Frame gesetzt sein
+und wird für IRETQ bewahrt, nicht als Syscallflag zugelassen. Referenz:
+[Intel SDM: Event- und Resume-Flag-Verhalten](https://cdrdv2-public.intel.com/671294/252046-sdm-change-document.pdf).
+Privilegierte und reservierte Bits bleiben gesperrt. Timerzulassung akzeptiert
+jetzt gültige Stackpositionen statt nur den ursprünglichen Stacktop. Reale
+Quantumproben prüfen Stack-Canaries und gespeicherte RSP unterhalb Stacktop;
+die Timer-/Rollen-/Budgetgrenzen bleiben ansonsten unverändert. Das ist noch
+keine allgemeine Präemption oder Hangbehandlung der nativen Shellprozesse.
 
 ## Zweck und Grenze
 

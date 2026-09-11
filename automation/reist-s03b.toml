@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3f-x86_64-native-context-transport"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3f-x86_64-native-context-transport"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Validated full-width native syscall/IRQ context transport with live stacks"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All9 groups. Actual assembly O0/O2 host callers cover both frame kinds, every64-bit register, stack endpoints/interior/unaligned RSP, canonical/range/flags/selector/frame/identity/CR3 negative snapshots, no mutation on validation-only or failure. Production syscall/IRQ saves use same core; real guest alternating quantum tasks retain stack canaries at nonconstant RSP and parent resumes after real timer retirement. All old normal/fault/FP/identity proof and i386 artifacts unchanged. Final scope/queue/diff review before local commit; continue next transaction."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need to expand timer/profile/public authority or native runtime budget"]
 commit_message = "refactor: validate native syscall and interrupt task contexts"
-evidence = []
+evidence = ["python test/test_x86_64_context.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_identity.py -v","python test/test_x86_64_fp.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83f-context/normal-fixed","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83f-context/normal-fixed/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83f-context/normal-fixed-guest.log","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83f-context/matrix","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All9 groups passed. Context2/1.037s actual O0/O2 assembly,18 full-width fields, both frame kinds,4097 stack offsets and flags/identity/control negative snapshots. Bootstrap55/0.034s, Identity2/3.201s, FP2/1.074s and docs. Normal guest165444-byte bootstrap passes with actual live-stack IRQ canaries. Matrix24 faults/48 generations63.454s attempt-58e767e6304e45719aa9cf41290ee137. i386 guard5.896s unchanged artifacts. Evidence build/codex-agent/r83f-context; initial real IRQ RF failure, bounded GDB diagnosis and red RF host test retained. RF preserved only for IRQ/IRETQ, never syscall. Final normal-fixed directory/log changes evidence paths only, old artifacts retained. General shell preemption/hang supervision and complete64-bit OS remain open. R3.6b deferred despite formal activation, R341-H1/H2 open. No agents/visible VMs/native dialogs/push."
 
 [[packages]]
 id = "R8.3e-x86_64-task-identity-lifecycle"
@@ -2777,7 +2778,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

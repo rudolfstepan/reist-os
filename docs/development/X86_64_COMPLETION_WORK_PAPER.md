@@ -345,3 +345,13 @@ Fehlvarianten/48 Generationen und i386-Guard. Alle alten Gastmarker bleiben
 Pflicht, keine bloße Quellmusterabnahme. Belege `build/codex-agent/r83f-context/`;
 Gastbudget unverändert. Allgemeiner Scheduler/Supervisor und skalierbarer
 Speicher folgen weiterhin; keine vollständige64-Bit-Fertigmeldung.
+
+Abnahme R8.3f: alle neun Gruppen bestanden, tatsächliche Syscall-/IRQ-
+Verbraucher und O0/O2-Hosttest nutzen denselben Kern. Reale Quantumwechsel
+bewahren belegte Stacks und Canaries; beide gespeicherten RSP müssen unterhalb
+Stacktop liegen. Normalgast und24 bestehende Fehlvarianten/48 Generationen
+bestehen. Ein erster realer IRQ deckte RF als zulässiges gespeichertes Flag
+auf; die Korrektur bewahrt es nur für IRQ/IRETQ und besitzt einen roten/grünen
+Hostnachweis. Weitere Flags bleiben gesperrt, kein Gate abgeschwächt.
+Belege und weiterhin offene Timer-/Hang-/Systemgrenzen in
+[CURRENT_WORK](CURRENT_WORK.md).

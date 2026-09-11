@@ -114,6 +114,7 @@ preempt_task_a:
     ud2
 
 preempt_task_b:
+    sub rsp, 64
     mov rbx, rdx
 .bounded_cpu_loop:
     pause
@@ -126,12 +127,23 @@ preempt_task_b:
     int3
 
 quantum_task_a:
+    sub rsp, 64
     mov r14, 0xE44E44E44E44E44E
     mov r13, r14
     mov qword [rel probe_data], r14
     xor r15d, r15d
+    mov qword [rsp], r14
+    mov qword [rsp + 56], r13
 .quantum_a_loop:
     FP_CHECK
+    push r14
+    pop rax
+    cmp rax, r14
+    jne scheduler_isolation_failure
+    cmp qword [rsp], r14
+    jne scheduler_isolation_failure
+    cmp qword [rsp + 56], r13
+    jne scheduler_isolation_failure
     cmp r14, r13
     jne scheduler_isolation_failure
     inc qword [rel probe_progress]
@@ -157,11 +169,22 @@ quantum_task_a:
     ud2
 
 quantum_task_b:
+    sub rsp, 64
     mov r14, 0xF55F55F55F55F55F
     mov r13, r14
     mov qword [rel probe_data], r14
+    mov qword [rsp], r14
+    mov qword [rsp + 56], r13
 .quantum_b_loop:
     FP_CHECK
+    push r14
+    pop rax
+    cmp rax, r14
+    jne scheduler_isolation_failure
+    cmp qword [rsp], r14
+    jne scheduler_isolation_failure
+    cmp qword [rsp + 56], r13
+    jne scheduler_isolation_failure
     cmp r14, r13
     jne scheduler_isolation_failure
     inc qword [rel probe_progress]

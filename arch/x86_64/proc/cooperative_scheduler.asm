@@ -10,6 +10,7 @@ extern x86_64_fp_reset64
 extern x86_64_user_fault_status64
 extern reist_x64_queue_apply
 extern reist_x64_identity_apply
+extern reist_x64_context_apply
 
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
@@ -1762,7 +1763,12 @@ scheduler_syscall_entry64:
     cmp rax, qword [r12 + TASK_CR3]
     jne scheduler_fail
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    je .variable_user_stack
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_QUANTUM
+    je .variable_user_stack
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PREEMPTION
     jne .fixed_user_stack
+.variable_user_stack:
     mov rax, qword [rel scheduler_syscall_context + SYSCALL_CONTEXT_USER_RSP]
     cmp rax, USER_STACK_BASE
     jb scheduler_fail
@@ -1826,42 +1832,85 @@ scheduler_syscall_entry64:
     je scheduler_handle_exit64
     jmp scheduler_fail
 
+; R12 running task, RDI kernel frame, ESI kind, EAX operation; RAX result only.
+scheduler_context_apply64:
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    sub rsp, 48
+    and rsp, -16
+    mov r9d, eax
+    mov [rsp], r12
+    mov rax, [r12 + TASK_GENERATION]
+    mov [rsp + 8], rax
+    mov rax, cr3
+    mov [rsp + 16], rax
+    mov qword [rsp + 24], USER_STACK_BASE
+    mov qword [rsp + 32], USER_STACK_TOP
+    mov [rsp + 40], rsi
+    mov rsi, rdi
+    mov edx, r9d
+    mov rdi, rsp
+    call reist_x64_context_apply
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
+
 scheduler_save_syscall_context64:
-    mov rax, qword [rel syscall_rcx]
-    mov qword [r12 + TASK_RIP], rax
-    mov rax, qword [rel scheduler_syscall_context + SYSCALL_CONTEXT_USER_RSP]
-    mov qword [r12 + TASK_RSP], rax
-    mov rax, qword [rel syscall_r11]
-    mov qword [r12 + TASK_RFLAGS], rax
-    mov qword [r12 + TASK_RAX], 0
-    mov rax, qword [rel syscall_rbx]
-    mov qword [r12 + TASK_RBX], rax
-    mov rax, qword [rel syscall_rcx]
-    mov qword [r12 + TASK_RCX], rax
-    mov rax, qword [rel syscall_rdx]
-    mov qword [r12 + TASK_RDX], rax
-    mov rax, qword [rel syscall_rbp]
-    mov qword [r12 + TASK_RBP], rax
-    mov rax, qword [rel syscall_rsi]
-    mov qword [r12 + TASK_RSI], rax
-    mov rax, qword [rel syscall_rdi]
-    mov qword [r12 + TASK_RDI], rax
-    mov rax, qword [rel syscall_r8]
-    mov qword [r12 + TASK_R8], rax
-    mov rax, qword [rel syscall_r9]
-    mov qword [r12 + TASK_R9], rax
-    mov rax, qword [rel syscall_r10]
-    mov qword [r12 + TASK_R10], rax
-    mov rax, qword [rel syscall_r11]
-    mov qword [r12 + TASK_R11], rax
-    mov rax, qword [rel syscall_r12]
-    mov qword [r12 + TASK_R12], rax
-    mov rax, qword [rel syscall_r13]
-    mov qword [r12 + TASK_R13], rax
-    mov rax, qword [rel syscall_r14]
-    mov qword [r12 + TASK_R14], rax
-    mov rax, qword [rel syscall_r15]
-    mov qword [r12 + TASK_R15], rax
+    push rdi
+    push rsi
+    sub rsp, 176
+%macro SYSCALL_FRAME 2
+    mov rax, [rel syscall_%1]
+    mov [rsp + EXCEPTION_FRAME_%2], rax
+%endmacro
+    SYSCALL_FRAME r15, R15
+    SYSCALL_FRAME r14, R14
+    SYSCALL_FRAME r13, R13
+    SYSCALL_FRAME r12, R12
+    SYSCALL_FRAME r11, R11
+    SYSCALL_FRAME r10, R10
+    SYSCALL_FRAME r9, R9
+    SYSCALL_FRAME r8, R8
+    SYSCALL_FRAME rdi, RDI
+    SYSCALL_FRAME rsi, RSI
+    SYSCALL_FRAME rbp, RBP
+    SYSCALL_FRAME rdx, RDX
+    SYSCALL_FRAME rcx, RCX
+    SYSCALL_FRAME rbx, RBX
+    SYSCALL_FRAME rax, RAX
+    SYSCALL_FRAME rcx, RIP
+    SYSCALL_FRAME r11, RFLAGS
+    mov qword [rsp + EXCEPTION_FRAME_VECTOR], 256
+    mov qword [rsp + EXCEPTION_FRAME_ERROR], 0
+    mov qword [rsp + EXCEPTION_FRAME_CS], USER_CODE_SELECTOR
+    mov qword [rsp + EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
+    mov rax, [rel scheduler_syscall_context + SYSCALL_CONTEXT_USER_RSP]
+    mov [rsp + EXCEPTION_FRAME_RSP], rax
+    mov rdi, rsp
+    xor esi, esi
+    mov eax, 1
+    call scheduler_context_apply64
+    add rsp, 176
+    pop rsi
+    pop rdi
+    test eax, eax
+    jz scheduler_fail
     ret
 
 ; The shell profile is a parallel generation-scoped authority record. EAX is
@@ -5711,42 +5760,13 @@ x86_64_scheduler_quantum_switch64:
     jne .invalid
     call scheduler_fp_save64
 
-    mov rax, qword [rdi + EXCEPTION_FRAME_RAX]
-    mov qword [r12 + TASK_RAX], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RBX]
-    mov qword [r12 + TASK_RBX], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RCX]
-    mov qword [r12 + TASK_RCX], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RDX]
-    mov qword [r12 + TASK_RDX], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RBP]
-    mov qword [r12 + TASK_RBP], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RSI]
-    mov qword [r12 + TASK_RSI], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RDI]
-    mov qword [r12 + TASK_RDI], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R8]
-    mov qword [r12 + TASK_R8], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R9]
-    mov qword [r12 + TASK_R9], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R10]
-    mov qword [r12 + TASK_R10], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R11]
-    mov qword [r12 + TASK_R11], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R12]
-    mov qword [r12 + TASK_R12], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R13]
-    mov qword [r12 + TASK_R13], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R14]
-    mov qword [r12 + TASK_R14], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_R15]
-    mov qword [r12 + TASK_R15], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
-    mov qword [r12 + TASK_RIP], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RSP]
-    mov qword [r12 + TASK_RSP], rax
-    mov rax, qword [rdi + EXCEPTION_FRAME_RFLAGS]
-    mov qword [r12 + TASK_RFLAGS], rax
+    push rsi
+    mov esi, 1
+    mov eax, 1
+    call scheduler_context_apply64
+    pop rsi
+    test eax, eax
+    jz .invalid
     mov dword [rel scheduler_handoffs], esi
 
     cmp esi, 4
@@ -5826,21 +5846,13 @@ x86_64_scheduler_quantum_validate64:
     mov rax, cr3
     cmp rax, qword [r12 + TASK_CR3]
     jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_VECTOR], 32
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_ERROR], 0
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_CS], USER_CODE_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_RSP], USER_STACK_TOP
-    jne .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RFLAGS]
-    test rax, 0x200
+    push rsi
+    mov esi, 1
+    xor eax, eax
+    call scheduler_context_apply64
+    pop rsi
+    test eax, eax
     jz .invalid
-    test rax, RFLAGS_IRQ_FORBIDDEN
-    jnz .invalid
     mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
     call x86_64_elf64_address_flags64
     test eax, PF_X
@@ -5853,6 +5865,10 @@ x86_64_scheduler_quantum_validate64:
 
 scheduler_verify_quantum_progress64:
     lea r12, [rel scheduler_tasks]
+    cmp qword [r12 + TASK_RSP], USER_STACK_TOP
+    jae .fail
+    cmp qword [r12 + TASK_RSP], USER_STACK_BASE
+    jb .fail
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
     test rax, rax
     jz .fail
@@ -5864,6 +5880,10 @@ scheduler_verify_quantum_progress64:
     cmp qword [rax + PROBE_PROGRESS_OFFSET], 1
     jbe .fail
     lea r12, [rel scheduler_tasks + TASK_RECORD_SIZE]
+    cmp qword [r12 + TASK_RSP], USER_STACK_TOP
+    jae .fail
+    cmp qword [r12 + TASK_RSP], USER_STACK_BASE
+    jb .fail
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
     test rax, rax
     jz .fail
@@ -5896,18 +5916,12 @@ x86_64_scheduler_timer_preempt64:
     mov rax, cr3
     cmp rax, qword [r12 + TASK_CR3]
     jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_VECTOR], 32
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_ERROR], 0
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_CS], USER_CODE_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_RSP], USER_STACK_TOP
-    jne .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RFLAGS]
-    test rax, 0x200
+    push rsi
+    mov esi, 1
+    xor eax, eax
+    call scheduler_context_apply64
+    pop rsi
+    test eax, eax
     jz .invalid
     mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
     call x86_64_elf64_address_flags64
@@ -5956,18 +5970,12 @@ x86_64_scheduler_timer_validate64:
     mov rax, cr3
     cmp rax, qword [r12 + TASK_CR3]
     jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_VECTOR], 32
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_ERROR], 0
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_CS], USER_CODE_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
-    jne .invalid
-    cmp qword [rdi + EXCEPTION_FRAME_RSP], USER_STACK_TOP
-    jne .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RFLAGS]
-    test rax, 0x200
+    push rsi
+    mov esi, 1
+    xor eax, eax
+    call scheduler_context_apply64
+    pop rsi
+    test eax, eax
     jz .invalid
     mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
     call x86_64_elf64_address_flags64

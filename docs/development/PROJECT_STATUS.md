@@ -24,6 +24,10 @@ Aufbau und generationsgenaues Retirement im tatsächlichen Shell-Lifecycle.
 Rollback verbraucht Generationen, Überlauf wird abgewiesen, Tombstones sind
 eindeutig und geben keine Ressourcenrechte. Alle neun Gruppen einschließlich
 24 Fehlgästen/48 Generationen bestanden; allgemeine Zulassung bleibt offen.
+R8.3f vereinheitlicht die geprüfte volle Registersicherung von Syscall und IRQ.
+Timer-Prozesswechsel funktionieren mit belegten Stacks statt festem RSP;
+Canaries, FP und volle Registerbreite sind geprüft. Allgemeine Shellpräemption,
+Hangbehandlung und Supervisorzulassung bleiben davon getrennt und offen.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

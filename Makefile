@@ -214,6 +214,7 @@ X86_64_FP_OBJ := $(X86_64_BOOTSTRAP_DIR)/fp_context.o
 X86_64_FAULT_OBJ := $(X86_64_BOOTSTRAP_DIR)/user_fault.o
 X86_64_QUEUE_OBJ := $(X86_64_BOOTSTRAP_DIR)/queue_core.o
 X86_64_IDENTITY_OBJ := $(X86_64_BOOTSTRAP_DIR)/identity_core.o
+X86_64_CONTEXT_OBJ := $(X86_64_BOOTSTRAP_DIR)/context_core.o
 X86_64_FAULT_VECTOR ?= -1
 X86_64_FAULT_PHASE ?= 0
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
@@ -423,12 +424,13 @@ x86_64-bootstrap:
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/identity_core.asm -o $(X86_64_IDENTITY_OBJ)
+	@$(AS) -f elf32 arch/x86_64/proc/context_core.asm -o $(X86_64_CONTEXT_OBJ)
 	@$(LD) -m elf_i386 -nostdlib --build-id=none --fatal-warnings \
 		-T $(X86_64_BOOTSTRAP_LDSCRIPT) -o $(X86_64_BOOTSTRAP_ELF) \
 		$(X86_64_BOOTSTRAP_OBJ) $(X86_64_EXCEPTION_OBJ) $(X86_64_TIMER_INTERRUPT_OBJ) \
 		$(X86_64_PHYSICAL_MEMORY_OBJ) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
-		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ)
+		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 
 check-syscall-abi:
