@@ -508,8 +508,9 @@ class X8664BootstrapContractTests(unittest.TestCase):
         dispatch = scheduler.index("scheduler_shell_syscall_dispatch64:", gate)
         self.assertLess(gate, dispatch)
         validator = scheduler.index("scheduler_validate_shell_syscall_profile64:")
-        self.assertLess(scheduler.index("cmp rax, 64", validator),
-                        scheduler.index("bt rcx, rax", validator))
+        self.assertIn("jmp scheduler_profile_apply64", scheduler[validator:dispatch])
+        profile = self.read("arch/x86_64/proc/syscall_profile.asm")
+        self.assertLess(profile.index("cmp rbx, 64"), profile.index("bt r11, rbx"))
         self.assertIn("mov rax, REIST_EACCES", scheduler[gate:dispatch])
         self.assertIn("scheduler_shell_child_denied_resume64:", scheduler)
         parent_setup = scheduler.index("x86_64_process_shell64:")

@@ -2,6 +2,54 @@
 
 Stand: 11. September 2026
 
+## R8.3m: gemeinsamer generationsgebundener Syscall-Profilkern
+
+Basis31b6395b, Vertrag70e5d228. Installation vor READY, Zulassung am
+Syscall-/IRQ-Eingang und Widerruf vor Frame-/FP-/Identitätsfreigabe verwenden
+denselben privaten Assemblykern. Bestehende16-Byte-Profile und öffentliche
+ABI bleiben unverändert; ein32-Byte-Descriptor bindet getrennte Task- und
+Profilobjekte, Generation und explizite Vertrauensmaske. Der Mechanismus
+enthält keine Rollen/PIDs. Die feste Bootstrappolitik bleibt im Adapter.
+
+Alle64 Bit der Aufrufnummer werden vor dem Bitzugriff geprüft. Nicht
+freigegeben ergibt EACCES; falsche Generation, Maske oder Objektlage bleiben
+Kernelkorruption. Installation nur RESERVED, Abfrage nur RUNNING; Widerruf
+nur terminal/reserviert. Leerer Widerruf ist nur bei noch vorhandenem Besitz
+derselben Generation idempotent. Keine impliziten Prozess- oder IPC-Rechte.
+
+Host: echter Kern O0/O2, Guard-/Alias-/Nichtmutation-/Generations-/Maskenfälle,
+negative Gastoracles, Adapterprüfung und gegenseitiger Fixtureausschluss.
+Vier Tests1.413s. Der echte Profilgast besteht in5.443s: beide Rollen prüfen
+alle unzulässigen Nummern0..63 und zwei High-Bit-Werte.222 Aufrufe ergeben
+444 Beobachtungen an den zwei Eintrittsprüfungen. Alle sechs Installations-/
+Widerrufsvorgänge sind objekt- und generationsgenau belegt; danach normaler
+Status91, IPC/WAIT/Reap und erneuter Start.
+
+Die neue Fixture behandelt den längeren Selbsttest ohne frühe Peer-Deadline:
+höchstens128 nichtblockierende RECEIVE/YIELD-Versuche; der Sender wartet
+begrenzt auf CLOSE als Empfangsbestätigung, statt eine Nachricht zu früh
+mit RELEASE zu widerrufen. Keine Änderung alter Fixtures oder Kernelquoten.
+Vorherige Fehlläufe bleiben: falsches Fixture-errno-Vorzeichen, zu frühes
+Empfangstimeout, gefüllte Windows-Debugpipe und falsche Oracleannahme
+EXITED statt bestehendem Kind-ZOMBIE. Direkte begrenzte Debug-Dateiausgabe
+vermeidet den Pipe-Rückstau; der Prüfer fordert ZOMBIE8 ausdrücklich.
+
+Belege build/codex-agent/r83m-profiles, erfolgreiche Profilprüfung
+profiles/attempt-a3bf2ca59de24f4ebf36e4669b2c2803.20 eingefrorene Gruppen;
+keine größere CPU-/Speicher-/Prozesskapazität, keine neue Autorität.
+Allgemeine Prozess-/Endpoint-Pools, Eltern-/Supervisor-Recovery,
+skalierbarer Speicher und native Dienste/Desktop/Browser bleiben offen.
+R3.6b bleibt zurückgestellt; kein vollständiges64-Bit-OS aus diesem Nachweis.
+
+Abnahme R8.3m: alle20 Gruppen bestanden. Alte Hosts: OOM3/0.924s,
+Requests3/1.044s, Bootstrap55/0.041s, Startup4/1.420s, Exit3/0.957s,
+Context2/1.150s. Normalbild175440 Bytes, alte User-ELFs unverändert;
+abschließender Quellstand erzeugt dasselbe komplette Normalbild.
+OOM6/12 Generationen8.499s, Requests3/6 in9.243s, Argv4/8 in12.012s,
+Exit24/48 in71.449s, Fault24/48 in68.358s, Busy2/4 in6.503s,
+Context7/14 in20.947s, IPC4/8 in13.138s.17 Mechanismusobjekte über75
+Builds bytegleich, inklusive erhaltener Fehlversuche; i386-Guard5.013s.
+
 ## R8.3l: Speichermangel beim nativen Prozessstart
 
 Basis a22c30ed, eingefrorener Vertrag1927886d. SPAWN/SPAWNV reservieren

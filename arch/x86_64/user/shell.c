@@ -21,6 +21,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_OOM_CASE
 #define X86_64_OOM_CASE 0
 #endif
+#ifndef X86_64_PROFILE_CASE
+#define X86_64_PROFILE_CASE 0
+#endif
 #ifndef X86_64_IPC_CASE
 #define X86_64_IPC_CASE 0
 #endif
@@ -209,7 +212,9 @@ void _start(void)
     static const char prompt[] = "C:\\>";
     static const char info[] = "REIST_X86_64_RING3_SHELL_INFO_OK\r\n";
     static const char help[] = "HELP INFO RUN EXIT\r\n";
-#if X86_64_OOM_CASE
+#if X86_64_PROFILE_CASE
+    static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nPROFILE_OK\r\n";
+#elif X86_64_OOM_CASE
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nOOM_OK\r\n";
 #elif X86_64_REQUEST_CASE
 #define REQUEST_STRING_INNER(n) #n
@@ -274,6 +279,18 @@ void _start(void)
                 if (parent_pid != SHELL_PARENT_PID) {
                     shell_exit(11ULL);
                 }
+#if X86_64_PROFILE_CASE
+                /* Independent explicit list of the existing parent policy.
+                 * Probe only ungranted calls, with deliberately invalid args. */
+                const shell_u64 granted=(1ULL<<9)|(1ULL<<15)|(1ULL<<20)|(1ULL<<22)|
+                    (1ULL<<23)|(1ULL<<24)|(1ULL<<30)|(1ULL<<40)|(1ULL<<49)|
+                    (1ULL<<50)|(1ULL<<51)|(1ULL<<52)|(1ULL<<53)|(1ULL<<54)|(1ULL<<55);
+                for(shell_u64 n=0;n<64;n++) if(!(granted&(1ULL<<n))) {
+                    if(reist_x64_syscall3(n,~0ULL,~0ULL,~0ULL)!=-REIST_EACCES) shell_exit(50);
+                }
+                if(reist_x64_syscall3(0x100000000ULL,~0ULL,~0ULL,~0ULL)!=-REIST_EACCES ||
+                   reist_x64_syscall3(~0ULL,~0ULL,~0ULL,~0ULL)!=-REIST_EACCES) shell_exit(50);
+#endif
 #if X86_64_REQUEST_CASE == 1
                 static const struct {shell_u8 op,fd,size; signed char result;} cases[] = {
                     {15,1,1,-9},{20,0,1,-9},{15,0,2,-22},{20,1,65,-22},
@@ -450,13 +467,28 @@ void _start(void)
                 for (shell_u32 n=0;n<2;n++) {
                     clear_ipc_message(&ipc_message);
                     ipc_message.version=1;ipc_message.struct_size=140;
+#if X86_64_PROFILE_CASE
+                    /* Complete the denied-call table without starting a peer
+                     * deadline first. Nonblocking receive plus bounded YIELD. */
+                    shell_i64 received=REIST_EAGAIN;
+                    for(shell_u32 attempt=0;attempt<128 && received==REIST_EAGAIN;attempt++) {
+                        received=reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE,ipc_handle,
+                            (shell_u64)&ipc_message,0);
+                        if(received==REIST_EAGAIN &&
+                           reist_x64_syscall3(REIST_X64_SYS_YIELD,0,0,0)!=0) shell_exit(41);
+                    }
+                    if(received!=0 || ipc_message.length!=128) shell_exit(41);
+#else
                     if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,ipc_handle,
                            (shell_u64)&ipc_message,10)!=0 || ipc_message.length!=128) shell_exit(41);
+#endif
                     for(shell_u32 i=0;i<128;i++) if(ipc_message.payload[i]!=(shell_u8)(0x5a+n)) shell_exit(42);
                 }
+#if !X86_64_PROFILE_CASE
                 ipc_message.length=0;
                 if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,ipc_handle,
                     (shell_u64)&ipc_message,10)!=REIST_EPIPE) shell_exit(43);
+#endif
 #endif
                 if(reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE,ipc_handle,0,0)!=0) shell_exit(44);
 #else

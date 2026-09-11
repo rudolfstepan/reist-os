@@ -4,6 +4,12 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R8.3m vereint Installation, Syscall-/IRQ-Prüfung und Widerruf nativer
+Syscallprofile im privaten generationsgebundenen Kern. Rollenpolitik und
+Rechte bleiben unverändert. Neuer Gast prüft222 verweigerte Aufrufe,
+sechs echte Profilübergänge und beide Kindgenerationen bis zum Reap.
+Details in [CURRENT_WORK](CURRENT_WORK.md#r83m-gemeinsamer-generationsgebundener-syscall-profilkern).
+
 R8.3l ergänzt die native Spawn-Speichertransaktion: alle Taskframes vor
 Identitätsvergabe, bei geprüftem Rollback lokales ENOMEM und sicherer Retry.
 Alle sechs aktuellen Kindallokationen mit Gast-Fehlereinjektion in beiden

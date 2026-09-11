@@ -2,6 +2,20 @@
 
 Stand: 28. August 2026
 
+R8.3m (11. September2026): Installation, Syscallabfrage, IRQ-Bindungsprüfung
+und Widerruf verwenden denselben privaten SysV-AMD64-Profilkern.32-Byte-
+Descriptor aus Task-/Profilpointer, Generation und expliziter Politikmaske;
+die16-Byte-Profile und öffentliche ABI bleiben unverändert. Speicherbereiche
+sind getrennt; alle Metadaten werden vor Effekten validiert. Keine Rollen,
+PIDs oder impliziten Rechte im Mechanismus. Die Bootstrapadapter behalten
+ihre ausdrücklich feste Politik und Kapazität. Aufrufnummern ab64 werden vor
+Bitselektion verweigert, nicht auf niedrige Bits verkürzt. EACCES ist lokal;
+beschädigte Bindung oder Maske bleibt fatal. Installation nur RESERVED,
+Abfrage nur RUNNING, Widerruf terminal/reserviert vor Framefreigabe. Leerer
+Widerruf ist nur bei unverändertem generationsgenauem Taskbesitz idempotent.
+Der Gastnachweis verwendet unveränderte Rechte und Zeitlimits; er ist keine
+Abnahme allgemeiner Prozesspools oder unabhängiger nativer Systemdienste.
+
 R8.3l (11. September2026): SPAWN/SPAWNV besitzen eine begrenzte
 Speichertransaktion vor der Identitätsvergabe. ELF-Staging und ein privater
 120-Byte-Claim mit maximal13 Frames (4 Tabellen + Stack + bis zu8 private

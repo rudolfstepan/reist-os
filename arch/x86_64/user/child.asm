@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_PROFILE_CASE
+%define X86_64_PROFILE_CASE 0
+%endif
 %ifndef X86_64_IPC_CASE
 %define X86_64_IPC_CASE 0
 %endif
@@ -63,6 +66,39 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_PROFILE_CASE
+    xor r14d, r14d
+    mov r15, (1<<9)|(1<<40)|(1<<50)|(1<<51)|(1<<53)|(1<<58)
+.profile_numbers:
+    bt r15, r14
+    jc .profile_next
+    mov rax, r14
+    mov rdi, -1
+    mov rsi, -1
+    mov rdx, -1
+    syscall
+    FP_CHECK
+    cmp rax, REIST_EACCES
+    jne .profile_bad
+.profile_next:
+    inc r14d
+    cmp r14d, 64
+    jb .profile_numbers
+    mov rax, 0x100000000
+    syscall
+    FP_CHECK
+    cmp rax, REIST_EACCES
+    jne .profile_bad
+    mov rax, -1
+    syscall
+    FP_CHECK
+    cmp rax, REIST_EACCES
+    jne .profile_bad
+    jmp .profile_done
+.profile_bad:
+    ud2
+.profile_done:
+%endif
 %if X86_64_IPC_CASE
     jmp child_ipc_handoff
 %endif
@@ -318,6 +354,33 @@ child_ipc_second_send:
 %else
     test rax, rax
     jnz child_ipc_handoff.bad
+%if X86_64_PROFILE_CASE
+    ; The parent closes after verifying both payloads. Do not RELEASE a queued
+    ; payload before that acknowledgement. A third bounded send observes CLOSE.
+    mov r14d, 8
+child_profile_close_wait:
+    mov eax, REIST_SYS_IPC_SEND_TIMEOUT
+    mov rdi, r12
+    mov rsi, rsp
+    mov edx, 10
+    syscall
+    FP_CHECK
+    cmp rax, REIST_EBADF
+    je child_ipc_handoff.exit
+    test rax, rax
+    jz child_profile_close_yield
+    cmp rax, -110
+    jne child_ipc_handoff.bad
+child_profile_close_yield:
+    dec r14d
+    jz child_ipc_handoff.bad
+    mov eax, REIST_SYS_YIELD
+    syscall
+    FP_CHECK
+    test rax, rax
+    jnz child_ipc_handoff.bad
+    jmp child_profile_close_wait
+%else
     mov eax, REIST_SYS_IPC_RELEASE
     mov rdi, r12
     xor esi, esi
@@ -326,6 +389,7 @@ child_ipc_second_send:
     FP_CHECK
     test rax, rax
     jnz child_ipc_handoff.bad
+%endif
 %endif
 child_ipc_handoff.exit:
     mov edi, 90 + X86_64_IPC_CASE

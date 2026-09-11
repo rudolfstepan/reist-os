@@ -15,6 +15,7 @@ extern reist_x64_budget_apply
 extern reist_x64_terminal_status
 extern reist_x64_startup_stack
 extern reist_x64_request_admit
+extern reist_x64_profile_apply
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
 SHELL_CPU_STATUS          equ 256
@@ -2024,19 +2025,12 @@ x86_64_scheduler_shell_timer_validate64:
     jne .fail
     cmp qword [rdi + EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
     jne .fail
-    mov eax, [rel scheduler_current_slot]
-    shl eax, 4
-    lea rdx, [rel scheduler_syscall_profiles]
     mov rcx, [r12 + TASK_GENERATION]
-    cmp [rdx + rax], rcx
-    jne .fail
-    test eax, eax
+    cmp dword [rel scheduler_current_slot], 0
     jnz .child_identity
     cmp rcx, TASK_SHELL_GENERATION
     jne .fail
     mov rax, SHELL_PARENT_SYSCALL_MASK
-    cmp [rdx + 8], rax
-    jne .fail
     jmp .identity_valid
 .child_identity:
     cmp rcx, TASK_SHELL_CHILD_GEN
@@ -2044,9 +2038,22 @@ x86_64_scheduler_shell_timer_validate64:
     cmp rcx, TASK_SHELL_CHILD_GEN2
     ja .fail
     mov rax, SHELL_CHILD_SYSCALL_MASK
-    cmp [rdx + SYSCALL_PROFILE_SIZE + 8], rax
-    jne .fail
 .identity_valid:
+    push rdi
+    push rsi
+    push rdx
+    push r8
+    mov rdx, rax
+    mov rsi, rcx
+    mov edi, [rel scheduler_current_slot]
+    xor eax, eax
+    call scheduler_profile_apply64
+    pop r8
+    pop rdx
+    pop rsi
+    pop rdi
+    cmp eax, 1
+    jne .fail
     mov rax, [rdi + EXCEPTION_FRAME_RFLAGS]
     mov rcx, ~0x254fd7
     test rax, rcx
@@ -2213,6 +2220,55 @@ scheduler_save_syscall_context64:
     jz scheduler_fail
     ret
 
+; EAX operation, EDI slot, RSI exact generation, RDX policy mask, R8 number.
+; The private core has no parent/child roles. This adapter owns record lookup.
+scheduler_profile_apply64:
+    cmp edi, TASK_SLOT_CAPACITY
+    jae .invalid
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    sub rsp, 32
+    and rsp, -16
+    mov r9d, eax
+    mov eax, edi
+    shl rax, 8
+    lea r10, [rel scheduler_tasks]
+    add r10, rax
+    mov [rsp], r10
+    mov eax, edi
+    shl eax, 4
+    lea r10, [rel scheduler_syscall_profiles]
+    add r10, rax
+    mov [rsp + 8], r10
+    mov [rsp + 16], rsi
+    mov [rsp + 24], rdx
+    mov rdx, r8
+    mov esi, r9d
+    mov rdi, rsp
+    call reist_x64_profile_apply
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
+.invalid:
+    xor eax, eax
+    ret
+
 ; The shell profile is a parallel generation-scoped authority record. EAX is
 ; 1 when allowed, 2 for a well-formed denied request, and 0 for stale or
 ; malformed profile state. No handler-visible effect precedes this gate.
@@ -2233,12 +2289,6 @@ scheduler_validate_shell_syscall_profile64:
     mov r8, qword [r12 + TASK_GENERATION]
     test r8, r8
     jz .invalid
-    mov eax, edi
-    shl rax, 4
-    lea rdx, [rel scheduler_syscall_profiles]
-    add rdx, rax
-    cmp qword [rdx + SYSCALL_PROFILE_GENERATION], r8
-    jne .invalid
     test edi, edi
     jnz .child_profile
     cmp r8, TASK_SHELL_GENERATION
@@ -2252,18 +2302,11 @@ scheduler_validate_shell_syscall_profile64:
     ja .invalid
     mov rcx, SHELL_CHILD_SYSCALL_MASK
 .mask_ready:
-    cmp qword [rdx + SYSCALL_PROFILE_MASK], rcx
-    jne .invalid
-    mov rax, qword [rel syscall_rax]
-    cmp rax, 64
-    jae .denied
-    bt rcx, rax
-    jnc .denied
-    mov eax, 1
-    ret
-.denied:
+    mov rsi, r8
+    mov rdx, rcx
+    mov r8, [rel syscall_rax]
     mov eax, 2
-    ret
+    jmp scheduler_profile_apply64
 .invalid:
     xor eax, eax
     ret
@@ -4532,32 +4575,14 @@ scheduler_install_shell_syscall_profile64:
     cmp rdx, rax
     jne .fail
 .identity_valid:
-    mov eax, edi
-    shl rax, 8
-    lea r8, [rel scheduler_tasks]
-    add r8, rax
-    cmp qword [r8 + TASK_STATE], TASK_RESERVED
-    jne .fail
-    cmp qword [r8 + TASK_GENERATION], rsi
-    jne .fail
-    mov eax, edi
-    shl rax, 4
-    lea r8, [rel scheduler_syscall_profiles]
-    add r8, rax
-    cmp qword [r8 + SYSCALL_PROFILE_GENERATION], 0
-    jne .fail
-    cmp qword [r8 + SYSCALL_PROFILE_MASK], 0
-    jne .fail
-    mov qword [r8 + SYSCALL_PROFILE_MASK], rdx
-    mov qword [r8 + SYSCALL_PROFILE_GENERATION], rsi
     mov eax, 1
-    ret
+    jmp scheduler_profile_apply64
 .fail:
     xor eax, eax
     ret
 
-; EDI slot and ESI generation. Reject stale or duplicate revocation and clear
-; the bitmap before withdrawing its generation publication.
+; EDI slot and ESI generation. Revoke before frames and identity release.
+; Empty revocation is idempotent only while this exact terminal task is owned.
 scheduler_clear_shell_syscall_profile64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .fail
@@ -4576,18 +4601,8 @@ scheduler_clear_shell_syscall_profile64:
     ja .fail
     mov rdx, SHELL_CHILD_SYSCALL_MASK
 .identity_valid:
-    mov eax, edi
-    shl rax, 4
-    lea r8, [rel scheduler_syscall_profiles]
-    add r8, rax
-    cmp qword [r8 + SYSCALL_PROFILE_GENERATION], rsi
-    jne .fail
-    cmp qword [r8 + SYSCALL_PROFILE_MASK], rdx
-    jne .fail
-    mov qword [r8 + SYSCALL_PROFILE_MASK], 0
-    mov qword [r8 + SYSCALL_PROFILE_GENERATION], 0
-    mov eax, 1
-    ret
+    mov eax, 3
+    jmp scheduler_profile_apply64
 .fail:
     xor eax, eax
     ret

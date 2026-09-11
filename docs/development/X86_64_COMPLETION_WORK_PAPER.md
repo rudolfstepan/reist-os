@@ -30,6 +30,22 @@ Alle bisherigen Matrizen und i386-Guard bleiben unverändert. Belege unter
 build/codex-agent/r83m-profiles. Keine neue Prozesskapazität/Autorität,
 keine allgemeinen Dienste oder Supervisor-Recovery aus diesem Nachweis.
 
+Abnahme R8.3m: alle20 Gruppen bestanden. Neuer Host4/1.413s, alter
+OOM3/0.924s, Requests3/1.044s, Bootstrap55/0.041s, Startup4/1.420s,
+Exit3/0.957s, Context2/1.150s. Profilgast222 verweigerte Aufrufe/
+444 Eintrittsbeobachtungen und sechs Profilübergänge in5.443s bestanden.
+Normalbild175440 Bytes; alte Shell-/Kind-ELFs unverändert und das gesamte
+Normalbild aus abschließendem Quellstand bytegleich zum ersten Normalbuild.
+OOM6/12 in8.499s, Requests3/6 in9.243s, Argv4/8 in12.012s,
+Exit24/48 in71.449s, Fault24/48 in68.358s, Busy2/4 in6.503s,
+Context7/14 in20.947s, IPC4/8 in13.138s.17 Mechanismusobjekte über75 Builds
+bytegleich, einschließlich erhaltener negativer Kontrollen; i386-Guard5.013s.
+Die neue Fixture synchronisiert den längeren Selbsttest mit begrenztem
+nichtblockierendem RECEIVE/YIELD und CLOSE-Bestätigung. Große Debugbelege
+gehen direkt in eine128KiB-begrenzte Datei, ohne die Windows-Pipe zu füllen.
+Das Reap-Oracle fordert den bestehenden Kindzustand ZOMBIE8 exakt.
+Keine vorherigen Gates, Kernelmasken oder Quoten abgeschwächt.
+
 ## R8.3l: atomare Speicherreservierung vor Prozessidentität
 
 Basis a22c30ed. Eine zusammenhängende Spawn-Transaktion schließt OOM beim
