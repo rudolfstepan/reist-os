@@ -153,7 +153,9 @@ verlinkten Referenzdokumente.
 
 - [JavaScript-Farbausgabe](architecture/JS_COLOR_OUTPUT_CONTRACT.md) – R3.45-Hostgrenze und Abnahme
 
-107 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
+- [Native x86_64-Fertigstellung](development/X86_64_COMPLETION_WORK_PAPER.md) – Bestand, Umsetzung und Systemabnahme
+
+108 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
 Abgleichberichts. Upstream-Texte, Lizenzen, AGENTS.md und generierte Belege
 werden nicht zu aktuellen Produktanleitungen umgeschrieben. Ein Vertrag
 beschreibt Anforderungen und abgegrenzte Teilabnahmen, nicht automatisch

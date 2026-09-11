@@ -1,0 +1,88 @@
+# Native x86_64-Version: Umsetzung bis zur Systemabnahme
+
+Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
+Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
+eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
+
+## Bestand und eigentlicher Abstand
+
+R8.1a bis R8.2r sind abgenommen: Long Mode, W^X/NX, getrennte User-Adressräume,
+Frameverwaltung, ELF64-Testprogramme, Interrupt-/Preemption-Proben, Runqueue,
+Sleep, Spawn/Wait, Argumente, Syscallprofile und IPC einschließlich Timeout,
+Backpressure, Widerruf und generationsgenauem Reap. Der vorhandene C-Kern
+übergibt noch an einen überwiegend in Assembly implementierten Nachweisablauf.
+Quelle: [Bootstrapvertrag](../architecture/X86_64_BOOTSTRAP.md), Code unter
+`arch/x86_64`, `test/test_x86_64_boot.py` und abgeschlossene Queuepakete.
+
+Das ist noch kein allgemeiner Kernel: 128MiB physischer Verwaltungsbereich,
+vier Taskslots, eingebettete ELF-Programme, feste Rollen/Generationen und ein
+einzelner IPC-Endpunkt. Die Test-Shell besitzt HELP/INFO/RUN/EXIT, nicht die
+normale i386-Shell mit Dateisystem, Diensten, Desktop oder Browser. Das äußere
+Multiboot-v1-Artefakt ist absichtlich ELF32; eingebetteter C-Kern und Userspace
+sind ELF64. Ein geändertes Compilerflag oder größere VM-RAM-Zahl löst das nicht.
+
+## Ziel und verbindliche Reihenfolge
+
+Kompatible Fälle werden je Fehler-/Autoritätsgrenze gemeinsam umgesetzt, nicht
+als einzelne Syscall- oder Feld-Mikropakete. Nur ein eingefrorenes Paket ist
+je Lauf aktiv; spätere Etappen erhalten erst nach Bestandsprüfung ihren Scope.
+
+| Etappe | Zusammenhängendes Ergebnis | Pflichtnachweis vor Abschluss |
+|---|---|---|
+| R8.3a: ABI-/SDK-Basis | Wiederverwendbarer 64-Bit-Syscalltransport, zentrale Nummern, echte Shell als erster Verbraucher | volle Registerbreite, C/C++, ELF64-Build, alter Ring3-Dialog samt IPC/Reap, unverändertes i386 |
+| Allgemeiner Kernel-Lebenszyklus | Probephasen aus produktiven Mechanismen herauslösen; konfigurierte Task-/Endpoint-Pools, Scheduling, vollständiger Kontext einschließlich FPU/SSE, Deadlines, Generationen und Supervisorzustände | beliebige zulässige Rollen statt erwarteter Token/PIDs; Crash/Hang/Quota, Fairness und Wiederanlauf ohne Verlust unabhängiger Tasks |
+| Skalierbare Speicherverwaltung | 64-Bit-physische Adressen, RAM-Karten/Reservierungen, dynamische Seitentabellen, private Heaps, Shared-Memory-Rechte und kontrollierte Caches | mindestens1/4/8GiB Profile; echte Allokation oberhalb4GiB, Löcher/Überläufe, W^X/NX/Guardpages, OOM und vollständiges Reap; keine beliebige128MiB-Grenze |
+| Vertrauenswürdiger Boot und Prozessstart | explizites signiertes natives x86_64-Medium, gemeinsame validierte Bootdaten, allgemeines ELF64-Laden außerhalb Ring0, versionierte argv/env/auxv | beschädigte Kandidaten, Rollback/Fallback, Pointer-/Segment-/Rights-Prüfung, unvollständiger Spawn ohne Ressourcenverlust |
+| Ring3-Dienste und Geräte | bestehende Dienste portieren; VFS/Storage, Timer/IRQ und Gerätezugriffe nur über validierte Mediation, anschließend Netzwerk und Grafik/Input | reale Datei-/Netz-/Gerätearbeit plus abgestürzter/hängender Dienst, Fence/Revoke/Reap/Recreate/Selftest; DMA-Grenzen ausdrücklich nachweisen |
+| Vollständiger Userspace | libc/C++-SDK, normale Shell/Tools, JS-Worker/-Host, Desktop/Applets und Browser als echte64-Bit-Prozesse | Pointer-/Layout-Audit je ABI, normale Shelldispatches, große Ressourcen und Resizes, alle bisherigen fachlichen Regressionen und fehlende Ambient-Rechte |
+| Systemabnahme | getrennte native QEMU-/VMware-Images, Installations-/Recoveryweg und reproduzierbare Releaseartefakte | Start bis Desktop/Browser/JS, Service-/Speicher-Faultinjektion, Langlauf, SMP und Performance-/Latenzvergleich auf gleichen Hostbedingungen |
+
+SMP und sichere IRQ/MMIO/PIO/DMA-Vermittlung sind Voraussetzungen der jeweils
+betroffenen Plattformpakete, keine späte Dekoration. Ohne IOMMU nur validierte
+kernel-eigene DMA-Mediation oder ausdrücklicher Ausschluss des Assuranceprofils.
+Kein neuer komplexer Ring0-Treiber als Portierungsabkürzung. Kein automatischer
+32-Bit-Binärmodus: vorhandene Anwendungen werden nativ neu übersetzt; ein
+Kompatibilitätsmodus wäre ein gesondert zu autorisierender Vertrag.
+
+Fertig bedeutet: normale native Systemimages mit funktionierender Shell,
+Diensten, Desktop, Browser und JS, skalierbarem Speicher sowie geprüfter
+Isolation/Recovery. Ein einzelner Bootmarker erfüllt das nicht. Performance
+und Resilienz sind gemeinsam abzunehmen; i386-Referenzen bleiben erhalten.
+
+## Eingefrorenes erstes Paket R8.3a
+
+Ein ABI-/Toolchain-Schnitt, keine Änderung am Kernel, an Rechten, Profilen,
+Framegrenzen, Taskkapazitäten, persistenten Formaten oder Dienstverhalten.
+`userspace/sdk/include/reist/x86_64/syscall.h` bietet C/C++-Transport für0..6
+Argumente. Nummern werden aus der bestehenden autoritativen
+`REIST_SYSCALL_LIST` projiziert, nicht erneut von Hand nummeriert. Die echte
+64-Bit-Test-Shell verwendet ihn statt ihrer lokalen Kopie.
+
+Referenz: [System-V AMD64 psABI](https://gitlab.com/x86-psABIs/x86-64-ABI),
+insbesondere [Kernel Calling Convention](https://gitlab.com/x86-psABIs/x86-64-ABI/-/blob/master/x86-64-ABI/kernel.tex).
+Produktionsziel ist `x86_64-freestanding-none`, LP64. Nummer in RAX, Argumente
+in RDI/RSI/RDX/R10/R8/R9, Ergebnis als int64_t aus RAX. RCX/R11, Flags und
+Speicher sind Compiler-Clobbers; Red Zone ist deaktiviert. Unbenutzte Argumente
+werden null gesetzt. Header nutzt uint64_t/uintptr_t statt int-Pointercasts.
+REIST-Nummern/Fehler und explizite Profile bleiben erhalten: keine Linux-
+Binärkompatibilität und keine Behauptung, alle gelisteten Syscalls seien schon
+unter x86_64 implementiert. Raw-Transport erteilt niemals Autorität, fügt kein
+errno, keine automatischen Wiederholungen und keinen i386-Fallback hinzu.
+
+Der Native-Hosttest ersetzt ausschließlich die Instruktion durch eine feste
+Assembly-Registersonde. Der ausdrücklich benannte Testschalter ist niemals im
+Gastbuild gesetzt; die Sonde führt keine Windows-/Host-Syscalls aus. Sie prüft
+echten kompilierten Code bei O0/O2 in C und C++, alle sieben Aufrufbreiten,
+Werte oberhalb4GiB, High-Bit-Ergebnisse, negative Fehler und RCX/R11-Clobbers.
+Ein separater freestanding-Compile prüft LP64; i386 wird geschlossen abgewiesen.
+Der echte Gast beweist anschließend die existierende Kernelgrenze unverändert.
+
+Sechs eingefrorene Gruppen stehen in der Queue: neuer SDK-Hosttest, bestehende
+55 Bootstrap-Quellverträge (nur Kopiernummern-Assertions auf gemeinsame Quelle
+umstellen), Dokumentation, separater Windows-Build, echter QEMU-Dialog mit
+INFO/RUN/RUN/EXIT und vollständigem Cleanup sowie R3.45-Image-/PRG-Hashguard.
+Build und Logs ausschließlich unter `build/codex-agent/r83a-sdk/`; keine
+bestehenden Images oder Belege überschreiben. QEMU bleibt headless, eine CPU,
+128MiB/10s für diesen unveränderten Prototypnachweis. Keine Hardware-/SMP- oder
+Mehr-GiB-Zusage aus diesem Paket. R341-H1/H2 und die ausdrückliche R3.6b-
+Zurückstellung bleiben offen. JS-Folgefeatures sind zugunsten x86_64 nachgeordnet.
