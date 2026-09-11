@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3p-x86_64-task-frame-retirement"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3p-x86_64-task-frame-retirement"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Validated native private-task frame retirement and rollback"
+scope = "One private physical ownership-release boundary: unify actual task data/stack/page-table retirement and construction rollback behind a trusted explicit record binding. Validate all record pointers, physical frames, uniqueness and CR3 relation before any free. Preserve completed releases and stop on first failed backend release; repeat cannot free a successfully cleared record twice. Kernel corruption remains fatal, not recoverable service failure. No new allocator, image authority, role policy or capacity."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/development/CURRENT_WORK.md", "docs/development/PROJECT_STATUS.md", "docs/architecture/X86_64_BOOTSTRAP.md", "Makefile", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/mm/task_frames.asm", "arch/x86_64/mm/task_frames.h", "test/test_x86_64_task_frames.py", "test/x86_64_task_frames_host.c", "scripts/run_qemu_x86_64_task_frames.py", "test/test_x86_64_boot.py"]
+invariants = ["Private System V AMD64 interface, Intel64 4KiB physical frame/page-table terms.32-byte binding: pointers to8 private-frame records, one stack-frame record,4 table-frame records and CR3 record. Trusted pinned disjoint storage, no userspace pointer. At most13 unique nonzero aligned frames below128MiB; nonzero CR3 must equal the PML4 record. Validate all metadata before frees. Release private pages then stack then PT/PD/PDPT/PML4, clearing only successfully released records. Clear CR3 on complete release; verify per-call free-count delta. Failure preserves remaining ownership; no reallocation or recovery after trusted corruption.", "Every existing task teardown/rollback uses actual production core; FP scrub remains mandatory on successful cleanup, generation/profile/budget/identity teardown stays caller-owned and unchanged. Caller fences the target and serializes IF0; terminal/forced cleanup switches to original kernel CR3, unpublished construction rollback has no active child address space. Adapter rejects release of the currently active PML4 before effects. No task state publication inside release core, no new authority, no active-address-space release. Current4-slot layout and global bootstrap selector unchanged; normal user ELF bytes identical to a0f919a3.", "Regression first: original actual release loop frees one frame before detecting duplicate metadata. Actual new assembly host O0/O2 tests all8192 sparse13-frame layouts, malformed metadata before effects, each failed release position with preserved remainder, idempotence and independent owner canaries. Real read-only QEMU receipts prove all normal task releases and complete private/table/CR3/FP clearing, two child generations and normal parent continuation. Every old25 groups retained plus task-frame host/runtime groups. Kernel mechanisms identical across fixtures,1CPU/128MiB/four slots/two children/256ticks/32CPU samples/10s guest unchanged. R3.6b remains deferred; no complete64-bit OS claim."]
+targeted_tests = ["python test/test_x86_64_task_frames.py -v", "python test/test_x86_64_ipc_fixture.py -v", "python test/test_x86_64_mappings.py -v", "python test/test_x86_64_image_contexts.py -v", "python test/test_x86_64_profiles.py -v", "python test/test_x86_64_spawn_oom.py -v", "python test/test_x86_64_requests.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_argv.py -v", "python test/test_x86_64_exit.py -v", "python test/test_x86_64_context.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83p-retirement/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83p-retirement/retirement", "python scripts/run_qemu_x86_64_mappings.py --evidence build/codex-agent/r83p-retirement/mappings", "python scripts/run_qemu_x86_64_image_contexts.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83p-retirement/contexts", "python scripts/run_qemu_x86_64_profiles.py --evidence build/codex-agent/r83p-retirement/profiles", "python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83p-retirement/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83p-retirement/normal-guest.log", "python scripts/run_qemu_x86_64_spawn_oom.py --evidence build/codex-agent/r83p-retirement/spawn_oom", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83p-retirement/requests", "python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83p-retirement/argv", "python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83p-retirement/exit", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83p-retirement/fault", "python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83p-retirement/busy", "python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83p-retirement/user_context", "python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83p-retirement/ipc_handoff", "python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All27 groups. Actual pre-effect host proofs and real task release receipts; no source-only substitution, no weaker IPC/mapping/exit/fault/busy/context/OOM/profile/argv/image-lifetime/i386 oracle. Exact scope/frozen queue review, then local commit and clean next transaction."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change allocator authority, task state/generation ABI, capacity or recovery policy"]
+commit_message = "fix: validate native task frame retirement before effects"
+evidence = []
 
 [[packages]]
 id = "R8.3o-x86_64-address-space-mapping"
@@ -2961,7 +2978,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

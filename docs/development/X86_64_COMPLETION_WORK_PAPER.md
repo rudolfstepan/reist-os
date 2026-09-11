@@ -4,6 +4,31 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3p: gemeinsame validierte Task-Frame-Freigabe
+
+Basis a0f919a3 (R8.3o, alle25 Gruppen abgenommen). Der bisherige
+Task-Cleanup gibt Frames einzeln frei und erkennt doppelte Metadaten erst
+nach dem ersten Effekt. Vor allgemeiner Prozess-/Speicherzulassung braucht
+der zusammenhängende Freigabe-/Rollbackpfad dieselbe Vorabvalidierung wie
+Mapping und Imagebesitz. Keine Erweiterung von Kapazität oder Recoverypolitik.
+
+Privater32-Byte-SysV-AMD64-Bindungsrecord: Pointer auf acht Privatframes,
+Stackrecord, vier Tabellenframes und CR3record. Alle Recordbereiche, maximal13
+Frame-IDs und die CR3/PML4-Beziehung vor Freigabe prüfen. Nur erfolgreiche
+Freigaben löschen ihren Record; erster Backendfehler stoppt und erhält den
+Restbesitz. Freiframe-Delta je Aufruf prüfen, kein Vergleich mit einem alten
+globalen Ladebestand. Endgültige FP-Nullung, Profil-/Budget-/Identitätswiderruf
+und Generationen bleiben verpflichtend. Kernelkorruption bleibt fatal.
+
+Reihenfolge: tatsächlichen alten Duplicate-after-free-Fehler erhalten;
+Produktionsassembly O0/O2 mit8192 Sparse-Belegungen, allen Fehlerpositionen,
+Nichtmutation, Restbesitz/Idempotenz und unabhängigen Eigentümern prüfen;
+alle Task-Freigaben/Rollbacks anbinden; echte Gast-Receipts inklusive
+FP-/Tabellen-/Privat-/CR3-Nullung und Elternfortschritt. Alle25 bisherigen
+Gates plus neuer Host-/Gastnachweis:27 Gruppen. User-ELFs bleiben gegenüber
+a0f919a3 bytegleich,1CPU/128MiB/vier Slots/zwei Kinder und Zeitbudgets gleich.
+Belege build/codex-agent/r83p-retirement. Keine vollständige OS-Fertigmeldung.
+
 ## R8.3o: gemeinsamer validierter Adressraumaufbau
 
 Basis0e2d95c6. Der bestehende Taskaufbau benutzt den global gewählten
