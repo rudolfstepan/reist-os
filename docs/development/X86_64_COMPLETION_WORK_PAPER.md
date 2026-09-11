@@ -314,3 +314,34 @@ werden vor Mutation abgewiesen; begrenzt quadratische Prüfung bei höchstens64
 Slots. Normalgast,24 Fehlvarianten/48 Generationen und i386-Imageguard grün.
 Fehlversuche und finale Belege getrennt erhalten; siehe
 [CURRENT_WORK](CURRENT_WORK.md). Der allgemeine Kernel-Lifecycle bleibt offen.
+
+## R8.3f: gemeinsame Registersicherung und lebende Userstacks
+
+Bestand `4616b210`: Registersicherung für SYSCALL und IRQ ist dupliziert;
+Timerzulassung verlangt einen konstanten User-RSP. Das verhindert eine
+belastbare allgemeine Präemption normalen C/C++-Codes. Ein gemeinsamer
+privater Contextkern validiert und übernimmt beide Varianten in die bestehenden
+Taskrecords, ohne zweite dauerhafte Kontextablage. Die normierte176-Byte-
+Exceptionframeform bleibt erhalten; der Syscalladapter erzeugt dieselbe Form
+auf seinem begrenzten Kernelstack.48-Byte-Descriptor: Record, Generation,
+aktueller CR3, Stackunter-/obergrenze und Frameart; Validate oder Capture.
+
+Referenz sind die vorhandenen Intel-IA-32e-Interrupt-/IRETQ-/SYSCALL-Verträge
+und die private SysV-AMD64-Aufrufkonvention. SYSCALL konsumiert RCX/R11 als
+RIP/RFLAGS und setzt den anfänglichen Ergebniswert RAX auf0; Handler liefern
+ihre bisherigen Ergebnisse. IRQ bewahrt alle15 GPRs und RIP/RSP/RFLAGS.
+Recordzustand RUNNING, exakte Generation32, CR3, Userselektoren, Frameart,
+kanonische untere48-Bit-Adressen und zugelassene Stackgrenzen werden vor
+Mutation geprüft. IRQ verlangt IF; privilegierte/reservierte Flags bleiben
+abgewiesen. RIP/RSP werden niemals dereferenziert. Mapping-/Profilzulassung
+und FP-Besitz bleiben in den vorhandenen Adaptern. Keine öffentliche ABI,
+kein neuer Timermodus oder allgemeines Shell-Hang-Recoveryversprechen.
+
+Neun Gruppen: derselbe Assemblykern O0/O2 am Host mit vollständigem
+Registervergleich, beiden Framearten und negativen Nichtmutationsfällen;
+Bootstrap-/Identitäts-/FP-/Dokutests, Normalbuild und echter Gast mit belegtem
+Stack, Canaries und wechselndem RSP während Timerpräemption,24 bestehende
+Fehlvarianten/48 Generationen und i386-Guard. Alle alten Gastmarker bleiben
+Pflicht, keine bloße Quellmusterabnahme. Belege `build/codex-agent/r83f-context/`;
+Gastbudget unverändert. Allgemeiner Scheduler/Supervisor und skalierbarer
+Speicher folgen weiterhin; keine vollständige64-Bit-Fertigmeldung.
