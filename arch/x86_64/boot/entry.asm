@@ -385,6 +385,7 @@ halt32:
     jmp .loop
 
 BITS 64
+extern x86_64_fp_cpu_init64
 long_mode_entry:
     mov ax, 0x10
     mov ds, ax
@@ -472,6 +473,15 @@ higher_half_entry:
     call serial_write64
 
     call x86_64_exception_init
+    call x86_64_fp_cpu_init64
+    test eax, eax
+    jnz .fp_ready
+    lea rsi, [rel fp_unsupported_message]
+    call serial_write64
+    jmp halt64
+.fp_ready:
+    lea rsi, [rel fp_ready_message]
+    call serial_write64
 x86_64_ud2_probe:
     ud2
 x86_64_ud2_resume:
@@ -547,6 +557,8 @@ x86_64_nx_resume:
     test eax, eax
     jz c_kernel_control_state_error
     lea rsi, [rel dynamic_process_tables_message]
+    call serial_write64
+    lea rsi, [rel fp_lifecycle_message]
     call serial_write64
     lea rsi, [rel ring3_shell_message]
     call serial_write64
@@ -987,6 +999,9 @@ halt64:
     jmp .loop
 
 section .rodata
+fp_ready_message: db "REIST_X86_64_FP_CPU_READY", 13, 10, 0
+fp_unsupported_message: db "REIST_X86_64_FP_UNSUPPORTED", 13, 10, 0
+fp_lifecycle_message: db "REIST_X86_64_FP_LIFECYCLE_OK", 13, 10, 0
 early_execution_tables_message db "REIST_X86_64_EARLY_EXECUTION_TABLES_OK", 13, 10, 0
 dynamic_process_tables_message db "REIST_X86_64_DYNAMIC_PROCESS_TABLES_OK", 13, 10, 0
 high_frame_consumers_message db "REIST_X86_64_HIGH_FRAME_CONSUMERS_OK", 13, 10, 0

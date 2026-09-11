@@ -145,3 +145,14 @@ Fixtures verwenden unterschiedliche FP-Muster bei Yield, Timerwechsel, Sleep,
 Spawn/Wait und IPC; alle bisherigen Markernachweise bleiben verpflichtend.
 Logs unter `build/codex-agent/r83b-fp/`, positive und negative Gäste höchstens10s,
 eine CPU/128MiB, keine sichtbare VM. R3.6b bleibt zurückgestellt.
+
+Abnahme: R8.3b ist umgesetzt und mit allen acht Gruppen geprüft. Die Sonde
+verwendet private Scratchdaten statt temporärer Stackframes, damit auch eine
+IRQ-Unterbrechung innerhalb der FP-Prüfung den bisherigen festen User-RSP-
+Vertrag erfüllt. Das RX-only-Kind verwendet den unteren1072-Byte-Bereich seiner
+vorhandenen privaten Stackseite; kein neues Segment oder Ressourcenbudget.
+Der erste Fehlgast bleibt erhalten, der korrigierte Lauf nutzt ausschließlich
+einen neuen Logpfad (`guest-stackless.log`); alle übrigen Gateanforderungen
+bleiben gleich. Belege in [CURRENT_WORK](CURRENT_WORK.md). Der verbleibende
+allgemeine Lifecycle ist weiterhin offen, insbesondere allgemeine Userfault-
+Beendigung und Ablösung der fest verdrahteten Probephasen.

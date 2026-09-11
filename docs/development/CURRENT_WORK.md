@@ -2,6 +2,44 @@
 
 Stand: 11. September 2026
 
+## R8.3b: nativer FP-Registerbesitz abgenommen
+
+Vertragscheckpoint `ae7fdfa1`, Basis `0ceed8e0`. Der native Scheduler besitzt
+jetzt je Task ein privates, ausgerichtetes512-Byte-FXSAVE64-Abbild, ohne
+Änderung der GPR-Offsets. Deterministische neue Zustände, eager Save/Restore
+bei Syscalls und Timerwechseln, vollständiges Löschen bei Reap/Rollback und
+sauberer Zustand bei früher Userausführung sowie Rückkehr zum Kernel.
+CPU-Admission prüft FPU/FXSR/SSE/SSE2 und die relevanten CR0-/CR4-Bits;
+fehlendes SSE2 und bereits aktives OSXSAVE werden nicht still übergangen.
+
+Acht Prüfgruppen bestanden. Neuer Hosttest2/0.865s mit echten Instruktionen
+O0/O2, allen acht x87- und16 XMM-Registern, Kontrollen,64 Wechselpaaren und
+Scrub/Reuse; SDK3/2.115s, bestehende55 Bootstrapverträge/0.028s.
+Isolierter Build1.849s, Bootstrap155904 Bytes, Probe12312, Shell3680,
+Kind1784. Echter QEMU-Dialog0.540s einschließlich aller alten Marker,
+Yield/Timer/Sleep/Spawn/Wait/Fault/Reap sowie zweier Shell-IPC-Kindgenerationen.
+CPU-Negativgast ohne SSE2 besteht0.196s vor jeder Userausführung.
+i386-Imageguard4.702s bestanden; kein i386-Neubuild, keine Imageänderung.
+Dokumentationsprüfung gehört ebenfalls zur eingefrorenen Abnahme.
+
+Belege: `build/codex-agent/r83b-fp/`. Der erste Timerlauf scheiterte an der
+neuen, stackbenutzenden Testsonde: Das bestehende IRQ-Profil fordert konstanten
+User-RSP. Die Sonde verwendet jetzt private Scratchdaten und Sprünge ohne
+Stackänderung; die bestehende Stackprüfung wurde nicht gelockert.
+Erster Fehlgast `guest.log` bleibt erhalten; endgültiger positiver Gast
+`guest-stackless.log` mit unveränderten übrigen Argumenten/10s-Deadline.
+Kindsonde nutzt1072 Bytes im unteren Bereich ihrer vorhandenen privaten
+Stackseite, getrennt von argv und IPC; das Kind-ELF bleibt ausschließlich RX.
+Compilerprofile bleiben ohne automatisch erzeugtes SSE, keine AVX-/XSAVE-
+oder SMP-Freigabe. Keine Performanceaussage aus dem kurzen TCG-Test.
+
+Dies schließt den Registerbesitz, nicht den allgemeinen Kernel-Lifecycle.
+Vor beliebigen nativen Programmen fehlen insbesondere allgemeine Benutzer-
+Ausnahmebeendigung (#MF/#XM/#GP), nicht an Probe-PIDs gebundene Scheduling-/
+Supervisorpfade und skalierbarer Speicher. Keine native JS-Freigabe daraus.
+R341-H1/H2 und R3.6b-Zurückstellung bleiben offen. Es wurde kein späteres
+Paket implementiert; nächste fachliche Priorität bleibt x86_64.
+
 ## R8.3a: x86_64-SDK-Basis abgenommen
 
 Nutzerpriorität geändert: native64-Bit-Version vor weiteren JS-Funktionen.

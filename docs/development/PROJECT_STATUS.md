@@ -7,6 +7,9 @@ aktive Paketqueue in `automation/reist-s03b.toml`.
 Neue Priorität: native64-Bit-Systemversion. R8.3a-SDK-Basis abgenommen:
 gemeinsamer C/C++-Transport, echte ELF64-Shell und QEMU-IPC-/Reap-Nachweis;
 alle sieben Prüfgruppen bestanden, vorhandene i386-Images unverändert.
+R8.3b ergänzt geprüften privaten x87-/SSE-Registerbesitz über die bestehenden
+Prozesswechsel, Reap und Wiederverwendung; alle acht Gruppen bestanden.
+Allgemeine Ausnahmebeendigung und native Anwendungsfreigabe fehlen weiterhin.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

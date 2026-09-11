@@ -3,10 +3,15 @@
 ; R8.1g executes the isolated cooperative task modes 0x0A and 0x0B.
 
 BITS 64
+%include "arch/x86_64/user/fp_probe.inc"
 
 section .text
 global _start
 _start:
+    cmp edi, 0x0a
+    jb .early_integer_probe
+    FP_BEGIN edi
+.early_integer_probe:
     push rdi
     pop rdi
     test edi, edi
@@ -51,6 +56,7 @@ probe_exit:
     mov eax, 9
     mov edi, 100
     syscall
+    FP_CHECK
     ud2
 
 probe_fault:
@@ -61,17 +67,20 @@ scheduler_task_a:
     mov qword [rel probe_data], rax
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0xA11A11A11A11A11A
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0xA11A11A11A11A11A
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 101
     syscall
+    FP_CHECK
     ud2
 
 scheduler_task_b:
@@ -79,6 +88,7 @@ scheduler_task_b:
     mov qword [rel probe_data], rax
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0xB22B22B22B22B22B
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
@@ -93,12 +103,14 @@ preempt_task_a:
     mov qword [rel probe_data], rax
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0xC33C33C33C33C33C
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 102
     syscall
+    FP_CHECK
     ud2
 
 preempt_task_b:
@@ -119,6 +131,7 @@ quantum_task_a:
     mov qword [rel probe_data], r14
     xor r15d, r15d
 .quantum_a_loop:
+    FP_CHECK
     cmp r14, r13
     jne scheduler_isolation_failure
     inc qword [rel probe_progress]
@@ -140,6 +153,7 @@ quantum_task_a:
     mov eax, 9
     mov edi, 103
     syscall
+    FP_CHECK
     ud2
 
 quantum_task_b:
@@ -147,6 +161,7 @@ quantum_task_b:
     mov r13, r14
     mov qword [rel probe_data], r14
 .quantum_b_loop:
+    FP_CHECK
     cmp r14, r13
     jne scheduler_isolation_failure
     inc qword [rel probe_progress]
@@ -163,12 +178,14 @@ runqueue_task_0:
     mov qword [rel probe_data], rax
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0x1010101010101010
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 110
     syscall
+    FP_CHECK
     ud2
 
 runqueue_task_1:
@@ -177,6 +194,7 @@ runqueue_task_1:
     mov eax, 9
     mov edi, 111
     syscall
+    FP_CHECK
     ud2
 
 runqueue_task_2:
@@ -184,12 +202,14 @@ runqueue_task_2:
     mov qword [rel probe_data], rax
     mov eax, 40
     syscall
+    FP_CHECK
     mov rax, 0x1212121212121212
     cmp qword [rel probe_data], rax
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 112
     syscall
+    FP_CHECK
     ud2
 
 runqueue_task_3:
@@ -205,11 +225,13 @@ sleep_task_0:
     mov eax, 41
     mov edi, 30
     syscall
+    FP_CHECK
     cmp qword [rel probe_data], rbx
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 120
     syscall
+    FP_CHECK
     ud2
 
 sleep_task_1:
@@ -218,11 +240,13 @@ sleep_task_1:
     mov eax, 41
     mov edi, 10
     syscall
+    FP_CHECK
     cmp qword [rel probe_data], rbx
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 121
     syscall
+    FP_CHECK
     ud2
 
 sleep_task_2:
@@ -231,11 +255,13 @@ sleep_task_2:
     mov eax, 41
     mov edi, 20
     syscall
+    FP_CHECK
     cmp qword [rel probe_data], rbx
     jne scheduler_isolation_failure
     mov eax, 9
     mov edi, 122
     syscall
+    FP_CHECK
     ud2
 
 sleep_task_3:
@@ -243,6 +269,7 @@ sleep_task_3:
     mov qword [rel probe_data], rbx
     mov eax, 42
     syscall
+    FP_CHECK
     cmp rax, 80
     ja scheduler_isolation_failure
     mov qword [rel probe_progress], rax
@@ -251,6 +278,7 @@ sleep_task_3:
     mov eax, 9
     mov edi, 123
     syscall
+    FP_CHECK
     ud2
 
 dynamic_parent:
@@ -258,18 +286,21 @@ dynamic_parent:
     mov qword [rel probe_data], rbx
     mov eax, 22
     syscall
+    FP_CHECK
     cmp rax, 200
     jne scheduler_isolation_failure
 
     mov eax, 23
     xor edi, edi
     syscall
+    FP_CHECK
     cmp rax, -14
     jne scheduler_isolation_failure
 
     mov eax, 23
     lea rdi, [rel dynamic_child_path]
     syscall
+    FP_CHECK
     cmp rax, 201
     jne scheduler_isolation_failure
     mov r14, rax
@@ -277,6 +308,7 @@ dynamic_parent:
     mov eax, 23
     lea rdi, [rel dynamic_child_path]
     syscall
+    FP_CHECK
     cmp rax, -16
     jne scheduler_isolation_failure
 
@@ -284,6 +316,7 @@ dynamic_parent:
     mov edi, 202
     lea rsi, [rel dynamic_wait_status]
     syscall
+    FP_CHECK
     cmp rax, -10
     jne scheduler_isolation_failure
 
@@ -291,6 +324,7 @@ dynamic_parent:
     mov rdi, r14
     xor esi, esi
     syscall
+    FP_CHECK
     cmp rax, -14
     jne scheduler_isolation_failure
 
@@ -298,6 +332,7 @@ dynamic_parent:
     mov rdi, r14
     lea rsi, [rel dynamic_wait_status]
     syscall
+    FP_CHECK
     cmp rax, 201
     jne scheduler_isolation_failure
     cmp dword [rel dynamic_wait_status], 77
@@ -307,6 +342,7 @@ dynamic_parent:
     mov rdi, r14
     lea rsi, [rel dynamic_wait_status]
     syscall
+    FP_CHECK
     cmp rax, -10
     jne scheduler_isolation_failure
 
@@ -314,6 +350,7 @@ dynamic_parent:
     mov eax, 23
     lea rdi, [rel dynamic_child_path]
     syscall
+    FP_CHECK
     cmp rax, 201
     jne scheduler_isolation_failure
     mov r14, rax
@@ -322,6 +359,7 @@ dynamic_parent:
     mov rdi, r14
     lea rsi, [rel dynamic_wait_status]
     syscall
+    FP_CHECK
     cmp rax, 201
     jne scheduler_isolation_failure
     cmp dword [rel dynamic_wait_status], 77
@@ -331,6 +369,7 @@ dynamic_parent:
     mov eax, 9
     mov edi, 130
     syscall
+    FP_CHECK
     ud2
 
 dynamic_child:
@@ -339,6 +378,7 @@ dynamic_child:
     mov eax, 9
     mov edi, 77
     syscall
+    FP_CHECK
     ud2
 
 section .data
@@ -361,3 +401,5 @@ section .bss
 alignb 16
 probe_zero_tail:
     resb 64
+
+FP_PROBE_CODE

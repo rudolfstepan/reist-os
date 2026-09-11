@@ -1,4 +1,7 @@
 BITS 64
+; Lower 1072 bytes of this task's private stack, disjoint from argv/IPC.
+%define FP_STACK_BASE 0x00408000
+%include "arch/x86_64/user/fp_probe.inc"
 
 REIST_SYS_EXIT equ 9
 REIST_SYS_GETPID equ 22
@@ -27,11 +30,13 @@ section .text
 global _start
 
 _start:
+    FP_BEGIN 0x1b
     mov eax, REIST_SYS_GETPID
     xor edi, edi
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     cmp rax, REIST_EACCES
     jne .fail
     cmp rsp, CHILD_RSP
@@ -85,6 +90,7 @@ _start:
     mov rsi, rsp
     xor edx, edx
     syscall
+    FP_CHECK
     cmp rax, REIST_EACCES
     jne .fail
     mov eax, REIST_SYS_IPC_SEND
@@ -92,6 +98,7 @@ _start:
     mov rsi, rsp
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov byte [rsp + 18], '7'
@@ -100,6 +107,7 @@ _start:
     mov rsi, rsp
     xor edx, edx
     syscall
+    FP_CHECK
     cmp rax, REIST_EAGAIN
     jne .fail
     mov eax, REIST_SYS_IPC_SEND_TIMEOUT
@@ -107,6 +115,7 @@ _start:
     mov rsi, rsp
     mov edx, IPC_SEND_TIMEOUT_MS
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_YIELD
@@ -114,6 +123,7 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_YIELD
@@ -121,6 +131,7 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_IPC_SEND
@@ -128,6 +139,7 @@ _start:
     mov rsi, rsp
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_YIELD
@@ -135,6 +147,7 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_IPC_RELEASE
@@ -142,6 +155,7 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov eax, REIST_SYS_YIELD
@@ -149,6 +163,7 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     test rax, rax
     jnz .fail
     mov byte [rsp + 18], '9'
@@ -157,6 +172,7 @@ _start:
     mov rsi, rsp
     mov edx, IPC_SEND_TIMEOUT_MS
     syscall
+    FP_CHECK
     cmp rax, REIST_EBADF
     jne .fail
     mov edi, CHILD_STATUS
@@ -168,6 +184,8 @@ _start:
     xor esi, esi
     xor edx, edx
     syscall
+    FP_CHECK
     ud2
 
+FP_PROBE_CODE
 section .note.GNU-stack noalloc noexec nowrite progbits

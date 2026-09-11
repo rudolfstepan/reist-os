@@ -9,6 +9,13 @@ Der bisherige Bootstrapumfang bleibt unverändert begrenzt. Abnahmestand und
 weitere zusammenhängende Etappen im
 [Fertigstellungsplan](../development/X86_64_COMPLETION_WORK_PAPER.md).
 
+R8.3b ergänzt eager FXSAVE64/FXRSTOR64 mit privaten, bei Aufbau und Reap
+bereinigten Zuständen und CPU-Admission. Alle bestehenden Modi/Marker bleiben
+geprüft; die Gastsonden verändern den festen User-RSP nicht. Weiterhin nur
+eingebettete Testprogramme: keine allgemeine FP-Ausnahme-/Anwendungsfreigabe,
+kein AVX/XSAVE oder SMP. Abnahmebelege in
+[CURRENT_WORK](../development/CURRENT_WORK.md).
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im

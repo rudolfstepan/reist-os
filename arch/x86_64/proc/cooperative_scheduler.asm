@@ -2,6 +2,11 @@
 ; It is deliberately not linked into any production i386 kernel or image.
 
 BITS 64
+extern x86_64_fp_init64
+extern x86_64_fp_clear64
+extern x86_64_fp_save64
+extern x86_64_fp_restore64
+extern x86_64_fp_reset64
 
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
@@ -1613,6 +1618,7 @@ scheduler_enter_task64:
     mov qword [r11 + TASK_STATE], TASK_RUNNING
     call scheduler_append_event64
 .state_published:
+    call scheduler_fp_restore64
 
     mov rax, qword [r11 + TASK_CR3]
     test rax, PAGE_SIZE - 1
@@ -1718,6 +1724,7 @@ scheduler_syscall_entry64:
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
     jne scheduler_fail
+    call scheduler_fp_save64
     mov rax, cr3
     cmp rax, qword [r12 + TASK_CR3]
     jne scheduler_fail
@@ -5300,6 +5307,7 @@ x86_64_scheduler_quantum_switch64:
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
     jne .invalid
+    call scheduler_fp_save64
 
     mov rax, qword [rdi + EXCEPTION_FRAME_RAX]
     mov qword [r12 + TASK_RAX], rax
@@ -5837,6 +5845,11 @@ scheduler_build_task64:
     test rax, rax
     jz .fail
     mov qword [r12 + TASK_CR3], rax
+    mov eax, ebx
+    shl eax, 9
+    lea rdi, [rel scheduler_fp_states]
+    add rdi, rax
+    call x86_64_fp_init64
     mov eax, 1
     ret
 .fail:
@@ -6107,6 +6120,11 @@ scheduler_release_task_frames64:
     sub rdx, rax
     test rdx, TASK_RECORD_SIZE - 1
     jnz .fail
+    ; Scrub on normal reap AND failed/forced construction rollback.
+    lea rdi, [rel scheduler_fp_states]
+    shl rdx, 1 ; 256-byte GPR stride -> 512-byte FP stride
+    add rdi, rdx
+    call x86_64_fp_clear64
     xor ebp, ebp
 .private_loop:
     mov rdi, qword [r12 + TASK_PRIVATE_FRAMES + rbp * 8]
@@ -6397,6 +6415,13 @@ scheduler_verify_final_events64:
     inc ebx
     cmp ebx, (TASK_SLOT_CAPACITY * TASK_RECORD_SIZE) / 8
     jb .task_zero_loop
+    lea rsi, [rel scheduler_fp_states]
+    mov ecx, (TASK_SLOT_CAPACITY * 512) / 8
+.fp_zero_loop:
+    cmp qword [rsi], 0
+    jne .fail
+    add rsi, 8
+    loop .fp_zero_loop
     mov eax, 1
     ret
 .fail:
@@ -6539,6 +6564,34 @@ scheduler_write_msr64:
     wrmsr
     ret
 
+scheduler_fp_save64:
+    push rax
+    push rdi
+    mov eax, dword [rel scheduler_current_slot]
+    cmp eax, TASK_SLOT_CAPACITY
+    jae scheduler_fail
+    shl eax, 9
+    lea rdi, [rel scheduler_fp_states]
+    add rdi, rax
+    call x86_64_fp_save64
+    pop rdi
+    pop rax
+    ret
+
+scheduler_fp_restore64:
+    push rax
+    push rdi
+    mov eax, dword [rel scheduler_current_slot]
+    cmp eax, TASK_SLOT_CAPACITY
+    jae scheduler_fail
+    shl eax, 9
+    lea rdi, [rel scheduler_fp_states]
+    add rdi, rax
+    call x86_64_fp_restore64
+    pop rdi
+    pop rax
+    ret
+
 scheduler_restore_kernel_segments64:
     mov ax, KERNEL_DATA_SELECTOR
     mov ds, ax
@@ -6550,6 +6603,7 @@ scheduler_restore_kernel_segments64:
 
 scheduler_cleanup_common64:
     cli
+    call x86_64_fp_reset64
     mov byte [rel scheduler_cleanup_error], 0
     mov byte [rel scheduler_active], 0
     mov rax, qword [rel scheduler_original_cr3]
@@ -6903,6 +6957,10 @@ scheduler_caller_rsp:
 alignb 256
 scheduler_tasks:
     resb TASK_SLOT_CAPACITY * TASK_RECORD_SIZE
+
+alignb 16
+scheduler_fp_states:
+    resb TASK_SLOT_CAPACITY * 512
 
 alignb 32
 scheduler_table_frames:

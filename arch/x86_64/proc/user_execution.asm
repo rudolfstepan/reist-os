@@ -2,6 +2,7 @@
 ; This remains part of the isolated bootstrap and is not a production process.
 
 BITS 64
+extern x86_64_fp_reset64
 
 USER_BASE                 equ 0x00400000
 USER_PAGE_COUNT           equ 8
@@ -260,6 +261,7 @@ enter_user_attempt64:
 
     mov rax, qword [rel user_cr3]
     mov cr3, rax
+    call x86_64_fp_reset64
 
     push qword USER_DATA_SELECTOR
     push qword USER_STACK_TOP
@@ -1166,6 +1168,7 @@ write_msr64:
 
 user_execution_cleanup64:
     cli
+    call x86_64_fp_reset64
     call physical_frame_test_window_clear64
     mov byte [rel cleanup_error], 0
     mov byte [rel execution_active], 0
