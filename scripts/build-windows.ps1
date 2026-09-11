@@ -372,6 +372,7 @@ try {
         'bin/tree.prg' = 'TREE.PRG'; 'bin/find.prg' = 'FIND.PRG'
         'bin/rm.prg' = 'RM.PRG'
         'bin/echo.prg' = 'ECHO.PRG'; 'bin/cls.prg' = 'CLS.PRG'
+        'bin/colortst.prg' = 'COLORTST.PRG'
         'sbin/sysinfo.prg' = 'SYSINFO.PRG'; 'sbin/usbinfo.prg' = 'USBINFO.PRG'
         'sbin/dmesg.prg' = 'DMESG.PRG'
         'sbin/audioinfo.prg' = 'AUDIOINFO.PRG'

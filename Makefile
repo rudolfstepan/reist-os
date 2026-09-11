@@ -814,6 +814,7 @@ SYSTEM_IMAGE_FILES := \
 	bin/find.prg=$(SYSTEM_PROGRAM_DIR)/FIND.PRG \
 	bin/rm.prg=$(SYSTEM_PROGRAM_DIR)/RM.PRG \
 	bin/echo.prg=$(SYSTEM_PROGRAM_DIR)/ECHO.PRG \
+	bin/colortst.prg=$(SYSTEM_PROGRAM_DIR)/COLORTST.PRG \
 	bin/cls.prg=$(SYSTEM_PROGRAM_DIR)/CLS.PRG \
 	sbin/sysinfo.prg=$(SYSTEM_PROGRAM_DIR)/SYSINFO.PRG \
 	sbin/usbinfo.prg=$(SYSTEM_PROGRAM_DIR)/USBINFO.PRG \

@@ -49,6 +49,7 @@ extern void clear_screen();
 extern void get_cursor_position(int *x, int *y);
 extern void set_cursor_position(int x, int y);
 void vga_write_at(int x, int y, const char* text, unsigned int length);
+int vga_write_color(const char *text, unsigned int length, unsigned char color);
 
 // Advanced line editing functions
 extern void vga_clear_line();

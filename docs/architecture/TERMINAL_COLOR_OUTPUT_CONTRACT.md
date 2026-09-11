@@ -10,6 +10,11 @@ in `scripts/generate_syscall_abi.py` aufgenommen. Dessen feste Anzahl132
 muss mit dem append-only ABI und den erzeugten Projektionen übereinstimmen.
 Keine Änderung der eingefrorenen Gates oder Sicherheitsgrenzen.
 
+11. September, weitere ausdrückliche Nutzerfreigabe: `test/test_terminal_input.py`
+gezielt aufgenommen. Der alte Quelltest suchte Cleanup im inzwischen delegierenden
+Wrapper. Er prüft jetzt beide Wrapper und die unveränderte Cleanup-Reihenfolge
+im generationsgeprüften Helfer. Kein Prozess-/Schedulerumbau, keine Gateabschwächung.
+
 ## Standard und bewusst begrenzter Adapter
 
 Referenz: [ECMA-48](https://ecma-international.org/publications-and-standards/standards/ecma-48/),

@@ -1,8 +1,18 @@
 # Projektstatus
 
-Stand: 10. September 2026. Angenommener Softwarestand: `a3fa8dfb` (R3.43).
+Stand: 11. September 2026. R3.44 abgenommen; JS-API weiterhin R3.43 (`a3fa8dfb`).
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
+
+R3.44 ergänzt geprüfte native Farbausgabe mit
+`echo --color red Text` und `colortst`, für VGA und Boot-Framebuffer.
+Typisierte 96-Byte-Requests, höchstens 64 ASCII-Bytes/ein LF pro Aufruf,
+schreibbarer Terminaldescriptor, Vordergrundprüfung, kein Farbzustand.
+Alle 13 Prüfgruppen bestanden, inklusive VGA-/Boot-Framebuffer-Pixeln und
+bestehenden JS-/Browser-Gästen. Benchmark-/Mathematik-/Textprogramme bleiben
+in allen drei Images byteidentisch; keine neue Geschwindigkeitsmessung.
+JavaScript-Farb-Bindings bleiben getrennte Folgearbeit. Belege:
+[CURRENT_WORK](CURRENT_WORK.md).
 
 REIST OS ist ein nicht zertifizierter High-Assurance-Forschungsprototyp. Die
 vorhandenen Schutzmechanismen dürfen nicht als klinische, industrielle oder
@@ -39,7 +49,7 @@ Bei erschöpftem Storage-Recoverybudget bleiben normale File-Object-Zugriffe
 geschlossen; ein geprüfter begrenzter Rettungslesepfad ist kein transparenter
 Fallback für alle Programme. Siehe [offene Probleme](KNOWN_ISSUES.md).
 
-Nach dem aktuellen Dokumentationsauftrag folgen sichere einfache Farbausgabe,
+Nach der nativen Farb-Publikationsgrenze folgen sichere JS-Farb-Records,
 die konkret zu definierende CLI-API-/Exitstatus-Stufe und explizite JS-
 Dateirechte. Keine globale `fs`-Autorität. Die formale Queue-Auswahl von R3.6b
 nach jedem Abschluss hebt die vom Nutzer festgelegte Zurückstellung nicht auf.

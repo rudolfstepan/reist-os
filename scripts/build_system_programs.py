@@ -210,6 +210,7 @@ PROGRAMS = {
         ROOT / "userspace/storage/lib/vfs_path.c",
     ),
     "ECHO.PRG": ROOT / "userspace/programs/echo.c",
+    "COLORTST.PRG": ROOT / "userspace/programs/colortst.c",
     "CLS.PRG": ROOT / "userspace/programs/cls.c",
     "DRIVES.PRG": ROOT / "userspace/programs/drives.c",
     "DEVCTL.PRG": ROOT / "userspace/programs/devctl.c",

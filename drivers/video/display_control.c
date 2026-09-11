@@ -6,6 +6,7 @@
 #include "drivers/bus/pci.h"
 #include "drivers/char/io.h"
 #include "drivers/video/framebuffer.h"
+#include "drivers/video/display.h"
 #include "arch/x86/boot/vbe_runtime.h"
 #include "arch/x86/mm/paging.h"
 #include "include/kernel/device_domain.h"
@@ -975,6 +976,16 @@ static int display_control_mode_query_locked(reist_display_mode_request_t *out) 
     }
     *out = result;
     return 0;
+}
+
+int display_control_console_color(const char *text, unsigned int length, unsigned int foreground, unsigned int background) {
+    int status = kernel_mutex_lock_for(&display_state_mutex, DISPLAY_STATE_TIMEOUT_MS);
+    if (status != 0) return status;
+    if (activation_busy || active_backend != DISPLAY_BACKEND_NONE ||
+        mode_fault_backend != DISPLAY_BACKEND_NONE) status = -16;
+    else status = display_write_color(text, length, foreground, background);
+    kernel_mutex_unlock(&display_state_mutex);
+    return status;
 }
 
 int display_control_mode_query(reist_display_mode_request_t *request) {

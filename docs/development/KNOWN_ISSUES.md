@@ -1,12 +1,13 @@
 # Bekannte offene Probleme
 
-Stand: 10. September 2026, Softwarestand `a3fa8dfb`.
+Stand: 11. September 2026; R3.44 abgenommen, Belege siehe CURRENT_WORK.
 
 ## Offene Grenzen und priorisierte Folgearbeit
 
-- **Farbausgabe:** einfacher sicherer Shell-/JS-Farbweg fehlt. Der VGA-
-  Altpfad versteht einzelne SGR-Farben, der Framebuffer nicht; JS filtert ESC.
-  Keine pauschale Freigabe von Terminal-Steuersequenzen als Reparatur.
+- **Farbausgabe:** native Shellausgabe `echo --color` ist mit R3.44
+  für VGA/Boot-Framebuffer abgenommen. Die JS-Output-Records besitzen
+  noch kein Farbprofil; JS filtert ESC unverändert. Legacy-Ausgabeinterleavings
+  bleiben Migrationsschuld, keine vollständige Terminalisolation.
 - **CLI-API / Exitstatus:** `system.args/cwd/exit`, `fs.*` und `%ERRORLEVEL%`
   sind Vorschläge, keine aktuelle API. `reist.setExitCode(0..125)` setzt nur
   den Abschlusscode; die Shell wartet auf Kinder, veröffentlicht ihren Status

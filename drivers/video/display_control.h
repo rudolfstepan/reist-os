@@ -163,6 +163,8 @@ void display_control_present_rects(const display_control_rect_t *rects,
  * retryable error before framebuffer or cursor state is changed. */
 int display_control_cursor_update(int32_t x, int32_t y, bool visible);
 bool display_control_graphics_active(void);
+int display_control_console_color(const char *text, unsigned int length,
+                                  unsigned int foreground, unsigned int background);
 bool display_control_acceleration_active(void);
 int display_control_driver_command(display_driver_request_t *request);
 

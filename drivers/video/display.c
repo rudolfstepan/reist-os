@@ -46,6 +46,28 @@ static uint32_t vga_to_fb_color(char vga_color) {
 }
 #endif
 
+/* Only the admitted console path calls this helper. Palette conversion is
+ * local: no temporary global color and no restoration obligation. */
+int display_write_color(const char *text, unsigned int length, unsigned int foreground, unsigned int background) {
+    static const unsigned char palette[16] = {
+        0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15
+    };
+    if (!text || length == 0U || length > 64U || foreground > 15U || background > 7U)
+        return -22;
+    int result;
+#ifdef USE_FRAMEBUFFER
+    if (framebuffer_available())
+        result = framebuffer_write_color(text, length,
+            vga_to_fb_color(palette[foreground]), vga_to_fb_color(palette[background]));
+    else
+#endif
+        result = vga_write_color(text, length,
+            (unsigned char)(palette[foreground] | (palette[background] << 4)));
+    if (result >= 0)
+        for (unsigned int i = 0; i < length; ++i) serial_write_char(SERIAL_COM1, text[i]);
+    return result;
+}
+
 void display_init() {
 #ifdef USE_FRAMEBUFFER
     // Framebuffer will be initialized from multiboot info in kernel

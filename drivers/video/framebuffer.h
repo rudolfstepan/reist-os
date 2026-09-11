@@ -86,6 +86,8 @@ void framebuffer_init_runtime(multiboot_framebuffer_info_t* fb_info);
 void framebuffer_shutdown(void);
 void framebuffer_clear();
 void framebuffer_putchar(char c);
+int framebuffer_write_color(const char *text, unsigned int length,
+                            uint32_t foreground, uint32_t background);
 void framebuffer_write_string(const char* str);
 void framebuffer_set_color(uint32_t fg, uint32_t bg);
 void framebuffer_scroll();

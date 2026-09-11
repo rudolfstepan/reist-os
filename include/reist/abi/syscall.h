@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #define REIST_SYSCALL_ABI_VERSION 1U
-#define REIST_SYSCALL_COUNT 131U
+#define REIST_SYSCALL_COUNT 132U
 
 #define REIST_SYSCALL_LIST(X) \
     X(TERMINAL_PUTCHAR, PUTCHAR, 0U) \
@@ -144,7 +144,26 @@
     X(TERMINAL_INPUT, TERMINAL_INPUT, 127U) \
     X(PROCESS_RESTRICT, PROCESS_RESTRICT, 128U) \
     X(FILE_OBJECT_GUARD, FILE_OBJECT_GUARD, 129U) \
-    X(STORAGE_JOURNAL_IO, STORAGE_JOURNAL_IO, 130U)
+    X(STORAGE_JOURNAL_IO, STORAGE_JOURNAL_IO, 130U) \
+    X(TERMINAL_WRITE_COLOR, TERMINAL_WRITE_COLOR, 131U)
+
+/* ECMA-48 base palette order; 8..15 are the REIST bright extension.
+ * A typed, stateless span, not an escape-sequence/ANSI terminal protocol. */
+#define REIST_TERMINAL_COLOR_VERSION 1U
+#define REIST_TERMINAL_COLOR_MAX_TEXT 64U
+typedef struct {
+    uint32_t version;
+    uint32_t struct_size;
+    uint32_t descriptor;
+    uint32_t length;
+    uint32_t foreground;
+    uint32_t background;
+    uint32_t reserved[2];
+    char text[REIST_TERMINAL_COLOR_MAX_TEXT];
+} reist_terminal_color_request_t;
+
+typedef char reist_terminal_color_size_check[
+    sizeof(reist_terminal_color_request_t) == 96U ? 1 : -1];
 
 /* REIST single-terminal foreground adapter, not POSIX termios/job control. */
 #define REIST_TERMINAL_INPUT_VERSION 1U

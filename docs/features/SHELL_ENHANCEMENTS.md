@@ -1,6 +1,6 @@
 # Shell, Befehle und Pfade
 
-Stand: 10. September 2026, normale `/bin/shell.prg`.
+Stand: 11. September 2026, normale `/bin/shell.prg`, native Terminalfarben R3.44.
 
 Die Shell orientiert sich bei Navigation und Dateibefehlen an MS-DOS, nutzt
 intern aber ausschließlich kanonische VFS-Pfade. Der Prompt zeigt das aktuelle
@@ -174,6 +174,23 @@ liefern getrennte stdout-/stderr-Records, gepuffert und vor Ausgabe validiert.
 `reist.setExitCode(n)` setzt 0..125 für normalen Abschluss, beendet aber nicht
 die Ausführung. Die Shell wartet/reapt, stellt jedoch noch kein `%ERRORLEVEL%`
 oder anderes Skriptäquivalent bereit. `system.exit` ist nur ein Vorschlag.
-Einfache Farbausgabe ist noch nicht durchgängig implementiert: JS ersetzt ESC
-bewusst durch `?`. Ein zukünftiges Farbprofil muss Auswahl, Reset und
-Steuerinjektion kontrollieren; rohe ANSI-Sequenzen sind kein JS-Farbweg.
+Die native Farbausgabe verwendet einen zustandslosen, typisierten Farbspan:
+
+```text
+echo --color red Fehler
+echo --color bright-green Fertig
+echo Normalfarbe bleibt unveraendert
+colortst
+```
+
+Namen: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`,
+jeweils auch mit `bright-`. Nur Vordergrundprogramme an schreibbaren
+Terminaldeskriptoren dürfen ausgeben, nicht auf den aktiven Desktop.
+Der native Adapter prüft höchstens 4096 ASCII-Bytes/5s; die Shell bleibt bei
+ihrer bestehenden 256-Byte-Zeile/16 Argumenten und kennt keine Quote-Auswertung.
+Ohne `--color` bleibt ECHO unverändert. Details:
+[Farbvertrag](../architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md).
+
+JS-Farbausgabe ist noch nicht implementiert: JS ersetzt ESC weiterhin bewusst
+durch `?`. Ein späteres typisiertes Output-Record-Profil muss Hostvalidierung
+und Lebensdauer separat abnehmen; rohe ANSI-Sequenzen sind kein JS-Farbweg.

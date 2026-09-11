@@ -1,6 +1,74 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 10. September 2026
+Stand: 11. September 2026
+
+## R3.44: native Farbausgabe abgenommen
+
+Vertragscheckpoint `476f605f`, Ausgangssoftware `a3fa8dfb`.
+Der neue typisierte Syscall131/SDK-Adapter und `echo --color` ergänzen die
+native Konsole. Keine JS-Bindings, keine zusätzlichen Workerrechte, keine
+Änderung bestehender Ausgabe-/Benchmarkhotpaths. `colortst` liegt in beiden
+Image-Layouts am normalen `/bin`-Suchpfad. Der dokumentierte Desktopautostart
+war veraltet: auch der Boot-Framebuffer startet die Shell, `desktop` explizit.
+
+Belege unter `build/codex-agent/r344-terminal-color/`, ursprüngliche Fehler
+bleiben erhalten. Drei eingefrorene Gruppen bestanden: Terminalfarben3 Tests
+(1.209s), ABI5 Tests (0.124s), Script-Domain2 Tests (1.068s).
+Gruppe4, Terminal-Input, scheiterte zunächst nach1.126s an einem bereits im
+Vertragscheckpoint vorhandenen veralteten Quelltest: `test_terminal_input.py`
+sucht Cleanup in `process_terminate`, das schon an
+`process_terminate_generation` delegiert. Im Helfer liegt Cleanup weiterhin
+vor `terminating=true` und `scheduler_terminate_task`; der Host-Lifecycletest
+derselben Gruppe besteht. Log: `gate04.log`.
+
+11. September, Nutzerfreigabe für die gezielte Testreparatur: Dateiliste um
+`test/test_terminal_input.py` ergänzt, beide Wrapper-Delegationen und die
+Cleanup-Reihenfolge im tatsächlichen Helfer geprüft. Keine Änderung an
+Prozess-/Schedulerimplementation oder Gateanforderung. Gruppe4 danach2 Tests
+PASS/0.590s; Dokumentation7 Tests/1 historischer Scope-Skip PASS/1.328s.
+
+ECHO-Grenzfälle werden zusätzlich am tatsächlichen C-Code in O0/O2 geprüft:
+4096-Byte-Grenze, vollständige Validierung vor Präfix, 64-Byte-/Ein-LF-Fragmente,
+Deadline, kein Retry nach Ablehnung, unveränderter Klartextpfad. Gruppe1 zuletzt
+PASS/1.120s (`gate01-palette-final.log`). Der erste Artefaktprüfer hatte einen
+falschen `/bin`- statt `/usr/bin`-Pfad für die geschützten Programme. Nach dessen
+Korrektur fand er eine echte Layoutabweichung durch den unbenutzten SDK-Wrapper.
+Dieser liegt jetzt in einer eigenen ELF-Section und wird aus alten Programmen
+entfernt; BENCHMARK hat wieder den akzeptierten SHA256 `b001fb18...`.
+Betroffene Builds/Artefakte wurden erfolgreich erneut geprüft. Erstes Framebuffer-Prüfbild
+bleibt unter `framebuffer-superseded-1/` erhalten, keine Belege gelöscht.
+Der neue Gastprüfer wurde ebenfalls gezielt korrigiert: Der automatische Boot
+liefert die vollständige REIST-Probe-Recoverysequenz und `BOOT_OK`, nicht das
+zu separat gestarteten GTEST gehörende `TEST_OK`. Negative Tests verlangen
+alle echten Bootmarker genau einmal und in Reihenfolge. Die beiden Paletten
+werden ohne Farbtoleranz getrennt geprüft: VGA-Screenshot-Grundkanal168,
+Framebuffer-Grundkanal170, jeweils Weiß255. Fehlende/falsche Farben und
+fehlende/doppelte/vertauschte Erfolgsmarker werden abgelehnt.
+
+Alle **13 eingefrorenen Gruppen** bestanden; nur von gezielten Reparaturen
+betroffene Gruppen wiederholt. Fünf gezielte Gruppen siehe oben, abschließender
+Dokumentationslauf in `gate05-final.log`. Weitere Belege:
+
+| Gruppe | Ergebnis / Zeit | Log |
+|---|---|---|
+| VMware-VGA-Paket | PASS / 97s | `build/codex-agent/20260911-083716-package-vmware-vga.log` |
+| QEMU-Framebuffer-Paket | PASS / 62s | `build/codex-agent/20260911-083901-package-qemu-framebuffer.log` |
+| Framebufferarchiv | PASS / 0.854s | `gate08-final.log` |
+| QEMU-VGA-Paket | PASS / 61s | `build/codex-agent/20260911-084027-package-qemu-vga.log` |
+| Artefaktvergleich | PASS / 2.355s | `gate10-final.log` |
+| Zwei Farb-Gäste | PASS / 32.094s + 32.724s | `gate11-palette-final.log` |
+| JS, Dateien, sieben Beispiele | PASS / 97.242s | `gate12.log`, `js-guest.log` |
+| Browser External | PASS / 45.702s | `gate13.log`, `browser-guest.log` |
+
+Kurze Lognamen liegen unter `build/codex-agent/r344-terminal-color/`.
+Die normalen Shellaufrufe prüfen echte Farb-Pixel, ungültige Requests/Userpointer/
+FDs, Hintergrund-/Script-Ablehnung, Kindende/Reap/Wiederstart und HELP danach.
+BENCHMARK/MATHTEST/TEXTTEST sind gegenüber authentifizierten R3.42-Images in
+allen drei Images byteidentisch. Keine neue Durchsatz-/VMware-Laufzeitaussage.
+Die bestehenden JS- und Browserprüfer bleiben unverändert. Keine neuen
+JS-Farb-Bindings, keine spätere Capability-Implementierung in diesem Paket.
+Queueübergang nach R3.6b ist nur Buchführung, keine Freigabe seiner Ausführung.
+R341-H1/H2 bleiben offen; R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## D1.1: Dokumentation bis R3.43 abgeglichen
 

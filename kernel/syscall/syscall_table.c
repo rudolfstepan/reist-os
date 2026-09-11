@@ -2131,6 +2131,40 @@ static int syscall_display_draw_text_clipped(
     return drawn ? (int)request.text_length : -19;
 }
 
+static int syscall_terminal_write_color(const reist_terminal_color_request_t *user_request) {
+    Process *process = scheduler_current_process();
+    if (!process) return -13;
+    reist_terminal_color_request_t request;
+    if (!user_request || !user_range_accessible(paging_current_directory(),
+        (uint32_t)(uintptr_t)user_request, sizeof(request), false) ||
+        copy_from_user(&request, user_request, sizeof(request)) != 0) return -14;
+    if (request.version != REIST_TERMINAL_COLOR_VERSION ||
+        request.struct_size != sizeof(request) || request.reserved[0] || request.reserved[1] ||
+        request.length == 0U || request.length > REIST_TERMINAL_COLOR_MAX_TEXT ||
+        request.foreground > 15U || request.background > 7U) return -22;
+    unsigned int lines = 0U;
+    for (unsigned int i = 0; i < sizeof(request.text); ++i) {
+        unsigned char c = (unsigned char)request.text[i];
+        if (i >= request.length) { if (c != 0U) return -22; }
+        else if (c == '\n') { if (++lines > 1U) return -22; }
+        else if (c != '\t' && (c < 32U || c > 126U)) return -22;
+    }
+    uint8_t kind = 0U;
+    if (process_descriptor_validate_access(process, request.descriptor, true, &kind) != 0)
+        return -9;
+    if (kind != PROCESS_DESCRIPTOR_TERMINAL_OUTPUT) return -95;
+    reist_terminal_input_request_t foreground = {0};
+    foreground.version = REIST_TERMINAL_INPUT_VERSION;
+    foreground.struct_size = sizeof(foreground);
+    foreground.operation = REIST_TERMINAL_CHECK;
+    /* CHECK returns with all process/input spinlocks released. It is an
+     * admission snapshot, not a retained lease over display/UART work. */
+    int status = process_terminal_input(process, &foreground);
+    if (status != 0) return status;
+    return display_control_console_color(request.text, request.length,
+                                         request.foreground, request.background);
+}
+
 static int syscall_terminal_write(const char *user_buffer, size_t size) {
     if (size > INT_MAX ||
         !user_range_accessible(paging_current_directory(),
@@ -4101,6 +4135,7 @@ void* syscall_table[512] __attribute__((section(".syscall_table"))) = {
     (void*)&syscall_process_restrict,    // Syscall 128: Irreversible self restriction
     (void*)&syscall_file_object_guard,   // Syscall 129: Storage-only lifetime guard
     (void*)&syscall_storage_journal_io,  // Syscall 130: Token-bound deferred IO
+    (void*)&syscall_terminal_write_color, // Syscall 131: admitted stateless console span
     // Add more syscalls here as needed
 };
 
@@ -4258,6 +4293,10 @@ void syscall_handler(Registers* regs) {
         case SYS_STORAGE_JOURNAL_IO:
             result = (uint32_t)syscall_storage_journal_io(
                 (const reist_storage_journal_request_t*)arg1, (void*)arg2);
+            break;
+        case SYS_TERMINAL_WRITE_COLOR:
+            result = (uint32_t)syscall_terminal_write_color(
+                (const reist_terminal_color_request_t*)(uintptr_t)arg1);
             break;
         case SYS_FILE_OBJECT_GUARD:
             result = arg3 == REIST_FILE_REPAIR_VERSION ?

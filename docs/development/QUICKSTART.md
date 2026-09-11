@@ -1,6 +1,6 @@
 # Quickstart
 
-Stand: 10. September 2026; angenommener Softwarestand bis R3.43.
+Stand: 11. September 2026; angenommener Softwarestand bis R3.44.
 
 Diese Anleitung beschreibt den bevorzugten, vollständig nativen Windows-Weg.
 WSL, GRUB und ein Cross-GCC sind dafür nicht nötig.
@@ -96,15 +96,16 @@ Aus der Ring-3-Shell aktiviert `desktop` den geprüften Grafikpfad zur Laufzeit:
 C:\> desktop
 ```
 
-Ein Framebuffer-Build startet den Desktop dagegen bereits nach dem Boot:
+Ein Framebuffer-Build startet ebenfalls zuerst die Shell, nun im Boot-Framebuffer:
 
 ```powershell
 .\scripts\build-windows.ps1 -Target qemu -Video framebuffer -RunTests
 .\scripts\run-windows.ps1 -NoBuild
 ```
 
-Stage 2 bevorzugt VBE 1024x768x32 und versucht danach 800x600x32. Bei Erfolg
-startet `/usr/gui/bin/desktop.prg`. Der Desktop zeigt einen Explorer mit
+Stage 2 bevorzugt VBE 1024x768x32 und versucht danach 800x600x32. `desktop`
+startet danach ausdrücklich `/usr/gui/bin/desktop.prg`. Der Desktop zeigt einen
+Explorer mit
 verschieb- und skalierbaren Ordnerfenstern. Ein Doppelklick öffnet Ordner oder
 startet eine validierte Dateizuordnung. Notepad und Image Viewer bleiben als
 getrennte Ring-3-Surface-Fenster gleichzeitig mit dem Desktop aktiv;

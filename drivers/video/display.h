@@ -45,6 +45,8 @@ void display_putchar(char c);
 
 // Write a string
 void display_write(const char* str);
+int display_write_color(const char *text, unsigned int length,
+                        unsigned int foreground, unsigned int background);
 
 // Get/set cursor position
 void display_get_cursor(int* x, int* y);

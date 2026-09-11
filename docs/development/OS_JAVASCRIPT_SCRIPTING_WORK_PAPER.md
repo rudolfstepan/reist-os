@@ -1,6 +1,13 @@
 # Work Paper: gemeinsame JavaScript-Laufzeit, getrennte Host-Autorität
 
-Stand: 10. September 2026. Ausgangspunkt: `270754bd`, aktueller Abschluss
+11. September 2026, R3.44: Die native Farb-Publikationsgrenze ist mit allen
+13 Prüfgruppen unabhängig abgenommen. `echo --color` nutzt zustandslose
+VGA-/Boot-Framebuffer-Spans; die JS-Engine und das JS-Recordformat bleiben
+unverändert. Nächster getrennter Schritt ist ein begrenztes, explizit validiertes
+Farbprofil zwischen isoliertem Worker und Host, niemals ein direkter
+Terminalsyscall für Script-Profile. [Farbvertrag](../architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md).
+
+Stand der JS-API: 10. September 2026. Ausgangspunkt: `270754bd`, letzter JS-Abschluss
 `a3fa8dfb` (R3.43). Aktuelle API und vorgeschlagene nächste Stufe stehen unten;
 die nachfolgenden Paketbeschreibungen behalten ihren historischen Scope.
 Status: R3.34 ist mit allen11 Prüfgruppen abgenommen. JS2 / R3.35 ist ebenfalls

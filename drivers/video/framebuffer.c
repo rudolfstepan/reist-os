@@ -6164,6 +6164,36 @@ void framebuffer_scroll() {
 }
 
 // Put a character at current cursor position
+/* Explicit colors for an already admitted, bounded console span. Existing
+ * putchar/render hotpaths and the default scroll background are unchanged. */
+int framebuffer_write_color(const char *text, unsigned int length, uint32_t foreground, uint32_t background) {
+    if (!text || length == 0U || length > 64U) return -22;
+    if (!fb_address || terminal_cols <= 0 || terminal_rows <= 0 ||
+        cursor_x < 0 || cursor_x >= terminal_cols ||
+        cursor_y < 0 || cursor_y >= terminal_rows) return -19;
+    for (unsigned int i = 0; i < length; ++i) {
+        char c = text[i];
+        int x = cursor_x, y = cursor_y;
+        bool drawn = false;
+        if (c == '\n') { cursor_x = 0; ++cursor_y; }
+        else if (c == '\t') cursor_x = (cursor_x + 8) & ~7;
+        else {
+            fb_draw_char(c, x, y, foreground, background);
+            ++cursor_x;
+            drawn = true;
+        }
+        if (cursor_x >= terminal_cols) { cursor_x = 0; ++cursor_y; }
+        if (cursor_y >= terminal_rows) {
+            framebuffer_scroll();
+            cursor_y = terminal_rows - 1;
+            drawn = false;
+        }
+        if (drawn) framebuffer_present_rect((uint32_t)(x * FONT_WIDTH),
+            (uint32_t)(y * FONT_HEIGHT), FONT_WIDTH, FONT_HEIGHT);
+    }
+    return (int)length;
+}
+
 void framebuffer_putchar(char c) {
     if (!fb_address) return;
 

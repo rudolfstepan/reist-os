@@ -37,8 +37,8 @@
 #define SUPERVISED_RESTART_FRAME_RESERVE 32U
 #define PROCESS_DOMAIN_PROFILE_VERSION 2U
 #define PROCESS_DOMAIN_SYSCALL_WORDS 5U
-/* Exclusive upper bound; syscall 130 is append-only STORAGE_JOURNAL_IO. */
-#define PROCESS_DOMAIN_SYSCALL_LIMIT 131U
+/* Exclusive upper bound; syscall 131 is append-only TERMINAL_WRITE_COLOR. */
+#define PROCESS_DOMAIN_SYSCALL_LIMIT 132U
 
 typedef enum {
     PROCESS_DOMAIN_COMPATIBILITY = 1,

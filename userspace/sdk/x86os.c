@@ -1169,6 +1169,24 @@ int x86os_terminal_input(uint32_t operation, int target_pid,
                               (uint32_t)(uintptr_t)&request, 0U, 0U);
 }
 
+/* Keep the additive wrapper in its own ELF section: --gc-sections must omit
+ * it from old programs, preserving their accepted code/data layout exactly. */
+__attribute__((section(".text.x86os_terminal_write_color")))
+int x86os_terminal_write_color(uint32_t descriptor, const char *text,
+                               uint32_t length, uint32_t foreground, uint32_t background) {
+    if (!text || length == 0U || length > REIST_TERMINAL_COLOR_MAX_TEXT ||
+        foreground > 15U || background > 7U) return -22;
+    reist_terminal_color_request_t request = {0};
+    request.version = REIST_TERMINAL_COLOR_VERSION;
+    request.struct_size = sizeof(request);
+    request.descriptor = descriptor;
+    request.length = length;
+    request.foreground = foreground;
+    request.background = background;
+    for (uint32_t i = 0; i < length; ++i) request.text[i] = text[i];
+    return x86os_syscall(X86OS_SYS_TERMINAL_WRITE_COLOR, (uintptr_t)&request, 0, 0);
+}
+
 int x86os_display_mode_query(reist_display_mode_request_t *info) {
     if (info == 0) return -22;
     reist_display_mode_request_t request = {0};

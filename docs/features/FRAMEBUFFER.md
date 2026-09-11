@@ -1,10 +1,13 @@
 # Anzeige: VGA, Framebuffer und Desktop-MVP
 
-Stand: 10. September 2026; Software bis R3.43.
+Stand: 11. September 2026; R3.44-Farbpfad, Abnahme siehe CURRENT_WORK.
 
 VGA-Text bleibt der robuste Standardweg. Ein `VIDEO=framebuffer`-Build richtet
 über den eigenen BIOS-Loader einen linearen RGB-Framebuffer ein und startet
-darauf bevorzugt den grafischen Ring-3-Desktop.
+darauf zunächst die Ring-3-Shell, nicht automatisch den Desktop.
+`echo --color red Text` verwendet die gemeinsame typisierte Konsolenausgabe
+für VGA und Boot-Framebuffer. Ein aktiver Desktop lehnt diese Ausgabe ab;
+globale Standardfarben bleiben unverändert. Kein neuer Escape-Parser.
 
 ## Buildauswahl
 
@@ -86,9 +89,9 @@ bewusst kein direktes Mapping des linearen Framebuffers.
 
 ## Desktop- und Window-Manager-MVP
 
-Bei einem tatsächlich initialisierten Framebuffer startet der Kernel
-`DESKTOP.PRG` vor `SHELL.PRG`. Nach einem VGA-Textboot kann derselbe Desktop
-aus der Ring-3-Shell gestartet werden; er fordert dann einmalig den validierten
+Auch bei initialisiertem Boot-Framebuffer startet der Kernel `SHELL.PRG`.
+`desktop` startet ausdrücklich die grafische Sitzung aus der Ring-3-Shell;
+nach einem VGA-Textboot fordert sie einmalig den validierten
 VMware-SVGA-II-, QEMU-DISPI- oder vorbereiteten VBE-Grafikpfad an.
 
 Der Desktop ist ein Ring-3-Session-Compositor mit Explorer. Ordner werden als

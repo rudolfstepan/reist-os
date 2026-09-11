@@ -102,6 +102,36 @@ void vga_write_at(int x, int y, const char* text, unsigned int length) {
                                      ((unsigned short)(uint8_t)current_color << 8);
 }
 
+/* Cold typed-output path. Caller admits a bounded ASCII span. Do not touch
+ * the legacy ANSI state, default color or serial mirror here. */
+int vga_write_color(const char *text, unsigned int length, unsigned char color) {
+    if (!text || length == 0U || length > 64U) return -22;
+    int x, y;
+    get_cursor_position(&x, &y);
+    if (!vga_buffer || x < 0 || x >= VGA_COLS || y < 0 || y >= VGA_ROWS)
+        return -19;
+    for (unsigned int i = 0; i < length; ++i) {
+        char c = text[i];
+        if (c == '\n') { x = 0; ++y; }
+        else if (c == '\t') x = (x + 8) & ~7;
+        else {
+            vga_buffer[y * VGA_COLS + x] = (unsigned short)(unsigned char)c |
+                                          ((unsigned short)color << 8);
+            ++x;
+        }
+        if (x >= VGA_COLS) { x = 0; ++y; }
+        if (y >= VGA_ROWS) {
+            for (int cell = 0; cell < VGA_COLS * (VGA_ROWS - 1); ++cell)
+                vga_buffer[cell] = vga_buffer[cell + VGA_COLS];
+            for (int cell = VGA_COLS * (VGA_ROWS - 1); cell < VGA_COLS * VGA_ROWS; ++cell)
+                vga_buffer[cell] = ' ' | ((unsigned short)(unsigned char)current_color << 8);
+            y = VGA_ROWS - 1;
+        }
+    }
+    set_cursor_position(x, y);
+    return (int)length;
+}
+
 // write a character to the screen
 void vga_write_char(char ch) {
     // Write to serial console first (for nographic mode)

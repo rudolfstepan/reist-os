@@ -155,7 +155,8 @@ enum {
     X86OS_SYS_TERMINAL_INPUT = 127,
     X86OS_SYS_PROCESS_RESTRICT = 128,
     X86OS_SYS_FILE_OBJECT_GUARD = 129,
-    X86OS_SYS_STORAGE_JOURNAL_IO = 130
+    X86OS_SYS_STORAGE_JOURNAL_IO = 130,
+    X86OS_SYS_TERMINAL_WRITE_COLOR = 131
 };
 /* END GENERATED REIST SYSCALLS */
 
@@ -1872,6 +1873,10 @@ uintptr_t x86os_syscall(uint32_t number, uintptr_t argument1,
                         uintptr_t argument2, uintptr_t argument3);
 void x86os_putchar(char value);
 void x86os_puts(const char* text);
+/* One typed ASCII fragment (1..64 bytes, at most one LF). No retry/fallback.
+ * Foreground uses ECMA base order 0..7 / REIST bright 8..15; background 0..7. */
+int x86os_terminal_write_color(uint32_t descriptor, const char *text,
+                               uint32_t length, uint32_t foreground, uint32_t background);
 void x86os_print_number(int value);
 void x86os_delay(uint32_t milliseconds);
 int x86os_sleep_ms(uint32_t milliseconds);

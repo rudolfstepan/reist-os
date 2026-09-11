@@ -1,6 +1,6 @@
 # Dokumentationsindex
 
-Stand: 10. September 2026; Software bis R3.43 (`a3fa8dfb`).
+Stand: 11. September 2026; R3.44-Terminalfarben abgenommen, JS-API weiterhin R3.43.
 
 Die Dokumentation unterscheidet zwischen aktuellen Referenzen und
 historischen Arbeitsberichten. Für Aufbau, Start und Bedienung sind die hier
@@ -151,7 +151,7 @@ verlinkten Referenzdokumente.
 
 ## Vollständiges Register
 
-105 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
+106 projekteeigene Markdown-Dokumente einschließlich dieses Index und des
 Abgleichberichts. Upstream-Texte, Lizenzen, AGENTS.md und generierte Belege
 werden nicht zu aktuellen Produktanleitungen umgeschrieben. Ein Vertrag
 beschreibt Anforderungen und abgegrenzte Teilabnahmen, nicht automatisch

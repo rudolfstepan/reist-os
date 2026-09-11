@@ -47,9 +47,12 @@ begrenzte Kernelvertrag bleibt eindeutig und klein.
 
 Die append-only Syscall-ABI v1 besitzt genau eine autoritative Liste in
 `include/reist/abi/syscall.h`. Sie umfasst lückenlos die unveränderten Indizes
-0 bis 130 (131 Einträge) einschließlich des gesperrten IRQ-Slots 8.
+0 bis 131 (132 Einträge) einschließlich des gesperrten IRQ-Slots 8.
 Append-only ergänzt wurden `PROCESS_RESTRICT` (128), `FILE_OBJECT_GUARD`
-(129) und `STORAGE_JOURNAL_IO` (130). Ein begrenzter Generator
+(129), `STORAGE_JOURNAL_IO` (130) und `TERMINAL_WRITE_COLOR` (131).
+Der neue Farbspan prüft schreibbaren Terminaldescriptor, Vordergrundidentität
+und Console-Modus vor Ausgabe; Script-Profile bleiben ausgeschlossen.
+[Vertrag und Grenzen](TERMINAL_COLOR_OUTPUT_CONTRACT.md). Ein begrenzter Generator
 projiziert daraus die historischen `SYS_*`- und `X86OS_SYS_*`-Namen; Make- und
 Windows-Build prüfen diese Projektionen vor der Kompilierung fail-closed auf
 Drift. Derselbe Header benennt den bereits verwendeten POSIX-`errno`-Subset,
