@@ -481,3 +481,36 @@ Alte24 Faultvarianten, Busy-/Stack- und sieben Kontextfälle sowie Normaldialog
 und i386-Byteguard bestehen unverändert. Neun Kernelobjekte sind in allen
 25 Normal-/Exit-Testbildern identisch. Belege und verbleibende allgemeine
 Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).
+
+## R8.3j: tatsächliche begrenzte SPAWNV-Argumente
+
+Bestand `e5da029e`: SPAWNV verlangt exakt zwei Eingaben und token77, der
+Kindstack wird unabhängig davon aus Kernelkonstanten aufgebaut. Eine
+wiederverwendbare, tatsächlich mit Userdaten gespeiste Startupgrenze ersetzt
+diese Kopie. Referenz bleibt System-V AMD64: argc/argv, Null-envp, auxv und
+16-Byte-RSP; bestehender REIST-IPC-Auxiliary-Tag, keine neue Autorität.
+
+Ein privater56-Byte-Descriptor enthält Kernelquell-/Zielseitenpointer,
+Quell-Virtualbasis, Ziel-Stacktop, User-argv, argc und vertrauenswürdigen
+IPC-Auxwert. Quelle ist ausdrücklich die aktuelle private Eltern-Stackseite,
+keine neue allgemeine Heap-/VFS-/ELF-Admission. Validate oder Build verwenden
+denselben Assemblykern. Alle Pointer-/Count-/Terminatorprüfungen erfolgen
+vor erster Zielmutation bzw. Allokation; Kernelmetadatenfehler bleiben fatal,
+Userfehler liefern EFAULT/E2BIG. IF0 und private Quelle verhindern TOCTOU.
+
+Profil0..8 Argumente, je höchstens128 Bytes inklusive NUL; leere und mehrfach
+referenzierte Strings sind erlaubt, Bytes werden unverändert kopiert.
+argc0 verlangt null argv. Bis1024 Stringbytes und1152 Startupbytes passen
+in dieselbe4096-Byte-NX-Stackseite und bleiben über dem unteren FP-Probenbereich.
+Defaultargc2 behält exakt seinen bisherigen128-Byte-Stackbereich, argv0 an
+Stacktop-32 und argv1 an Stacktop-16. Legacy-SPAWN behält seinen Adapter.
+Keine öffentliche ABI-/Speicher-/Prozess-/Zeitbudgeterweiterung oder envp-API.
+
+Dreizehn Gruppen: echter O0/O2-Assemblyhost mit vollständigem Byte-/Guard-/
+Padding-/Auxoracle,64-Bit-Adressen, Counts0..8, Leer-/Alias-/Maximalstrings
+und negativen Nichtmutationsfällen; Bootstrap-/Exit-/Context-/Dokutests,
+Normalbuild/-gast und vier reale Startupfälle argc0/3/8/default2 mit negativen
+SPAWNV-Proben vor dem erfolgreichen Start. Kind prüft RSP/argv/Bytes/Aux und
+liefert Status90+Fall; Eltern-WAIT/RUN und Generation41/42 bleiben Pflicht.
+Alle bisherigen24 Exit-,24 Fault-,zwei Busy- und sieben Kontextfälle sowie
+i386-Byteguard bleiben Gates. Belege `build/codex-agent/r83j-argv/`.

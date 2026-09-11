@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3j-x86_64-startup-arguments"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3j-x86_64-startup-arguments"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Bounded real SPAWNV argument transport and System-V startup stack"
+scope = "R8.3j work-paper section. Replace fixed token77/two-argument SPAWNV admission and stack copy with a reusable private startup-stack mechanism. Validate all parent-private-page argument offsets/counts/terminators before destination mutation or task allocation. Preserve default two-argument layout and legacy SPAWN adapter, existing endpoint/authority validation, one private child stack page. Actual host O0/O2 and real argc0/3/8/default-plus-negative guests; all earlier gates retained."
+allowed_files = ["automation/reist-s03b.toml","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/development/CURRENT_WORK.md","docs/development/PROJECT_STATUS.md","docs/architecture/X86_64_BOOTSTRAP.md","Makefile","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/startup_stack.asm","arch/x86_64/proc/startup_stack.h","arch/x86_64/user/child.asm","arch/x86_64/user/shell.c","scripts/build-x86_64-bootstrap.ps1","scripts/run_qemu_x86_64_argv.py","test/test_x86_64_argv.py","test/x86_64_argv_host.c","test/test_x86_64_boot.py"]
+invariants = ["System-V AMD64 initial argc/argv/null-envp/auxv and16-byte RSP alignment, existing REIST IPC auxiliary tag. Raw byte strings, no invented Unicode normalization or env authority. Profile0..8 arguments, each1..128 bytes including NUL,1024 string bytes/1152 startup bytes maximum within existing4096-byte private stack; no physical/task/CPU budget increase.","Source remains the current parent's pinned private stack page, not an arbitrary user-pointer reader. Full64-bit address/count/overflow and bounded terminator checks before destination mutation. Private kernel-owned descriptor is56 bytes; no public ABI change. EFAULT/E2BIG for malformed user arguments before allocation; invalid kernel descriptor stays fatal. Parent serialized IF0, no source TOCTOU. Aliased input strings/empty strings allowed; argc0 requires null argv. Kernel-owned IPC auxiliary data cannot be forged by argv.","Default argc2/path/token77 positions and all old normal/exit/fault/busy/context receipts remain. Legacy SPAWN and embedded path selection remain explicit adapters, no arbitrary ELF/VFS/heap argv or envp claim. Native oneCPU/128MiB/4slots/256 clock/32 samples and10s guest unchanged; i386 byteguard and deferred R3.6b/R341-H1/H2 retained. No agents/visible VM/dialog/push."]
+targeted_tests = ["python test/test_x86_64_argv.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83j-argv/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83j-argv/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83j-argv/normal-guest.log","python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83j-argv/argv","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83j-argv/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83j-argv/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83j-argv/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83j-argv/context","python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All13 groups. Actual startup assembly O0/O2 host validates full stack bytes,64-bit argv pointers,0..8 counts, empty/aliased/max-length byte strings, guards/padding/aux and negative nonmutation; metadata/pointer/unterminated/overflow cases. Four real startup variants argc0/3/8/default2 with pre-spawn negative probes, two exact generations each; child validates transported data,aux,RSP and exits90+case, parent checks raw WAIT and normal RUN. Default layout exact and all prior24 exit/24 fault/2 busy/7 context guests unchanged. Source scope/queue/diff review before local commit and next transaction."
+stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for general ELF/VFS/env/heap admission or expanded resource budget"]
+commit_message = "feat: transport bounded native process startup arguments"
 
 [[packages]]
 id = "R8.3i-x86_64-child-control-lifecycle"
@@ -2832,7 +2848,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
