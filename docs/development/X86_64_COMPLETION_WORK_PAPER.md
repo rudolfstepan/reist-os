@@ -4,6 +4,32 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3l: atomare Speicherreservierung vor Prozessidentität
+
+Basis a22c30ed. Eine zusammenhängende Spawn-Transaktion schließt OOM beim
+ELF-Staging und beim Aufbau von Seitentabellen, privaten ELF-Seiten und Stack.
+Erst alle benötigten Frames reservieren, dann eine Generation vergeben.
+Ein Fehlschlag darf keine Generation zurückdrehen oder Startquota verbrauchen.
+
+Reihenfolge: Admission und Endpoint prüfen; Freiframe-/Identitätsbasis sichern;
+ELF laden; exakt 4 Tabellen + 1 Stack + bis zu 8 Schreibseiten in einem privaten
+120-Byte-Claim reservieren; Identität reservieren, Frames übertragen, Task
+fertigstellen und veröffentlichen. Ein Allocator-Nullergebnis gibt nur nach
+vollständiger Rücknahme, unveränderter Identität und geprüftem Freiframebestand
+ENOMEM zurück. Freigabe-/Metadatenfehler bleiben Kernelkorruption, kein OOM.
+Der boolesche ELF-Ladevertrag bleibt erhalten; private Last-error-Abfrage.
+Kein allgemeiner In-Kernel-ELF/VFS-Dienst, keine neue öffentliche ABI.
+
+Abnahme: 18 eingefrorene Gruppen. Tatsächlicher Claim-Assemblykern O0/O2 mit
+jedem Teilpräfix, Übergabe-/Cleanupbesitz und negativen Metadaten/Freigaben.
+Im echten Gast wird vor Allokatoreffekten an jeder der sechs aktuellen
+Kindallokationen einmal Null injiziert, jeweils in beiden Generationen.
+Erwartet: ENOMEM, vollständiger Rollback, erfolgreicher Retry, IPC, WAIT,
+unveränderte Generationen und kompletter Reap. Das ist Fehlereinjektion,
+kein Nachweis skalierbaren RAMs. Alle bisherigen Gastmatrizen bleiben Gates.
+128MiB/1CPU/vier Slots/zwei Kinder und Zeitbudgets unverändert. Belege unter
+build/codex-agent/r83l-oom; erst nach Abnahme committen und weiterarbeiten.
+
 ## Bestand und eigentlicher Abstand
 
 R8.1a bis R8.2r sind abgenommen: Long Mode, W^X/NX, getrennte User-Adressräume,
