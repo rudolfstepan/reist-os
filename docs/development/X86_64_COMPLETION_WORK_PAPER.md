@@ -438,3 +438,36 @@ laufende Flagsprüfung nach IRQ und echten #DB-Trap. Unabhängige Opcodeprüfung
 in Objekt und gelinktem ELF sowie negative Quittungs-/Instruktionsoracles;
 alle bisherigen Normal-/Fault-/Busy-Gates bestanden, i386-Bytes unverändert.
 Belege und offene Grenzen in [CURRENT_WORK](CURRENT_WORK.md).
+
+## R8.3i: phasenunabhängige Kindprozess-Steuerung
+
+Bestand `d4560692`: YIELD eines Kindes prüft noch konkrete IPC-Testphasen;
+normaler EXIT verlangt Status77, einen bereits wartenden Elternprozess und
+vollständig geschlossene IPC. Für reguläre Programme ist das kein zulässiger
+Prozessvertrag. Dieser eine Kontroll-/Terminalgrenzschnitt löst beide
+Operationen von den Probephasen, nicht von Identität, Profil oder Budget.
+
+YIELD ist argumentlos; wie bei einer Register-Aufrufkonvention üblich
+werden nicht verwendete Argumentregister ignoriert. Es verändert weder IPC
+noch CPU-Budget. EXIT behält ausdrücklich den REIST-Raw-uint32-Vertrag;
+keine POSIX-wait-Kodierung oder Behauptung von `_exit`-Low8-Bit-Kompatibilität.
+Werte oberhalb UINT32_MAX liefern vor Wirkung EINVAL. Normaler Exit bekommt
+einen eigenen privaten Terminalgrund, sodass Status128/256/257/258 niemals
+als Exception oder Budgetereignis umgedeutet wird. Privater Statusklassifikator
+ohne Speicherzugriff, tatsächliche Assembly O0/O2 am Host; kein öffentliches
+Strukturlayout oder Syscallindex verändert sich.
+
+Normaler und fehlerhafter Abschluss teilen die bestehenden Identitäts-/Profil-/
+Endpoint-/Waitprüfungen und vollständiges Fencing/Reap vor Statuspublikation.
+Der normale Zustand bleibt terminal normal, keine fingierte Exception.
+Ein zusätzlicher privater8-Byte-Terminalgrund wird nach WAIT gelöscht und
+beim Teardown geprüft. Eltern-/Supervisorfehler und allgemeine Prozesszulassung
+bleiben offen. Bestehende Ressourcen-/Zeitbudgets und i386 unverändert.
+
+Zwölf Gruppen: neuer Host-/Negativoracle, Bootstrap-/Fault-/Context-/Dokutests,
+Normalbuild/-gast, sechs normale Exitstatus0/77/128/256/258/UINT32_MAX über alle
+vier IPC-Phasen und je zwei Generationen. Fixture prüft vorher Wide-EXIT mit
+EINVAL und YIELD mit unbenutzten, nichtnull Argumentregistern. Unabhängige
+ELF-/Status-/Generations-/Eltern-/Queue-/Reap-vor-RUN-Prüfung. Alle bisherigen
+24 echten Faultfälle, Busy-/Stack- und sieben Kontextfälle bleiben Gates,
+ebenso i386-Byteguard. Belege `build/codex-agent/r83i-control/`.
