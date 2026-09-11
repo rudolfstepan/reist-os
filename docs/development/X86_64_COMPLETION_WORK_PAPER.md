@@ -355,3 +355,36 @@ auf; die Korrektur bewahrt es nur für IRQ/IRETQ und besitzt einen roten/grünen
 Hostnachweis. Weitere Flags bleiben gesperrt, kein Gate abgeschwächt.
 Belege und weiterhin offene Timer-/Hang-/Systemgrenzen in
 [CURRENT_WORK](CURRENT_WORK.md).
+
+## R8.3g: gemeinsame Shellzeit, Präemption und CPU-Spin-Begrenzung
+
+Bestand nach R8.3f: Shelltasks laufen noch IF=0; IPC-Waits setzen den Timer
+jeweils neu auf Tick0 und melden ihn bei Abschluss ab. Ein permanenter
+CPU-Verbraucher kann so trotz geprüfter IRQ-Kontexte nicht unterbrochen werden.
+Diese eine CPU-Ausführungsgrenze umfasst deshalb gemeinsam Clock-Lebensdauer,
+absolute IPC-Deadlines, Präemption und generationsgenaues Budget-Retirement.
+
+Das bestehende Ein-CPU-PIC/PIT-Profil bekommt einen gemeinsamen100-Hz-Shell-
+Modus mit höchstens256 gelieferten Ticks und bisheriger begrenzter TSC-Lease.
+Beide Shelltasks laufen IF=1. IRQ validiert Herkunft und Kontext, verarbeitet
+begrenzte Deadline-Wakeups und quittiert EOI; erst danach folgen Kontextwechsel
+oder Retirement im Scheduler-Tail. IPC-Abschluss entfernt nur seinen Wait,
+nicht die Scheduling-Zeitbasis. Cleanup/Fencing beendet die Lease ausdrücklich.
+Die bisherigen isolierten Timermodi bleiben geprüfte Adapter.
+
+Ein privater generationsgebundener CPU-Budgetrecord zählt laufende Samples;
+für zugelassene Kinder32 PIT-Ticks, niemals Reset durch Yield oder IPC. Volles
+Budget führt über denselben Fencing-/Reap-/WAIT-Pfad wie ein terminaler Fehler,
+mit ausdrücklich REIST-eigenem Raw-Status256, keinem POSIX-Signal-/Waitlayout.
+Generation, monotoner Tick, Grenzen und Nichtmutation werden am tatsächlichen
+Assemblykern O0/O2 geprüft. Das ist gesampelte CPU-Zeit, keine exakte Zeitmessung,
+FTTI-Zusage oder allgemeine Supervisor-/Prozess-/SMP-Abnahme.
+
+Elf Gruppen: Budgethost und negativer Quittungsoracle, bestehende Bootstrap-/
+Context-/Identitäts-/FP-/Dokutests, Normalbuild/-gast,24 bisherige Fehlvarianten,
+echter Busy-Gast und i386-Guard. Der Busy-Build ändert ausschließlich Userspace-
+Fixture/Erwartungen, nicht Kernelbudget/Rechte: ein syscallfreier Spin zwingt
+den Elternprozess zur echten IRQ-Fortsetzung;32 Samples, vollständiges Reap,
+Raw-Status256 und RUN werden für Generation41/42 unabhängig geprüft. Die
+Schleifenadresse stammt aus dem ELF, nicht aus einer Kernel-RIP-Freigabeliste.
+Belege `build/codex-agent/r83g-preempt/`, alle Gäste weiter maximal10s.
