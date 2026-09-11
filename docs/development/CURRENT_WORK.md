@@ -2,6 +2,13 @@
 
 Stand: 11. September 2026
 
+## R8.3k: nichtterminale Aufruffehler in Umsetzung
+
+Basis `01ae89a9`; neuer zusammenhängender Admissionvertrag für
+READ/WRITE/GETPID/SPAWN/SPAWNV/WAIT. Alle16 Prüfgruppen und15 erlaubten
+Dateien sind eingefroren; keine neuen Ressourcen oder Prozessrechte.
+R3.6b bleibt zurückgestellt. Noch keine Abnahme dieses Pakets.
+
 ## R8.3j: Argumenttransport nach IPC-Reparatur abgenommen
 
 Basis `e0dc4d0f`, Vertrag `b34c03bd`. Der tatsächliche SPAWNV-Argumenttransport

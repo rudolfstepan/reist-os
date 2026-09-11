@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3k-x86_64-request-admission"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3k-x86_64-request-admission"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Local nonterminal native process and console request failures"
+scope = "One admitted nonterminal syscall failure boundary: READ/WRITE/GETPID/SPAWN/SPAWNV/WAIT reject malformed user requests and unavailable profile resources before device, allocation, wait or publication effects. Actual shared private admission assembly plus existing checked pointer translators. Preserve terminal cleanup, authority masks, startup and IPC mechanisms; no general parent-exit/supervisor/loader/OOM or new service authority claim."
+allowed_files = ["automation/reist-s03b.toml","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/development/CURRENT_WORK.md","docs/development/PROJECT_STATUS.md","docs/architecture/X86_64_BOOTSTRAP.md","Makefile","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/request_admission.asm","arch/x86_64/proc/request_admission.h","arch/x86_64/user/shell.c","scripts/build-x86_64-bootstrap.ps1","scripts/run_qemu_x86_64_requests.py","test/test_x86_64_requests.py","test/x86_64_requests_host.c","test/test_x86_64_boot.py"]
+invariants = ["Existing REIST-v1 syscall/errno contract and SysV AMD64 internal ABI, no POSIX compatibility claim. Private80-byte kernel-owned descriptor only; no public ABI. Zero-length console IO returns zero without pointer/device/count effects, invalid descriptor EBADF, invalid profile size/options EINVAL, bad mapped pointer EFAULT, unknown bounded child path ENOENT, unterminated16-byte path ENAMETOOLONG. GETPID ignores unused arguments. Existing one-byte read/64-byte write bootstrap adapters remain explicit.","SPAWN/SPAWNV busy or exhausted admitted child quota returns EAGAIN; missing endpoint EBADF; nonempty endpoint EAGAIN before allocation. Existing path whitelist is an embedded fixture adapter, not in-kernel VFS policy. WAIT absent/wrong child ECHILD, bad options EINVAL, bad output EFAULT; a valid but currently non-READY live child gets explicit bootstrap-profile EAGAIN before wait publication. Trusted generation/ownership/capability corruption remains fatal. Existing terminal receipts and complete reap must not be bypassed.","No physical/task/CPU/deadline/serial budget increase: oneCPU/128MiB/4slots/two children/256ticks/32samples,10s guests. Admission checks are bounded and nonmutating. Keep existing profile denial EACCES, parent bootstrap EXIT/essential-parent recovery and general lifecycle expansion separate. No new kernel driver, agents, visible VM/dialog or push. i386 byteguard; R3.6b remains deferred."]
+targeted_tests = ["python test/test_x86_64_requests.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_argv.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83k-requests/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83k-requests/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83k-requests/normal-guest.log","python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83k-requests/requests","python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83k-requests/argv","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83k-requests/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83k-requests/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83k-requests/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83k-requests/context","python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83k-requests/handoff","python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All16 groups. Actual production admission assembly host O0/O2 verifies full64-bit fd/count/options/path/state metadata, bounded path scan and complete nonmutation on errors. Three real shell request fixtures cover console arguments, preallocation busy/endpoint/path errors and WAIT stale/pointer/options with subsequent successful IPC/WAIT/reap in two exact generations. User fixture modes never alter kernel mechanisms; old normal/argv/exit/fault/busy/context/handoff receipts remain mandatory. Review frozen scope/queue/diff then commit and continue from clean worktree."
+stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for new authority or broader resource/supervisor/loader boundary"]
+commit_message = "fix: contain invalid native process and console requests"
 
 [[packages]]
 id = "R8.3j1-x86_64-ipc-handoff"
@@ -2868,7 +2884,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

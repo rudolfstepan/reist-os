@@ -568,3 +568,36 @@ Mechanismusobjekte sind über66 Builds bytegleich. Buildtest schließt gemischte
 IPC-/Argumentfixtures vor Effekten aus. i386-Byteguard bestanden; keine
 Budgeterweiterung, keine neue ELF-/VFS-/Prozessautorität. Neue Belege unter
 `build/codex-agent/r83j-argv/after-ipc/`; vorherige Fehlläufe bleiben erhalten.
+
+## R8.3k: lokale Fehler nichtterminaler Systemaufrufe
+
+Bestand `01ae89a9`: Fehler in READ/WRITE-Deskriptoren, Größen und Puffern,
+GETPID-Restregistern sowie SPAWN-/WAIT-Aufrufreihenfolgen führen teilweise
+noch direkt zu `scheduler_fail`. Zudem wird der für SPAWN nötige leere
+Endpoint erst beim Stackbau nach Allokation geprüft. Diese eine gemeinsame
+Admissiongrenze wird zusammenhängend geschlossen, ohne neue Prozessrechte.
+
+Referenz bleibt REIST-v1 mit den bestehenden errno-Kategorien und privatem
+System-V-AMD64-Aufrufvertrag. Ein privater80-Byte-Descriptor verbindet
+Operation/Argumente mit Kernelquellseite, Userbasis und validiertem Snapshot
+von Kindbelegung, Start-/Abschlusszähler und Endpointzustand. Der gemeinsame
+reine Assemblykern unterscheidet zugelassen, wirkungsfreier Nulltransfer,
+lokaler Aufruffehler und beschädigte Kernelmetadaten. Pointerübersetzung und
+Capability-/Generationsnachweise bleiben in den vorhandenen Adaptern.
+
+Zero-length IO liefert0 ohne Zugriff; EBADF für falschen Deskriptor, EINVAL
+für Profilgröße/Optionen, EFAULT für Pointer. GETPID ignoriert Restregister.
+Das begrenzte eingebettete Pfadprofil liefert ENOENT bzw. ENAMETOOLONG statt
+Kernelabbruch. SPAWN prüft vor Allokation: belegtes/erschöpftes Kind EAGAIN,
+fehlender Endpoint EBADF, belegte Nachricht/Waiter EAGAIN. WAIT liefert bei
+fremdem/fehlendem Kind ECHILD, falschen Optionen EINVAL, schlechtem Ziel
+EFAULT; lebendes, derzeit nicht READYes Kind explizit EAGAIN im Bootstrap-
+Adapter. Dies ist keine allgemeine POSIX-WAIT- oder Dateisystemkompatibilität.
+
+Unverändert: private Stack-/IPC-/FP-/Generation-/Reap-Verträge, alle Quoten,
+1CPU/128MiB/vier Slots/zwei Kinder, parent-EXIT als Bootstrapabschluss.
+Allgemeine Eltern-/Supervisorfehler, OOM-Rollback, variable Prozesspools und
+Dienste bleiben nachfolgende eigenständige Grenzen, nicht still erteilt.
+16 eingefrorene Gruppen inklusive echter O0/O2-Assemblyprüfung, drei realer
+Aufruffehler-Fixtures und sämtlicher alter Gastmatrizen. Neue Belege unter
+`build/codex-agent/r83k-requests/`; Commit erst nach vollständiger Abnahme.
