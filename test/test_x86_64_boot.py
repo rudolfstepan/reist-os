@@ -740,15 +740,20 @@ class X8664BootstrapContractTests(unittest.TestCase):
         target = makefile.split("x86_64-bootstrap:", 1)[1].split("\n\n", 1)[0]
         self.assertIn("$(X86_64_PROCESS_SCHEDULER_OBJ)", target)
 
-    def test_scheduler_clones_writable_pages_and_shares_only_rx(self):
+    def test_scheduler_clones_writable_pages_and_shares_readonly(self):
         source = self.read("arch/x86_64/proc/cooperative_scheduler.asm")
+        mapping = self.read("arch/x86_64/mm/address_space.asm")
         probe = self.read("arch/x86_64/user/probe.asm")
         self.assertIn("TASK_PRIVATE_FRAMES", source)
         self.assertIn("test r15d, PF_W", source)
         self.assertIn("call scheduler_task_frame_alloc64", source)
-        self.assertIn("rep movsq", source)
-        self.assertIn(".share_rx:", source)
-        self.assertIn("test r15d, PF_X", source)
+        self.assertIn("call scheduler_map_task64", source)
+        self.assertIn("call reist_x64_address_space_build", source)
+        self.assertIn("rep movsq", mapping)
+        self.assertIn("cmp r14d, 6", mapping)
+        self.assertIn("mov r15, [r12 + 104 + rbx*8]", mapping)
+        self.assertIn("cmp r14d, 5", mapping)
+        self.assertIn("mov rax, NX", mapping)
         self.assertIn("scheduler_verify_isolation64:", source)
         self.assertIn("PROBE_DATA_PAGE_INDEX      equ 1", source)
         self.assertIn("0xA11A11A11A11A11A", probe)

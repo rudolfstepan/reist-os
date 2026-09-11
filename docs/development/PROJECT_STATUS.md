@@ -4,6 +4,20 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R341-H1 und R341-H2 bleiben ausdrücklich offen; neue grüne Abnahmen lösen
+diese alten ungeklärten Fehlerbelege nicht ab. R3.6b bleibt zurückgestellt.
+
+R8.3o führt alle bisherigen nativen Task-Mappings über einen gemeinsamen
+vor Effekten validierten physischen Plan. Gültige schreibgeschützte Daten
+sind jetzt R/NX statt fälschlich abgewiesen; RW bleibt privat und NX,
+RX geteilt und schreibgeschützt. Tatsächliche Tabellen-/Seitenbelege sowie
+lokale Schreib-/NX-Fehler in beiden Kindgenerationen werden geprüft.
+Der ausdrücklich genehmigte IPC-Fixture-Nachtrag behandelt reguläre Timeouts
+mit begrenzten Retries, ohne Kernelrechte/-deadlines oder alte Abnahmeoracles
+zu ändern.24 Code-/Build-/Laufzeitgruppen bestanden; Dokumentationsgate und
+vollständiger Paketstatus werden in der Queue festgehalten.
+Details in [CURRENT_WORK](CURRENT_WORK.md#r83o-gemeinsame-mappingprüfung-und-schreibgeschützte-daten).
+
 R8.3n trennt die Freigabebilanz nativer gestagter Programmabbilder von
 unabhängigen Speichereigentümern. Tatsächlicher gemeinsamer Freigabekern,
 Restbesitz bei Teilfehlern und unveränderte Gesamtbilanz; Gastprüfung aller

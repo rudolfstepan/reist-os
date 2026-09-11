@@ -2,6 +2,30 @@
 
 Stand: 28. August 2026
 
+R8.3o (11. September2026): Gemeinsamer privater System-V-AMD64-Mappingkern
+für alle bisherigen Scheduler-Modi. Ein192-Byte-Plan benennt vier bereits
+reservierte Seitentabellen, acht gestagte Quellseiten/ELF-Flags, acht optionale
+private Schreibseiten, Stack und zwei geprüfte Kernel-PML4-Vorlagen.
+Intel64-Vier-Level-Paging,4KiB-Seiten: R/RX geteilt und read-only; R ist NX,
+RW privat kopiert und NX; Stack privat RW/NX. Nicht benannte Userseiten
+bleiben absent. Direct Map bleibt NX/Supervisor, Kernelcode Supervisor.
+Physische Records und Pointer sind eindeutig und nicht mit dem Plan oder
+Kernelvorlagenframes aliasiert. Alle Zielseiten sind vor Effekten vollständig
+nullgeprüft. Keine Allokation, Freigabe, Task-/CR3-Publikation oder Rollenpolitik
+im Mappingkern. Der Aufrufer hält Quellen/Ziele gepinnt und serialisiert IF0;
+er behält jeden Besitz auch bei Ablehnung und benutzt vorhandenen Rollback.
+Keine allgemeine Speicherkarte,128MiB-/1CPU-Bootstrapgrenzen unverändert.
+Neue R/RX-ELF-Fixtures beweisen lesbare Daten, PF bei Schreiben/NX-Ausführung,
+Reap und Elternfortschritt, nicht vollständige native Anwendungsfreigabe.
+
+Genehmigter Fixture-Nachtrag2e963b34: Ein10-ms-IPC-Timeout ist auch mit
+lauffähigem Peer legal. Der Test-Parent wiederholt einen Peer-Receive maximal
+achtmal bei ETIMEDOUT; der Test-Sender wartet auf CLOSE mit maximal acht
+SEND_TIMEOUT-Versuchen, nur EACCES/ETIMEDOUT sind wiederholbar und YIELD
+gibt dazwischen den Owner frei. EBADF bleibt das einzig erfolgreiche
+Widerrufsergebnis. Explizite Timeoutprobes, Schutzrechte, PIT-/CPU-Budgets
+und verpflichtende echte Close-/Wakeup-Gastbelege bleiben unverändert.
+
 R8.3n (11. September2026): Der private88-Byte-ELF-Kontext bleibt unverändert.
 Ein gemeinsamer System-V-AMD64-Freigabekern validiert alle acht Frame-/Flag-
 Records vor Effekten (ELF PF_R, PF_R|PF_X oder PF_R|PF_W, eindeutige

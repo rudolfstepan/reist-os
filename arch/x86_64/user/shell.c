@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_MAPPING_CASE
+#define X86_64_MAPPING_CASE 0
+#endif
 #ifndef X86_64_REQUEST_CASE
 #define X86_64_REQUEST_CASE 0
 #endif
@@ -52,7 +55,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_FAULT_PHASE
 #define X86_64_FAULT_PHASE 0
 #endif
-#if X86_64_IPC_CASE
+#if X86_64_MAPPING_CASE >= 2
+#define SHELL_EXPECTED_CHILD_STATUS 142U
+#elif X86_64_IPC_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_IPC_CASE)
 #elif X86_64_ARGV_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_ARGV_CASE)
@@ -89,6 +94,23 @@ static shell_i64 shell_write(const char *message, shell_u64 length)
     return reist_x64_syscall3(REIST_X64_SYS_WRITE, REIST_STDOUT,
                           (shell_u64)message, length);
 }
+
+#if !X86_64_PROFILE_CASE && X86_64_IPC_CASE != 3
+static shell_i64 ipc_receive_peer(shell_u64 handle, shell_ipc_message_t *message)
+{
+    /* A runnable peer need not complete within one PIT tick. Each wait keeps
+     * the original 10-ms deadline; the fixture has at most eight attempts.
+     * Payload and terminal status checks remain with the caller. */
+    shell_i64 result = REIST_ETIMEDOUT;
+    for (shell_u32 attempt = 0; attempt < 8; ++attempt) {
+        result = reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,
+                                   handle, (shell_u64)message,
+                                   IPC_RECEIVE_TIMEOUT_MS);
+        if (result != REIST_ETIMEDOUT) break;
+    }
+    return result;
+}
+#endif
 
 static int shell_write_exact(const char *message, shell_u64 length)
 {
@@ -212,7 +234,9 @@ void _start(void)
     static const char prompt[] = "C:\\>";
     static const char info[] = "REIST_X86_64_RING3_SHELL_INFO_OK\r\n";
     static const char help[] = "HELP INFO RUN EXIT\r\n";
-#if X86_64_PROFILE_CASE
+#if X86_64_MAPPING_CASE
+    static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nMAPPING_OK\r\n";
+#elif X86_64_PROFILE_CASE
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nPROFILE_OK\r\n";
 #elif X86_64_OOM_CASE
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nOOM_OK\r\n";
@@ -479,15 +503,14 @@ void _start(void)
                     }
                     if(received!=0 || ipc_message.length!=128) shell_exit(41);
 #else
-                    if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,ipc_handle,
-                           (shell_u64)&ipc_message,10)!=0 || ipc_message.length!=128) shell_exit(41);
+                    if(ipc_receive_peer(ipc_handle,&ipc_message)!=0 ||
+                       ipc_message.length!=128) shell_exit(41);
 #endif
                     for(shell_u32 i=0;i<128;i++) if(ipc_message.payload[i]!=(shell_u8)(0x5a+n)) shell_exit(42);
                 }
 #if !X86_64_PROFILE_CASE
                 ipc_message.length=0;
-                if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,ipc_handle,
-                    (shell_u64)&ipc_message,10)!=REIST_EPIPE) shell_exit(43);
+                if(ipc_receive_peer(ipc_handle,&ipc_message)!=REIST_EPIPE) shell_exit(43);
 #endif
 #endif
                 if(reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE,ipc_handle,0,0)!=0) shell_exit(44);
@@ -516,7 +539,7 @@ void _start(void)
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
                     shell_exit(20ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE) && X86_64_FAULT_PHASE < 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE >= 2) && X86_64_FAULT_PHASE < 2
                 goto child_fault_cleanup;
 #endif
                 clear_ipc_message(&ipc_message);
@@ -540,10 +563,7 @@ void _start(void)
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;
                 ipc_message.struct_size = IPC_MESSAGE_SIZE;
-                if (reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,
-                                   (shell_u64)ipc_handle,
-                                   (shell_u64)&ipc_message,
-                                   IPC_RECEIVE_TIMEOUT_MS) !=
+                if (ipc_receive_peer(ipc_handle, &ipc_message) !=
 #if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE == 2
                     REIST_EPIPE || !ipc_message_is_empty(&ipc_message)) {
 #else
@@ -558,10 +578,7 @@ void _start(void)
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;
                 ipc_message.struct_size = IPC_MESSAGE_SIZE;
-                if (reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,
-                                   (shell_u64)ipc_handle,
-                                   (shell_u64)&ipc_message,
-                                   IPC_RECEIVE_TIMEOUT_MS) != REIST_EPIPE ||
+                if (ipc_receive_peer(ipc_handle, &ipc_message) != REIST_EPIPE ||
                     !ipc_message_is_empty(&ipc_message)) {
                     shell_exit(26ULL);
                 }
@@ -586,7 +603,7 @@ void _start(void)
                                    (shell_u64)ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(18ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE) && X86_64_FAULT_PHASE < 3
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE >= 2) && X86_64_FAULT_PHASE < 3
 child_fault_cleanup:
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;

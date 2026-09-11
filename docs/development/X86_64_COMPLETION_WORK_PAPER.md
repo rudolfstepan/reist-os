@@ -27,11 +27,32 @@ alle bisherigen Taskaufbauten anbinden. Drei exklusive reine User-Fixtures
 beweisen R-Lesen, abgefangenen Schreibzugriff auf R und abgefangene Ausführung
 von R/NX, je zwei Generationen und weiterlaufende Eltern-Shell. Read-only-
 Gastbelege prüfen die echten Tabellen und Privat-/Sharedbesitz zusätzlich.
-Danach sämtliche22 bisherigen Gruppen; insgesamt24 eingefrorene Gategruppen.
-Belege build/codex-agent/r83o-mappings; normaler Usercode bleibt bytegleich.
+Danach sämtliche22 bisherigen Gruppen; ursprünglich24 eingefrorene Gategruppen.
+Belege build/codex-agent/r83o-mappings. Der genehmigte Nachtrag2e963b34
+erlaubt ausschließlich begrenzte IPC-Retries im normalen Usercode und ergänzt
+deren tatsächlichen Host-Verhaltenstest: insgesamt25 Gruppen. Alle bisherigen
+Gates und Kernelrechte/-deadlines/-budgets bleiben unverändert.
 Dies ersetzt noch keine allgemeine Eltern-/Supervisor-Recovery oder native
 Dienste. Unverändert1CPU/128MiB/vier Slots/zwei Kinder und alle Zeitlimits;
 R3.6b bleibt zurückgestellt, keine vollständige64-Bit-Fertigmeldung.
+
+Historischer Zwischenstand R8.3o: Mappingkern und alle drei R/RX-Gäste funktionieren;
+21/24 Gruppen bestanden. IPC-Handoff-Fall0 ist rot, derselbe Fehler wurde
+im unveränderten Vorgänger0e2d95c6 reproduziert und ein regulärer Sendetimeout
+(-110) als Ursache des Testkind-Fehlers78 beobachtet. Die letzten beiden
+Gruppen sind noch offen. Kein Kandidatencommit oder Abschluss: die im Paket
+eingefrorene Bytegleichheit der normalen Testprogramme darf nicht still
+aufgegeben werden. Inzwischen explizit genehmigter Vertragsnachtrag und Belege in
+[CURRENT_WORK](CURRENT_WORK.md#r83o-gemeinsame-mappingprüfung-und-schreibgeschützte-daten).
+
+Die genehmigte Reparatur ist umgesetzt: begrenzte Peer-Receive-Retries und
+EACCES/ETIMEDOUT-Behandlung beim Warten auf CLOSE; ausschließlich EBADF
+bestätigt den Widerruf. Tatsächliche Fixturefunktionen bei O0/O2 geprüft.
+Die erneuten24 Code-/Build-/Laufzeitgruppen bestehen, einschließlich aller
+vier unveränderten IPC-Interleaving-Oracles; Dokumentationsgate separat vor
+Commit.19 Mechanismen über74 Builds identisch, alte17 unverändert;
+Kernelobjekte vor/nach Fixture-Reparatur sämtlich bytegleich. Normalbild
+187344 Bytes. Keine neue Kapazität/Autorität oder vollständige OS-Fertigmeldung.
 
 ## R8.3n: unabhängige Lebensdauer gestagter Programmabbilder
 

@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_MAPPING_CASE
+%define X86_64_MAPPING_CASE 0
+%endif
 %ifndef X86_64_PROFILE_CASE
 %define X86_64_PROFILE_CASE 0
 %endif
@@ -48,6 +51,7 @@ REIST_SYS_IPC_RELEASE equ 58
 REIST_EACCES    equ -13
 REIST_EAGAIN    equ -11
 REIST_EBADF     equ -9
+REIST_ETIMEDOUT equ -110
 CHILD_STATUS   equ 77
 FAIL_STATUS    equ 78
 USER_STACK_TOP equ 0x00409000
@@ -66,6 +70,12 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_MAPPING_CASE
+    call child_mapping_probe
+%if X86_64_MAPPING_CASE >= 2
+    ud2 ; no fault means the mapping failed to enforce its protection
+%endif
+%endif
 %if X86_64_PROFILE_CASE
     xor r14d, r14d
     mov r15, (1<<9)|(1<<40)|(1<<50)|(1<<51)|(1<<53)|(1<<58)
@@ -263,10 +273,23 @@ child_cpu_poison_stack:
     syscall
     FP_CHECK
     cmp rax, REIST_EACCES
+    je .revocation_retry
+    cmp rax, REIST_ETIMEDOUT
     jne .revocation_reply
+.revocation_retry:
+    ; Deadline expiry does not revoke SEND. Observe CLOSE on another bounded
+    ; attempt, giving the owner time to run; never interpret timeout as success.
     dec r13d
-    jnz .revocation_send
-    jmp .fail
+    jz .fail
+    mov eax, REIST_SYS_YIELD
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    syscall
+    FP_CHECK
+    test rax, rax
+    jnz .fail
+    jmp .revocation_send
 .revocation_reply:
     cmp rax, REIST_EBADF
     jne .fail
@@ -629,4 +652,26 @@ child_argv_fail:
     ud2
 %endif
 FP_PROBE_CODE
+%if X86_64_MAPPING_CASE
+child_mapping_probe:
+    mov rax, 0x4e58524f444154c3
+    cmp [rel child_mapping_readonly], rax
+    jne .bad
+%if X86_64_MAPPING_CASE = 2
+child_mapping_write_instruction:
+    mov byte [rel child_mapping_readonly], 0x90
+    ud2
+%elif X86_64_MAPPING_CASE = 3
+    lea rax, [rel child_mapping_readonly]
+child_mapping_execute_instruction:
+    jmp rax
+%else
+    ret
+%endif
+child_mapping_probe.bad:
+    ud2
+section .rodata align=4096
+child_mapping_readonly:
+    dq 0x4e58524f444154c3 ; starts with RET, but must never be fetched from R/NX
+%endif
 section .note.GNU-stack noalloc noexec nowrite progbits

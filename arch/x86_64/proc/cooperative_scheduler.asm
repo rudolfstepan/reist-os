@@ -16,6 +16,8 @@ extern reist_x64_terminal_status
 extern reist_x64_startup_stack
 extern reist_x64_request_admit
 extern reist_x64_profile_apply
+extern reist_x64_address_space_build
+global reist_x64_mapping_pointer64
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
 SHELL_CPU_STATUS          equ 256
@@ -5725,7 +5727,66 @@ scheduler_task_frame_alloc64:
     pop rbp
     ret
 
-; Build one private address space. EDI is 0 or 1.
+; Side-effect-free trusted direct-map adapter for the shared mapping core.
+reist_x64_mapping_pointer64:
+    test rdi, rdi
+    jz .bad
+    test rdi, PAGE_SIZE - 1
+    jnz .bad
+    cmp rdi, MANAGED_LIMIT
+    jae .bad
+    mov rax, DIRECT_MAP_BASE
+    add rax, rdi
+    ret
+.bad:
+    xor eax, eax
+    ret
+
+; R12 task, EBX slot. Snapshot the selected staging metadata into a trusted
+; private192-byte plan. Mapping has no dependency on the selector or task role.
+scheduler_map_task64:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 192
+    and rsp, -16
+    cld
+    mov rdi, rsp
+    xor eax, eax
+    mov ecx, 24
+    rep stosq
+    mov eax, ebx
+    shl eax, 5
+    lea rsi, [rel scheduler_table_frames]
+    add rsi, rax
+    mov rdi, rsp
+    mov ecx, TASK_TABLE_LEVELS
+    rep movsq
+    lea rsi, [r12 + TASK_PRIVATE_FRAMES]
+    lea rdi, [rsp + 104]
+    mov ecx, USER_PAGE_COUNT
+    rep movsq
+    xor ecx, ecx
+.image:
+    call x86_64_elf64_page_flags64
+    mov [rsp + 96 + rcx], al
+    call x86_64_elf64_page_frame64
+    mov [rsp + 32 + rcx*8], rax
+    inc ecx
+    cmp ecx, USER_PAGE_COUNT
+    jb .image
+    mov rax, [r12 + TASK_STACK_FRAME]
+    mov [rsp + 168], rax
+    mov rax, [rel pml4_table + 256*8]
+    mov [rsp + 176], rax
+    mov rax, [rel pml4_table + 511*8]
+    mov [rsp + 184], rax
+    mov rdi, rsp
+    call reist_x64_address_space_build
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; Build one private address space in an admitted slot.
 scheduler_build_task64:
     xor r12d, r12d
     cmp edi, TASK_COUNT
@@ -5784,31 +5845,8 @@ scheduler_build_task64:
     cmp ebp, TASK_TABLE_LEVELS
     jb .table_allocation_loop
 
-    mov r13, DIRECT_MAP_BASE
-    add r13, qword [r14 + TASK_TABLE_PML4]
-    mov rax, qword [rel pml4_table + (256 * 8)]
-    test rax, PAGE_USER
-    jnz .fail
-    mov qword [r13 + (256 * 8)], rax
-    mov rax, qword [rel pml4_table + (511 * 8)]
-    test rax, PAGE_USER
-    jnz .fail
-    mov qword [r13 + (511 * 8)], rax
-
-    mov rax, qword [r14 + TASK_TABLE_PDPT]
-    or rax, PAGE_PRESENT | PAGE_WRITE | PAGE_USER
-    mov qword [r13], rax
-    mov r11, DIRECT_MAP_BASE
-    add r11, qword [r14 + TASK_TABLE_PDPT]
-    mov rax, qword [r14 + TASK_TABLE_PD]
-    or rax, PAGE_PRESENT | PAGE_WRITE | PAGE_USER
-    mov qword [r11], rax
-    mov r10, DIRECT_MAP_BASE
-    add r10, qword [r14 + TASK_TABLE_PD]
-    mov rax, qword [r14 + TASK_TABLE_PT]
-    or rax, PAGE_PRESENT | PAGE_WRITE | PAGE_USER
-    mov qword [r10 + (2 * 8)], rax
-
+    ; Acquire every destination first. The common plan validates all pages
+    ; before populating any table or copying image data into private frames.
     xor ebp, ebp
 .page_loop:
     mov ecx, ebp
@@ -5829,16 +5867,12 @@ scheduler_build_task64:
     jnz .fail
     cmp r14, MANAGED_LIMIT
     jae .fail
-    test r15d, ~7
-    jnz .fail
-    test r15d, PF_R
-    jz .fail
-    mov eax, r15d
-    and eax, PF_W | PF_X
-    cmp eax, PF_W | PF_X
-    je .fail
+    cmp r15d, PF_R
+    jb .fail
+    cmp r15d, PF_R | PF_W
+    ja .fail
     test r15d, PF_W
-    jz .share_rx
+    jz .next_page
     call scheduler_task_frame_alloc64
     test rax, rax
     jz .fail
@@ -5847,43 +5881,10 @@ scheduler_build_task64:
     cmp rax, MANAGED_LIMIT
     jae .fail
     mov qword [r12 + TASK_PRIVATE_FRAMES + rbp * 8], rax
-    mov rdx, rax
-    mov rsi, DIRECT_MAP_BASE
-    add rsi, r14
-    mov rdi, DIRECT_MAP_BASE
-    add rdi, rdx
-    mov ecx, PAGE_SIZE / 8
-    rep movsq
-    mov r14, rdx
-    jmp .map_page
-.share_rx:
-    test r15d, PF_X
-    jz .fail
-.map_page:
-    mov rax, r14
-    or rax, PAGE_PRESENT | PAGE_USER
-    test r15d, PF_W
-    jz .not_write
-    or rax, PAGE_WRITE
-.not_write:
-    test r15d, PF_X
-    jnz .store_page
-    mov rdx, PAGE_NX
-    or rax, rdx
-.store_page:
-    mov edx, ebx
-    shl rdx, 5
-    lea rdi, [rel scheduler_table_frames]
-    add rdi, rdx
-    mov rdi, qword [rdi + TASK_TABLE_PT]
-    mov rdx, DIRECT_MAP_BASE
-    add rdi, rdx
-    mov qword [rdi + rbp * 8], rax
 .next_page:
     inc ebp
     cmp ebp, USER_PAGE_COUNT
     jb .page_loop
-
     call scheduler_task_frame_alloc64
     test rax, rax
     jz .fail
@@ -5892,23 +5893,9 @@ scheduler_build_task64:
     cmp rax, MANAGED_LIMIT
     jae .fail
     mov qword [r12 + TASK_STACK_FRAME], rax
-    mov rdi, DIRECT_MAP_BASE
-    add rdi, rax
-    xor eax, eax
-    mov ecx, PAGE_SIZE / 8
-    rep stosq
-    mov rax, qword [r12 + TASK_STACK_FRAME]
-    or rax, PAGE_PRESENT | PAGE_WRITE | PAGE_USER
-    mov rdx, PAGE_NX
-    or rax, rdx
-    mov edx, ebx
-    shl rdx, 5
-    lea rdi, [rel scheduler_table_frames]
-    add rdi, rdx
-    mov rdi, qword [rdi + TASK_TABLE_PT]
-    mov rdx, DIRECT_MAP_BASE
-    add rdi, rdx
-    mov qword [rdi + (USER_PAGE_COUNT * 8)], rax
+    call scheduler_map_task64
+    cmp eax, 1
+    jne .fail
 
     mov rax, qword [rel scheduler_entry]
     mov qword [r12 + TASK_RIP], rax

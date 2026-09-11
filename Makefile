@@ -223,6 +223,7 @@ X86_64_REQUEST_OBJ := $(X86_64_BOOTSTRAP_DIR)/request_admission.o
 X86_64_FRAME_CLAIM_OBJ := $(X86_64_BOOTSTRAP_DIR)/frame_claim.o
 X86_64_PROFILE_OBJ := $(X86_64_BOOTSTRAP_DIR)/syscall_profile.o
 X86_64_IMAGE_FRAMES_OBJ := $(X86_64_BOOTSTRAP_DIR)/image_frames.o
+X86_64_ADDRESS_SPACE_OBJ := $(X86_64_BOOTSTRAP_DIR)/address_space.o
 X86_64_FAULT_VECTOR ?= -1
 X86_64_FAULT_PHASE ?= 0
 X86_64_BUSY_CHILD ?= 0
@@ -234,6 +235,8 @@ X86_64_ARGV_CASE ?= 0
 X86_64_REQUEST_CASE ?= 0
 X86_64_OOM_CASE ?= 0
 X86_64_PROFILE_CASE ?= 0
+X86_64_MAPPING_CASE ?= 0
+X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld)
 X86_64_EFFECTIVE_IPC_CASE = $(if $(filter-out 0,$(X86_64_REQUEST_CASE) $(X86_64_OOM_CASE) $(X86_64_PROFILE_CASE)),1,$(X86_64_IPC_CASE))
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
 X86_64_C_CORE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-c-core.elf
@@ -408,6 +411,7 @@ x86_64-bootstrap:
 		-DX86_64_REQUEST_CASE=$(X86_64_REQUEST_CASE) \
 		-DX86_64_OOM_CASE=$(X86_64_OOM_CASE) \
 		-DX86_64_PROFILE_CASE=$(X86_64_PROFILE_CASE) \
+		-DX86_64_MAPPING_CASE=$(X86_64_MAPPING_CASE) \
 		-c arch/x86_64/user/shell.c \
 		-o $(X86_64_USER_SHELL_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
@@ -421,9 +425,10 @@ x86_64-bootstrap:
 		-DX86_64_IPC_CASE=$(X86_64_EFFECTIVE_IPC_CASE) \
 		-DX86_64_ARGV_CASE=$(X86_64_ARGV_CASE) \
 		-DX86_64_PROFILE_CASE=$(X86_64_PROFILE_CASE) \
+		-DX86_64_MAPPING_CASE=$(X86_64_MAPPING_CASE) \
 		arch/x86_64/user/child.asm -o $(X86_64_USER_CHILD_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
-		-z noexecstack --strip-all -T config/x86_64_user_child.ld \
+		-z noexecstack --strip-all -T $(X86_64_CHILD_LINKER) \
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
@@ -467,12 +472,13 @@ x86_64-bootstrap:
 	@$(AS) -f elf32 arch/x86_64/mm/frame_claim.asm -o $(X86_64_FRAME_CLAIM_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/syscall_profile.asm -o $(X86_64_PROFILE_OBJ)
 	@$(AS) -f elf32 arch/x86_64/exec/image_frames.asm -o $(X86_64_IMAGE_FRAMES_OBJ)
+	@$(AS) -f elf32 arch/x86_64/mm/address_space.asm -o $(X86_64_ADDRESS_SPACE_OBJ)
 	@$(LD) -m elf_i386 -nostdlib --build-id=none --fatal-warnings \
 		-T $(X86_64_BOOTSTRAP_LDSCRIPT) -o $(X86_64_BOOTSTRAP_ELF) \
 		$(X86_64_BOOTSTRAP_OBJ) $(X86_64_EXCEPTION_OBJ) $(X86_64_TIMER_INTERRUPT_OBJ) \
 		$(X86_64_PHYSICAL_MEMORY_OBJ) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
-		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ)
+		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ) $(X86_64_ADDRESS_SPACE_OBJ)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 
 check-syscall-abi:

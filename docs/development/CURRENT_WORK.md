@@ -2,6 +2,95 @@
 
 Stand: 11. September 2026
 
+## R8.3o: gemeinsame Mappingprüfung und schreibgeschützte Daten
+
+Basis0e2d95c6, Vertrag a1fa3b42. Alle bisherigen nativen Taskaufbauten
+verwenden denselben privaten System-V-AMD64-Mappingkern. Ein192-Byte-Plan
+enthält die bereits gehaltenen Tabellen-, Quell-, Privat- und Stackframes
+sowie die bestehenden Kernel-PML4-Einträge. Der Kern kennt weder Rollen noch
+ELF-Parser/Selektor und allokiert oder befreit keine Frames. Die bisherige
+Claim-/Identitäts-/Rollback-/Reap-Reihenfolge bleibt bestehen.
+
+Vor dem ersten Tabellen- oder Datenschreibzugriff prüft er alle maximal21
+Frame-Records, Flags, Eindeutigkeit, physische Grenzen, Seitenpointer,
+Plan-/Pointeraliase und vollständig leere Zielseiten. Danach folgen keine
+fehlschlagenden Backendaufrufe mehr, nur begrenzte Schreib-/Kopieroperationen
+auf gepinnten Seiten; unbekannte Hardware-/Kernelkorruption wird nicht geheilt.
+RX und R bleiben schreibgeschützt geteilt; R erhält NX. RW wird privat
+kopiert und erhält NX, ebenso der private Stack. Lücken/Guards bleiben leer.
+Der Kernel-Direct-Map-Eintrag bleibt NX und Supervisor-only, der Kernelcode
+ausführbar und Supervisor-only. Keine neue öffentliche ABI oder RAM-Kapazität.
+
+Vorher-Gast: gültige R-Seite mit Flags4 in Kindslot1/Seite1 wird am alten
+RX-only-Zweig abgewiesen. Neuer Hostkern O0/O2:1024 Layouts und151 gezielte
+Fehler vor Effekten, vollständige Tabellen-/Kopie-/Guardvergleiche sowie
+Ablehnung bereits verwendeter Zieltabellen. Negative Snapshot-/ELF-/
+Lebenszyklusoracles ergänzen die tatsächlichen Ausführungstests.
+
+Drei exklusive User-Fixtures besitzen zwei kompakte PT_LOAD-Segmente,
+RX und R/NX. Nur diese expliziten Test-ELFs dürfen bis8192 Dateibytes groß
+sein; der Normalfall behält4096 Bytes, das bestehende8-Seiten-Userfenster
+und der64KiB-Stagingrahmen bleiben unverändert. Lesen der R-Konstante
+funktioniert. Schreiben ergibt echten PF-Fehlercode7; Ausführen ergibt21,
+jeweils CR2=0x401000, CPL3 und die echte Fehleradresse. Beide Generationen
+werden geerntet, WAIT/RUN und die Eltern-Shell laufen weiter. Read-only-GDB
+liest Pläne, gecachte Pointer, vollständige Tabellen und Seiten direkt vor
+CR3-Veröffentlichung; das Oracle vergleicht sie mit den tatsächlichen ELF-Daten.
+
+Erhaltene Fehlbelege: alter RX-only-Aufbau; erste neue Templateprüfung
+verwarf den bestehenden NX-Direct-Map-Eintrag; erste GDB-Dumpauswertung
+behandelte Dateinamen-Anführungszeichen wörtlich. Korrigiert durch exakte
+Kernel-Templateprüfung und validierte ungequotete GDB-Dateinamen. Kein
+Gastlimit oder Schutzbit wurde zur Testfreigabe gelockert. Ein alter
+Quelltest folgt nun dem gemeinsamen Mappingkern und fordert R/NX neben RX.
+
+Belege build/codex-agent/r83o-mappings; nach genehmigtem Nachtrag25 Prüfgruppen.
+Allgemeine Eltern-/Supervisor-Recovery, skalierbarer Speicher, native
+Dienste/Desktop/Browser und Systemabnahme bleiben offen. R3.6b bleibt
+zurückgestellt; weiterhin1CPU/128MiB/vier Slots/zwei Kindgenerationen.
+
+Historischer Abnahmestopp R8.3o:21 von24 Gruppen bestanden; IPC-Handoff-Gate
+scheitert in Fall0, Dokumentationsgate und i386-Guard danach noch nicht
+ausgeführt. Kein Implementierungscommit, keine Queue-Fertigmeldung.
+Das gleiche Fehlerbild tritt mit dem unveränderten Vorgänger0e2d95c6 auf:
+diagnose-fail-7b2fad9f33614f198ac83046161ace0b/baseline0..2.
+Read-only-Diagnose diagnose-expiry-09da207d58a94f49828484123e10452b/3
+belegt den legalen Sendetimeout: Generation41 erhält -110, während der
+Elternprozess noch läuft. Das unveränderte Testkind verlangt an dieser
+Stelle ausschließlich EBADF und endet deshalb mit Testfehler78.
+Der ursprüngliche rote Gatebeleg bleibt unter
+ipc_handoff/attempt-6f6c6d01080a4e1fba2936bf211658b6 erhalten.
+Weitere diagnostische grüne Läufe ersetzen den fehlgeschlagenen Gatebeleg
+nicht. Reparatur der bestehenden Testübergabe benötigt einen expliziten
+Nachtrag zur eingefrorenen Bytegleichheit des normalen Usercodes; keine
+stille Änderung von Kerneldeadlines, Rechten oder Abnahmeanforderungen.
+
+Nutzerfreigabe und separater Vertragscommit2e963b34 erlauben jetzt genau
+die IPC-Testprogramm-Reparatur. Das normale Kind wiederholt beim Beobachten
+von CLOSE nur EACCES/ETIMEDOUT, höchstens acht Versuche mit YIELD dazwischen;
+nur EBADF bedeutet Erfolg. Der Parent wiederholt Peer-Receives höchstens
+achtmal bei ETIMEDOUT. Jeder Receive behält10ms; explizite Timeout-Negativtests
+bleiben unverändert. Kein Kernelcode, Recht oder Budget ändert sich dadurch.
+Zusätzlicher Hosttest führt den tatsächlichen Assemblyzweig mit substituierten
+Syscalls und die tatsächliche C-Receivefunktion bei O0/O2 aus:255 gemischte
+Retryfolgen, Erschöpfung, unerwartete Antworten und Yieldfehler. Vorher roter
+Test bleibt erhalten. Alle ursprünglichen24 Gates, insbesondere die echten
+IPC-Close-/Wakeup-Verzweigungen, bleiben Pflicht.
+
+Erneute Abnahme nach Reparatur:24 Code-/Build-/Laufzeitgruppen bestanden;
+Dokumentationsgate separat vor Commit. Vollständige Belege unter
+acceptance-amended-9a062ce389f4466e8db7a15941e96657/results.json.
+IPC4/8 in12.686s, tatsächliche Fixture-Hosttests2/1.870s, Mappinggast3/6
+in9.886s, Bildlebensdauer0.949s, Profile5.201s, OOM8.075s, Requests9.188s,
+Argv11.576s, Exit24/48 in68.310s, Fault24/48 in67.972s, Busy2/4 in6.527s,
+Context7/14 in20.996s, i386-Guard5.128s. Normalbild187344 Bytes, Shell3856,
+Kind1904.19 Mechanismen über74 Abnahmebuilds bytegleich;17 alte Mechanismen
+gegen0e2d95c6 unverändert. Der separate Fixture-Vergleich bestätigt alle19
+Kernelobjekte vor/nach der IPC-Reparatur unverändert. Nur die genehmigten
+Userprogramme ändern sich. Alte Fehlerbelege einschließlich ungenutzter
+Hilfsfunktion im IPC3-Build bleiben erhalten; keine erfolgreiche Wiederholung
+ersetzt einen roten Beleg. Native Dienste/Systemabnahme bleiben offen.
+
 ## R8.3n: unabhängige Freigabe nativer Programmabbilder
 
 Basisb9b82a5a, Vertrag62563b06. Der gemeinsame private Freigabekern prüft
