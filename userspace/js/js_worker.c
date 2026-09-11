@@ -189,7 +189,7 @@ static int run(uint32_t incoming,uint32_t outgoing,js_service_header identity,ui
             if(!status) status=reist_js_eval(engine,source.source,source.source_bytes,
                 request.deadline,output,JS_SERVICE_RESULT,&required);
             if(status<=REIST_JS_EXCEPTION && !host.failed) {
-                js_script_reply journal={1,sizeof(journal),status,status?1:host.exit_code,host.records,host.used};
+                js_script_reply journal={2,sizeof(journal),status,status?1:host.exit_code,host.records,host.used};
                 memcpy(console,&journal,sizeof(journal)); reply=console; size=sizeof(journal)+host.used;
                 status=REIST_JS_OK;
             }

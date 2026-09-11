@@ -105,6 +105,24 @@ static int write_text(int stream,const char *bytes,uint32_t length,uint64_t &las
     }
     return 0;
 }
+static int write_color(uint32_t stream,const char *bytes,uint32_t length,uint32_t foreground,
+                       uint64_t &last,uint64_t deadline) {
+    uint32_t offset=0;
+    while(offset<length) {
+        uint64_t now=0;
+        if(clock(last,now) || now>=deadline)return 74;
+        char safe[64];uint32_t amount=0;
+        do {
+            unsigned char c=(unsigned char)bytes[offset+amount];
+            safe[amount++]=((c<32 && c!='\n' && c!='\t') || c>=127)?'?':(char)c;
+            if(c=='\n')break;
+        } while(amount<sizeof(safe) && amount<length-offset);
+        int written=x86os_terminal_write_color(stream,safe,amount,foreground,0);
+        if(written!=(int)amount)return 74; // Typed admission is atomic, no fallback/retry.
+        offset+=amount;
+    }
+    return 0;
+}
 int diagnostic(int code) {
     const char *message=code==64?"js: usage: js [--read FILE]... FILE [args...] | js [--read FILE]... -e SOURCE [args...]\n":
         code==66?"js: source unavailable or invalid\n":code==71?"js: resource limit\n":
@@ -125,7 +143,11 @@ int publish(const void *input,uint32_t length) {
     uint32_t offset=sizeof(h);
     for(uint32_t i=0;i<h.records;++i) {
         uint32_t record[2]; memcpy(record,(const char *)input+offset,8); offset+=8;
-        int rc=write_text((int)record[0],(const char *)input+offset,record[1],last,deadline);
+        int rc;
+        if(record[0]>2) {
+            uint32_t foreground;memcpy(&foreground,(const char *)input+offset,4);
+            rc=write_color(record[0]-2,(const char *)input+offset+4,record[1]-4,foreground,last,deadline);
+        } else rc=write_text((int)record[0],(const char *)input+offset,record[1],last,deadline);
         if(rc) return rc; offset+=record[1];
     }
     if(h.status) diagnostic(1);

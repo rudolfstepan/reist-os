@@ -521,7 +521,7 @@ try {
             '--data-file', "etc/reist/$configFile=$configPath"
         )
     }
-    foreach ($demoFile in @('about.txt', 'readme.txt', 'status.jsn', 'index.html', 'hello.js', 'jsargs.js', 'jsmath.js', 'jsjson.js', 'jserror.js', 'jssafe.js', 'jsread.js', 'mandel.js', 'javascript.htm', 'jsnext.htm', 'jsext.htm', 'ext.js', 'layout.htm', 'layout.css', 'fonts.htm', 'fonts.css', 'browser-test.html', 'browser-html5-test.html', 'browser-css-test.html', 'browser-forms-test.html', 'browser-stylesheet-test.html', 'browser-stylesheet-main.css', 'browser-stylesheet-import.css')) {
+    foreach ($demoFile in @('about.txt', 'readme.txt', 'status.jsn', 'index.html', 'hello.js', 'jsargs.js', 'jsmath.js', 'jsjson.js', 'jserror.js', 'jssafe.js', 'jsread.js', 'mandel.js', 'mandelc.js', 'jscolors.js', 'javascript.htm', 'jsnext.htm', 'jsext.htm', 'ext.js', 'layout.htm', 'layout.css', 'fonts.htm', 'fonts.css', 'browser-test.html', 'browser-html5-test.html', 'browser-css-test.html', 'browser-forms-test.html', 'browser-stylesheet-test.html', 'browser-stylesheet-main.css', 'browser-stylesheet-import.css')) {
         $demoPath = Join-Path $RepoRoot "htdocs\$demoFile"
         $imageDataArguments += @(
             '--data-file', "htdocs/$demoFile=$demoPath"

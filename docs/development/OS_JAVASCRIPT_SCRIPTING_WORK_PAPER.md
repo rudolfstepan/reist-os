@@ -1,14 +1,24 @@
 # Work Paper: gemeinsame JavaScript-Laufzeit, getrennte Host-Autorität
 
-11. September 2026, R3.44: Die native Farb-Publikationsgrenze ist mit allen
+11. September 2026, R3.45 abgenommen: `reist.printColor(name, ...values)` und
+`reist.errorColor` erzeugen ausschließlich speicherbasierte Records. Der Host
+validiert alle Records vor Ausgabe, schließt/reapt den Worker und publiziert
+über Syscall131. Version1 bleibt lesbar; Version2 ergänzt Typ3/4 mit Farbwort.
+Keine zusätzliche Autorität, keine globalen Farben, keine Escape-Freigabe.
+Beispiele: `js /htdocs/jscolors.js`, `js /htdocs/mandelc.js`.
+[JS-Farbvertrag](../architecture/JS_COLOR_OUTPUT_CONTRACT.md).
+CLI-Fassade/Exitstatus und explizite Schreib-/Verzeichnisdelegation bleiben
+getrennte Folgepakete, keine impliziten Privilegien durch `fs` oder Manifeste.
+
+Historisch R3.44: Die native Farb-Publikationsgrenze ist mit allen
 13 Prüfgruppen unabhängig abgenommen. `echo --color` nutzt zustandslose
 VGA-/Boot-Framebuffer-Spans; die JS-Engine und das JS-Recordformat bleiben
 unverändert. Nächster getrennter Schritt ist ein begrenztes, explizit validiertes
 Farbprofil zwischen isoliertem Worker und Host, niemals ein direkter
 Terminalsyscall für Script-Profile. [Farbvertrag](../architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md).
 
-Stand der JS-API: 10. September 2026. Ausgangspunkt: `270754bd`, letzter JS-Abschluss
-`a3fa8dfb` (R3.43). Aktuelle API und vorgeschlagene nächste Stufe stehen unten;
+Historischer JS-Ausgangspunkt am 10. September 2026: `270754bd`, damaliger Abschluss
+`a3fa8dfb` (R3.43). API und vorgeschlagene nächste Stufe stehen unten;
 die nachfolgenden Paketbeschreibungen behalten ihren historischen Scope.
 Status: R3.34 ist mit allen11 Prüfgruppen abgenommen. JS2 / R3.35 ist ebenfalls
 umgesetzt und mit allen10 Prüfgruppen abgenommen: allgemeiner isolierter Runner

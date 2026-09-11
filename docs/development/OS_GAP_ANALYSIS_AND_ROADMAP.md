@@ -1,6 +1,6 @@
 # Fehlstellenanalyse und Implementierungsfahrplan
 
-Stand: 10. September 2026, angenommener Runtime-Stand `a3fa8dfb` (R3.43).
+Stand: 11. September 2026, R3.45 auf Basis `c66f5de9` (R3.44) abgenommen.
 
 ## Aktuelle Einordnung und Reihenfolge
 
@@ -13,8 +13,9 @@ Der C++-Response-/Ressourcen-/Modellpilot R3.17–R3.20 ist ebenfalls fertig.
 Aktuelle Funktionsgrenzen und Belege: [PROJECT_STATUS](PROJECT_STATUS.md)
 und [CURRENT_WORK](CURRENT_WORK.md).
 
-Der Nutzerauftrag für den gesamten Dokumentationsabgleich hat jetzt Vorrang.
-Danach: sichere einfache Shell-/JS-Farbausgabe; die vorgeschlagene CLI-Fassade
+D1.1-Dokumentationsabgleich und R3.44-Terminalfarben sind abgeschlossen.
+R3.45 ergänzt sichere JS-Farbausgabe samt zwei Beispielen, ohne Workerrechte.
+Danach: die vorgeschlagene CLI-Fassade
 mit ausdrücklich definiertem Exitstatus sowie explizite JS-Dateirechte nach
 dem [Scripting-Workpaper](OS_JAVASCRIPT_SCRIPTING_WORK_PAPER.md). Eine
 `fs`-Fassade erzeugt keine impliziten Rechte. Verzeichnisrechte brauchen einen

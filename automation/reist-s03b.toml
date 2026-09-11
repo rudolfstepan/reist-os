@@ -1,7 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.45-js-color-output"
-next_user_request = "2026-09-11: R3.44 native shell colors passed all13 frozen groups. echo --color and typed syscall131 are independently proven on VGA/boot-framebuffer; Script receives no terminal syscall. NEXT: separately freeze bounded JS color output records/host bindings, preserving ESC filtering, authority and lifecycle validation. Then proposed CLI system/fs facade and observable exit status, explicit JS write/directory delegation and later policies/manifests in separate authority packages. Requests/signatures never create rights; no ambient shell authority or privileged browser-to-shell launch. D1.1 documentation refresh complete, current index106 first-party documents. R3.6b activation is bookkeeping only: preserve its explicit deferral/all gates and R341-H1/H2. Main agent only; no agents/visible VMs/push."
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
+next_user_request = "2026-09-11: R3.45 JS colors passed all17 frozen groups on c66f5de9. reist.printColor/errorColor and two examples use memory-only records and validated host publication; no new Script rights. Native terminal colors R3.44 preserved. NEXT: separately freeze proposed CLI system/fs facade and observable exit status, explicit JS write/directory delegation and later policies/manifests in separate authority packages. Requests/signatures never create rights; no ambient shell authority or privileged browser-to-shell launch. D1.1 documentation refresh complete; current index107 first-party documents. R3.6b activation is bookkeeping only: preserve explicit deferral/all gates and R341-H1/H2. Main agent only; no agents/visible VMs/push."
 
 [policy]
 one_package_per_run = true
@@ -13,7 +13,7 @@ push = false
 
 [[packages]]
 id = "R3.45-js-color-output"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Memory-only JavaScript colors with validated host publication"
@@ -26,7 +26,8 @@ runtime_tests = ["python scripts/verify_js_colors_artifacts.py","python scripts/
 acceptance = "All17 frozen groups. Real QuickJS O0/O2 valid/error/reentry/quota/absent-browser vectors; actual host version1/2 metadata-before-prefix, chunks/sanitization/FD/no-retry/deadline tests; unchanged files/session/domain regressions. Both layouts and three images, pinned c66f5de9 kernels and every old PRG except JS/JSWORK/JSRUNTST byte-identical. Two new examples via real shell, both console modes with exact Mandelbrot/text and pixel proof. Existing JS/files/examples, restricted-worker recovery and external browser gates. Direct scope/diff review and local commit."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Kernel or worker authority expansion required"]
 commit_message = "feat: add capability-safe JavaScript color output"
-evidence = []
+evidence = ["python test/test_js.py -v","python test/test_js_runner.py -v","python test/test_js_files.py -v","python test/test_js_service.py -v","python test/test_script_domain.py -v","python test/test_js_colors.py -v","python test/test_documentation.py -v","python scripts/verify_js_colors_artifacts.py --archive-baseline",".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga",".\\scripts\\test-reist-package.ps1 -Target qemu -Video framebuffer","python scripts/verify_js_colors_artifacts.py --archive-framebuffer",".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga","python scripts/verify_js_colors_artifacts.py","python scripts/run_qemu_js_colors.py","python scripts/run_qemu_js_runner.py --file-capabilities --examples --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r345-js-colors/js-guest.log","python scripts/run_qemu_js_service.py --restricted-worker --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r345-js-colors/service-guest.log","python scripts/run_qemu_browser_external.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --log build/codex-agent/r345-js-colors/browser-guest.log"]
+evidence_note = "All17 frozen groups passed. QuickJS6/51.808s with21 script vectors O0/O2; runner4/3.315s, files1/1.495s, service3/8.646s, Script2/1.170s, color oracles5/0.041s, documentation7 with1 historical D1.1 scope skip. Baseline archive2.727s, VMware85s, QEMU framebuffer62s/archive1.500s, QEMU VGA63s; artifact4.240s authenticates all3 kernels and95 PRGs, only JS/JSWORK/JSRUNTST changed. Final color guests VGA24.979s/framebuffer25.829s: exact records, RGB/default pixels, Mandelbrot, caught/uncaught JS exceptions and repeated shell progress. Existing JS/files/seven examples97.624s; restricted worker recovery18.588s; external browser46.275s. First red and new oracle corrections retained: intentional boot recovery fault was wrongly rejected; scope now starts after complete ordered boot receipts, with explicit global panic denial. Superseded positive run retained; final complete color gate repeated after checker change. No kernel/SDK/browser/benchmark implementation or authority/quota change; no visible VM/native dialog/agents/push. No throughput/VMware runtime claim; R341-H1/H2 and R3.6b deferral retained. Evidence build/codex-agent/r345-js-colors/."
 
 [[packages]]
 id = "R3.44-terminal-color-output"
@@ -2669,7 +2670,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

@@ -1,6 +1,6 @@
 # Dokumentationsindex
 
-Stand: 11. September 2026; R3.44-Terminalfarben abgenommen, JS-API weiterhin R3.43.
+Stand: 11. September 2026; R3.44-Terminalfarben und R3.45-JS-Farbausgabe abgenommen.
 
 Die Dokumentation unterscheidet zwischen aktuellen Referenzen und
 historischen Arbeitsberichten. Für Aufbau, Start und Bedienung sind die hier

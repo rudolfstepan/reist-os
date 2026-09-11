@@ -25,7 +25,7 @@ int js_script_reply_valid(const void *input,uint32_t size) {
     js_script_reply h;
     if(!input || size<sizeof(h) || size>sizeof(h)+JS_SCRIPT_CONSOLE) return -84;
     memcpy(&h,input,sizeof(h));
-    if(h.version!=1 || h.size!=sizeof(h) || h.status>1 || h.exit_code>125 ||
+    if((h.version!=1 && h.version!=2) || h.size!=sizeof(h) || h.status>1 || h.exit_code>125 ||
        (h.status && h.exit_code!=1) || h.records>JS_SCRIPT_RECORDS ||
        h.bytes>JS_SCRIPT_CONSOLE || size!=sizeof(h)+h.bytes) return -84;
     uint32_t offset=sizeof(h);
@@ -33,7 +33,13 @@ int js_script_reply_valid(const void *input,uint32_t size) {
         uint32_t record[2];
         if(size-offset<sizeof(record)) return -84;
         memcpy(record,(const char *)input+offset,sizeof(record)); offset+=sizeof(record);
-        if(record[0]<1 || record[0]>2 || !record[1] || record[1]>size-offset) return -84;
+        if(record[0]<1 || record[0]>(h.version==1?2U:4U) || !record[1] || record[1]>size-offset) return -84;
+        if(record[0]>2) {
+            uint32_t foreground;
+            if(record[1]<5)return -84;
+            memcpy(&foreground,(const char *)input+offset,4);
+            if(foreground>15)return -84;
+        }
         if(((const char *)input)[offset+record[1]-1]!='\n') return -84;
         offset+=record[1];
     }

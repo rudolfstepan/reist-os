@@ -1,8 +1,7 @@
 # JavaScript-Beispiele fuer die REIST-Shell
 
-Status 10. September 2026: alle fuenf Abnahmegruppen bestanden. Sieben Skripte
-in beiden Images, zweimaliger echter Shell-Lauf einschliesslich bytegenauem
-Mandelbrot-Bild. Farbausgabe ist weiterhin der separat vorgemerkte Folgeauftrag.
+Status 11. September 2026: R3.43 mit sieben Skripten abgenommen; R3.45 ergänzt
+zwei Farbskripte und ist abgenommen. Belege stehen in CURRENT_WORK.
 
 ## Paketvertrag R3.43
 
@@ -84,14 +83,23 @@ Shell-Beispielen weder vorausgesetzt noch freigeschaltet.
 Breite/Hoehe/Iterationsgrenze halten Laufzeit und Ausgabe klein. Es benoetigt
 keine Dateifreigabe, GUI, Timer oder Farben.
 
-## Zusatzauftrag: einfache Farben (noch offen)
+## Einfache Farben (R3.45)
 
-Farbausgabe ist eine eigene Terminal-Ausgabegrenze, kein weiterer Testtext.
-Der alte VGA-Pfad kennt einzelne ANSI-SGR-Farben, aber der Framebufferpfad
-und ein einfaches Shell-/JS-Format sind damit nicht abgedeckt. Der JS-Runner
-ersetzt ESC bisher bewusst durch `?`, um Terminal-Steuerinjektion zu verhindern.
-Das Folgepaket muss einen kleinen standardbezogenen, validierten Farbteilumfang
-mit einfacher Benutzung, Reset/Cleanup und echten VGA-/Framebuffer-Nachweisen
-definieren. Kein ungefiltertes Durchlassen von Escape-Sequenzen und kein neuer
-komplexer Parser in Ring 0. Dieser Auftrag bleibt vor der JS-Schreibdelegation
-vorgemerkt; in R3.43 werden unveraenderte Programme und Schutzgrenzen verlangt.
+```text
+js /htdocs/jscolors.js
+js /htdocs/mandelc.js
+```
+
+`reist.printColor('red', 'Text', 42)` schreibt stdout, `reist.errorColor` stderr.
+Farbnamen: black/red/green/yellow/blue/magenta/cyan/white und jeweils bright-.
+Werte werden wie bei print konvertiert, mit Leerzeichen getrennt und LF beendet.
+Ungültige Farbnamen werfen; es gibt keinen globalen Farbzustand oder Resetbedarf.
+`jscolors.js` prüft alle 16 Namen, Fehler, längere/mehrzeilige Ausgabe und
+Normalfarbe; Erfolg: `JS_COLOR_OK rejected=8`. Das optionale Argument `fail`
+wirft absichtlich eine normale JS-Ausnahme ohne den abgelehnten Text auszugeben.
+`mandelc.js` berechnet dasselbe begrenzte 64x24-Bild wie das unveränderte
+`mandel.js`, mit roten/grünen/blauen Zeilen; Erfolg: `JS_COLOR_MANDEL_OK`.
+Ausgabe erfolgt weiterhin erst nach Ausführung, Validierung und Worker-Reap.
+ESC/DEL und Nicht-ASCII-Bytes im Farbtext werden durch `?` ersetzt; kein ANSI-
+oder Unicode-Farbclaim. Quoten und fehlende Schreib-/Netz-/Prozessrechte bleiben.
+[Vertrag und Abnahme](../architecture/JS_COLOR_OUTPUT_CONTRACT.md).

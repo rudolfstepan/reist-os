@@ -2,6 +2,40 @@
 
 Stand: 11. September 2026
 
+## R3.45: JavaScript-Farbausgabe abgenommen
+
+Vertragscheckpoint `4a5c6823`, Basis `c66f5de9`. `reist.printColor/errorColor`
+erzeugen speicherbasierte Version2-Farbrecords; Version1 bleibt lesbar.
+Vollständige Validierung vor Publikation, 64-Byte-/Ein-LF-Spans, ASCIIfilter,
+feste Deskriptoren und keine Wiederholung/fallback nach typisiertem Fehler.
+Worker-Reap/Broker-Close vor Ausgabe, keine neuen Scriptrechte oder Quoten.
+Zwei Beispiele in Windows-/Make-Layouts: jscolors.js und mandelc.js.
+
+Alle17 eingefrorenen Gruppen bestanden. Hosttests: QuickJS6/51.808s mit21
+Scriptfällen O0/O2, Runner4/3.315s, Files1/1.495s, Service3/8.646s,
+Scriptdomäne2/1.170s, neue Orakel final5/0.041s; Dokumentation7 mit einem
+historischen D1.1-Scope-Skip und107 Dokumenten, lokale Links gültig.
+Regression zuerst rot: neue Version2-Publikation wurde vom bisherigen Host
+korrekt abgelehnt. Negative Records, Quota, Reentry (auch gefangen), Namen,
+vollständige Präfixvalidierung, kurze Schreibantworten, Deadline und Browser-
+Bindingabwesenheit geprüft. Kein Kernel-/SDK-/Browser-/Benchmarkumbau.
+Basisarchiv2.727s, VMware85s, QEMU-Framebuffer62s/Archiv1.500s, QEMU-VGA63s.
+Artefaktprüfung4.240s: alle drei Kernel und92 der95 Programme bytegleich;
+nur JS/JSWORK/JSRUNTST ändern sich. Zwei neue Skripte exakt paketiert.
+Finale Farbgäste VGA24.979s/Framebuffer25.829s: zweimal alle Records,
+RGB-/Normalfarbpixel, bytegenaues64x24-Mandelbrot, Shell-Rückkehr nach normalen
+und ungefangenen Ausnahmen. Unveränderte JS-/Datei-/sieben Beispielgäste97.624s,
+eingeschränkter Worker18.588s, Browser HTTP/Redirect/Cache/Reflow/Cancel/Recovery46.275s.
+
+Neue Prüferkorrektur: Der erste Gastlauf verwarf den absichtlichen Boot-
+Recovery-Fault. Jetzt werden weiterhin alle geordneten Boot-Belege verlangt,
+Prozessfaults nach Boot und Kernelpaniken aber strikt abgewiesen. Negativtest
+ergänzt; ursprüngliche Fehlversuche und überholter positiver Farblauf erhalten,
+vollständige Farbgruppe nach endgültiger Prüferkorrektur erneut bestanden.
+Keine Akzeptanzschwelle/Frist gelockert, keine neue Durchsatz-/VMware-Gastzusage.
+Belege unter `build/codex-agent/r345-js-colors/`, Fehler bleiben erhalten.
+R341-H1/H2 und R3.6b-Zurückstellung bleiben offen; kein Folgepaket hier.
+
 ## R3.44: native Farbausgabe abgenommen
 
 Vertragscheckpoint `476f605f`, Ausgangssoftware `a3fa8dfb`.

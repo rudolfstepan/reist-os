@@ -7,7 +7,9 @@ extern "C" {
 #define REIST_JS_CONSOLE_BYTES (60U*1024U)
 #define REIST_JS_CONSOLE_RECORDS 256U
 /* Opt-in memory-only host. Storage/host outlive the engine; no threads or
- * reentry. Each record: native i386 uint32 stream,length, then UTF-8 bytes.
+ * reentry. Each record: native i386 uint32 type,length, then UTF-8 bytes.
+ * Types1/2: stdout/stderr; types3/4: foreground uint32 (0..15), then text.
+ * Length includes foreground when present. Each text ends in LF.
  * No write past capacity, no valid prefix after failed=1. Not an OS handle. */
 typedef struct {
     uint32_t version,struct_size;

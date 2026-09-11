@@ -9,6 +9,9 @@ extern "C" {
 #define JS_SCRIPT_HEADER 24U
 #define JS_SCRIPT_CONSOLE (60U*1024U)
 #define JS_SCRIPT_RECORDS 256U
+/* Reply v1 permits plain types1/2. v2 adds color types3/4:
+ * uint32 type,length,foreground; text. length includes foreground + final LF.
+ * Outer service header/request remain v1; resource bounds unchanged. */
 typedef struct { uint32_t version,size,argc,args_bytes,source_bytes,reserved; } js_script_request;
 typedef struct { uint32_t version,size,status,exit_code,records,bytes; } js_script_reply;
 typedef struct {

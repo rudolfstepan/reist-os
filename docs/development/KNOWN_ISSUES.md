@@ -1,12 +1,13 @@
 # Bekannte offene Probleme
 
-Stand: 11. September 2026; R3.44 abgenommen, Belege siehe CURRENT_WORK.
+Stand: 11. September 2026; R3.45 abgenommen, Belege siehe CURRENT_WORK.
 
 ## Offene Grenzen und priorisierte Folgearbeit
 
 - **Farbausgabe:** native Shellausgabe `echo --color` ist mit R3.44
-  für VGA/Boot-Framebuffer abgenommen. Die JS-Output-Records besitzen
-  noch kein Farbprofil; JS filtert ESC unverändert. Legacy-Ausgabeinterleavings
+  für VGA/Boot-Framebuffer abgenommen. R3.45 ergänzt `reist.printColor/errorColor`.
+  Farbtext bleibt ASCII: jedes Nicht-ASCII-Byte wird durch `?` ersetzt; Klartext
+  behält UTF8. JS filtert ESC unverändert. Legacy-Ausgabeinterleavings
   bleiben Migrationsschuld, keine vollständige Terminalisolation.
 - **CLI-API / Exitstatus:** `system.args/cwd/exit`, `fs.*` und `%ERRORLEVEL%`
   sind Vorschläge, keine aktuelle API. `reist.setExitCode(0..125)` setzt nur

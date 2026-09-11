@@ -1,7 +1,7 @@
 # REIST-OS-Zielarchitektur
 
-Stand: 10. September 2026. Aktueller Ist-Snapshot:
-[Projektstatus](../development/PROJECT_STATUS.md), abgenommen bis R3.43.
+Stand: 11. September 2026. Aktueller Ist-Snapshot:
+[Projektstatus](../development/PROJECT_STATUS.md), R3.45-JS-Farbausgabe abgenommen.
 
 Die Zielregeln dieses Dokuments bleiben verbindlich. Datierten Paketbeschreibungen
 liegt jeweils der damalige Stand zugrunde; sie sind keine alternative Queue.
@@ -9,8 +9,10 @@ Seit R3.34 läuft JSWORK im irreversibel eingeschränkten Scriptprofil. Der
 allgemeine Shell-Host und der Browser verwenden dieselbe Engineimplementierung,
 aber getrennte Prozesse/Heaps. R3.36 delegiert nur explizite Lesedateiobjekte;
 R3.42 ergänzt FAT32-Schreibobjekte auf ATA-PIO, keine JS-Schreibrechte.
-R3.43 liefert sieben Shell-Beispiele. Einfache Farben, CLI-System-/Dateifassade
-und Shell-Exitstatus bleiben geplante, separat abzunehmende Hostgrenzen.
+R3.43 liefert sieben Shell-Beispiele, R3.44 native Terminalfarben. R3.45 ergänzt
+speicherbasierte JS-Farbrecords mit vollständiger Hostvalidierung, ohne zusätzliche
+Scriptrechte; siehe [JS-Farbvertrag](JS_COLOR_OUTPUT_CONTRACT.md).
+CLI-System-/Dateifassade und Shell-Exitstatus bleiben separate Hostgrenzen.
 
 ## Standard-first-Kompatibilitätsregel
 

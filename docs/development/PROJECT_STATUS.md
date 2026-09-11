@@ -1,6 +1,6 @@
 # Projektstatus
 
-Stand: 11. September 2026. R3.44 abgenommen; JS-API weiterhin R3.43 (`a3fa8dfb`).
+Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
@@ -11,7 +11,12 @@ schreibbarer Terminaldescriptor, Vordergrundprüfung, kein Farbzustand.
 Alle 13 Prüfgruppen bestanden, inklusive VGA-/Boot-Framebuffer-Pixeln und
 bestehenden JS-/Browser-Gästen. Benchmark-/Mathematik-/Textprogramme bleiben
 in allen drei Images byteidentisch; keine neue Geschwindigkeitsmessung.
-JavaScript-Farb-Bindings bleiben getrennte Folgearbeit. Belege:
+R3.45 ergänzt `reist.printColor/errorColor`, Version2-Records mit vollständig
+geprüfter Hostpublikation und zwei Shellbeispielen (`jscolors.js`, `mandelc.js`).
+Alle17 Gruppen bestanden, einschließlich exakter Farb-/Mandelbrot-Ausgabe
+und Pixeln auf VGA/Framebuffer, eingeschränktem Worker und Browser-Recovery.
+Kernel und92 der95 Programme bytegleich, nur JS/JSWORK/JSRUNTST geändert.
+Keine neuen Workerrechte; alte Version1-Records bleiben gültig. Belege:
 [CURRENT_WORK](CURRENT_WORK.md).
 
 REIST OS ist ein nicht zertifizierter High-Assurance-Forschungsprototyp. Die
@@ -26,7 +31,7 @@ sonstige sicherheitsbezogene Freigabe verstanden werden.
 | Resilienz | Generationen, Capabilities, Fencing, begrenzte Recovery; privater Ring-3-Speicher und FPU-Kontextisolation | monolithische Treiber-/VFS-Altlasten; kein Nachweis physischer DIMM-/DMA-/Supervisor-Isolation für jede Plattform |
 | Browser | HTML5, CSS, externe Stylesheets, begrenztes Flex/Grid, Bilder, GET-Formulare, Wheel, TrueType (R3.29), große Surface-Geometrien (R3.33) | keine allgemeine Websitekompatibilität, Webfonts/Shaping/Bidi, vollständiges DOM/Events/fetch noch offen |
 | Browser-JS | QuickJS in eigenem eingeschränkten Ring-3-Worker; Inline/externe klassische Skripte, Text/Attribute/Klassen | keine impliziten VFS-/Netz-/Prozessrechte, keine Node.js-API |
-| Shell-JS | Runner R3.35, explizite Lesecapabilities R3.36, sieben Beispiele samt Mandelbrot R3.43 | Farbausgabe, system-/fs-Fassade, auswertbarer Shell-Exitstatus, JS-Schreibrechte und Verzeichnisrechte offen |
+| Shell-JS | Runner R3.35, explizite Lesecapabilities R3.36, sieben Beispiele R3.43; R3.45-Farbausgabe plus zwei Demos abgenommen | system-/fs-Fassade, auswertbarer Shell-Exitstatus, JS-Schreibrechte und Verzeichnisrechte offen; Farbtext nur ASCII |
 | Desktop | Anzeige-/Maus-Applets, vollständige Resize-Ecke, Minimieren/Maximieren/Wiederherstellen, Taskleisten-Restore | Einstellungen beim nächsten Desktopstart; formale VMware-Pointerabnahme R3.6b bleibt zurückgestellt |
 | C++ | SDK-Teilprofil und bounded Types sowie Response-/Ressourcen-/Modellpiloten R3.17–R3.20 abgenommen | kein kompletter Browser-/Kernelumbau, öffentliche Grenzen bleiben C-kompatibel |
 | Dateisysteme | stabile Objektlebensdauer, Storage-Reap vor Ersatz, FAT32-Recovery/Handoff und R3.42-Schreibobjekte | neue Schreibobjekte nur bestehende reguläre FAT32-Dateien auf ATA-PIO; kein Create-/FAT12-/EXT2-/AHCI- oder JS-Schreibrecht daraus |

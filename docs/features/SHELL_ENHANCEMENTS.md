@@ -1,6 +1,6 @@
 # Shell, Befehle und Pfade
 
-Stand: 11. September 2026, normale `/bin/shell.prg`, native Terminalfarben R3.44.
+Stand: 11. September 2026, normale `/bin/shell.prg`, Terminalfarben R3.44 und JS R3.45.
 
 Die Shell orientiert sich bei Navigation und Dateibefehlen an MS-DOS, nutzt
 intern aber ausschließlich kanonische VFS-Pfade. Der Prompt zeigt das aktuelle
@@ -191,6 +191,17 @@ ihrer bestehenden 256-Byte-Zeile/16 Argumenten und kennt keine Quote-Auswertung.
 Ohne `--color` bleibt ECHO unverändert. Details:
 [Farbvertrag](../architecture/TERMINAL_COLOR_OUTPUT_CONTRACT.md).
 
-JS-Farbausgabe ist noch nicht implementiert: JS ersetzt ESC weiterhin bewusst
-durch `?`. Ein späteres typisiertes Output-Record-Profil muss Hostvalidierung
-und Lebensdauer separat abnehmen; rohe ANSI-Sequenzen sind kein JS-Farbweg.
+JS-Farbausgabe R3.45 (Abnahmestand in CURRENT_WORK):
+
+```javascript
+reist.printColor('green', 'Fertig', 42);
+reist.errorColor('bright-red', 'Fehler');
+print('Wieder normale Farbe');
+```
+
+Dieselben 16 Namen, Leerzeichen zwischen Werten, abschließendes LF.
+Keine Farbzustände oder nötigen Resetbefehle. Farbtext ist ASCII; ESC und
+Nicht-ASCII-Bytes werden durch `?` ersetzt. Quoten, Reap und Hostvalidierung
+bleiben verbindlich. Rohes ANSI wird noch nicht als Terminalformat unterstützt.
+`js /htdocs/jscolors.js` und `js /htdocs/mandelc.js` zeigen beide Ausgabewege.
+[JS-Farbvertrag](../architecture/JS_COLOR_OUTPUT_CONTRACT.md).

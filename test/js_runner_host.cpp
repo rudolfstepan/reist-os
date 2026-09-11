@@ -7,11 +7,15 @@ extern "C" {
 #include "reist/vfs_file_client.h"
 }
 #include <string>
+#include <vector>
 using namespace reist::script;
 static std::string file_bytes,stdout_bytes,stderr_bytes;
 static uint32_t file_offset=0,read_chunk=4096;
 static int opens=0,closes=0,reads=0,read_error=0,close_error=0,writes=0,write_error=0,key=0;
 static uint64_t read_delay=0;
+static int color_writes=0,color_error=0;
+static uint64_t color_delay=0;
+static std::vector<uint32_t> colors;
 extern "C" {
 int x86os_sleep_ms(uint32_t n) { os.now+=n; return 0; }
 int x86os_yield() { ++os.now; return 0; }
@@ -21,6 +25,15 @@ int x86os_write(int fd,const void *data,size_t size) {
     REQUIRE(fd==1 || fd==2); ++writes;
     if(write_error) return write_error;
     size_t n=size>3?3:size; (fd==1?stdout_bytes:stderr_bytes).append((const char *)data,n); return (int)n;
+}
+int x86os_terminal_write_color(uint32_t fd,const char *text,uint32_t size,uint32_t fg,uint32_t bg) {
+    REQUIRE((fd==1 || fd==2) && size && size<=64 && fg<16 && !bg);
+    unsigned lf=0;
+    for(uint32_t i=0;i<size;++i) {unsigned char c=text[i];
+        REQUIRE(c<127 && (c>=32 || c=='\t' || c=='\n'));lf+=c=='\n';}
+    REQUIRE(lf<=1);++color_writes;colors.push_back(fg);os.now+=color_delay;
+    if(color_error)return color_error;
+    (fd==1?stdout_bytes:stderr_bytes).append(text,size);return (int)size;
 }
 }
 int reist_vfs_file_open_rights(const char *path,uint32_t timeout,uint32_t rights,uint32_t *handle) {
@@ -117,7 +130,45 @@ static void lifecycle() {
     os.blocked=false; REQUIRE(execute(source,false)==7 && !os.child);
     release(source);
 }
+static void color_publication() {
+    auto packet=[](const std::string &s,uint32_t color=1,uint32_t type=3) {
+        js_script_reply h={2,24,0,0,1,(uint32_t)s.size()+12};
+        uint32_t rec[]={type,(uint32_t)s.size()+4,color};
+        std::string p((const char *)&h,24);p.append((const char *)rec,12);p+=s;return p;
+    };
+    auto reset=[](){writes=color_writes=0;stdout_bytes.clear();stderr_bytes.clear();colors.clear();};
+    reset();
+    for(uint32_t fg=0;fg<16;++fg) {
+        auto p=packet("color\n",fg,fg%2?4:3);
+        REQUIRE(!publish(p.data(),p.size()) && colors.back()==fg);
+    }
+    reset();auto p=packet(std::string(130,'x')+"\na\n\x1b\x7f\xc3\xbc\t\n");
+    REQUIRE(!publish(p.data(),p.size()) && color_writes==5 && !writes);
+    REQUIRE(stdout_bytes==std::string(130,'x')+"\na\n????\t\n");
+    // Validate the final colored record before publishing an otherwise valid prefix.
+    for(unsigned fault=0;fault<7;++fault) {
+        reset();auto q=packet("ok\n");uint32_t h[]={1,7};
+        q.insert(24,std::string((char *)h,8)+"prefix\n");
+        uint32_t n=2,b=q.size()-24;memcpy(q.data()+16,&n,4);memcpy(q.data()+20,&b,4);
+        uint32_t bad=fault==0?16:fault==1?UINT32_MAX:fault==2?0:fault==3?4:fault==4?5:1;
+        if(fault<2)memcpy(q.data()+47,&bad,4);
+        else if(fault<4)memcpy(q.data()+43,&bad,4);
+        else if(fault==4)memcpy(q.data()+39,&bad,4);
+        else if(fault==5)memcpy(q.data(),&bad,4);
+        else q.back()='x';
+        REQUIRE(publish(q.data(),q.size())==70 && !writes && !color_writes);
+    }
+    reset();p=packet("hello\n");
+    for(int error: {-13,2,1000}) {
+        color_error=error;REQUIRE(publish(p.data(),p.size())==74 && !writes);
+    }
+    REQUIRE(color_writes==3);color_error=0;
+    reset();p=packet(std::string(130,'x')+"\n");color_delay=5000;
+    REQUIRE(publish(p.data(),p.size())==74 && color_writes==1 && !writes);color_delay=0;
+    reset();os.clock_error=true;
+    REQUIRE(publish(p.data(),p.size())==74 && !color_writes);os.clock_error=false;
+}
 int main() {
-    admission(); publication(); lifecycle();
+    admission(); publication(); color_publication(); lifecycle();
     puts("JS_RUNNER_HOST_OK admission=15 hostile_headers=12 output=atomic lifecycle=3"); return 0;
 }
