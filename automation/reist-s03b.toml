@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3j-x86_64-startup-arguments"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -32,7 +32,7 @@ evidence_note = "All14 groups passed. Actual IPC admission/planning assembly O0/
 
 [[packages]]
 id = "R8.3j-x86_64-startup-arguments"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Bounded real SPAWNV argument transport and System-V startup stack"
@@ -45,6 +45,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All13 groups. Actual startup assembly O0/O2 host validates full stack bytes,64-bit argv pointers,0..8 counts, empty/aliased/max-length byte strings, guards/padding/aux and negative nonmutation; metadata/pointer/unterminated/overflow cases. Four real startup variants argc0/3/8/default2 with pre-spawn negative probes, two exact generations each; child validates transported data,aux,RSP and exits90+case, parent checks raw WAIT and normal RUN. Default layout exact and all prior24 exit/24 fault/2 busy/7 context guests unchanged. Source scope/queue/diff review before local commit and next transaction."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for general ELF/VFS/env/heap admission or expanded resource budget"]
 commit_message = "feat: transport bounded native process startup arguments"
+evidence = ["python test/test_x86_64_argv.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83j-argv/after-ipc/normal","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83j-argv/after-ipc/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83j-argv/after-ipc/normal-guest.log","python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83j-argv/after-ipc/argv","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83j-argv/after-ipc/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83j-argv/after-ipc/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83j-argv/after-ipc/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83j-argv/after-ipc/context","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All13 groups after accepted IPC repair e0dc4d0f. Actual startup assembly O0/O2, byte/guard/nonmutation/oracle and executable fixture-exclusion4/1.333s; bootstrap55/0.042s, exit3/0.864s, context2/1.044s, docs. Normal171260 bytes and unchanged dialogue pass. Argv4/8 10.557s attempt-5bb59090cfc8497ab978b79c7a99252b; exit24/48 63.572s attempt-529e7a6d98f54ceea352b4a12b0c6abf; fault24/48 65.708s attempt-9ed6170b5246477abdce8e7ae0483a94; busy2/4 5.812s attempt-4ee492f972b84a85bd98e44d40d11fbb; context7/14 19.062s attempt-aa5113ba31ae4d61adffe75e70e4d8fa. Additional unchanged IPC handoff4/8 11.818s attempt-a8ac8eaa76264bdaa27d02d08272fa14.14 standalone kernel mechanisms byteidentical over66 builds. i386 guard5.173s. Evidence build/codex-agent/r83j-argv/after-ipc preserves previous failed attempts and stash backup. No budget/old oracle relaxed; general process/supervisor/memory/services/userland remain open. Formal R3.6b activation does not revoke its deferral; next native transaction follows clean commit."
 
 [[packages]]
 id = "R8.3i-x86_64-child-control-lifecycle"
@@ -2866,7 +2868,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

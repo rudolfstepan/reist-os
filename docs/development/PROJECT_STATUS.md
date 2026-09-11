@@ -8,8 +8,11 @@ R8.3j1 repariert die bei der Argumentabnahme entdeckte Timer-/IPC-Reihenfolge:
 Admission und Queue-/Waiterentscheidungen sind von Probe-Token getrennt;
 frühe Sender und Close vor/nach Senderwait sind reguläre Zustände.
 Vier neue beobachtete IPC-Gäste, alle alten Exit-/Fault-/Busy-/Contextgäste
-und i386-Byteguard bestehen. R8.3j wird aus dem gesicherten Kandidaten danach
-wiederhergestellt und erneut abgenommen, nicht vorzeitig als fertig markiert.
+und i386-Byteguard bestehen. R8.3j ist auf `e0dc4d0f` wiederhergestellt und
+mit allen13 Gruppen abgenommen: tatsächliche begrenzte SPAWNV-Argumente,
+vier neue Argumentgäste und sämtliche alten Lifecycleoracles. Zusätzliche
+IPC-Übergabeprüfung bestanden;14 Mechanismen über66 Builds bytegleich.
+Dies ist weiterhin keine vollständige native64-Bit-Systemversion.
 Details und Belege: [CURRENT_WORK](CURRENT_WORK.md#r83j1-präemptierbare-ipc-übergabe-repariert).
 
 Neue Priorität: native64-Bit-Systemversion. R8.3a-SDK-Basis abgenommen:

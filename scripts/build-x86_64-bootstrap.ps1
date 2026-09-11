@@ -8,11 +8,12 @@ param(
     [switch]$InvalidBusyStack,
     [ValidateRange(0, 7)] [int]$ContextCase = 0,
     [ValidateRange(-1, 4294967295)] [long]$ExitStatus = -1,
-    [ValidateRange(0, 3)] [int]$IpcCase = 0
+    [ValidateRange(0, 3)] [int]$IpcCase = 0,
+    [ValidateRange(0, 4)] [int]$ArgvCase = 0
 )
 
 Set-StrictMode -Version Latest
-if ($IpcCase -ne 0 -and ($ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
+if ($IpcCase -ne 0 -and ($ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
     throw 'IpcCase is exclusive with other user fixtures.'
 }
 $ErrorActionPreference = 'Stop'
@@ -24,6 +25,9 @@ if ($ContextCase -ne 0 -and ($BusyChild -or $FaultVector -ge 0)) {
 }
 if ($ExitStatus -ge 0 -and ($ContextCase -ne 0 -or $BusyChild -or $FaultVector -ge 0)) {
     throw 'ExitStatus is exclusive with context, busy and fault fixtures.'
+}
+if ($ArgvCase -ne 0 -and ($ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
+    throw 'ArgvCase is exclusive with other fixture modes and phases.'
 }
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
@@ -207,6 +211,7 @@ try {
         "X86_64_CONTEXT_CASE=$ContextCase" `
         "X86_64_EXIT_STATUS=$ExitStatus" `
         "X86_64_IPC_CASE=$IpcCase" `
+        "X86_64_ARGV_CASE=$ArgvCase" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."

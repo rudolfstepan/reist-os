@@ -2,12 +2,39 @@
 
 Stand: 11. September 2026
 
+## R8.3j: Argumenttransport nach IPC-Reparatur abgenommen
+
+Basis `e0dc4d0f`, Vertrag `b34c03bd`. Der tatsächliche SPAWNV-Argumenttransport
+ist mit allen13 eingefrorenen Gruppen erneut geprüft.0..8 Argumente,
+leere/aliasierte Strings, maximal128 Bytes je Argument inklusive NUL und
+1152 Startupbytes; vollständige Prüfung vor Allokation und Zielmutation.
+System-V-Startlayout, Kernel-IPC-Auxwert, Legacy-SPAWN und bisheriger
+128-Byte-Defaultstack bleiben erhalten. Keine neue Prozess-/Dateiautorität.
+Die IPC-Reparatur bleibt erhalten; Argument- und IPC-Testmodi sind schon
+vor dem Build gegenseitig ausgeschlossen, mit ausführbarer Regression.
+
+Host: Argumentkern O0/O2 plus Byte-/Guard-/Negativoracles4/1.333s,
+Bootstrap55/0.042s, Exit3/0.864s, Context2/1.044s und Dokumentation.
+Normalbuild171260 Bytes und bisheriger INFO/RUN/RUN/EXIT-Dialog bestanden.
+Argumentgäste4 Fälle/8 Generationen10.557s; Exit24/48 in63.572s,
+Fault24/48 in65.708s, Busy2/4 in5.812s, Context7/14 in19.062s.
+Zusätzlich unveränderte IPC-Übergabeprüfung4/8 in11.818s bestanden.
+14 eigenständige Mechanismusobjekte über66 Testbuilds bytegleich;
+i386-Artefaktguard5.173s bestanden. Kein Zeit-/Speicherbudget erweitert.
+
+Neue Belege unter `build/codex-agent/r83j-argv/after-ipc/`: Hostlogs,
+`normal-build.log`, `normal-result.log`, `normal-guest.log`, Matrix-Resultlogs,
+eindeutige `attempt-*`-Verzeichnisse, `mechanism-proof.log`, `i386-guard.log`.
+Alle früheren roten Belege und die Stashsicherung bleiben erhalten.
+Die vollständige64-Bit-Systemversion mit allgemeinen Prozessen, skalierbarem
+Speicher und nativen Diensten/Desktop/Browser bleibt noch offen.
+
 ## R8.3j1: präemptierbare IPC-Übergabe repariert
 
 Vertrag `2d79a46b`, vorgezogen nach der vom Nutzer freigegebenen Neuordnung.
-R8.3j bleibt unangenommen in Stash
-`aed0d01b29cae7c9dd0d49100b6503b8ba135f7a` gesichert und wird nach diesem
-Paketcommit wiederhergestellt. Die ursprüngliche Fehleraufnahme bleibt unter
+R8.3j wurde aus Stash
+`aed0d01b29cae7c9dd0d49100b6503b8ba135f7a` wiederhergestellt; die Sicherung
+bleibt erhalten. Die ursprüngliche Fehleraufnahme bleibt unter
 `build/codex-agent/r83j-argv/21-gdb-3.log` erhalten.
 
 Die produktiven IPC-Send-/Receive-/Release-/Close-Pfade entscheiden jetzt nach
@@ -67,6 +94,53 @@ Weiterhin kein vollständiges64-Bit-OS: ein Endpoint, vier Slots, zwei
 Kindgenerationen,128MiB und eine CPU; allgemeine Prozess-/Supervisorzulassung,
 skalierbarer Speicher und native Dienste/Anwendungen stehen noch aus.
 R3.6b bleibt zurückgestellt, R341-H1/H2 offen; i386-Benchmark unverändert.
+
+## R8.3j: historische Erstabnahme vor der IPC-Reparatur
+
+Der nachfolgende Abnahmestopp wurde durch R8.3j1 (`e0dc4d0f`) aufgelöst.
+Die alten Belege werden unverändert aufbewahrt; sie ersetzen nicht die
+erneute Abnahme auf der reparierten Basis.
+
+Basis `e5da029e`, eingefrorener Vertrag `b34c03bd`. Der uncommittete Kandidat
+kopiert tatsächliche SPAWNV-Argumente über einen gemeinsamen privaten,
+begrenzten Assemblykern. Vollständige Quellprüfung erfolgt vor Allokation
+und Zielmutation;0..8 Argumente, maximal128 Bytes inklusive NUL je Argument,
+maximal1152 Startupbytes in derselben privaten Stackseite. Das bisherige
+Zweierlayout und der Legacy-SPAWN-Adapter bleiben erhalten.
+
+Bestanden: Startuphost O0/O2 samt Byte-/Guard-/Negativoracles3/1.272s,
+Bootstrap55/0.032s, Exithost3/0.991s, Contexthost2/1.148s, Normalbuild/-gast,
+vier neue Argumentgäste/acht Generationen11.546s, Fault24/48 in73.308s,
+Busy2/4 in6.634s, Context7/14 in21.685s und unveränderter i386-Byteguard6.087s.
+Die zunächst zu große Argument-Test-Shell wurde durch kompakte Initialisierung
+der tatsächlich benötigten Fixturefelder korrigiert; Seitengrenzen unverändert.
+
+**Nicht abgenommen:** Die unveränderte Exitmatrix scheitert nach elf Fällen
+bei Status128/Phase3 mit `PROCESS_SCHEDULER_STAGE_88`. Natürliche QEMU-
+Wiederholung mit GDB reproduziert denselben Fehler: Tick4, Kindgeneration41,
+Syscall53/IPC_SEND_TIMEOUT, Handle0x101, Sendphase0. Der Elternprozess wurde
+nach erfolgreicher IPC_DELEGATE-Rückkehr und vor seiner SEND-Nachricht
+präemptiert. Das Kind läuft dadurch vor der erwarteten Nachricht weiter;
+der alte IPC-Handler verlangt jedoch die feste Probephase und springt in
+`scheduler_fail`. Dies ist kein ungültiger argv-Zugriff.
+
+Shell-/Kind-ELFs und ihre Objekte sind bytegleich zur R8.3i-Fixture;
+DELEGATE-/SEND_TIMEOUT-Handler sind ebenfalls unverändert.24 Diagnosegäste
+mit dem alten R8.3i-Bild reproduzieren den Fehler nicht; das ist ausdrücklich
+kein Beweis für Fehlerfreiheit. Eine Reparatur benötigt die IPC-Zustands-/
+Timeout-/Widerrufsgrenze einschließlich deterministischer Interleavingtests,
+nicht zusätzliche YIELDs, größere Zeitbudgets oder einen gelockerten Oracle.
+Diese Grenze liegt außerhalb des eingefrorenen Startup-Argumentumfangs.
+Gemäß Paket-Stopbedingung keine Annahme, kein Kandidatencommit und keine
+Queueweiterstellung. Änderungen und alle fehlgeschlagenen Belege bleiben.
+
+Belege `build/codex-agent/r83j-argv/`: `04-host-final.log`,
+`06-argv-matrix-compact.log`, `07-boot.log` bis `15-normal-final-build.log`,
+`normal-final-guest.log`, fehlgeschlagene Exitmatrix `11-exit-matrix.log`
+und `exit/attempt-c5fed399b8bb4e4c86db47a02a226d83/s128-p3/guest.log`;
+reproduzierter Debuggerzustand `21-gdb-3.log`, unabhängiger Bestandsvergleich
+`23-unchanged-ipc-proof.log`. Letzter abgenommener Implementierungscommit
+bleibt `e5da029e`; die vollständige native64-Bit-Version ist weiterhin offen.
 
 ## R8.3i: reguläres YIELD/EXIT und gemeinsames Terminal-Reap
 

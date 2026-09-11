@@ -13,6 +13,7 @@ extern reist_x64_identity_apply
 extern reist_x64_context_apply
 extern reist_x64_budget_apply
 extern reist_x64_terminal_status
+extern reist_x64_startup_stack
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
 SHELL_CPU_STATUS          equ 256
@@ -3128,54 +3129,77 @@ scheduler_handle_shell_spawnv64:
     jne scheduler_fail
     cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
     jne scheduler_fail
-    cmp qword [rel syscall_rdx], SHELL_ARGC
-    jne scheduler_fail
-    mov rax, qword [rel syscall_rdi]
-    test rax, 7
-    jnz scheduler_fail
+    mov rax, [rel syscall_rdi]
     call scheduler_validate_child_path64
     test eax, eax
-    jz scheduler_fail
-    mov rax, qword [rel syscall_rsi]
-    cmp rax, USER_STACK_BASE
-    jb scheduler_fail
-    cmp rax, USER_STACK_TOP - 16
-    ja scheduler_fail
-    test rax, 7
-    jnz scheduler_fail
-    mov rbx, rax
-    mov r9, qword [rbx]
-    cmp r9, qword [rel syscall_rdi]
-    jne scheduler_fail
-    mov r10, qword [rbx + 8]
-    cmp r10, qword [rel syscall_rdi]
-    je scheduler_fail
-    mov rax, r9
-    sub rax, rbx
-    jnc .vector_path_distance
-    neg rax
-.vector_path_distance:
-    cmp rax, CHILD_PATH_CAPACITY
-    jb scheduler_fail
-    mov rax, r10
-    sub rax, rbx
-    jnc .vector_token_distance
-    neg rax
-.vector_token_distance:
-    cmp rax, CHILD_PATH_CAPACITY
-    jb scheduler_fail
-    mov rax, r10
-    sub rax, r9
-    jnc .string_distance
-    neg rax
-.string_distance:
-    cmp rax, CHILD_PATH_CAPACITY
-    jb scheduler_fail
-    mov rax, r10
-    call scheduler_validate_shell_token64
-    test eax, eax
-    jz scheduler_fail
+    jz .bad_pointer
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    call scheduler_shell_startup_apply64
+    cmp rax, -14
+    je scheduler_shell_resume64
+    cmp rax, -7
+    je scheduler_shell_resume64
+    test rax, rax
+    jle scheduler_fail
     jmp scheduler_shell_spawn_validated64
+.bad_pointer:
+    mov rax, -14
+    jmp scheduler_shell_resume64
+
+; RDI destination kernel page (zero for validate), ESI operation, RDX trusted
+; IPC handle. Private source page is pinned while the serialized parent runs.
+scheduler_shell_startup_apply64:
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    sub rsp, 64
+    and rsp, -16
+    cmp dword [rel scheduler_current_slot], 0
+    jne .invalid
+    cmp qword [rel scheduler_tasks + TASK_STATE], TASK_RUNNING
+    jne .invalid
+    cmp qword [rel scheduler_tasks + TASK_GENERATION], TASK_SHELL_GENERATION
+    jne .invalid
+    mov rax, [rel scheduler_tasks + TASK_STACK_FRAME]
+    test rax, rax
+    jz .invalid
+    mov r9, DIRECT_MAP_BASE
+    add rax, r9
+    mov [rsp], rax
+    mov [rsp + 8], rdi
+    mov qword [rsp + 16], USER_STACK_BASE
+    mov qword [rsp + 24], USER_STACK_TOP
+    mov rax, [rel syscall_rsi]
+    mov [rsp + 32], rax
+    mov rax, [rel syscall_rdx]
+    mov [rsp + 40], rax
+    mov [rsp + 48], rdx
+    mov rdi, rsp
+    call reist_x64_startup_stack
+    jmp .return
+.invalid:
+    mov rax, REIST_EINVAL
+.return:
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
 
 scheduler_handle_shell_spawn64:
     mov byte [rel scheduler_failure_stage], 0x55
@@ -3802,32 +3826,6 @@ scheduler_validate_child_path64:
     xor eax, eax
     ret
 
-scheduler_validate_shell_token64:
-    cmp rax, USER_STACK_BASE
-    jb .fail
-    cmp rax, USER_STACK_TOP - CHILD_PATH_CAPACITY
-    ja .fail
-    test rax, 7
-    jnz .fail
-    mov rbx, rax
-    lea r8, [rel scheduler_shell_child_token]
-    xor ecx, ecx
-.compare:
-    cmp ecx, CHILD_PATH_CAPACITY
-    jae .fail
-    mov dl, byte [rbx + rcx]
-    cmp dl, byte [r8 + rcx]
-    jne .fail
-    test dl, dl
-    jz .ok
-    inc ecx
-    jmp .compare
-.ok:
-    mov eax, 1
-    ret
-.fail:
-    xor eax, eax
-    ret
 
 ; RAX is a four-byte user status pointer. RDX returns the private direct-map
 ; address only after bounds, alignment, rights and frame ownership validate.
@@ -5855,6 +5853,19 @@ scheduler_build_shell_child_stack64:
     jne .fail
     add rsi, 4
     loop .message_zero
+    cmp qword [rel syscall_rax], REIST_SYS_SPAWNV
+    jne .legacy_stack
+    mov rdi, DIRECT_MAP_BASE
+    add rdi, [r12 + TASK_STACK_FRAME]
+    mov esi, 1
+    mov rdx, r15
+    call scheduler_shell_startup_apply64
+    test rax, rax
+    jle .fail
+    mov [r12 + TASK_RSP], rax
+    mov eax, 1
+    ret
+.legacy_stack:
     mov r13, DIRECT_MAP_BASE
     add r13, qword [r12 + TASK_STACK_FRAME]
     add r13, PAGE_SIZE - SHELL_CHILD_STACK_BYTES

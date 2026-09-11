@@ -2,6 +2,9 @@ BITS 64
 %ifndef X86_64_IPC_CASE
 %define X86_64_IPC_CASE 0
 %endif
+%ifndef X86_64_ARGV_CASE
+%define X86_64_ARGV_CASE 0
+%endif
 %ifndef X86_64_EXIT_STATUS
 %define X86_64_EXIT_STATUS -1
 %endif
@@ -62,6 +65,9 @@ _start:
     FP_BEGIN 0x1b
 %if X86_64_IPC_CASE
     jmp child_ipc_handoff
+%endif
+%if X86_64_ARGV_CASE
+    jmp child_argv_probe
 %endif
 %if X86_64_CONTEXT_CASE
     jmp child_context_probe
@@ -441,6 +447,106 @@ child_exit_instruction:
     syscall
 child_exit_return:
 child_exit_fail:
+    ud2
+%endif
+%if X86_64_ARGV_CASE
+%if X86_64_ARGV_CASE = 1
+%define START_ARGC 0
+%define START_BYTES 96
+%elif X86_64_ARGV_CASE = 2
+%define START_ARGC 3
+%define START_BYTES 144
+%elif X86_64_ARGV_CASE = 3
+%define START_ARGC 8
+%define START_BYTES 1152
+%else
+%define START_ARGC 2
+%define START_BYTES 128
+%endif
+child_argv_probe:
+    cmp rsp, USER_STACK_TOP - START_BYTES
+    jne child_argv_fail
+    test rsp, 15
+    jnz child_argv_fail
+    cmp qword [rsp], START_ARGC
+    jne child_argv_fail
+    cmp qword [rsp + (START_ARGC + 1)*8], 0
+    jne child_argv_fail
+    cmp qword [rsp + (START_ARGC + 2)*8], 0
+    jne child_argv_fail
+    cmp qword [rsp + (START_ARGC + 3)*8], AT_REIST_IPC_HANDLE
+    jne child_argv_fail
+    mov rax, [rsp + (START_ARGC + 4)*8]
+    cmp rax, 0x101
+    je .handle_ok
+    cmp rax, 0x201
+    jne child_argv_fail
+.handle_ok:
+    cmp qword [rsp + (START_ARGC + 5)*8], 0
+    jne child_argv_fail
+    cmp qword [rsp + (START_ARGC + 6)*8], 0
+    jne child_argv_fail
+%if X86_64_ARGV_CASE = 2
+    cmp qword [rsp + 8], USER_STACK_TOP - 48
+    jne child_argv_fail
+    cmp dword [abs USER_STACK_TOP - 48], 0x72746e65
+    jne child_argv_fail
+    cmp word [abs USER_STACK_TOP - 44], 0x0079
+    jne child_argv_fail
+    cmp qword [rsp + 16], USER_STACK_TOP - 32
+    jne child_argv_fail
+    cmp byte [abs USER_STACK_TOP - 32], 0
+    jne child_argv_fail
+    cmp qword [rsp + 24], USER_STACK_TOP - 16
+    jne child_argv_fail
+    cmp dword [abs USER_STACK_TOP - 16], 0xa9cea4c3
+    jne child_argv_fail
+    cmp byte [abs USER_STACK_TOP - 12], 0
+    jne child_argv_fail
+%elif X86_64_ARGV_CASE = 3
+    xor r10d, r10d
+.argument:
+    mov rax, r10
+    shl rax, 7
+    add rax, USER_STACK_TOP - 1024
+    cmp [rsp + 8 + r10*8], rax
+    jne child_argv_fail
+    mov edx, 'A'
+    add edx, r10d
+    xor r11d, r11d
+.byte:
+    cmp byte [rax + r11], dl
+    jne child_argv_fail
+    inc r11d
+    cmp r11d, 127
+    jb .byte
+    cmp byte [rax + 127], 0
+    jne child_argv_fail
+    inc r10d
+    cmp r10d, 8
+    jb .argument
+%elif X86_64_ARGV_CASE = 4
+    cmp qword [rsp + 8], USER_STACK_TOP - 32
+    jne child_argv_fail
+    cmp qword [rsp + 16], USER_STACK_TOP - 16
+    jne child_argv_fail
+    mov rax, 0x632f6c6c6568732f
+    cmp qword [abs USER_STACK_TOP - 32], rax
+    jne child_argv_fail
+    cmp dword [abs USER_STACK_TOP - 24], 0x646c6968
+    jne child_argv_fail
+    cmp byte [abs USER_STACK_TOP - 20], 0
+    jne child_argv_fail
+    mov rax, 0x0037376e656b6f74
+    cmp qword [abs USER_STACK_TOP - 16], rax
+    jne child_argv_fail
+%endif
+    mov edi, 90 + X86_64_ARGV_CASE
+    mov eax, REIST_SYS_EXIT
+child_argv_exit_instruction:
+    syscall
+child_argv_exit_return:
+child_argv_fail:
     ud2
 %endif
 FP_PROBE_CODE

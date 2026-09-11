@@ -18,6 +18,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_IPC_CASE
 #define X86_64_IPC_CASE 0
 #endif
+#ifndef X86_64_ARGV_CASE
+#define X86_64_ARGV_CASE 0
+#endif
 #ifndef X86_64_EXIT_STATUS
 #define X86_64_EXIT_STATUS -1
 #endif
@@ -42,6 +45,8 @@ typedef unsigned char shell_u8;
 #endif
 #if X86_64_IPC_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_IPC_CASE)
+#elif X86_64_ARGV_CASE
+#define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_ARGV_CASE)
 #elif X86_64_EXIT_STATUS >= 0
 #define SHELL_EXPECTED_CHILD_STATUS ((shell_u32)X86_64_EXIT_STATUS)
 #elif X86_64_CONTEXT_CASE
@@ -327,9 +332,50 @@ void _start(void)
                     shell_exit(19ULL);
                 }
 #endif
+#if X86_64_ARGV_CASE
+                shell_u8 startup_bytes[8][128] __attribute__((aligned(8)));
+                shell_u64 startup_argv[8] __attribute__((aligned(8)));
+                shell_u64 bad_argv[2] __attribute__((aligned(8))) = {0ULL, (shell_u64)child_token};
+                shell_u64 startup_argc = 2ULL;
+                for (shell_u32 i = 0; i < (X86_64_ARGV_CASE == 3 ? 8U : X86_64_ARGV_CASE == 2 ? 3U : 1U); ++i) {
+                    startup_argv[i] = (shell_u64)startup_bytes[i];
+                    for (shell_u32 j = 0; j < 128U; ++j) startup_bytes[i][j] = (shell_u8)('A' + i);
+                }
+                if (reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)child_argv, 9ULL) != -7LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)child_argv, ~0ULL) != -7LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, 0ULL, 1ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, ~0ULL, 1ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)child_argv + 1ULL, 2ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, 0x409000ULL - 8ULL, 2ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)bad_argv, 2ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)child_argv, 0ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, 0ULL, (shell_u64)child_argv, 2ULL) != -14LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)child_path, (shell_u64)startup_argv, 1ULL) != -7LL) {
+                    shell_exit(33ULL);
+                }
+                for (shell_u32 i = 0; i < (X86_64_ARGV_CASE == 3 ? 8U : X86_64_ARGV_CASE == 2 ? 3U : 1U); ++i) startup_bytes[i][127] = 0;
+#if X86_64_ARGV_CASE == 1
+                startup_argc = 0;
+#elif X86_64_ARGV_CASE == 2
+                startup_argc = 3;
+                startup_bytes[0][0]='e'; startup_bytes[0][1]='n'; startup_bytes[0][2]='t';
+                startup_bytes[0][3]='r'; startup_bytes[0][4]='y'; startup_bytes[0][5]=0;
+                startup_bytes[1][0]=0;
+                startup_bytes[2][0]=0xc3; startup_bytes[2][1]=0xa4;
+                startup_bytes[2][2]=0xce; startup_bytes[2][3]=0xa9; startup_bytes[2][4]=0;
+#elif X86_64_ARGV_CASE == 3
+                startup_argc = 8;
+#else
+                startup_argv[0] = (shell_u64)child_path;
+                startup_argv[1] = (shell_u64)child_token;
+#endif
+                child_pid = reist_x64_syscall3(REIST_X64_SYS_SPAWNV,
+                    (shell_u64)child_path, startup_argc ? (shell_u64)startup_argv : 0ULL, startup_argc);
+#else
                 child_pid = reist_x64_syscall3(REIST_X64_SYS_SPAWNV,
                                            (shell_u64)child_path,
                                            (shell_u64)child_argv, 2ULL);
+#endif
                 if (child_pid != SHELL_CHILD_PID) {
                     shell_exit(12ULL);
                 }
@@ -378,7 +424,7 @@ void _start(void)
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
                     shell_exit(20ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE < 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE) && X86_64_FAULT_PHASE < 2
                 goto child_fault_cleanup;
 #endif
                 clear_ipc_message(&ipc_message);
@@ -448,7 +494,7 @@ void _start(void)
                                    (shell_u64)ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(18ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0) && X86_64_FAULT_PHASE < 3
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE) && X86_64_FAULT_PHASE < 3
 child_fault_cleanup:
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;

@@ -108,6 +108,19 @@ gesampelte laufende Ticks sind keine exakte CPU-Zeit oder FTTI-Zusage.
 
 ## Zweck und Grenze
 
+R8.3j ersetzt im SPAWNV-Pfad das feste Zweier-/Tokenlayout durch tatsächlichen
+Argumenttransport. Ein privater56-Byte-Descriptor und ein reiner Assemblykern
+validieren die stabile private Eltern-Stackseite vollständig vor Allokation
+und Zielmutation. Zulässig sind0..8 Argumente, je1..128 Bytes inklusive NUL;
+leere und aliasierte Strings bleiben unverändert. argc0 verlangt null argv.
+Maximal1152 Startupbytes belegen dieselbe4-KiB-NX-Stackseite; kein neues Heap-,
+Dateisystem-, envp- oder ELF-Laderecht. System-V AMD64 argc/argv, Null-envp,
+auxv und16-Byte-RSP bleiben erhalten; der IPC-Auxwert stammt nur vom Kernel.
+EFAULT/E2BIG sind lokale Nutzerfehler; fehlerhafte Kernelmetadaten bleiben
+fatal. Das bisherige argc2-Layout bleibt bytegenau128 Bytes groß, der
+Legacy-SPAWN-Adapter bleibt erhalten. Referenz und Abnahmebelege stehen im
+[Fertigstellungsplan](../development/X86_64_COMPLETION_WORK_PAPER.md#r83j-tatsächliche-begrenzte-spawnv-argumente).
+
 R8.3i entfernt IPC-Probephasen als Voraussetzung für argumentloses YIELD
 und normalen Kindexit. Beide benutzen die vorhandenen generationsgeprüften
 Queue-/Terminalpfade. Normaler Exit erhält einen separaten privaten Grund

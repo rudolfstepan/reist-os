@@ -491,7 +491,7 @@ Eltern-SEND-Publikation. Der bisherige IPC-Probehandler springt dabei nach
 `scheduler_fail`. Das ist keine Kernelkorruption und kein argv-Fehler.
 Der Kandidat einschließlich seiner Dokumentation ist vollständig in Git-Stash
 `aed0d01b29cae7c9dd0d49100b6503b8ba135f7a` gesichert; alle Laufbelege bleiben
-unter `build/codex-agent/r83j-argv/`. R8.3j wird nicht als fertig markiert.
+unter `build/codex-agent/r83j-argv/`. Zu diesem Zeitpunkt war R8.3j unangenommen.
 
 R8.3j1 repariert die zusammenhängende IPC-Admission-/Übergabegrenze: geprüfte
 lokale Fehler vor Seiteneffekten, Nachrichten-/Capability-Publikation auch
@@ -546,3 +546,25 @@ SPAWNV-Proben vor dem erfolgreichen Start. Kind prüft RSP/argv/Bytes/Aux und
 liefert Status90+Fall; Eltern-WAIT/RUN und Generation41/42 bleiben Pflicht.
 Alle bisherigen24 Exit-,24 Fault-,zwei Busy- und sieben Kontextfälle sowie
 i386-Byteguard bleiben Gates. Belege `build/codex-agent/r83j-argv/`.
+
+Historischer Abnahmestopp R8.3j vor R8.3j1: tatsächlicher Argumenthost und alle vier Startupgäste
+bestehen, ebenso Normaldialog, alte Fault-/Busy-/Contextgäste und i386-Guard.
+Die alte Exitmatrix scheitert jedoch bei Status128/Phase3. GDB reproduziert
+eine Präemption zwischen Eltern-DELEGATE und Eltern-SEND: das Kind ruft
+SEND_TIMEOUT in der noch leeren Probephase auf, der unveränderte Handler
+behandelt dies als Kernelzustandsfehler. Quell- und Artefaktvergleich schließen
+geänderte IPC-Handler oder geänderte Exit-Fixtureprogramme aus. Reparatur
+erfordert einen eigenen IPC-Zustands-/Interleavingschnitt, nicht ein Umgehen
+der Prüfung oder mehr YIELDs. Diese Reparatur ist mit R8.3j1 (`e0dc4d0f`)
+abgenommen; der gesicherte Argumentkandidat ist wiederhergestellt und auf
+dieser Basis erneut geprüft. Keine vollständige Systemabnahme.
+Details und alte Belege in [CURRENT_WORK](CURRENT_WORK.md#r83j-historische-erstabnahme-vor-der-ipc-reparatur).
+
+Abnahme R8.3j: alle13 Gruppen bestanden; echter O0/O2-Startupkern, vollständige
+Nichtmutation-/Layoutoracles und vier reale Argumentfälle/acht Generationen.
+Normaldialog und alle24 Exit-/24 Fault-/2 Busy-/7 Contextvarianten bestanden.
+Die zusätzliche unveränderte IPC-Übergabeprüfung besteht ebenfalls;14
+Mechanismusobjekte sind über66 Builds bytegleich. Buildtest schließt gemischte
+IPC-/Argumentfixtures vor Effekten aus. i386-Byteguard bestanden; keine
+Budgeterweiterung, keine neue ELF-/VFS-/Prozessautorität. Neue Belege unter
+`build/codex-agent/r83j-argv/after-ipc/`; vorherige Fehlläufe bleiben erhalten.
