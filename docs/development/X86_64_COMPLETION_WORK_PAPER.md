@@ -402,3 +402,30 @@ Private Terminalquittung um8-Byte-Samplefeld ergänzt, nach WAIT vollständig
 null. Neue Testflags betreffen nur Userspace, nicht die Kernelbudgetregeln.
 Normaldialog,24 alte CPU-Fehlvarianten/48 Generationen und i386-Guard grün;
 Belege und unverändert offene Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).
+
+## R8.3h: Userkontext-Zulassung über Systemaufruf und IRQ
+
+Bestand `c57e9f8f`: RSP=0 wird bei IRQ lokal beendet, beim SYSCALL jedoch
+noch zum Bootstrapfehler. Zudem weist der Contextkern normale Userflags wie
+DF zurück. Dieser zusammenhängende Eintritts-/Rückkehrschnitt behandelt
+Userkontextfehler erst nach geprüfter Kernelidentität und Syscallprofil,
+vor Handlerwirkung. Kein neues Prozessmodell oder Supervisorrecht.
+
+Referenz: [Intel SDM](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+RFLAGS, SYSCALL/IA32_FMASK und IRETQ. DF/AC/ID/TF werden im Userkontext
+bewahrt; RF weiterhin nur im IRQ-Abbild. IOPL, reservierte und privilegierte
+Flags bleiben gesperrt. Usergesetztes NT darf nicht in einen Long-Mode-IRETQ
+gelangen: lokale terminale Ablehnung mit ausdrücklich REIST-Raw258, kein
+erfundenes POSIX-Signal. Ungültiger Stack bleibt Raw257, ohne Dereferenzierung.
+Kernelstackwechsel, CLD und bestehende FMASK bleiben verpflichtend; IRQ
+quittiert EOI vor Retirement. Kernel-/Elternfehler bleiben fail-closed.
+
+Elf eingefrorene Gruppen: erweiterter echter Context-Assemblyhost O0/O2,
+negative Quittungsoracles, Bootstrap-/Fault-/Dokutests, Normalbuild/-gast,
+neuer realer Kontextgast mit Null-/nichtkanonischem SYSCALL-RSP,
+nichtkanonischem IRQ-RSP, erlaubten Flags über erlaubte/abgewiesene Syscalls
+und IRQ, NT bei beiden Eintrittsarten und echtem TF-Debugtrap; je zwei
+Generationen mit unabhängiger ELF-/Reap-/WAIT-Prüfung. Alle alten24 Faultfälle
+und Busy-/Stackgäste bleiben Gates, ebenso der i386-Byteguard. Testschalter
+betreffen nur Userspace; native Ressourcen-/Zeitbudgets unverändert. Belege
+unter `build/codex-agent/r83h-context/`. Keine vollständige64-Bit-Freigabe.
