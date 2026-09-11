@@ -260,6 +260,95 @@ Diensten, Desktop, Browser und JS, skalierbarem Speicher sowie geprüfter
 Isolation/Recovery. Ein einzelner Bootmarker erfüllt das nicht. Performance
 und Resilienz sind gemeinsam abzunehmen; i386-Referenzen bleiben erhalten.
 
+## Effiziente Umsetzung: Bündelung, Prüfaufwand und Zeitrahmen
+
+Nutzerpriorität vom 11. September 2026: Zeit und Ausführungskosten minimieren.
+Maßstab ist ein abgenommenes, nutzbares Ergebnis je Transaktion, nicht die
+Anzahl kleiner Pakete oder grüner Einzeltests. Diese Planung ändert keine
+bereits eingefrorenen Gates, Rechte, Ressourcenlimits oder Zurückstellungen.
+
+### Grober verbleibender Aufwand
+
+Ab dem abgenommenen Stand R8.3p (`9cb27ace`) gilt als vorläufiger
+Planungsrahmen: **100–300 weitere aktive Agentenstunden** bis zur vollständigen
+nativen Version einschließlich Diensten, Desktop, Browser, JavaScript und
+Systemabnahme. Darin enthalten sind grob **20–60 Stunden** bis zum ersten
+nutzbaren Zwischenstand: normale native Shell mit Dateisystemzugriff und
+Programmstart. Die zweite Spanne ist Teil der Gesamtspanne, nicht zusätzlich.
+
+Beide Angaben sind unsichere Schätzungen, keine gemessene Restaufwandsprognose,
+Terminzusage oder automatisch bewilligten Laufzeitbudgets. Aktive Zeit umfasst
+Implementierung, Diagnose, Builds und automatische Tests; Standby und Warten
+auf externe Freigaben sind nicht enthalten. Wiederverwendbarkeit des i386-Codes,
+ABI-/Pointerfehler und notwendige Geräte-/Recoveryanpassungen können die Spanne
+wesentlich verändern. Nach jedem nutzbaren Meilenstein anhand tatsächlich
+aufgewendeter Zeiten und verbleibender Abhängigkeiten neu schätzen.
+
+### Was zusammengefasst wird
+
+Die folgenden Arbeitsstränge konkretisieren die Reihenfolge oben. Eine Zeile
+ist kein pauschales Sammelpaket: Innerhalb eines Strangs wird jeweils der
+größte zusammenhängende Schnitt mit gemeinsamer Fehler-/Autoritätsgrenze und
+gemeinsamem Freigabe-/Rollbackvertrag eingefroren. Unabhängige Fehlerdomänen,
+persistente Formate und Hardwareabnahmen bleiben getrennte Transaktionen.
+
+| Arbeitsstrang | Gemeinsam umsetzen und prüfen | Nutzbares Ergebnis |
+|---|---|---|
+| Allgemeiner Prozessbetrieb | Rollenunabhängige Taskverwaltung mit Kontext, Scheduling, Generationen, Budget und gemeinsamem Retirement; kompatible Rollen-/Fehlerfälle in einer Matrix statt je PID oder Syscall ein Paket. Endpoint-Verwaltung bleibt bei eigener Autoritätsgrenze ein eigener Schnitt. | Mehrere reguläre Prozesse statt fest verdrahtetem Testdialog |
+| Skalierbarer Speicher | RAM-Karte, Reservierungen und physische Adressbreite innerhalb der Frame-Verwaltungsgrenze zusammen behandeln; 1/4/8-GiB- und Oberhalb-4-GiB-Fälle gemeinsam prüfen. Darauf private Heaps, Mapping und Reap je Besitzgrenze integrieren. | Tatsächlich nutzbarer großer RAM mit erhaltenem Speicherschutz |
+| Boot, Dateien und Programmstart | Gemeinsame ELF64-/argv/env/auxv-Validierung samt unvollständigem Spawn und Rollback bündeln; bestehende SDK-/Shellpfade direkt anbinden. Signiertes Bootmedium und Storage-/VFS-Recovery wegen eigener Vertrauens-/Persistenzgrenzen getrennt abnehmen. | Normale Ring-3-Shell startet native Programme aus dem Dateisystem |
+| Dienst- und Geräteportierung | Pro Dienst vorhandene Implementierung, 64-Bit-IPC-/Pointeradapter und vollständigen Crash-/Hang-/Restartnachweis gemeinsam portieren. Storage, Netzwerk und Grafik/Input nicht zu einer gemeinsamen Fehlerdomäne zusammenziehen. | Reale Datei-, Netzwerk-, Anzeige- und Eingabefunktionen |
+| SDK und Anwendungen | Gemeinsame libc-/C++-/Buildkorrekturen einmal zentral durchführen; darauf kompatible Programme gesammelt neu übersetzen und prüfen. JS-Engine wiederverwenden, Browser-/Shell-Hostrechte weiterhin getrennt halten. Keine gleichzeitige funktionale Browser-Neuentwicklung. | Native Tools, JavaScript, Desktop/Applets und Browser |
+| Systemabnahme | Auf einem stabilen Kandidaten die gemeinsame funktionale Matrix ausführen; QEMU-/VMware-, Recovery-, SMP-, Langlauf- und Performancebelege je erforderlicher Plattform erhalten. | Reproduzierbare, nutzbare native Systemimages |
+
+Erster sichtbarer Meilenstein bleibt die normale Shell mit Datei- und
+Programmzugriff. Dafür notwendige Voraussetzungen zuerst schließen; nicht
+unabhängige Desktopfunktionen oder zusätzliche JS-APIs vorziehen. Kein komplexer
+Ring-0-Treiber, keine gelockerten Capabilities und kein weggelassener Recoverypfad
+als Abkürzung zu diesem Meilenstein.
+
+### Verbindliche Effizienzregeln für kommende Paketdefinitionen
+
+1. Vor Umsetzung vorhandene Mechanismen und Verbraucher inventarisieren;
+   gemeinsame Adapter und etablierte Bibliotheken wiederverwenden. Keine zweite
+   Zustandsverwaltung oder komplette C-/Assembly-Neufassung nur wegen 64 Bit.
+2. Paketumfang inklusive aller betroffenen Verbraucher, Tests und Dokumentation
+   vorab vollständig bestimmen. Varianten derselben Grenze zusammen einfrieren;
+   keine künstlichen Pakete je Register, Feld, Fehlercode oder RAM-Profil.
+3. Prüfmatrix vor dem Einfrieren aus Abhängigkeiten und Risiken ableiten.
+   Historische Vollmatrizen nicht ohne sachlichen Grund in jedes neue Paket
+   übernehmen. Tatsächliche Host-Ausführung und Gastnachweis der betroffenen
+   Laufzeitgrenze bleiben Pflicht; reine Quellmuster sind kein Ersatz.
+4. Unveränderte Hosttests nicht pro Video-/Hardwarevariante wiederholen.
+   Inkrementelle Builds und gültige Compiler-Caches nutzen; keine routinemäßigen
+   Clean-Builds. Gemeinsame Artefakte nur bei nachgewiesen identischen Quellen,
+   Konfigurationen und Werkzeugen wiederverwenden. Jede eingefrorene Gastvariante
+   bleibt auszuführen; gemeinsame Binärdateien ersetzen keine Laufzeitbelege.
+5. Pro unverändertem Kandidaten jeden eingefrorenen Gate genau einmal ausführen.
+   Nach einer Korrektur alle dadurch ungültig gewordenen Nachweise erneuern;
+   keine pauschale Anerkennung alter Ergebnisse. Bereits eingefrorene Gate-Sätze
+   nicht nachträglich aus Zeitgründen kürzen. Vollsuite und umfassende
+   Plattformmatrix an den dafür definierten Meilensteinen ausführen.
+6. Bei Fehlern zuerst den erhaltenen Erstbeleg und gezielte Regression verwenden.
+   Keine unveränderten Wiederholungsschleifen bis zufällig Grün erscheint.
+   Beobachterfehler innerhalb genehmigten Umfangs reparieren, niemals Oracle,
+   Deadline oder Fehlernachweis zugunsten eines grünen Ergebnisses abschwächen.
+7. Unabhängige Leseprüfungen und sichere Hosttests dürfen parallel laufen;
+   keine konkurrierenden Builds im selben Ausgabeverzeichnis oder zeitkritischen
+   VM-/Performancemessungen. Weiterhin ein Hauptagent, keine Subagenten.
+8. Dokumentation und Ergebnisbericht knapp auf Änderungen, Belege und offene
+   Risiken begrenzen; Detailprotokolle unter `build/codex-agent/`. Nach grünen
+   Gates, Scopeprüfung, lokalem Commit und sauberem Worktree unmittelbar die
+   nächste priorisierte Transaktion beginnen, ohne routinemäßige Rückfrage.
+9. Je Paket Implementierungs-/Diagnosezeit, Build-/Testzeit und externe Wartezeit
+   getrennt festhalten, soweit messbar; Unbekanntes nicht schätzen und als Messung
+   ausgeben. Kosten nach abgenommenen Meilensteinen beurteilen. Kein zusätzliches
+   Metriksystem als eigenes Nebenprojekt; vorhandene Zeit-/Gateprotokolle nutzen.
+
+Performance und Resilienz bleiben gleichzeitige Abnahmekriterien. Einsparungen
+entstehen durch Wiederverwendung, größere kohärente Schnitte und vermiedene
+Doppelarbeit, nicht durch schwächere Isolation oder unbelegte Fertigmeldungen.
+
 ## Eingefrorenes erstes Paket R8.3a
 
 Ein ABI-/Toolchain-Schnitt, keine Änderung am Kernel, an Rechten, Profilen,
