@@ -7,6 +7,8 @@
  * kind0 = normalized SYSCALL (vector256), kind1 = IRQ0 (vector32).
  * operation0 validates only, operation1 captures; returns1 or0 unchanged.
  * Mapping permission, profiles and FP ownership remain caller obligations.
+ * User TF/DF/AC/ID are preserved; IRQ also preserves RF. NT, IOPL, VM,
+ * VIF/VIP and reserved bits are never captured or restored.
  */
 struct reist_x64_context {
     uint64_t *task;

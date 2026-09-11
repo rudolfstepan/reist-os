@@ -220,6 +220,7 @@ X86_64_FAULT_VECTOR ?= -1
 X86_64_FAULT_PHASE ?= 0
 X86_64_BUSY_CHILD ?= 0
 X86_64_BUSY_INVALID_STACK ?= 0
+X86_64_CONTEXT_CASE ?= 0
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
 X86_64_C_CORE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-c-core.elf
 X86_64_C_CORE_TEXT := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_text.bin
@@ -386,6 +387,7 @@ x86_64-bootstrap:
 		-DX86_64_FAULT_VECTOR=$(X86_64_FAULT_VECTOR) -DX86_64_FAULT_PHASE=$(X86_64_FAULT_PHASE) \
 		-DX86_64_BUSY_CHILD=$(X86_64_BUSY_CHILD) \
 		-DX86_64_BUSY_INVALID_STACK=$(X86_64_BUSY_INVALID_STACK) \
+		-DX86_64_CONTEXT_CASE=$(X86_64_CONTEXT_CASE) \
 		-c arch/x86_64/user/shell.c \
 		-o $(X86_64_USER_SHELL_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
@@ -394,6 +396,7 @@ x86_64-bootstrap:
 	@$(AS) -f elf64 -DX86_64_FAULT_VECTOR=$(X86_64_FAULT_VECTOR) \
 		-DX86_64_FAULT_PHASE=$(X86_64_FAULT_PHASE) -DX86_64_BUSY_CHILD=$(X86_64_BUSY_CHILD) \
 		-DX86_64_BUSY_INVALID_STACK=$(X86_64_BUSY_INVALID_STACK) \
+		-DX86_64_CONTEXT_CASE=$(X86_64_CONTEXT_CASE) \
 		arch/x86_64/user/child.asm -o $(X86_64_USER_CHILD_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T config/x86_64_user_child.ld \

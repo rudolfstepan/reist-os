@@ -16,6 +16,7 @@ SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
 SHELL_CPU_STATUS          equ 256
 SHELL_STACK_STATUS        equ 257
+SHELL_CONTEXT_STATUS      equ 258
 KERNEL_CODE_SELECTOR      equ 0x08
 
 TASK_COUNT                 equ 2
@@ -1792,7 +1793,7 @@ scheduler_syscall_entry64:
     cmp rax, qword [r12 + TASK_CR3]
     jne scheduler_fail
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
-    je .variable_user_stack
+    je .shell_user_context
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_QUANTUM
     je .variable_user_stack
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_PREEMPTION
@@ -1835,6 +1836,7 @@ scheduler_syscall_entry64:
 
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .non_shell_dispatch
+.shell_profile_dispatch:
     call scheduler_validate_shell_syscall_profile64
     test eax, eax
     jz scheduler_fail
@@ -1846,6 +1848,9 @@ scheduler_syscall_entry64:
     cmp dword [rel scheduler_current_slot], 1
     jne scheduler_fail
     jmp scheduler_shell_child_denied_resume64
+.shell_user_context:
+    call scheduler_shell_admit_syscall_context64
+    jmp .shell_profile_dispatch
 .non_shell_dispatch:
     cmp qword [rel syscall_rax], REIST_SYS_YIELD
     je scheduler_handle_yield64
@@ -1862,6 +1867,43 @@ scheduler_syscall_entry64:
     cmp qword [rel syscall_rax], REIST_SYS_EXIT
     je scheduler_handle_exit64
     jmp scheduler_fail
+
+; Shell entry separates user-controllable data from trusted lifecycle state.
+; Called only after the architectural kernel-stack switch and matching CR3.
+scheduler_shell_admit_syscall_context64:
+    call scheduler_validate_shell_syscall_profile64
+    test eax, eax
+    jz scheduler_fail
+    mov rax, [rel syscall_r11]
+    mov rdx, ~0x244fd7 ; NT is user-controlled, privileged/reserved bits are not
+    test rax, rdx
+    jnz scheduler_fail
+    and eax, 0x202
+    cmp eax, 0x202
+    jne scheduler_fail
+    mov rax, [rel scheduler_syscall_context + SYSCALL_CONTEXT_USER_RSP]
+    cmp rax, USER_STACK_BASE
+    jb .stack
+    cmp rax, USER_STACK_TOP
+    ja .stack
+    test qword [rel syscall_r11], 0x4000 ; never restore user-set NT with IRETQ
+    jnz .context
+    mov rax, [rel syscall_rcx]
+    call x86_64_elf64_address_flags64
+    test eax, PF_X
+    jz .context
+    ret
+.stack:
+    mov r8d, SHELL_STACK_STATUS
+    jmp .retire
+.context:
+    mov r8d, SHELL_CONTEXT_STATUS
+.retire:
+    cmp dword [rel scheduler_current_slot], 1
+    jne scheduler_fail
+    mov r9, [rel syscall_rcx]
+    call scheduler_retire_shell_child_fault64.classified
+    jmp scheduler_fail ; returning means trusted ownership validation failed
 
 ; R12 running task, RDI kernel frame, ESI kind, EAX operation; RAX result only.
 scheduler_context_apply64:
@@ -1996,6 +2038,15 @@ x86_64_scheduler_shell_timer_validate64:
     cmp [rdx + SYSCALL_PROFILE_SIZE + 8], rax
     jne .fail
 .identity_valid:
+    mov rax, [rdi + EXCEPTION_FRAME_RFLAGS]
+    mov rcx, ~0x254fd7
+    test rax, rcx
+    jnz .fail
+    and eax, 0x202
+    cmp eax, 0x202
+    jne .fail
+    test qword [rdi + EXCEPTION_FRAME_RFLAGS], 0x4000
+    jnz .unusable_context
     mov rax, [rdi + EXCEPTION_FRAME_RSP]
     cmp rax, USER_STACK_BASE
     jb .unusable_stack
@@ -2014,6 +2065,11 @@ x86_64_scheduler_shell_timer_validate64:
     cmp dword [rel scheduler_current_slot], 1
     jne .fail
     mov eax, 2
+    ret
+.unusable_context:
+    cmp dword [rel scheduler_current_slot], 1
+    jne .fail
+    mov eax, 3
     ret
 .idle:
     cmp qword [rdi + EXCEPTION_FRAME_CS], KERNEL_CODE_SELECTOR
@@ -2050,6 +2106,8 @@ x86_64_scheduler_shell_timer_validate64:
 
 ; Runs strictly after PIC EOI. Kernel idle returns to its bounded HLT loop.
 x86_64_scheduler_shell_timer_tail64:
+    cmp edx, 3
+    je .unusable_context
     cmp edx, 2
     je .unusable_stack
     cmp qword [rdi + EXCEPTION_FRAME_CS], KERNEL_CODE_SELECTOR
@@ -2094,6 +2152,10 @@ x86_64_scheduler_shell_timer_tail64:
     ; CPU supplied the frame and kernel identity/profile were already validated.
     ; Do not capture, restore or dereference the rejected user stack pointer.
     mov r8d, SHELL_STACK_STATUS
+    mov r9, [rdi + EXCEPTION_FRAME_RIP]
+    jmp scheduler_retire_shell_child_fault64.classified
+.unusable_context:
+    mov r8d, SHELL_CONTEXT_STATUS
     mov r9, [rdi + EXCEPTION_FRAME_RIP]
     jmp scheduler_retire_shell_child_fault64.classified
 .idle:
@@ -5802,6 +5864,14 @@ scheduler_retire_shell_child_fault64:
     jz scheduler_fail
     mov eax, dword [rel scheduler_dynamic_child_generation]
     mov qword [rel scheduler_child_terminal_generation], rax
+    cmp dword [rel scheduler_child_terminal_status], SHELL_CONTEXT_STATUS
+    jne .stack_or_other_receipt
+    lea rsi, [rel scheduler_child_context_message]
+    call serial_write64
+    mov rax, [rel scheduler_child_terminal_generation]
+    call scheduler_hex8_local64
+    jmp .parent_receipt
+.stack_or_other_receipt:
     cmp dword [rel scheduler_child_terminal_status], SHELL_STACK_STATUS
     jne .cpu_or_fault_receipt
     lea rsi, [rel scheduler_child_stack_message]
@@ -7495,6 +7565,7 @@ scheduler_hex_nibble64:
 section .rodata
 scheduler_child_cpu_message: db "REIST_X86_64_CHILD_CPU_REAP_OK generation=", 0
 scheduler_child_stack_message: db "REIST_X86_64_CHILD_STACK_REAP_OK generation=", 0
+scheduler_child_context_message: db "REIST_X86_64_CHILD_CONTEXT_REAP_OK generation=", 0
 scheduler_child_cpu_ticks_message: db " ticks=", 0
 scheduler_child_fault_message: db "REIST_X86_64_CHILD_FAULT_REAP_OK vector=", 0
 scheduler_child_fault_generation_message: db " generation=", 0

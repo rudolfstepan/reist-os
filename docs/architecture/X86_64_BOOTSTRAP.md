@@ -108,6 +108,20 @@ gesampelte laufende Ticks sind keine exakte CPU-Zeit oder FTTI-Zusage.
 
 ## Zweck und Grenze
 
+R8.3h schließt die zugelassene Userkontextgrenze zwischen SYSCALL und IRQ:
+ungültiger SYSCALL-RSP wird nach exakter Kernelidentität/Profil lokal als
+Raw257 gereapt; User-NT bei beiden Eintrittsarten als Raw258, niemals per
+IRETQ wiederhergestellt. Auch eine nichtausführbare SYSCALL-Rückkehradresse
+wird lokal abgewiesen. Kernel-/Elternkorruption bleibt fail-closed. Das sind
+ausdrückliche REIST-Profilwerte und keine öffentlichen POSIX-Statusformate.
+Der Contextkern bewahrt jetzt DF/AC/ID/TF, IRQ zusätzlich RF; privilegierte
+und reservierte Bits bleiben unverändert gesperrt. Kernelstackwechsel, CLD,
+FMASK und EOI-vor-Tail bleiben erhalten. O0/O2-Hostprüfung plus sieben reale
+Kontextfälle/14 Generationen, alter Normaldialog,24 alte Faultvarianten und
+beide Busy-/Stackvarianten bestanden. Testparameter ändern nur Userspace,
+keine Kernelrechte. Allgemeine Syscall-/Prozess-/Supervisorportierung und
+native Dienste bleiben offen; Ressourcen-/Zeitbudget unverändert.
+
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im
 von Multiboot definierten 32-Bit-Protected-Mode, prueft die benoetigten
 CPU-Faehigkeiten, aktiviert mit statischen Tabellen IA-32e Paging und springt

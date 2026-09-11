@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_CONTEXT_CASE
+%define X86_64_CONTEXT_CASE 0
+%endif
 ; Lower 1072 bytes of this task's private stack, disjoint from argv/IPC.
 %define FP_STACK_BASE 0x00408000
 %ifndef X86_64_BUSY_CHILD
@@ -48,6 +51,9 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_CONTEXT_CASE
+    jmp child_context_probe
+%endif
 %if X86_64_BUSY_CHILD
 %if X86_64_BUSY_INVALID_STACK
 child_cpu_poison_stack:
@@ -256,6 +262,68 @@ child_cpu_spin:
     pause
     jmp short child_cpu_spin
 child_cpu_spin_end:
+%endif
+%if X86_64_CONTEXT_CASE
+child_context_probe:
+%if X86_64_CONTEXT_CASE = 1
+    xor esp, esp
+%elif X86_64_CONTEXT_CASE = 2 || X86_64_CONTEXT_CASE = 3
+    mov rsp, 0x0000800000000000
+%else
+    pushfq
+%if X86_64_CONTEXT_CASE = 4
+    or qword [rsp], 0x240400 ; AC, ID and DF, without IOPL authority
+%elif X86_64_CONTEXT_CASE = 7
+    or qword [rsp], 0x100 ; actual single-step exception
+%else
+    or qword [rsp], 0x4000 ; user can set NT, unsafe for IRETQ
+%endif
+    popfq
+%endif
+%if X86_64_CONTEXT_CASE = 7
+child_context_fault:
+    nop
+child_context_resume:
+    ud2
+%elif X86_64_CONTEXT_CASE = 3 || X86_64_CONTEXT_CASE = 6
+child_context_spin:
+    pause
+    jmp short child_context_spin
+child_context_spin_end:
+%else
+    mov eax, REIST_SYS_GETPID
+child_context_fault:
+    syscall
+child_context_resume:
+%if X86_64_CONTEXT_CASE = 4
+    pushfq
+    pop rdx
+    cmp rax, REIST_EACCES
+    jne child_context_fail
+    and edx, 0x240400
+    cmp edx, 0x240400
+    jne child_context_fail
+    mov eax, REIST_SYS_YIELD
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    syscall
+    test rax, rax
+    jnz child_context_fail
+child_context_spin:
+    ; Check after every possible IRQ return, including an interrupted PUSHFQ.
+    pushfq
+    pop rdx
+    and edx, 0x240400
+    cmp edx, 0x240400
+    jne child_context_fail
+    pause
+    jmp short child_context_spin
+child_context_spin_end:
+%endif
+%endif
+child_context_fail:
+    ud2
 %endif
 FP_PROBE_CODE
 section .note.GNU-stack noalloc noexec nowrite progbits

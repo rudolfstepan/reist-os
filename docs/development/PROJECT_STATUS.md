@@ -34,7 +34,11 @@ CPU-Samples vollständig gereapt (Raw256), ein ungültiger User-RSP lokal
 abgefangen (Raw257). Elf Prüfgruppen einschließlich alter24 Fehlvarianten
 und vier neuen Busy-/Stackgenerationen bestanden. Keine allgemeine CPU-Policy,
 Supervisor-/beliebige-Prozess-/SMP-Freigabe oder exakte Zeitgarantie daraus.
-R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
+R8.3h ergänzt lokale Null-/nichtkanonische SYSCALL-Stackablehnung und
+NT-Retirement an beiden Eintrittsarten. Zulässige DF/AC/ID/TF bleiben erhalten;
+sieben neue Gastfälle/14 Generationen plus alle bisherigen Fehler-/Spingäste
+und O0/O2-Contexttests bestehen. Keine allgemeine Syscall-/Supervisorfreigabe.
+Der native Stand bleibt ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 
 R3.44 ergänzt geprüfte native Farbausgabe mit

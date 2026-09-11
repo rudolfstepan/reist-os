@@ -38,13 +38,15 @@ static int positive(void) {
         if(!kind)old.task[29]=0;
         CHECK(!memcmp(&s,&old,sizeof s));
     }
-    /* Every permitted arithmetic flag and IF are preserved. */
+    /* Intel application flags, not IOPL/NT/VM/VIF/VIP or reserved bits. */
     init(&s,1);s.frame[19]=0x10202;
     CHECK(reist_x64_context_apply(&s.ctx,s.frame,1)==1 && s.task[14]==0x10202);
-    for(unsigned kind=0;kind<2;kind++)for(unsigned flags=0;flags<4096;flags++) {
-        if((flags&~0xad7u) || !(flags&2) || (kind && !(flags&512)))continue;
-        init(&s,kind);s.frame[19]=flags;if(!kind)s.frame[4]=flags;
-        CHECK(reist_x64_context_apply(&s.ctx,s.frame,1)==1 && s.task[14]==flags);
+    for(unsigned kind=0;kind<2;kind++)for(unsigned high=0;high<4;high++)
+    for(unsigned flags=0;flags<4096;flags++) {
+        if((flags&~0xfd7u) || !(flags&2) || (kind && !(flags&512)))continue;
+        unsigned full=flags|((high&1)?0x40000:0)|((high&2)?0x200000:0);
+        init(&s,kind);s.frame[19]=full;if(!kind)s.frame[4]=full;
+        CHECK(reist_x64_context_apply(&s.ctx,s.frame,1)==1 && s.task[14]==full);
     }
     return 0;
 }
@@ -54,7 +56,7 @@ static int negative(void) {
         for(unsigned state=0;state<=9;state++)if(state!=2) {
             init(&s,kind);s.task[0]=state;CHECK(denied(&s,1));
         }
-        for(unsigned bit=0;bit<64;bit++)if(!((kind?UINT64_C(0x10ad7):UINT64_C(0xad7))&(UINT64_C(1)<<bit))) {
+        for(unsigned bit=0;bit<64;bit++)if(!((kind?UINT64_C(0x250fd7):UINT64_C(0x240fd7))&(UINT64_C(1)<<bit))) {
             init(&s,kind);s.frame[19]|=UINT64_C(1)<<bit;
             if(!kind)s.frame[4]=s.frame[19];CHECK(denied(&s,1));
         }

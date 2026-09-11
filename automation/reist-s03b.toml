@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3h-x86_64-user-context-admission"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3h-x86_64-user-context-admission"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "User-controlled context admission across SYSCALL and timer entry"
@@ -27,6 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All11 groups. Actual common context assembly O0/O2 accepts lawful flags while privileged/reserved bits and malformed metadata retain nonmutation. Real user fixtures cover zero/noncanonical syscall RSP, noncanonical IRQ RSP, valid user flags across denied and allowed syscalls and IRQ, NT on syscall/IRQ and TF exception. Independent ELF instruction and exact generation/status/reap-before-RUN checks over two generations per case, negative oracle tests. All original normal/fault/busy proofs and i386 guard. Inspect frozen scope/diff/queue before local commit then next clean transaction."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for general parent/supervisor or privileged-context recovery"]
 commit_message = "fix: contain native user context faults across kernel entries"
+evidence = ["python test/test_x86_64_user_context.py -v","python test/test_x86_64_context.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_fault.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83h-context/normal","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83h-context/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83h-context/normal-guest.log","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83h-context/matrix","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83h-context/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83h-context/busy","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All11 groups passed. Oracle/wiring4/0.003s, actual context assembly O0/O2 2/1.065s with lawful flag combinations and unchanged privileged/reserved nonmutation, bootstrap55/0.033s, fault host3/0.855s, docs, normal build169064 bytes/dialogue. Context7 cases/14 generations20.004s attempt-d1518e642f8f46c7a8578f8eaeea1bb5; exact object/linked instructions and generation/status/reap order, flags survive denied GETPID/successful YIELD and every checked IRQ return. Null/noncanonical syscall stack and noncanonical IRQ stack raw257, user NT syscall/IRQ raw258, real TF #DB raw129. Old fault24/48 attempt-ae2ec910084447eda2849a6f977091ce and busy2/4 generations6.246s attempt-128550d353fa40578fa411b57f1f8d95 pass. Eight kernel mechanism objects byteidentical in normal plus seven context variants. i386 guard5.284s. Evidence build/codex-agent/r83h-context; red host/real zero-RSP preserved, fixture nonzero YIELD args and initial overly broad object-relocation comparison corrected without kernel relaxation. Public ABI/authority/budgets unchanged. General syscall arguments/roles/supervisor/memory/services/desktop remain open; no fullOS or performance claim."
 
 [[packages]]
 id = "R8.3g-x86_64-shell-preemption-budget"
@@ -2812,7 +2814,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

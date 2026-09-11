@@ -62,11 +62,11 @@ reist_x64_context_apply:
     mov rax, [rsi + 152]
     test rax, 2
     jz .fail
-    mov rcx, ~0xad7
+    mov rcx, ~0x240fd7 ; arithmetic, IF, TF, DF, AC and ID; never IOPL/NT/VM
     cmp qword [rdi + 40], 1
     jne .flags_mask_ready
     ; Intel event frames may carry RF; preserve it for IRETQ, not SYSCALL.
-    mov rcx, ~0x10ad7
+    mov rcx, ~0x250fd7
 .flags_mask_ready:
     test rax, rcx
     jnz .fail

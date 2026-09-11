@@ -429,3 +429,12 @@ Generationen mit unabhängiger ELF-/Reap-/WAIT-Prüfung. Alle alten24 Faultfäll
 und Busy-/Stackgäste bleiben Gates, ebenso der i386-Byteguard. Testschalter
 betreffen nur Userspace; native Ressourcen-/Zeitbudgets unverändert. Belege
 unter `build/codex-agent/r83h-context/`. Keine vollständige64-Bit-Freigabe.
+
+Abnahme R8.3h: elf Gruppen bestanden. Echter O0/O2-Contextkern bewahrt
+zulässige Flags und verwirft privilegierte/reservierte Bits ohne Mutation.
+Die reale Matrix mit sieben Fällen/14 Generationen belegt lokale Stack-/NT-
+Beendigung, erfolgreichen YIELD/abgewiesenen GETPID mit erhaltenen DF/AC/ID,
+laufende Flagsprüfung nach IRQ und echten #DB-Trap. Unabhängige Opcodeprüfung
+in Objekt und gelinktem ELF sowie negative Quittungs-/Instruktionsoracles;
+alle bisherigen Normal-/Fault-/Busy-Gates bestanden, i386-Bytes unverändert.
+Belege und offene Grenzen in [CURRENT_WORK](CURRENT_WORK.md).

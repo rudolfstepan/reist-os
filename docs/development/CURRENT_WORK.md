@@ -2,6 +2,54 @@
 
 Stand: 11. September 2026
 
+## R8.3h: lokale Userkontextfehler und vollständige Benutzerflags
+
+Basis `c57e9f8f`, Vertrag `5b0c4310`. Der native Shell-Syscallentry prüft
+Kernelidentität/Profil und architektonische Flags vor der lokalen Ablehnung
+eines ungültigen Userstacks. Null- und nichtkanonischer RSP liefern nach
+vollständigem Kind-Reap Raw257; kein Zugriff auf den verworfenen Userstack.
+Usergesetztes NT wird sowohl beim SYSCALL als auch IRQ mit REIST-Raw258
+terminal abgefangen, statt damit in einen unsicheren IRETQ zu gelangen.
+Nichtausführbare Syscall-Rückkehradressen werden ebenfalls lokal abgewiesen.
+Kein POSIX-Signal-/Waitlayout, keine neue öffentliche ABI oder Autorität.
+
+Der gemeinsame Contextkern bewahrt DF/AC/ID/TF; RF weiterhin nur für IRQ.
+Reservierte/privilegierte Flags, IOPL/VM/VIF/VIP und ungültige Kernelmetadaten
+bleiben gesperrt. Kernelstackwechsel, CLD und FMASK bleiben unverändert;
+IRQ beendet die Controllerquittung vor jedem Retirement. Elternfehler und
+allgemeine Supervisor-/Prozesszulassung sind damit nicht abgenommen.
+
+Elf Gruppen: neuer Oracle/Wiringhost4/0.003s, echter Contextkern O0/O2
+2/1.065s mit allen zulässigen Low-Flag-Kombinationen und AC/ID-Kombinationen,
+negativen Bits/Identitäten und Nichtmutation; Bootstrap55/0.033s,
+Faultklassifikator/Oracle3/0.855s, Dokumentation, Normalbuild/-gast,
+neue Kontextmatrix7 Fälle/14 Generationen20.004s, alte Faultmatrix24/48,
+Busy2 Fälle/4 Generationen6.246s und i386-Byteguard5.284s bestanden.
+Die neue Matrix überprüft tatsächliche ELF-Instruktionen im Objekt und
+gelinkten Kind, exakte Generation/RIP/Elternzustände und Reap-vor-WAIT/RUN:
+Null-/nichtkanonischer SYSCALL-RSP, nichtkanonischer IRQ-RSP, DF/AC/ID nach
+abgewiesenem GETPID und erfolgreichem YIELD sowie jedem IRQ-Rücksprung,
+NT an beiden Eintrittsarten und echter TF-Single-Step-Trap (#DB/Raw129).
+Oraclemutationen decken jede Fixtureinstruktion, falsche Quittungen und
+Reihenfolgen ab. Acht Kernelobjekte sind in allen acht Normal-/Testvarianten
+bytegleich; keine Kernel-Testschalter oder entfernten Altanforderungen.
+
+Belege `build/codex-agent/r83h-context/`: `normal/`, `normal-guest.log`,
+Bootstrap169064 Bytes, Shell3680, Kind1824. Finale Kontextmatrix
+`matrix/attempt-d1518e642f8f46c7a8578f8eaeea1bb5/`, Faultmatrix
+`fault/attempt-ae2ec910084447eda2849a6f977091ce/`, Busy
+`busy/attempt-128550d353fa40578fa411b57f1f8d95/`. Rote Host-/Nullstackgäste
+und frühe Fixture-/Oraclefehler bleiben erhalten: YIELD-Testargumente waren
+nicht null; der Objektvergleich umfasste zunächst auch normale Linkrelokationen.
+Der finale unabhängige Opcodeoracle prüft beide tatsächlichen Fixtureabbilder,
+nicht die wegen Relokationen unterschiedlichen restlichen Objektbytes.
+
+Weiter eine CPU/128MiB/vier Slots und unveränderte Clock-/CPU-Budgets;
+keine vollständige64-Bit-Version. Allgemeine Syscallargumente, Prozessrollen,
+Endpoint-/Supervisorzulassung, skalierbarer Speicher, native Dienste und
+Desktop/Browser bleiben offen. i386/Benchmark unverändert, R3.6b zurückgestellt,
+R341-H1/H2 weiter offen.
+
 ## R8.3g: native Shellpräemption und begrenzter CPU-Spin
 
 Basis `74f7e30d`, Vertrag `bfa107b1`. Die zugelassenen Shell-/Kindtasks laufen
