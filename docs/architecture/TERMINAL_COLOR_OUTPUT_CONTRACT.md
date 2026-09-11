@@ -5,6 +5,11 @@ Voraussetzung für die gewünschte einfache Shell-/JS-Farbausgabe: Die neue
 Kernel-Publikationsgrenze wird eigenständig geprüft, bevor untrusted JS-
 Ausgaberecords erweitert werden. JS-Host/Wireformat bleiben hier unverändert.
 
+11. September, ausdrückliche Nutzerfreigabe: notwendige Generatoranpassung
+in `scripts/generate_syscall_abi.py` aufgenommen. Dessen feste Anzahl132
+muss mit dem append-only ABI und den erzeugten Projektionen übereinstimmen.
+Keine Änderung der eingefrorenen Gates oder Sicherheitsgrenzen.
+
 ## Standard und bewusst begrenzter Adapter
 
 Referenz: [ECMA-48](https://ecma-international.org/publications-and-standards/standards/ecma-48/),
