@@ -16,6 +16,17 @@ reviewer agents or any other nested agent/orchestrator unless the user
 explicitly revokes this directive. This does not weaken package scope, frozen
 gates, clean-worktree checks, bounded execution or the prohibition on pushing.
 
+The user's renewed instruction on 2026-09-11 authorizes continuous interactive
+completion across successive package transactions. A package commit is a
+verification boundary, not a mandatory end of the conversation turn. After
+all frozen gates pass and a local commit leaves a clean worktree, inventory
+and freeze the next cohesive in-priority package, then continue without a
+routine user handoff. Exactly one implementation package remains active at
+a time; do not mix unverified packages or start another agent. Genuine scope,
+authority, hardware or user-change blockers still require stopping. This is
+not permission to weaken gates, bypass a stop condition or claim completion
+from partial bootstrap evidence. Explicitly deferred work stays deferred.
+
 ## Highest architecture rule
 
 The microkernel is the protected failure-containment boundary. Ring 0 contains
@@ -54,8 +65,10 @@ Read only the material needed for the active package, in this order:
 5. Current code and tests — always inventory existing mechanisms before adding
    another one.
 
-The task file selects exactly one active package. Do not implement a later
-package in the same run.
+The task file selects exactly one active package per implementation transaction.
+Do not implement a later package before the current transaction's verification,
+scope review and local commit have completed. An interactive turn may execute
+successive clean, bounded transactions under the directive above.
 
 Package sizing defaults to the largest cohesive vertical slice that shares one
 failure model, authority boundary, rollback or persistence protocol and frozen

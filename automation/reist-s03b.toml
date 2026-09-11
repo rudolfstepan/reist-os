@@ -5,6 +5,7 @@ next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS
 
 [policy]
 one_package_per_run = true
+interactive_continue_after_commit = true
 advance_only_after_commit_gates = true
 allow_parallel_writers = false
 max_read_only_reviewers = 1

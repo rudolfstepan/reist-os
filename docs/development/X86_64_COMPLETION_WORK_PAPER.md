@@ -25,7 +25,12 @@ sind ELF64. Ein geändertes Compilerflag oder größere VM-RAM-Zahl löst das ni
 
 Kompatible Fälle werden je Fehler-/Autoritätsgrenze gemeinsam umgesetzt, nicht
 als einzelne Syscall- oder Feld-Mikropakete. Nur ein eingefrorenes Paket ist
-je Lauf aktiv; spätere Etappen erhalten erst nach Bestandsprüfung ihren Scope.
+je Pakettransaktion aktiv; spätere Etappen erhalten erst nach Bestandsprüfung
+ihren Scope. Nutzeranweisung vom11. September: Nach erfolgreicher Abnahme,
+lokalem Commit und sauberem Worktree folgt die nächste Transaktion automatisch
+im selben interaktiven Arbeitsgang, ohne routinemäßige Bestätigungsfrage.
+`AGENTS.md` hält diesen Ablauf fest. Sicherheits-/Berechtigungs-/Scopeblocker
+bleiben echte Stopgründe; Paketübergaben allein sind keine Gesprächspause.
 
 | Etappe | Zusammenhängendes Ergebnis | Pflichtnachweis vor Abschluss |
 |---|---|---|
