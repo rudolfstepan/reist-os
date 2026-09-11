@@ -16,6 +16,26 @@ eingebettete Testprogramme: keine allgemeine FP-Ausnahme-/Anwendungsfreigabe,
 kein AVX/XSAVE oder SMP. Abnahmebelege in
 [CURRENT_WORK](../development/CURRENT_WORK.md).
 
+R8.3c ergänzt CPL3-Ausnahme-Retirement für die vorhandene exklusive Shell-/
+Kindbeziehung: Vektoren0/1/3/4/5/6/13/14/16/17/19 werden klassifiziert,
+Kernelherkunft und andere Vektoren nicht als Kindfehler behandelt. Die
+öffentlichen Strukturen und Syscallnummern bleiben unverändert; WAIT liefert
+den REIST-Raw-Status128+Vektor, kein POSIX-Waitstatus. Private48-Byte-
+Terminalquittung nach vollständigem Reap, generationgebundener einmaliger
+Verbrauch; kein RIP/RSP-Zugriff über den gespeicherten Userpointer. Die
+exklusive Paar-IPC wird geschlossen und ihre Deadline entfernt, wartender
+Receive bekommt EPIPE. CLOSE desselben Handles ist bis zum WAIT idempotent;
+andere IPC-Anfragen während dieser Terminalphase erhalten EPIPE ohne Wirkung.
+Das bestehende CPL3-Breakpoint-Gate wird für den Shell-Lifecycle geleast und
+bei Cleanup zurückgesetzt; andere IDT-Gates bleiben unverändert.
+
+Abnahme: DE/BP/UD/GP/PF/MF in vier Lifecyclephasen, jeweils zwei Generationen,
+echte Instruktionsadressen, Queue-/Elternzustand und weiterlaufende Shell.
+Die Buildparameter `-FaultVector`/`-FaultPhase` ändern nur Test-ELFs und deren
+Erwartungen, niemals den Kernelklassifikator. #XM/#AC nur Hostklassifikation,
+kein Zielhardwarebeleg. Das ist keine allgemeine Prozess- oder FP-Anwendungs-
+freigabe und keine vollständige64-Bit-Systemversion.
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im

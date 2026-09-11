@@ -200,3 +200,18 @@ maximal90s. Matrixbelege in eindeutigen Unterordnern, kein Überschreiben.
 #XM/#AC-Klassifikation ist kein echter Hardware-Ausnahmenachweis; deren
 Zielhardware-Abnahme bleibt vor allgemeiner nativer FP-Anwendungsfreigabe offen.
 R3.6b und R341-H1/H2 bleiben zurückgestellt beziehungsweise offen.
+
+Abnahme R8.3c: alle neun Gruppen bestanden,24 reale Fehlvarianten und48
+Kindgenerationen. Der Klassifikator benötigt keine zugelassene Probe-RIP;
+die unabhängige Gastauswertung dagegen bindet den Nachweis an die tatsächliche
+ELF-Fehlerinstruktion, Generation, Elternzustand und Queuebelegung. Sie weist
+fehlende/zusätzliche Quittungen, falsche Reihenfolge und alte Generationen ab.
+Der vorhandene rücksetzbare Breakpoint-Gatevertrag gilt auch für Shelltasks;
+ein echter erster Fehlgast deckte die bislang fehlende Freigabe auf.
+Endpointgeneration und wartender Puffer werden vor Fencing überprüft.
+Die private Terminalquittung umfasst48 Bytes und bleibt ohne Ressourcenrechte.
+Normalbuild/Normalgast, bisherige FP-/SDK-/Bootstrapprüfungen und i386-Images
+bleiben gültig. Endgültige Belege und erhaltene Fehlversuche in
+[CURRENT_WORK](CURRENT_WORK.md). Der nächste fachliche Schritt bleibt der
+allgemeine, nicht auf die festen Testgenerationen beschränkte Lifecycle;
+keine Freigabe beliebiger nativer Programme aus dieser Teilabnahme.

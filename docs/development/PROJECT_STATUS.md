@@ -9,7 +9,11 @@ gemeinsamer C/C++-Transport, echte ELF64-Shell und QEMU-IPC-/Reap-Nachweis;
 alle sieben Prüfgruppen bestanden, vorhandene i386-Images unverändert.
 R8.3b ergänzt geprüften privaten x87-/SSE-Registerbesitz über die bestehenden
 Prozesswechsel, Reap und Wiederverwendung; alle acht Gruppen bestanden.
-Allgemeine Ausnahmebeendigung und native Anwendungsfreigabe fehlen weiterhin.
+R8.3c ergänzt geprüftes Ausnahme-Retirement des Shellkindes inklusive IPC-/
+Deadline-Fencing, Reap und generationgebundenem WAIT:24 echte Fehlerfälle,
+48 Kindgenerationen, alle neun Prüfgruppen bestanden. Der allgemeine,
+nicht an Testprozesse gebundene Lifecycle und native Anwendungsfreigabe fehlen
+weiterhin; #XM/#AC benötigen noch echte Zielhardware-Ausnahmeabnahme.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

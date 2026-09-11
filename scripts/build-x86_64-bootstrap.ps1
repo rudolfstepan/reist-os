@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^build(?:[\\/][A-Za-z0-9_.-]+)*$')]
-    [string]$OutputDirectory = 'build'
+    [string]$OutputDirectory = 'build',
+    [ValidateSet(-1, 0, 3, 6, 13, 14, 16)] [int]$FaultVector = -1,
+    [ValidateRange(0, 3)] [int]$FaultPhase = 0
 )
 
 Set-StrictMode -Version Latest
@@ -181,6 +183,8 @@ try {
         "AS=$(To-MakePath $Nasm)" `
         "OBJCOPY=$(To-MakePath $Objcopy)" `
         "X86_64_CC=$(To-MakePath $Zig) cc" `
+        "X86_64_FAULT_VECTOR=$FaultVector" `
+        "X86_64_FAULT_PHASE=$FaultPhase" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."

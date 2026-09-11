@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3c-x86_64-child-fault-retirement"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -13,7 +13,7 @@ push = false
 
 [[packages]]
 id = "R8.3c-x86_64-child-fault-retirement"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native child exception containment and generation-scoped retirement"
@@ -26,7 +26,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All9 groups. Real compiled O0/O2 host classifier covers32 vectors, CPL, error codes and poisoned user addresses without mutation. Real TCG matrix uses actual DE/BP/UD/GP/PF/MF instructions at four IPC/lifecycle phases (24 bounded variants, two child generations each), exact vector/reap receipts and parent continuation. No fake exceptions; XM/AC classification is host-tested only and needs later target-hardware acceptance before general FP application admission. Normal guest, all earlier SDK/FP/bootstrap contracts, documentation and i386 binary guard pass. Inspect scope/queue/diff and commit locally only after success."
 stop_conditions = ["Unattributed change","Required source outside scope","Failed gate without focused in-scope correction","Need for general orphan/shared-endpoint policy or expansion of process authority"]
 commit_message = "feat: contain native x86_64 child process faults"
-evidence = []
+evidence = ["python test/test_x86_64_fault.py -v","python test/test_x86_64_fp.py -v","python test/test_x86_64_sdk.py -v","python test/test_x86_64_boot.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83c-fault/normal","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83c-fault/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83c-fault/final-normal-guest.log","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83c-fault/matrix","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All9 groups passed. Host3/0.871s includes actual O0/O2 classifier and negative receipt oracle; FP2/0.901s, SDK3/2.056s, bootstrap55 and docs. Final build1.903s/bootstrap157904 bytes; normal INFO/RUN/RUN/EXIT guest passes all old markers. Final matrix24 real DE/BP/UD/GP/PF/MF cases across4 lifecycle phases,48 child generations/57.001s with exact vector/generation/parent/queue/RIP/reap-before-RUN. i386 guard4.761s, no product image changes. Evidence build/codex-agent/r83c-fault/, final matrix attempt-1481d89672c24461a37973adb3b46c68. Red host, overstrict relocated-object comparison and actual BP-to-GP failure retained; existing reversible CPL3 breakpoint gate now leased for shell lifecycle too. Final narrow endpoint/wait ownership checks revalidated in complete matrix; initial normal artifacts retained under normal-initial, final guest uses new log path only. No gate weakened. Classification of XM/AC is not target-hardware acceptance; fixed child relation is not general native process admission or complete64-bit OS. R341-H1/H2 open and R3.6b explicitly deferred despite formal next-queued activation. No agents, visible VMs, native crash dialogs or push."
 
 [[packages]]
 id = "R8.3b-x86_64-fp-ownership"
@@ -2722,7 +2723,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

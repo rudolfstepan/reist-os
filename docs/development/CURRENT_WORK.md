@@ -2,6 +2,47 @@
 
 Stand: 11. September 2026
 
+## R8.3c: native Kindprozessfehler abgefangen
+
+Basis `473ce58c`, eingefrorener Vertrag `e23f8d3c`. Der Shell-Kindprozess
+wird bei klassifizierten CPL3-Ausnahmen generationgebunden beendet: exklusive
+Paar-IPC und Deadline fencen, Profil/FP/Frames/Seitentabellen/ELF freigeben,
+danach Elternprozess fortsetzen. Eine48-Byte-Terminalquittung hält keine
+Frames oder Fähigkeiten und wird durch WAIT einmalig konsumiert. Bereits
+wartendes Receive erhält EPIPE; CLOSE derselben eingezäunten Verbindung ist
+bis zum WAIT idempotent. Keine Dereferenzierung des fehlerhaften User-RIP/RSP.
+Der vorhandene rücksetzbare CPL3-Breakpoint-Gatevertrag gilt jetzt auch für
+den Shell-Lifecycle, nicht nur für den alten Runqueue-Selbsttest.
+
+Neun Prüfgruppen bestanden: neuer Hosttest3/0.871s (echter Klassifikator O0/O2,
+34 Vektoren/vier CPLs, ungültige Frames sowie negative Quittungsprüfung),
+FP2/0.901s, SDK3/2.056s,55 bestehende Bootstrapverträge und Dokumentation.
+Normalbuild1.903s: Bootstrap157904, Probe12312, Shell3680, Kind1824 Bytes.
+Normalgast besteht einschließlich aller bisherigen Marker und INFO/RUN/RUN/EXIT.
+24 reale TCG-Fehlvarianten/48 Kindgenerationen bestehen in57.001s: DE/BP/UD/
+GP/PF/MF jeweils vor IPC, mit gepufferter Nachricht, während Receive-Deadline
+und während WAIT. Die unabhängige Auswertung verlangt exakten Vektor,
+Generation, Elternzustand, Queuezustand und die echte ELF-Instruktionsadresse;
+jede Reap-Quittung muss vor dem zugehörigen erfolgreichen RUN stehen.
+Pro Gast weiterhin maximal10s,128MiB/eine CPU; Build maximal90s.
+i386-Imageguard4.761s bestanden; Produktimages und deren Programme unverändert.
+
+Belege unter `build/codex-agent/r83c-fault/`; endgültige Matrix
+`matrix/attempt-1481d89672c24461a37973adb3b46c68/summary.json`, Normalgast
+`final-normal-guest.log`. Erste rote Hostprüfung, die zu strenge Objekt-/ELF-
+Vergleichsprüfung (Linkerrelokationen) und der echte BP→GP-Fehlgast bleiben
+erhalten. Der ursprüngliche Normalbuild liegt unter `normal-initial/`.
+Nach enger Endpoint-/Waitbesitz-Nachprüfung wurde die betroffene Matrix
+vollständig neu ausgeführt; keine Abnahmebedingung abgeschwächt.
+
+Grenze: weiterhin eingebettete Test-ELFs und feste Eltern-/Kindgenerationen,
+kein allgemeiner Prozess-/Supervisor-Lifecycle, kein skalierbarer nativer
+Speicher und keine native JS-/Desktopfreigabe. #XM/#AC sind nur klassifiziert,
+nicht auf Zielhardware ausgelöst und abgenommen. Kernel-/Hardwarefehler
+bleiben fatal, nicht in-place repariert. R341-H1/H2 bleiben offen; R3.6b
+bleibt fachlich zurückgestellt, auch bei formaler Queue-Aktivierung nach
+Abschluss dieses Pakets. Die64-Bit-Version ist damit noch nicht fertig.
+
 ## R8.3b: nativer FP-Registerbesitz abgenommen
 
 Vertragscheckpoint `ae7fdfa1`, Basis `0ceed8e0`. Der native Scheduler besitzt

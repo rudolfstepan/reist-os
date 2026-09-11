@@ -7,6 +7,7 @@ extern x86_64_fp_clear64
 extern x86_64_fp_save64
 extern x86_64_fp_restore64
 extern x86_64_fp_reset64
+extern x86_64_user_fault_status64
 
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
@@ -775,6 +776,9 @@ x86_64_process_shell64:
     mov qword [rel scheduler_syscall_context + SYSCALL_CONTEXT_KERNEL_RSP], rax
     mov rdi, rax
     call x86_64_exception_set_rsp0
+    test eax, eax
+    jz scheduler_fail
+    call scheduler_enable_user_breakpoint64
     test eax, eax
     jz scheduler_fail
     mov byte [rel scheduler_active], 1
@@ -1887,6 +1891,38 @@ scheduler_validate_shell_syscall_profile64:
     ret
 
 scheduler_shell_syscall_dispatch64:
+    ; A terminal receipt carries no IPC authority. Closing the already fenced
+    ; pair-local endpoint is idempotent; all other IPC attempts fail with EPIPE.
+    cmp dword [rel scheduler_current_slot], 0
+    jne .live_dispatch
+    cmp qword [rel scheduler_child_terminal_generation], 0
+    je .live_dispatch
+    mov eax, dword [rel scheduler_dynamic_child_generation]
+    cmp qword [rel scheduler_child_terminal_generation], rax
+    jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_parent_generation], TASK_SHELL_GENERATION
+    jne scheduler_fail
+    cmp byte [rel scheduler_dynamic_child_active], 1
+    jne scheduler_fail
+    cmp qword [rel syscall_rax], REIST_SYS_IPC_CREATE
+    jb .live_dispatch
+    cmp qword [rel syscall_rax], REIST_SYS_IPC_RELEASE
+    ja .live_dispatch
+    mov rax, REIST_EPIPE
+    cmp qword [rel syscall_rax], REIST_SYS_IPC_CLOSE
+    jne scheduler_shell_resume64
+    mov rdx, qword [rel scheduler_child_terminal_endpoint]
+    test rdx, rdx
+    jz scheduler_shell_resume64
+    cmp qword [rel syscall_rdi], rdx
+    jne scheduler_shell_resume64
+    cmp qword [rel syscall_rsi], 0
+    jne scheduler_shell_resume64
+    cmp qword [rel syscall_rdx], 0
+    jne scheduler_shell_resume64
+    xor eax, eax
+    jmp scheduler_shell_resume64
+.live_dispatch:
     cmp qword [rel syscall_rax], REIST_SYS_READ
     je scheduler_handle_shell_read64
     cmp qword [rel syscall_rax], REIST_SYS_WRITE
@@ -3656,11 +3692,18 @@ scheduler_handle_shell_wait64:
     jne scheduler_fail
     cmp dword [rel scheduler_dynamic_parent_generation], TASK_SHELL_GENERATION
     jne scheduler_fail
+    cmp qword [rel scheduler_child_terminal_generation], 0
+    je .live_child
+    cmp qword [rel scheduler_child_terminal_generation], rax
+    jne scheduler_fail
+    jmp .status_pointer
+.live_child:
     lea r11, [rel scheduler_tasks + TASK_RECORD_SIZE]
     cmp qword [r11 + TASK_GENERATION], rax
     jne scheduler_fail
     cmp qword [r11 + TASK_STATE], TASK_READY
     jne scheduler_fail
+.status_pointer:
     mov rax, qword [rel syscall_rsi]
     call scheduler_translate_status_pointer64
     test eax, eax
@@ -3672,6 +3715,8 @@ scheduler_handle_shell_wait64:
     mov eax, dword [rel scheduler_dynamic_child_generation]
     mov dword [rel scheduler_dynamic_wait_child_generation], eax
     mov qword [rel scheduler_dynamic_wait_status_direct], r15
+    cmp qword [rel scheduler_child_terminal_generation], 0
+    jne scheduler_consume_child_terminal64
     jmp scheduler_runqueue_dispatch64
 
 ; RAX is the syscall result. Reconstruct the task context, publish READY and
@@ -5119,6 +5164,8 @@ scheduler_handle_dynamic_exit64:
 x86_64_scheduler_user_exception64:
     cmp byte [rel scheduler_active], 1
     jne .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    je scheduler_retire_shell_child_fault64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je scheduler_runqueue_user_exception64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_COOPERATIVE
@@ -5198,6 +5245,326 @@ x86_64_scheduler_user_exception64:
 .invalid:
     xor eax, eax
     ret
+
+scheduler_retire_shell_child_fault64:
+    ; Validate all identity/ownership before the first published state change.
+    call x86_64_user_fault_status64
+    test eax, eax
+    jz .invalid
+    mov r8d, eax
+    mov r9, qword [rdi + EXCEPTION_FRAME_RIP]
+    cmp dword [rel scheduler_current_slot], 1
+    jne .invalid
+    lea r12, [rel scheduler_tasks + TASK_RECORD_SIZE]
+    cmp qword [r12 + TASK_STATE], TASK_RUNNING
+    jne .invalid
+    mov r14, qword [r12 + TASK_GENERATION]
+    cmp r14, TASK_SHELL_CHILD_GEN
+    jb .invalid
+    cmp r14, TASK_SHELL_CHILD_GEN2
+    ja .invalid
+    cmp dword [rel scheduler_dynamic_child_generation], r14d
+    jne .invalid
+    mov eax, dword [rel scheduler_dynamic_completed_count]
+    add eax, TASK_SHELL_CHILD_GEN
+    cmp r14d, eax
+    jne .invalid
+    cmp byte [rel scheduler_dynamic_child_active], 1
+    jne .invalid
+    cmp dword [rel scheduler_dynamic_parent_generation], TASK_SHELL_GENERATION
+    jne .invalid
+    mov rax, cr3
+    cmp rax, qword [r12 + TASK_CR3]
+    jne .invalid
+    cmp qword [rel scheduler_syscall_profiles + SYSCALL_PROFILE_SIZE + SYSCALL_PROFILE_GENERATION], r14
+    jne .invalid
+    cmp byte [rel scheduler_runqueue_membership + 1], 0
+    jne .invalid
+    cmp qword [rel scheduler_child_terminal_generation], 0
+    jne .invalid
+    lea r11, [rel scheduler_tasks]
+    cmp qword [r11 + TASK_GENERATION], TASK_SHELL_GENERATION
+    jne .invalid
+    mov rax, qword [r11 + TASK_STATE]
+    cmp rax, TASK_READY
+    jne .parent_not_ready
+    cmp byte [rel scheduler_runqueue_membership], 1
+    jne .invalid
+    jmp .parent_valid
+.parent_not_ready:
+    cmp byte [rel scheduler_runqueue_membership], 0
+    jne .invalid
+    cmp rax, TASK_BLOCKED
+    je .parent_valid
+    cmp rax, TASK_WAITING
+    jne .invalid
+    cmp dword [rel scheduler_dynamic_wait_generation], TASK_SHELL_GENERATION
+    jne .invalid
+    cmp dword [rel scheduler_dynamic_wait_child_generation], r14d
+    jne .invalid
+.parent_valid:
+    cmp qword [rel scheduler_shell_ipc_endpoint_active], 0
+    jne .endpoint_live
+    call scheduler_verify_shell_ipc_zero64
+    test eax, eax
+    jz .invalid
+    jmp .endpoint_valid
+.endpoint_live:
+    call scheduler_validate_shell_ipc_endpoint64
+    test eax, eax
+    jz .invalid
+    mov rax, r14
+    sub rax, TASK_SHELL_GENERATION
+    cmp qword [rel scheduler_shell_ipc_endpoint_generation], rax
+    jne .invalid
+    mov rax, qword [rel scheduler_shell_ipc_endpoint_handle]
+    test rax, rax
+    jz .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_GENERATION], TASK_SHELL_GENERATION
+    jne .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_HANDLE], rax
+    jne .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_RIGHTS], IPC_OWNER_RIGHTS
+    jne .invalid
+    mov rdx, qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_SIZE + IPC_CAPABILITY_GENERATION]
+    test rdx, rdx
+    jz .child_cap_empty
+    cmp rdx, r14
+    jne .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_SIZE + IPC_CAPABILITY_HANDLE], rax
+    jne .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_SIZE + IPC_CAPABILITY_RIGHTS], IPC_RIGHT_SEND
+    jne .invalid
+    jmp .cap_valid
+.child_cap_empty:
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_SIZE + IPC_CAPABILITY_HANDLE], 0
+    jne .invalid
+    cmp qword [rel scheduler_shell_ipc_capabilities + IPC_CAPABILITY_SIZE + IPC_CAPABILITY_RIGHTS], 0
+    jne .invalid
+.cap_valid:
+    ; Never erase another generation's queued data or capability.
+    lea rsi, [rel scheduler_shell_ipc_capabilities + 2 * IPC_CAPABILITY_SIZE]
+    mov ecx, 2 * IPC_CAPABILITY_SIZE / 8
+.other_caps:
+    cmp qword [rsi], 0
+    jne .invalid
+    add rsi, 8
+    loop .other_caps
+    mov rax, qword [rel scheduler_shell_ipc_send_generation]
+    test rax, rax
+    jz .sender_valid
+    cmp rax, r14
+    jne .invalid
+.sender_valid:
+    cmp qword [rel scheduler_shell_ipc_send_phase], IPC_SEND_PHASE_REVOKE_WAITING
+    ja .invalid
+    mov rax, qword [rel scheduler_shell_ipc_message_sender_generation]
+    cmp qword [rel scheduler_shell_ipc_message_ready], 0
+    jne .queued_message
+    test rax, rax
+    jnz .invalid
+    jmp .endpoint_valid
+.queued_message:
+    cmp qword [rel scheduler_shell_ipc_message_ready], 1
+    jne .invalid
+    cmp rax, r14
+    je .endpoint_valid
+    cmp rax, TASK_SHELL_GENERATION
+    jne .invalid
+.endpoint_valid:
+    ; A running child cannot also own an outstanding sender wait.
+    call scheduler_verify_shell_ipc_send_wait_zero64
+    test eax, eax
+    jz .invalid
+    lea r11, [rel scheduler_tasks]
+    cmp qword [r11 + TASK_STATE], TASK_BLOCKED
+    jne .no_deadline
+    cmp qword [rel scheduler_shell_ipc_wait_generation], TASK_SHELL_GENERATION
+    jne .invalid
+    mov rax, qword [rel scheduler_shell_ipc_endpoint_handle]
+    test rax, rax
+    jz .invalid
+    cmp qword [rel scheduler_shell_ipc_wait_handle], rax
+    jne .invalid
+    mov rax, qword [r11 + TASK_STACK_FRAME]
+    test rax, rax
+    jz .invalid
+    mov rdx, DIRECT_MAP_BASE
+    add rax, rdx
+    mov rdx, qword [rel scheduler_shell_ipc_wait_buffer_direct]
+    test rdx, 7
+    jnz .invalid
+    cmp rdx, rax
+    jb .invalid
+    add rax, PAGE_SIZE - IPC_MESSAGE_SIZE
+    cmp rdx, rax
+    ja .invalid
+    call scheduler_validate_shell_receive_deadline64
+    test eax, eax
+    jz .invalid
+    jmp .validated
+.no_deadline:
+    call scheduler_verify_shell_ipc_wait_zero64
+    test eax, eax
+    jz .invalid
+    call scheduler_verify_shell_deadline_zero64
+    test eax, eax
+    jz .invalid
+.validated:
+    mov dword [rel scheduler_child_terminal_status], r8d
+    mov qword [rel scheduler_child_terminal_rip], r9
+    mov rax, qword [rel scheduler_tasks + TASK_STATE]
+    mov qword [rel scheduler_child_terminal_parent_state], rax
+    mov rax, qword [rel scheduler_shell_ipc_message_ready]
+    mov qword [rel scheduler_child_terminal_queued], rax
+    mov rax, qword [rel scheduler_shell_ipc_endpoint_handle]
+    mov qword [rel scheduler_child_terminal_endpoint], rax
+    lea r12, [rel scheduler_tasks + TASK_RECORD_SIZE]
+    mov qword [r12 + TASK_STATE], TASK_FAULTED
+    cmp byte [rel scheduler_deadline_count], 0
+    je .deadline_removed
+    call scheduler_deadline_remove_shell_receive64
+    test eax, eax
+    jz scheduler_fail
+    call x86_64_timer_preemption_cancel64
+    test eax, eax
+    jz scheduler_fail
+.deadline_removed:
+    xor eax, eax
+    lea rdi, [rel scheduler_shell_ipc_begin]
+    mov ecx, (scheduler_shell_ipc_end - scheduler_shell_ipc_begin) / 8
+    cld
+    rep stosq
+    mov rax, qword [rel scheduler_original_cr3]
+    mov cr3, rax
+    lea rsp, [rel scheduler_kernel_stack_top]
+    call scheduler_restore_kernel_segments64
+    call x86_64_fp_reset64
+    mov edi, 1
+    mov esi, dword [rel scheduler_dynamic_child_generation]
+    mov edx, TASK_FAULTED
+    mov ecx, EVENT_SHELL_CHILD_FREE
+    call scheduler_reap_terminal64
+    test eax, eax
+    jz scheduler_fail
+    mov edi, ELF_IMAGE_CHILD
+    call x86_64_elf64_select_image64
+    test eax, eax
+    jz scheduler_fail
+    call x86_64_elf64_release64
+    test eax, eax
+    jz scheduler_fail
+    mov edi, ELF_IMAGE_SHELL
+    call x86_64_elf64_select_image64
+    test eax, eax
+    jz scheduler_fail
+    mov eax, dword [rel scheduler_dynamic_child_generation]
+    mov qword [rel scheduler_child_terminal_generation], rax
+    lea rsi, [rel scheduler_child_fault_message]
+    call serial_write64
+    mov eax, dword [rel scheduler_child_terminal_status]
+    sub eax, 128
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_child_fault_generation_message]
+    call serial_write64
+    mov rax, qword [rel scheduler_child_terminal_generation]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_child_fault_parent_message]
+    call serial_write64
+    mov rax, qword [rel scheduler_child_terminal_parent_state]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_child_fault_queued_message]
+    call serial_write64
+    mov rax, qword [rel scheduler_child_terminal_queued]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_child_fault_rip_message]
+    call serial_write64
+    mov r10, qword [rel scheduler_child_terminal_rip]
+    mov r9d, 8
+.rip_bytes:
+    rol r10, 8
+    mov eax, r10d
+    call scheduler_hex8_local64
+    dec r9d
+    jnz .rip_bytes
+    lea rsi, [rel scheduler_child_fault_newline]
+    call serial_write64
+    lea r12, [rel scheduler_tasks]
+    cmp qword [r12 + TASK_STATE], TASK_WAITING
+    je scheduler_consume_child_terminal64
+    cmp qword [r12 + TASK_STATE], TASK_READY
+    je scheduler_runqueue_dispatch64
+    cmp qword [r12 + TASK_STATE], TASK_BLOCKED
+    jne scheduler_fail
+    mov qword [r12 + TASK_RAX], REIST_EPIPE
+    mov qword [r12 + TASK_STATE], TASK_READY
+    xor edi, edi
+    mov esi, TASK_SHELL_GENERATION
+    call scheduler_runqueue_enqueue64
+    test eax, eax
+    jz scheduler_fail
+    jmp scheduler_runqueue_dispatch64
+.invalid:
+    xor eax, eax
+    ret
+
+scheduler_consume_child_terminal64:
+    ; Reap is complete. Validate the still-owned parent's pinned status slot
+    ; before consuming the receipt and publishing the successful WAIT result.
+    lea r12, [rel scheduler_tasks]
+    cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
+    jne scheduler_fail
+    cmp qword [r12 + TASK_STATE], TASK_WAITING
+    jne scheduler_fail
+    mov eax, dword [rel scheduler_dynamic_child_generation]
+    test eax, eax
+    jz scheduler_fail
+    cmp qword [rel scheduler_child_terminal_generation], rax
+    jne scheduler_fail
+    cmp byte [rel scheduler_dynamic_child_active], 1
+    jne scheduler_fail
+    cmp qword [rel scheduler_tasks + TASK_RECORD_SIZE + TASK_STATE], TASK_FREE
+    jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_wait_child_generation], eax
+    jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_wait_generation], TASK_SHELL_GENERATION
+    jne scheduler_fail
+    mov r15, qword [rel scheduler_dynamic_wait_status_direct]
+    test r15, 3
+    jnz scheduler_fail
+    mov rax, qword [r12 + TASK_STACK_FRAME]
+    test rax, rax
+    jz scheduler_fail
+    mov rdx, DIRECT_MAP_BASE
+    add rax, rdx
+    cmp r15, rax
+    jb scheduler_fail
+    add rax, PAGE_SIZE - 4
+    cmp r15, rax
+    ja scheduler_fail
+    mov eax, dword [rel scheduler_child_terminal_status]
+    mov dword [r15], eax
+    mov qword [rel scheduler_child_terminal_generation], 0
+    mov qword [rel scheduler_child_terminal_status], 0
+    mov qword [rel scheduler_child_terminal_endpoint], 0
+    mov qword [rel scheduler_child_terminal_rip], 0
+    mov qword [rel scheduler_child_terminal_parent_state], 0
+    mov qword [rel scheduler_child_terminal_queued], 0
+    mov byte [rel scheduler_dynamic_child_active], 0
+    mov dword [rel scheduler_dynamic_child_generation], 0
+    mov dword [rel scheduler_dynamic_parent_generation], 0
+    mov dword [rel scheduler_dynamic_wait_generation], 0
+    mov dword [rel scheduler_dynamic_wait_child_generation], 0
+    mov qword [rel scheduler_dynamic_wait_status_direct], 0
+    inc dword [rel scheduler_dynamic_completed_count]
+    mov qword [r12 + TASK_RAX], TASK_SHELL_CHILD_PID
+    mov qword [r12 + TASK_STATE], TASK_READY
+    xor edi, edi
+    mov esi, TASK_SHELL_GENERATION
+    call scheduler_runqueue_enqueue64
+    test eax, eax
+    jz scheduler_fail
+    jmp scheduler_runqueue_dispatch64
 
 scheduler_runqueue_user_exception64:
     cmp dword [rel scheduler_current_slot], 3
@@ -6407,6 +6774,18 @@ scheduler_verify_final_events64:
     repe cmpsb
     jne .fail
 .task_records:
+    cmp qword [rel scheduler_child_terminal_generation], 0
+    jne .fail
+    cmp qword [rel scheduler_child_terminal_status], 0
+    jne .fail
+    cmp qword [rel scheduler_child_terminal_endpoint], 0
+    jne .fail
+    cmp qword [rel scheduler_child_terminal_rip], 0
+    jne .fail
+    cmp qword [rel scheduler_child_terminal_parent_state], 0
+    jne .fail
+    cmp qword [rel scheduler_child_terminal_queued], 0
+    jne .fail
     lea r12, [rel scheduler_tasks]
     xor ebx, ebx
 .task_zero_loop:
@@ -6481,7 +6860,7 @@ scheduler_setup_syscalls64:
     xor eax, eax
     ret
 
-; Lease vector 3 to CPL3 only for the bounded runqueue proof. The original
+; Lease vector 3 to CPL3 for runqueue and native shell task lifecycles. The original
 ; interrupt-gate attribute is restored on every success and failure path.
 scheduler_enable_user_breakpoint64:
     cmp byte [rel scheduler_breakpoint_gate_active], 0
@@ -6714,6 +7093,12 @@ scheduler_hex_nibble64:
     jmp serial_putc64
 
 section .rodata
+scheduler_child_fault_message: db "REIST_X86_64_CHILD_FAULT_REAP_OK vector=", 0
+scheduler_child_fault_generation_message: db " generation=", 0
+scheduler_child_fault_parent_message: db " parent=", 0
+scheduler_child_fault_queued_message: db " queued=", 0
+scheduler_child_fault_rip_message: db " rip=", 0
+scheduler_child_fault_newline: db 13, 10, 0
 scheduler_expected_events:
     db EVENT_A_READY, EVENT_B_READY
     db EVENT_A_RUNNING, EVENT_A_READY_AGAIN
@@ -6870,6 +7255,13 @@ scheduler_dynamic_completed_count:
     resd 1
 scheduler_dynamic_child_generation:
     resd 1
+alignb 8
+scheduler_child_terminal_generation: resq 1
+scheduler_child_terminal_status: resq 1
+scheduler_child_terminal_endpoint: resq 1
+scheduler_child_terminal_rip: resq 1
+scheduler_child_terminal_parent_state: resq 1
+scheduler_child_terminal_queued: resq 1
 scheduler_dynamic_parent_generation:
     resd 1
 scheduler_dynamic_wait_generation:

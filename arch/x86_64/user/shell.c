@@ -15,6 +15,17 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_FAULT_VECTOR
+#define X86_64_FAULT_VECTOR -1
+#endif
+#ifndef X86_64_FAULT_PHASE
+#define X86_64_FAULT_PHASE 0
+#endif
+#if X86_64_FAULT_VECTOR >= 0
+#define SHELL_EXPECTED_CHILD_STATUS (128U + X86_64_FAULT_VECTOR)
+#else
+#define SHELL_EXPECTED_CHILD_STATUS SHELL_CHILD_STATUS
+#endif
 #define IPC_MESSAGE_VERSION 1U
 #define IPC_MESSAGE_SIZE 140U
 #define IPC_MESSAGE_LENGTH 8U
@@ -265,6 +276,9 @@ void _start(void)
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
                     shell_exit(20ULL);
                 }
+#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE < 2
+                goto child_fault_cleanup;
+#endif
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;
                 ipc_message.struct_size = IPC_MESSAGE_SIZE;
@@ -289,10 +303,18 @@ void _start(void)
                 if (reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,
                                    (shell_u64)ipc_handle,
                                    (shell_u64)&ipc_message,
-                                   IPC_RECEIVE_TIMEOUT_MS) != 0LL ||
+                                   IPC_RECEIVE_TIMEOUT_MS) !=
+#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE == 2
+                    REIST_EPIPE || !ipc_message_is_empty(&ipc_message)) {
+#else
+                    0LL ||
                     !ipc_message_is_token(&ipc_message, (shell_u8)'7')) {
+#endif
                     shell_exit(17ULL);
                 }
+#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE == 2
+                goto child_fault_cleanup;
+#endif
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;
                 ipc_message.struct_size = IPC_MESSAGE_SIZE;
@@ -322,10 +344,23 @@ void _start(void)
                                    (shell_u64)ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(18ULL);
                 }
+#if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE < 3
+child_fault_cleanup:
+                clear_ipc_message(&ipc_message);
+                ipc_message.version = IPC_MESSAGE_VERSION;
+                ipc_message.struct_size = IPC_MESSAGE_SIZE;
+                if (reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE,
+                                     ipc_handle, (shell_u64)&ipc_message, 0ULL) != REIST_EPIPE ||
+                    !ipc_message_is_empty(&ipc_message) ||
+                    reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE, ipc_handle, 0ULL, 0ULL) != 0LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE, ipc_handle, 0ULL, 0ULL) != 0LL) {
+                    shell_exit(30ULL);
+                }
+#endif
                 waited_pid = reist_x64_syscall3(REIST_X64_SYS_WAIT, (shell_u64)child_pid,
                                             (shell_u64)&child_status, 0ULL);
                 if (waited_pid != SHELL_CHILD_PID ||
-                    child_status != SHELL_CHILD_STATUS) {
+                    child_status != SHELL_EXPECTED_CHILD_STATUS) {
                     shell_exit(13ULL);
                 }
                 if (!shell_write_exact(run_ok, sizeof(run_ok) - 1U) ||

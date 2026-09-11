@@ -211,6 +211,9 @@ X86_64_ELF64_LOADER_OBJ := $(X86_64_BOOTSTRAP_DIR)/elf64_loader.o
 X86_64_USER_EXECUTION_OBJ := $(X86_64_BOOTSTRAP_DIR)/user_execution.o
 X86_64_PROCESS_SCHEDULER_OBJ := $(X86_64_BOOTSTRAP_DIR)/cooperative_scheduler.o
 X86_64_FP_OBJ := $(X86_64_BOOTSTRAP_DIR)/fp_context.o
+X86_64_FAULT_OBJ := $(X86_64_BOOTSTRAP_DIR)/user_fault.o
+X86_64_FAULT_VECTOR ?= -1
+X86_64_FAULT_PHASE ?= 0
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
 X86_64_C_CORE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-c-core.elf
 X86_64_C_CORE_TEXT := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_text.bin
@@ -373,12 +376,15 @@ x86_64-bootstrap:
 	@$(AS) -f elf64 arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
 		-T config/x86_64_user_probe.ld -o $(X86_64_USER_PROBE_ELF) $(X86_64_USER_PROBE_OBJ)
-	@$(X86_64_CC) $(X86_64_USER_CFLAGS) -Iuserspace/sdk/include -c arch/x86_64/user/shell.c \
+	@$(X86_64_CC) $(X86_64_USER_CFLAGS) -Iuserspace/sdk/include \
+		-DX86_64_FAULT_VECTOR=$(X86_64_FAULT_VECTOR) -DX86_64_FAULT_PHASE=$(X86_64_FAULT_PHASE) \
+		-c arch/x86_64/user/shell.c \
 		-o $(X86_64_USER_SHELL_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T config/x86_64_user_shell.ld \
 		-o $(X86_64_USER_SHELL_ELF) $(X86_64_USER_SHELL_OBJ)
-	@$(AS) -f elf64 arch/x86_64/user/child.asm -o $(X86_64_USER_CHILD_OBJ)
+	@$(AS) -f elf64 -DX86_64_FAULT_VECTOR=$(X86_64_FAULT_VECTOR) \
+		-DX86_64_FAULT_PHASE=$(X86_64_FAULT_PHASE) arch/x86_64/user/child.asm -o $(X86_64_USER_CHILD_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T config/x86_64_user_child.ld \
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
@@ -412,12 +418,13 @@ x86_64-bootstrap:
 	@$(AS) -f elf32 arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
+	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(LD) -m elf_i386 -nostdlib --build-id=none --fatal-warnings \
 		-T $(X86_64_BOOTSTRAP_LDSCRIPT) -o $(X86_64_BOOTSTRAP_ELF) \
 		$(X86_64_BOOTSTRAP_OBJ) $(X86_64_EXCEPTION_OBJ) $(X86_64_TIMER_INTERRUPT_OBJ) \
 		$(X86_64_PHYSICAL_MEMORY_OBJ) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
-		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ)
+		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 
 check-syscall-abi:

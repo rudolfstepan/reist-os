@@ -2,6 +2,17 @@ BITS 64
 ; Lower 1072 bytes of this task's private stack, disjoint from argv/IPC.
 %define FP_STACK_BASE 0x00408000
 %include "arch/x86_64/user/fp_probe.inc"
+%ifndef X86_64_FAULT_VECTOR
+%define X86_64_FAULT_VECTOR -1
+%endif
+%ifndef X86_64_FAULT_PHASE
+%define X86_64_FAULT_PHASE 0
+%endif
+%macro FAULT_PROBE 1
+%if X86_64_FAULT_VECTOR >= 0 && X86_64_FAULT_PHASE = %1
+    jmp child_fault_probe
+%endif
+%endmacro
 
 REIST_SYS_EXIT equ 9
 REIST_SYS_GETPID equ 22
@@ -31,6 +42,7 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+    FAULT_PROBE 0
     mov eax, REIST_SYS_GETPID
     xor edi, edi
     xor esi, esi
@@ -102,6 +114,7 @@ _start:
     test rax, rax
     jnz .fail
     mov byte [rsp + 18], '7'
+    FAULT_PROBE 1
     mov eax, REIST_SYS_IPC_SEND
     mov rdi, r12
     mov rsi, rsp
@@ -134,6 +147,7 @@ _start:
     FP_CHECK
     test rax, rax
     jnz .fail
+    FAULT_PROBE 2
     mov eax, REIST_SYS_IPC_SEND
     mov rdi, r12
     mov rsi, rsp
@@ -176,6 +190,7 @@ _start:
     cmp rax, REIST_EBADF
     jne .fail
     mov edi, CHILD_STATUS
+    FAULT_PROBE 3
     jmp .exit
 .fail:
     mov edi, FAIL_STATUS
@@ -183,6 +198,42 @@ _start:
     mov eax, REIST_SYS_EXIT
     xor esi, esi
     xor edx, edx
+    syscall
+    FP_CHECK
+    ud2
+
+child_fault_probe:
+%if X86_64_FAULT_VECTOR = 0
+    xor edx, edx
+    xor eax, eax
+child_fault_instruction:
+    div eax
+%elif X86_64_FAULT_VECTOR = 3
+child_fault_instruction:
+    int3
+%elif X86_64_FAULT_VECTOR = 6
+child_fault_instruction:
+    ud2
+%elif X86_64_FAULT_VECTOR = 13
+child_fault_instruction:
+    mov rax, cr0
+%elif X86_64_FAULT_VECTOR = 14
+    xor eax, eax
+child_fault_instruction:
+    mov byte [rax], 1
+%elif X86_64_FAULT_VECTOR = 16
+    fninit
+    mov word [abs FP_STACK_BASE], 0x037e
+    fldcw [abs FP_STACK_BASE]
+    fldz
+    fldz
+    fdivp st1, st0
+child_fault_instruction:
+    fwait
+%endif
+    ; Reaching this means the expected exception did not occur: no fallback.
+    mov edi, FAIL_STATUS
+    mov eax, REIST_SYS_EXIT
     syscall
     FP_CHECK
     ud2
