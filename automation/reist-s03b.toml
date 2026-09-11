@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3j-x86_64-startup-arguments"
+active_id = "R8.3j1-x86_64-ipc-handoff"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -13,8 +13,24 @@ external_writes = false
 push = false
 
 [[packages]]
-id = "R8.3j-x86_64-startup-arguments"
+id = "R8.3j1-x86_64-ipc-handoff"
 status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native IPC admission and preemptible capability handoff"
+scope = "Authorized prerequisite on 2026-09-11 after R8.3j EXIT regression. Correct IPC ownership/handoff under preemption: validate user requests before effects, separate local request failures from trusted ownership corruption, handle empty/full queue and close/release races in the admitted pair. Preserve generations, bounded deadlines, independent terminal reap and old fault/status oracles. User fixtures must synchronize through admitted IPC state rather than rely on one YIELD as a publication barrier. General services/endpoint pools remain separate."
+allowed_files = ["automation/reist-s03b.toml","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/development/CURRENT_WORK.md","docs/development/PROJECT_STATUS.md","docs/architecture/X86_64_BOOTSTRAP.md","Makefile","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/ipc_admission.asm","arch/x86_64/proc/ipc_admission.h","arch/x86_64/user/child.asm","arch/x86_64/user/shell.c","scripts/build-x86_64-bootstrap.ps1","scripts/run_qemu_x86_64_ipc_handoff.py","test/test_x86_64_ipc_handoff.py","test/x86_64_ipc_handoff_host.c","test/test_x86_64_boot.py"]
+invariants = ["Existing REIST-v1 capability/message ABI, SysV AMD64 internal ABI and POSIX-named errno meanings; no Linux/POSIX IPC compatibility claim. Rights/handle/generation/buffer validation before effects; malformed user input cannot jump to kernel failure. Trusted state corruption stays fail-closed. No new user authority or kernel driver.","One endpoint, one140-byte queue and one sender/receiver waiter, existing generation-scoped records authoritative. One intrusive deadline membership per task, idempotent close/release/reap and snapshot ownership. No unbounded retries or waits, no IF masking across user code, no timer/budget enlargement. No YIELD-count-only repair of a kernel race.","Keep oneCPU/128MiB/4slots/256ticks/32samples and10s guests. Preserve all24 exit/24 fault/2busy/7context gates and i386 byteguard. New deterministic handoff regression exercises real production admission and queue/revocation orders. R8.3j saved as stash aed0d01b29cae7c9dd0d49100b6503b8ba135f7a, unaccepted, restored only after this package passes and commits. No agents/visible VM/push; R3.6b deferred."]
+targeted_tests = ["python test/test_x86_64_ipc_handoff.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_fault.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83j1-ipc/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83j1-ipc/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83j1-ipc/normal-guest.log","python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83j1-ipc/handoff","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83j1-ipc/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83j1-ipc/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83j1-ipc/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83j1-ipc/context","python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All14 groups. Actual private admission assembly O0/O2 with rights/pointer/header/size/error nonmutation checks and exhaustive bounded state choices. Real deterministic handoff guest proves preemption-compatible publication/revocation, local rejection of malformed or stale requests, exact two generations and complete reap. Old normal/exit/fault/busy/context guest receipts remain required. No evidence deletion or pass-by-retry. Inspect scope/queue/diff, commit then restore and revalidate R8.3j."
+stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for new authority, broader memory profile or services"]
+commit_message = "fix: contain native IPC requests across preemptible handoff"
+
+[[packages]]
+id = "R8.3j-x86_64-startup-arguments"
+status = "queued"
 phase = "post-s0"
 risk = "high"
 title = "Bounded real SPAWNV argument transport and System-V startup stack"

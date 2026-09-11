@@ -484,6 +484,29 @@ Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).
 
 ## R8.3j: tatsächliche begrenzte SPAWNV-Argumente
 
+Vorgezogene Voraussetzung R8.3j1, vom Nutzer am11. September nach Rückfrage
+freigegeben: Die Exitmatrix des Argumentkandidaten reproduziert Tick4 mit
+Kind-SEND_TIMEOUT nach erfolgreicher Eltern-DELEGATE-Rückkehr, aber vor der
+Eltern-SEND-Publikation. Der bisherige IPC-Probehandler springt dabei nach
+`scheduler_fail`. Das ist keine Kernelkorruption und kein argv-Fehler.
+Der Kandidat einschließlich seiner Dokumentation ist vollständig in Git-Stash
+`aed0d01b29cae7c9dd0d49100b6503b8ba135f7a` gesichert; alle Laufbelege bleiben
+unter `build/codex-agent/r83j-argv/`. R8.3j wird nicht als fertig markiert.
+
+R8.3j1 repariert die zusammenhängende IPC-Admission-/Übergabegrenze: geprüfte
+lokale Fehler vor Seiteneffekten, Nachrichten-/Capability-Publikation auch
+bei Präemption, volle/leere Queue und Widerruf vor/nach Senderwait. Bestehende
+REIST-v1-ABI und Ressourcenbudgets bleiben unverändert; keine erfundene
+POSIX-/Linux-IPC-Kompatibilität. Tatsächlicher privater Assemblykern O0/O2,
+deterministischer Gast für beide Reihenfolgen und alle bisherigen Gastoracles
+sind Pflicht. Zusätzliche YIELD-Zählung oder größere Deadlines ersetzen keine
+Reparatur. Vertrauenswürdige Ownershipkorruption bleibt fail-closed.
+
+Vierzehn eingefrorene Prüfgruppen stehen in der Queue. Nach ihrer erfolgreichen
+Abnahme und lokalem Commit wird R8.3j wiederhergestellt, mit den neuen
+IPC-Mechanismen abgeglichen und erneut vollständig abgenommen. Das ist eine
+freigegebene Paket-Neuordnung, keine zweite parallele Implementierung.
+
 Bestand `e5da029e`: SPAWNV verlangt exakt zwei Eingaben und token77, der
 Kindstack wird unabhängig davon aus Kernelkonstanten aufgebaut. Eine
 wiederverwendbare, tatsächlich mit Userdaten gespeiste Startupgrenze ersetzt
