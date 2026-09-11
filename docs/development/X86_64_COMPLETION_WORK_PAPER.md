@@ -4,6 +4,35 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3o: gemeinsamer validierter Adressraumaufbau
+
+Basis0e2d95c6. Der bestehende Taskaufbau benutzt den global gewählten
+ELF-Kontext direkt und lehnt gültige PF_R-Seiten ohne PF_X ab. Vor allgemeiner
+Programmzulassung wird diese Mappinggrenze zusammenhängend repariert:
+expliziter physischer Plan statt Rollen-/Parserabhängigkeit im Mappingkern.
+
+Privater192-Byte-Plan: vier Tabellenframes, acht Quellframes mit ELF-Flags,
+acht optionale private Schreibframes, Stack und zwei bestehende geschützte
+Kernel-PML4-Einträge. System V AMD64; Intel64-Vier-Level-Paging. Alle maximal
+21 nichtleeren Frames, Flagklassen, Überläufe, Eindeutigkeit, Pointerabbildungen
+und leeren Zielseiten vor dem ersten Schreibeffekt prüfen. RX und R bleiben
+geteilt und schreibgeschützt; R ist NX. RW wird privat kopiert und ist NX,
+ebenso der private Stack. Lücken/Guards bleiben ungemappt, Kernel bleibt
+Supervisor-only. Bestehende Quoten, Claim-/Rollback-/Reap- und Bildlebensdauer
+bleiben bestehen; keine Allokation oder ELF-Policy im gemeinsamen Mappingkern.
+
+Reihenfolge: echte R-Daten-Fixture als erhaltene Vorher-Regression; tatsächlichen
+Assemblykern mit kontrolliertem Hostbackend O0/O2 und Nichtmutation prüfen;
+alle bisherigen Taskaufbauten anbinden. Drei exklusive reine User-Fixtures
+beweisen R-Lesen, abgefangenen Schreibzugriff auf R und abgefangene Ausführung
+von R/NX, je zwei Generationen und weiterlaufende Eltern-Shell. Read-only-
+Gastbelege prüfen die echten Tabellen und Privat-/Sharedbesitz zusätzlich.
+Danach sämtliche22 bisherigen Gruppen; insgesamt24 eingefrorene Gategruppen.
+Belege build/codex-agent/r83o-mappings; normaler Usercode bleibt bytegleich.
+Dies ersetzt noch keine allgemeine Eltern-/Supervisor-Recovery oder native
+Dienste. Unverändert1CPU/128MiB/vier Slots/zwei Kinder und alle Zeitlimits;
+R3.6b bleibt zurückgestellt, keine vollständige64-Bit-Fertigmeldung.
+
 ## R8.3n: unabhängige Lebensdauer gestagter Programmabbilder
 
 Basisb9b82a5a: Der ELF-Cleanup vergleicht nach Freigabe noch mit dem globalen
