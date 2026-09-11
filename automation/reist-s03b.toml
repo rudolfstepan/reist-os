@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3e-x86_64-task-identity-lifecycle"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3e-x86_64-task-identity-lifecycle"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native task identity reservation, publication and generation-safe retirement"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All9 groups. Actual assembly O0/O2 host proof for capacity1/4/64, reserve/publish/terminal release/construction rollback, stale/high-bit/duplicate/corrupt/live-resource nonmutation, monotonic reuse and UINT32_MAX exhaustion including rollback. Native parent/children are allocated by same core; exact reserved/ready/free/tombstone receipts checked internally before old guest success. Normal guest and all24 fault cases/48 generations, previous queue/FP/bootstrap contracts, docs and i386 guard pass. Rollback identity host proof is not general native OOM/supervisor recovery acceptance. Inspect scope/queue/diff before local commit, then continue under the interactive directive."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for new public authority or unbounded identity reuse"]
 commit_message = "feat: add generation-safe native task identity lifecycle"
-evidence = []
+evidence = ["python test/test_x86_64_identity.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_queue.py -v","python test/test_x86_64_fp.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83e-identity/normal-final","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83e-identity/normal-final/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83e-identity/normal-final-guest.log","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83e-identity/matrix","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All9 groups passed. Identity2/2.578s actual O0/O2 assembly capacities1/4/64,128 reuse rounds, exhaustion/rollback, stale/duplicate/resource nonmutation. Bootstrap55/0.034s, Queue2/1.033s, FP2/0.834s and docs. Final normal build165008 bytes and unchanged dialogue passed. Matrix24 real faults/48 generations57.553s, attempt-1fb6a192df824a1882c2df83ccaca08a. i386 guard4.365s, no image/benchmark drift. Evidence build/codex-agent/r83e-identity; red missing core, obsolete READY assertion, actual guest profile admission expecting FREE and tombstone collision regression retained. Final normal uses new normal-final directory/log only to preserve failed evidence; gates unchanged otherwise. General task/endpoint/OOM/supervisor admission and full64-bit remain open, R341-H1/H2 open and R3.6b deferred despite formal queue transition. Continue next verified transaction under interactive directive."
 
 [[packages]]
 id = "R8.3d-x86_64-scheduler-queue-core"
@@ -2759,7 +2760,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

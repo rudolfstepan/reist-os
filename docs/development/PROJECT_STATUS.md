@@ -19,6 +19,11 @@ Testrollen: privater rollenunabhängiger Queuekern, vollständige begrenzte
 Validierung, exakte Generationen und gemeinsame Entnahme/Entfernung. Alle
 neun Gruppen einschließlich24 Fehlgästen bestanden; Kapazität64 am Host
 geprüft, Gastbudget weiterhin4 Tasks. Allgemeine Prozesszulassung bleibt offen.
+R8.3e ergänzt monotone Taskreservierung, Veröffentlichung nach vollständigem
+Aufbau und generationsgenaues Retirement im tatsächlichen Shell-Lifecycle.
+Rollback verbraucht Generationen, Überlauf wird abgewiesen, Tombstones sind
+eindeutig und geben keine Ressourcenrechte. Alle neun Gruppen einschließlich
+24 Fehlgästen/48 Generationen bestanden; allgemeine Zulassung bleibt offen.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

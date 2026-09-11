@@ -304,3 +304,13 @@ bestehende Bootstrap-/Queue-/FP-/Dokutests, Normalbuild/-gast und24 Faultgäste,
 i386-Imageguard. Gast weiterhin4 Tasks/128MiB/eine CPU/maximal10s. Belege unter
 `build/codex-agent/r83e-identity/`. Allgemeine Prozess-/OOM-/Supervisorfreigabe
 und Speicher-/Dienstportierung bleiben offen. Keine Gesamtfertigmeldung.
+
+Abnahme R8.3e: alle neun Gruppen bestanden. Echte Shell-/Kindgenerationen
+benutzen denselben Kern wie der O0/O2-Hosttest; die abschließende Gastprüfung
+verlangt Nullrecords und exakt passende Retirementvermerke. Kapazitäten1/4/64,
+Wiederverwendung, Erschöpfung, Rollback und negative Snapshotprüfungen bestehen.
+Auch Kollisionen zwischen aktiven und retired Generationen oder zwei Tombstones
+werden vor Mutation abgewiesen; begrenzt quadratische Prüfung bei höchstens64
+Slots. Normalgast,24 Fehlvarianten/48 Generationen und i386-Imageguard grün.
+Fehlversuche und finale Belege getrennt erhalten; siehe
+[CURRENT_WORK](CURRENT_WORK.md). Der allgemeine Kernel-Lifecycle bleibt offen.

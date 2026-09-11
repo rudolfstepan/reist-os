@@ -9,6 +9,7 @@ extern x86_64_fp_restore64
 extern x86_64_fp_reset64
 extern x86_64_user_fault_status64
 extern reist_x64_queue_apply
+extern reist_x64_identity_apply
 
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
@@ -62,6 +63,7 @@ TASK_PREEMPTED             equ 5
 TASK_BLOCKED               equ 6
 TASK_WAITING               equ 7
 TASK_ZOMBIE                equ 8
+TASK_RESERVED              equ 9
 TASK_A_GENERATION          equ 1
 TASK_B_GENERATION          equ 2
 TASK_A_ID                  equ 0x0A
@@ -722,6 +724,13 @@ x86_64_process_shell64:
     mov ecx, (scheduler_state_end - scheduler_state_begin) / 8
     rep stosq
     mov byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    ; A fresh bounded namespace for this admitted shell-control instance.
+    lea rax, [rel scheduler_tasks]
+    mov qword [rel scheduler_identity_pool], rax
+    lea rax, [rel scheduler_identity_retired]
+    mov qword [rel scheduler_identity_pool + 8], rax
+    mov dword [rel scheduler_identity_pool + 16], TASK_SLOT_CAPACITY
+    mov dword [rel scheduler_identity_pool + 20], TASK_SHELL_GENERATION - 1
     mov qword [rel scheduler_caller_rsp], rsp
     mov rax, cr3
     mov qword [rel scheduler_original_cr3], rax
@@ -752,7 +761,8 @@ x86_64_process_shell64:
     test eax, eax
     jz scheduler_fail
     lea r12, [rel scheduler_tasks]
-    mov qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
+    cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
+    jne scheduler_fail
     mov qword [r12 + TASK_ID], TASK_SHELL_ID
     xor edi, edi
     mov esi, TASK_SHELL_GENERATION
@@ -760,7 +770,12 @@ x86_64_process_shell64:
     call scheduler_install_shell_syscall_profile64
     test eax, eax
     jz scheduler_fail
-    mov qword [r12 + TASK_STATE], TASK_READY
+    xor edi, edi
+    mov esi, TASK_SHELL_GENERATION
+    mov eax, 2
+    call scheduler_identity_apply64
+    test eax, eax
+    jz scheduler_fail
     mov al, EVENT_SHELL_READY
     call scheduler_append_event64
     xor edi, edi
@@ -880,6 +895,36 @@ x86_64_process_runqueue_selftest64:
     mov byte [rel scheduler_active], 1
     call scheduler_runqueue_dispatch64
     jmp scheduler_fail
+
+; EAX operation, EDI slot, RSI generation; RAX result only. No user pointer.
+scheduler_identity_apply64:
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    and rsp, -16
+    mov rcx, rsi
+    mov edx, edi
+    mov esi, eax
+    lea rdi, [rel scheduler_identity_pool]
+    call reist_x64_identity_apply
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
 
 ; Adapter: EDI slot, RSI generation, RDX tick, EAX operation, R9D kind.
 ; Preserve caller registers except RAX. The descriptor lives only on the
@@ -3628,7 +3673,8 @@ scheduler_shell_spawn_validated64:
     mov eax, dword [rel scheduler_dynamic_spawn_count]
     add eax, TASK_SHELL_CHILD_GEN
     mov r14d, eax
-    mov qword [r12 + TASK_GENERATION], rax
+    cmp qword [r12 + TASK_GENERATION], rax
+    jne scheduler_fail
     mov qword [r12 + TASK_ID], TASK_SHELL_CHILD_ID
     mov qword [r12 + TASK_RDI], 0
     mov edi, 1
@@ -3637,7 +3683,12 @@ scheduler_shell_spawn_validated64:
     call scheduler_install_shell_syscall_profile64
     test eax, eax
     jz scheduler_fail
-    mov qword [r12 + TASK_STATE], TASK_READY
+    mov edi, 1
+    mov esi, r14d
+    mov eax, 2
+    call scheduler_identity_apply64
+    test eax, eax
+    jz scheduler_fail
     mov byte [rel scheduler_dynamic_child_active], 1
     mov dword [rel scheduler_dynamic_child_generation], r14d
     mov dword [rel scheduler_dynamic_parent_generation], TASK_SHELL_GENERATION
@@ -4852,7 +4903,7 @@ scheduler_install_shell_syscall_profile64:
     shl rax, 8
     lea r8, [rel scheduler_tasks]
     add r8, rax
-    cmp qword [r8 + TASK_STATE], TASK_FREE
+    cmp qword [r8 + TASK_STATE], TASK_RESERVED
     jne .fail
     cmp qword [r8 + TASK_GENERATION], rsi
     jne .fail
@@ -5940,10 +5991,10 @@ scheduler_build_task64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_DYNAMIC
     je .extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
-    jne .fail
+    jne .invalid
 .extended_slot:
     cmp edi, TASK_SLOT_CAPACITY
-    jae .fail
+    jae .invalid
 .slot_valid:
     mov ebx, edi
     mov eax, edi
@@ -5951,9 +6002,17 @@ scheduler_build_task64:
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_FREE
-    jne .fail
+    jne .invalid
     cmp qword [r12 + TASK_CR3], 0
-    jne .fail
+    jne .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    jne .reserved
+    mov eax, 1
+    xor esi, esi
+    call scheduler_identity_apply64
+    test rax, rax
+    jz .invalid
+.reserved:
     mov eax, ebx
     shl rax, 5
     lea r14, [rel scheduler_table_frames]
@@ -6205,6 +6264,15 @@ scheduler_build_task64:
     ret
 .fail:
     call scheduler_release_task_frames64
+    test eax, eax
+    jz .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    jne .invalid
+    mov edi, ebx
+    mov rsi, qword [r12 + TASK_GENERATION]
+    mov eax, 3
+    call scheduler_identity_apply64
+.invalid:
     xor eax, eax
     ret
 
@@ -6447,10 +6515,21 @@ scheduler_reap_terminal64:
     call scheduler_release_task_frames64
     test eax, eax
     jz .fail
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    jne .legacy_clear
+    mov edi, ebx
+    mov rsi, qword [r12 + TASK_GENERATION]
+    mov eax, 3
+    call scheduler_identity_apply64
+    test eax, eax
+    jz .fail
+    jmp .record_cleared
+.legacy_clear:
     mov rdi, r12
     xor eax, eax
     mov ecx, TASK_RECORD_SIZE / 8
     rep stosq
+.record_cleared:
     mov al, r15b
     call scheduler_append_event64
     inc dword [rel scheduler_reap_count]
@@ -6758,6 +6837,23 @@ scheduler_verify_final_events64:
     repe cmpsb
     jne .fail
 .task_records:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    jne .terminal_receipt
+    xor eax, eax
+    xor edi, edi
+    xor esi, esi
+    call scheduler_identity_apply64
+    test eax, eax
+    jz .fail
+    cmp dword [rel scheduler_identity_pool + 20], TASK_SHELL_CHILD_GEN2
+    jne .fail
+    cmp dword [rel scheduler_identity_retired], TASK_SHELL_GENERATION
+    jne .fail
+    cmp dword [rel scheduler_identity_retired + 4], TASK_SHELL_CHILD_GEN2
+    jne .fail
+    cmp qword [rel scheduler_identity_retired + 8], 0
+    jne .fail
+.terminal_receipt:
     cmp qword [rel scheduler_child_terminal_generation], 0
     jne .fail
     cmp qword [rel scheduler_child_terminal_status], 0
@@ -7175,6 +7271,10 @@ scheduler_newline db 13, 10, 0
 section .bss
 alignb 16
 scheduler_state_begin:
+scheduler_identity_pool:
+    resb 24
+scheduler_identity_retired:
+    resd TASK_SLOT_CAPACITY
 scheduler_syscall_context:
     resq 2
 scheduler_original_cr3:

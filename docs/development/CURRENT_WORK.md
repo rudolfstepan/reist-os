@@ -2,6 +2,40 @@
 
 Stand: 11. September 2026
 
+## R8.3e: generationgebundene native Taskidentitäten
+
+Vertrag `6ece2074`, Queuekernbasis `af0a07b4`. Shell und Kinder reservieren
+Generationen über denselben privaten Assemblykern wie die Hosttests. Die
+256-Byte-Taskrecords bleiben die einzige Zustandsautorität. RESERVED9 ist
+nicht lauffähig; READY folgt erst nach Frame-/Kontextaufbau und Profilzulassung.
+Retirement folgt auf IPC-/Profil-Fencing und vollständige Ressourcenfreigabe.
+Ein exakter Tombstone erlaubt Wiederholung nur bei weiterhin freiem Slot.
+Kein Generationsüberlauf; auch Rollback verbraucht seine Identität. Ein neuer
+Pool definiert einen neuen Namespace, kein Resetrecht für lebende Handles.
+
+Alle neun Gruppen bestanden: Identität2/2.578s (echtes Assembly O0/O2,
+Kapazitäten1/4/64,128 Wiederverwendungsrunden, Rollback, Erschöpfung und
+negative Snapshotprüfungen), Bootstrap55/0.034s, Queue2/1.033s, FP2/0.834s
+und Dokumentation. Eine ergänzte rote Regression deckte doppelte Generationen
+zwischen aktiven Slots und Tombstones auf; auch diese werden jetzt abgewiesen.
+Vollständige Poolprüfung begrenzt quadratisch, maximal64 Slots; im Gast4.
+
+Finaler Normalbuild und alter INFO/RUN/RUN/EXIT-Gast bestanden: Bootstrap
+165008 Bytes, Probe12312, Shell3680, Kind1824. Alle24 echten CPU-Fehlvarianten
+mit48 Generationen bestehen in57.553s. Finale Matrix:
+`build/codex-agent/r83e-identity/matrix/attempt-1fb6a192df824a1882c2df83ccaca08a/`.
+Normalbelege: `build/codex-agent/r83e-identity/normal-final/` und
+`normal-final-guest.log`; nur neue Belegpfade statt Überschreiben erster
+Fehlversuche. Die ursprüngliche Profilaufnahme erwartete noch FREE statt
+RESERVED; korrigierte Aufnahme bleibt vor READY. Alte Gastanforderungen sind
+unverändert. i386-Imageguard4.365s, keine Image-/Benchmarkänderungen.
+
+Allgemeine Prozess-/Endpoint-/Supervisorzulassung, native OOM-Recovery und
+die vollständige64-Bit-Version bleiben offen. Hostkapazität64 ist keine
+Gastkapazitätsfreigabe. R341-H1/H2 und die ausdrückliche Zurückstellung von
+R3.6b bleiben bestehen. Nach geprüftem Commit folgt die nächste saubere
+Pakettransaktion ohne routinemäßige Gesprächsunterbrechung.
+
 ## R8.3d: nativer Ready-/Deadline-Kern herausgelöst
 
 Basis `bf471ba3`, Vertragscheckpoint `d5048228`. Die tatsächlich benutzte

@@ -50,6 +50,18 @@ explizite32-Bit-Packung, höhere Bits werden nicht abgeschnitten. Vergabe und
 Taskzustand, Rechte und bisherige Probeabnahme bleiben im Bootstrapadapter;
 die neuen Mechanismen sind noch keine allgemeine Scheduler-/Systemabnahme.
 
+R8.3e ergänzt einen privaten24-Byte-Identitätspool über den vorhandenen
+Taskrecords, ohne zweite Zustandstabelle. Shell und Kinder reservieren eine
+monotone Generation32 vor Frameaufbau (RESERVED9) und werden erst nach
+Profil-/Kontextprüfung READY. Retirement oder Aufbaurücknahme verlangt bereits
+freigegebene Ressourcen; ein exakter Tombstone erlaubt idempotente Wiederholung
+nur bei weiterhin freiem Slot. Kein Wrap, keine doppelten aktiven oder retired
+Identitäten. Vollständige Prüfung begrenzt quadratisch bei maximal64 Slots,
+Gast weiterhin4; IF=0/eine CPU, keine Allokation oder öffentliche ABI. Ein
+neuer Pool ist ein neuer Namespace, kein Resetrecht für lebende Handles.
+Host O0/O2, Normalgast und24 Fehlvarianten/48 Generationen abgenommen; keine
+allgemeine Prozesszulassung, OOM-/Supervisor-Recovery oder Systemfreigabe.
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im
