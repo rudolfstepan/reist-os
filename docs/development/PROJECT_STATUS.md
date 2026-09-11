@@ -14,6 +14,11 @@ Deadline-Fencing, Reap und generationgebundenem WAIT:24 echte Fehlerfälle,
 48 Kindgenerationen, alle neun Prüfgruppen bestanden. Der allgemeine,
 nicht an Testprozesse gebundene Lifecycle und native Anwendungsfreigabe fehlen
 weiterhin; #XM/#AC benötigen noch echte Zielhardware-Ausnahmeabnahme.
+R8.3d löst die tatsächlich verwendeten Ready-/Deadline-Mechanismen aus den
+Testrollen: privater rollenunabhängiger Queuekern, vollständige begrenzte
+Validierung, exakte Generationen und gemeinsame Entnahme/Entfernung. Alle
+neun Gruppen einschließlich24 Fehlgästen bestanden; Kapazität64 am Host
+geprüft, Gastbudget weiterhin4 Tasks. Allgemeine Prozesszulassung bleibt offen.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

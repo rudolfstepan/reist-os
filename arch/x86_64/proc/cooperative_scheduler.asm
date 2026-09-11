@@ -8,6 +8,7 @@ extern x86_64_fp_save64
 extern x86_64_fp_restore64
 extern x86_64_fp_reset64
 extern x86_64_user_fault_status64
+extern reist_x64_queue_apply
 
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
@@ -880,7 +881,60 @@ x86_64_process_runqueue_selftest64:
     call scheduler_runqueue_dispatch64
     jmp scheduler_fail
 
-; EDI slot, ESI generation. Validation is complete before any queue byte moves.
+; Adapter: EDI slot, RSI generation, RDX tick, EAX operation, R9D kind.
+; Preserve caller registers except RAX. The descriptor lives only on the
+; kernel stack; generic code owns queue mutation, not task/profile policy.
+scheduler_queue_apply64:
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    sub rsp, 32
+    and rsp, -16
+    mov [rsp + 28], r9d
+    mov dword [rsp + 24], TASK_SLOT_CAPACITY
+    mov r10d, eax
+    test r9d, r9d
+    jnz .deadline
+    lea r9, [rel scheduler_runqueue_entries]
+    mov [rsp], r9
+    lea r9, [rel scheduler_runqueue_membership]
+    mov [rsp + 8], r9
+    lea r9, [rel scheduler_runqueue_head]
+    jmp .descriptor
+.deadline:
+    lea r9, [rel scheduler_deadline_entries]
+    mov [rsp], r9
+    lea r9, [rel scheduler_deadline_membership]
+    mov [rsp + 8], r9
+    lea r9, [rel scheduler_deadline_count]
+.descriptor:
+    mov [rsp + 16], r9
+    mov r8, rdx
+    mov rcx, rsi
+    mov rdx, rdi
+    mov esi, r10d
+    mov rdi, rsp
+    call reist_x64_queue_apply
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
+
+; EDI slot, ESI generation. Task policy stays in this bootstrap adapter.
 scheduler_runqueue_enqueue64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .mode_valid
@@ -906,27 +960,15 @@ scheduler_runqueue_enqueue64:
     lea rdx, [rel scheduler_runqueue_membership]
     cmp byte [rdx + rdi], 0
     jne .fail
+    lea rdx, [rel scheduler_deadline_membership]
+    cmp byte [rdx + rdi], 0
+    jne .fail
     movzx ecx, byte [rel scheduler_runqueue_count]
     cmp ecx, RUNQUEUE_CAPACITY
     jae .fail
-    movzx ecx, byte [rel scheduler_runqueue_tail]
-    cmp ecx, RUNQUEUE_CAPACITY
-    jae .fail
-    lea rdx, [rel scheduler_runqueue_entries]
-    cmp qword [rdx + rcx * 8], 0
-    jne .fail
-    mov rax, rsi
-    shl rax, 32
-    mov r10d, edi
-    or rax, r10
-    mov qword [rdx + rcx * 8], rax
-    lea rdx, [rel scheduler_runqueue_membership]
-    mov byte [rdx + rdi], 1
-    inc ecx
-    and ecx, RUNQUEUE_CAPACITY - 1
-    mov byte [rel scheduler_runqueue_tail], cl
-    inc byte [rel scheduler_runqueue_count]
     mov eax, 1
+    xor r9d, r9d
+    call scheduler_queue_apply64
     ret
 .fail:
     xor eax, eax
@@ -974,19 +1016,15 @@ scheduler_runqueue_dequeue64:
     lea rdx, [rel scheduler_runqueue_membership]
     cmp byte [rdx + r8], 1
     jne .fail
-    mov qword [r12 + rcx * 8], 0
-    mov byte [rdx + r8], 0
-    inc ecx
-    and ecx, RUNQUEUE_CAPACITY - 1
-    mov byte [rel scheduler_runqueue_head], cl
-    dec byte [rel scheduler_runqueue_count]
-    cmp byte [rel scheduler_runqueue_count], 0
-    jne .dequeue_done
-    mov byte [rel scheduler_runqueue_head], 0
-    mov byte [rel scheduler_runqueue_tail], 0
-.dequeue_done:
-    mov eax, r8d
-    mov edx, r9d
+    lea rdx, [rel scheduler_deadline_membership]
+    cmp byte [rdx + r8], 0
+    jne .fail
+    mov eax, 2
+    xor r9d, r9d
+    call scheduler_queue_apply64
+    mov rdx, rax
+    shr rdx, 32
+    mov eax, eax
     ret
 .fail:
     xor eax, eax
@@ -1062,55 +1100,15 @@ scheduler_deadline_insert64:
     lea r8, [rel scheduler_deadline_membership]
     cmp byte [r8 + rdi], 0
     jne .fail
+    lea r9, [rel scheduler_runqueue_membership]
+    cmp byte [r9 + rdi], 0
+    jne .fail
     movzx ecx, byte [rel scheduler_deadline_count]
     cmp ecx, TASK_SLOT_CAPACITY
     jae .fail
-    xor eax, eax
-.find:
-    cmp eax, ecx
-    jae .shift
-    mov r9d, eax
-    shl r9, 4
-    lea r10, [rel scheduler_deadline_entries]
-    add r10, r9
-    cmp rdx, qword [r10]
-    jb .shift
-    ja .next
-    movzx r9d, byte [r10 + 12]
-    cmp edi, r9d
-    jb .shift
-.next:
-    inc eax
-    jmp .find
-.shift:
-    mov r9d, ecx
-.shift_loop:
-    cmp r9d, eax
-    jbe .store
-    mov r10d, r9d
-    dec r10d
-    shl r10, 4
-    lea r11, [rel scheduler_deadline_entries]
-    add r11, r10
-    mov r13, qword [r11]
-    mov r14, qword [r11 + 8]
-    mov qword [r11 + 16], r13
-    mov qword [r11 + 24], r14
-    dec r9d
-    jmp .shift_loop
-.store:
-    mov r9d, eax
-    shl r9, 4
-    lea r10, [rel scheduler_deadline_entries]
-    add r10, r9
-    mov qword [r10], rdx
-    mov dword [r10 + 8], esi
-    mov byte [r10 + 12], dil
-    mov byte [r10 + 13], 0
-    mov word [r10 + 14], 0
-    mov byte [r8 + rdi], 1
-    inc byte [rel scheduler_deadline_count]
     mov eax, 1
+    mov r9d, 1
+    call scheduler_queue_apply64
     ret
 .fail:
     xor eax, eax
@@ -1122,16 +1120,22 @@ scheduler_deadline_remove_shell_receive64:
     call scheduler_validate_shell_receive_deadline64
     test eax, eax
     jz .fail
-    lea r10, [rel scheduler_deadline_entries]
-    mov qword [r10], 0
-    mov qword [r10 + 8], 0
-    mov byte [rel scheduler_deadline_membership], 0
-    mov byte [rel scheduler_deadline_count], 0
-    mov eax, 1
+    push rdi
+    push rsi
+    xor edi, edi
+    mov esi, TASK_SHELL_GENERATION
+    call scheduler_deadline_remove_exact64
+    pop rsi
+    pop rdi
     ret
 .fail:
     xor eax, eax
     ret
+
+scheduler_deadline_remove_exact64:
+    mov eax, 3
+    mov r9d, 1
+    jmp scheduler_queue_apply64
 
 scheduler_validate_shell_receive_deadline64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
@@ -1225,13 +1229,10 @@ scheduler_deadline_remove_shell_send64:
     je .slot_ready
     mov edi, 1
 .slot_ready:
-    lea r10, [rel scheduler_deadline_entries]
-    mov qword [r10], 0
-    mov qword [r10 + 8], 0
-    lea r10, [rel scheduler_deadline_membership]
-    mov byte [r10 + rdi], 0
-    mov byte [rel scheduler_deadline_count], 0
-    mov eax, 1
+    push rsi
+    mov rsi, r14
+    call scheduler_deadline_remove_exact64
+    pop rsi
     ret
 .fail:
     xor eax, eax
@@ -1332,26 +1333,9 @@ x86_64_scheduler_deadline_tick64:
     lea r8, [rel scheduler_deadline_membership]
     cmp byte [r8 + rdi], 1
     jne .fail
-    mov byte [r8 + rdi], 0
-    mov r9d, 1
-.shift_left:
-    cmp r9d, ecx
-    jae .clear_last
-    mov r11d, r9d
-    shl r11, 4
-    mov r13, qword [r10 + r11]
-    mov r14, qword [r10 + r11 + 8]
-    mov qword [r10 + r11 - 16], r13
-    mov qword [r10 + r11 - 8], r14
-    inc r9d
-    jmp .shift_left
-.clear_last:
-    dec ecx
-    mov r9d, ecx
-    shl r9, 4
-    mov qword [r10 + r9], 0
-    mov qword [r10 + r9 + 8], 0
-    dec byte [rel scheduler_deadline_count]
+    call scheduler_deadline_remove_exact64
+    test eax, eax
+    jz .fail
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     je .shell_timeout
     mov qword [r12 + TASK_STATE], TASK_READY

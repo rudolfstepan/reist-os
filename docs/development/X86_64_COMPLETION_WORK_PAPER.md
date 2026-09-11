@@ -251,3 +251,14 @@ Stress; bestehende Bootstrap-/FP-/Fault-/Dokutests, Normalbuild/Normalgast,
 Pflicht; nur überholte Quellassertions werden auf Mechanismus plus Adapter
 umgestellt. Belege `build/codex-agent/r83d-queue/`, kein Überschreiben alter
 Fehlläufe. Keine SMP-/beliebige-Prozess-/vollständige64-Bit-Freigabe daraus.
+
+Abnahme: R8.3d ist mit neun Gruppen abgeschlossen. Tatsächliche FIFO- und
+Deadlineverbraucher einschließlich Timeout/Cancel/Fault-Retirement rufen den
+gleichen Kern wie der native Hosttest auf; es bleibt keine zweite aktive
+Queueimplementierung. Modellnachweis je96.000 Operationen bei O0/O2,
+Kapazitäten1/3/4/64 und sämtliche24 bisherigen CPU-Fehlvarianten bestanden.
+Alter Normalgast und i386-Images bleiben gültig. Generationen werden hier
+validiert, nicht vergeben; spätere Wiederverwendung muss weiterhin gegen
+Überlauf abgesichert werden. Die vollständige Queueprüfung ist linear in der
+konfigurierten Kapazität, alle Mutationen bleiben begrenzt. Belege und bewusst
+offene Prozess-/Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).

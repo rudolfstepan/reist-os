@@ -2,6 +2,50 @@
 
 Stand: 11. September 2026
 
+## R8.3d: nativer Ready-/Deadline-Kern herausgelöst
+
+Basis `bf471ba3`, Vertragscheckpoint `d5048228`. Die tatsächlich benutzte
+Ready-FIFO sowie sortierte Deadlineaufnahme und generationsgenaue Entfernung
+liegen jetzt gemeinsam in `arch/x86_64/proc/queue_core.asm`. Der Kern kennt
+keine Testmodi, PIDs oder IPC-Token. Task-/Profil-/Tickregeln bleiben im
+Bootstrapadapter; dieser verhindert zugleich Ready-/Deadline-Doppelbesitz.
+Keine zweite parallele Queue, keine Heapallokation, kein I/O oder Logging.
+Privater32-Byte-Descriptor, Aufruf über einen ausgerichteten Kernelstack;
+der Adapter erhält seine bisherigen Register-/Taskdatenlayouts.
+
+Der Mechanismus prüft vor Mutation die vollständige Queueform, Kapazität,
+Leerstellen, eindeutige Mitgliedschaft und Generation. FIFO-Aufnahme/Pop
+verschieben keine übrigen Einträge; beliebige Entfernung und Deadlines
+kompaktieren begrenzt. Validierung ist O(Kapazität), maximal64, im Gast4.
+Nichtpotenz-Kapazitäten sind zulässig. Generation32 bleibt explizit: obere
+Bits werden abgewiesen, keine Generation wird vom Queuekern vergeben oder
+inkrementiert. Der spätere Prozessallocator muss Wiederverwendung/Überlauf
+weiterhin selbst sicher ausschließen; kein neues Generations-Wraprecht.
+
+Alle neun Gruppen bestanden: Queue2/0.991s, darunter derselbe echte
+Assemblycode mit C-Aufrufern O0/O2, Kapazitäten1/3/4/64, je96.000 modellierte
+Operationen, FIFO-Wrap/Fairness, Deadlinereihenfolge und Gleichstände,
+stale/duplicate/full/corrupt-Abweisung ohne Mutation.55 Bootstraptests/0.028s,
+FP2/0.865s, Fault3/0.846s und Dokumentation. Zwei alte Quellassertions wurden
+von der verschobenen Store-Instruktion auf Adapteraufruf plus Kernprüfung
+umgestellt; alte Gastnachweise blieben unverändert. Die rote Auswertung ist
+erhalten, keine Gatebedingung entfernt.
+
+Normalbuild und INFO/RUN/RUN/EXIT-Gast bestehen ohne Reparaturrunde; Bootstrap
+163680 Bytes, Probe12312, Shell3680, Kind1824. Alle24 tatsächlichen CPU-
+Fehlvarianten/48 Kindgenerationen bestehen mit den neuen Queues in57.147s.
+Matrix: `build/codex-agent/r83d-queue/matrix/attempt-150a44aa7e31437fbd188236539ff1a2/`.
+Übrige Belege unter `build/codex-agent/r83d-queue/`; Hostläufe in eindeutigen
+Unterordnern. Pro Gast weiter eine CPU/128MiB und maximal10s. i386-Imageguard
+4.246s bestanden, kein i386-Neubuild oder Image-/Benchmarkprogrammwechsel.
+Keine neue Performance-/VMware-/SMP-Zusage aus diesen Funktionsprüfungen.
+
+Offen bleiben allgemeine Task-/Endpoint-Zulassung, Scheduling-/Supervisor-
+Policy außerhalb der Testrollen, skalierbarer Speicher und native Dienste/
+Anwendungen. Kapazität64 im Hosttest ist keine Freigabe für64 Gastprozesse.
+Die vollständige64-Bit-Version bleibt offen. R341-H1/H2 und die ausdrückliche
+R3.6b-Zurückstellung bleiben unverändert, trotz formaler Queue-Aktivierung.
+
 ## R8.3c: native Kindprozessfehler abgefangen
 
 Basis `473ce58c`, eingefrorener Vertrag `e23f8d3c`. Der Shell-Kindprozess

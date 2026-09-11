@@ -1161,7 +1161,7 @@ class X8664BootstrapContractTests(unittest.TestCase):
         self.assertIn("scheduler_runqueue_dequeue64:", scheduler)
         self.assertIn("scheduler_runqueue_dispatch64:", scheduler)
         enqueue = scheduler.index("scheduler_runqueue_enqueue64:")
-        publish = scheduler.index("mov qword [rdx + rcx * 8], rax", enqueue)
+        publish = scheduler.index("call scheduler_queue_apply64", enqueue)
         for validation in (
             "cmp qword [r12 + TASK_GENERATION], rsi",
             "cmp qword [r12 + TASK_STATE], TASK_READY",
@@ -1169,6 +1169,12 @@ class X8664BootstrapContractTests(unittest.TestCase):
             "cmp ecx, RUNQUEUE_CAPACITY",
         ):
             self.assertLess(scheduler.index(validation, enqueue), publish)
+        self.assertLess(scheduler.index("lea rdx, [rel scheduler_deadline_membership]", enqueue), publish)
+        core = self.read("arch/x86_64/proc/queue_core.asm")
+        self.assertLess(core.index("call queue_validate"), core.index("mov [r9 + rcx*8], rax"))
+        self.assertIn("cmp ebx, r8d", core)
+        self.assertIn("bts rdi, rsi\n    jc .fail", core)
+        self.assertIn("cmp byte [r10 + r14], 0", core)
         self.assertIn("scheduler_verify_initial_runqueue64:", scheduler)
         self.assertIn("scheduler_runqueue_events:", scheduler)
         self.assertIn("runqueue_task_0:", probe)
@@ -1196,7 +1202,7 @@ class X8664BootstrapContractTests(unittest.TestCase):
         self.assertIn("resb TASK_SLOT_CAPACITY * 16", scheduler)
         self.assertIn("scheduler_deadline_insert64:", scheduler)
         insert = scheduler.index("scheduler_deadline_insert64:")
-        publish = scheduler.index("mov qword [r10], rdx", insert)
+        publish = scheduler.index("call scheduler_queue_apply64", insert)
         for validation in (
             "test rdx, rdx",
             "cmp rdx, DEADLINE_TICK_LIMIT",
@@ -1206,6 +1212,13 @@ class X8664BootstrapContractTests(unittest.TestCase):
             "cmp ecx, TASK_SLOT_CAPACITY",
         ):
             self.assertLess(scheduler.index(validation, insert), publish)
+        self.assertLess(scheduler.index("lea r9, [rel scheduler_runqueue_membership]", insert), publish)
+        core = self.read("arch/x86_64/proc/queue_core.asm")
+        self.assertLess(core.index("call queue_validate"), core.index("mov [r9 + rdx], rbp"))
+        self.assertIn("cmp rbp, [r9 + rdx]", core)
+        self.assertIn("cmp r14d, eax", core)
+        self.assertIn("cmp rax, r15", core)
+        self.assertIn("call scheduler_deadline_remove_exact64", scheduler)
         self.assertIn("x86_64_scheduler_deadline_tick64:", scheduler)
         self.assertIn("cmp ebx, TASK_SLOT_CAPACITY", scheduler)
         self.assertIn("scheduler_sleep_events:", scheduler)

@@ -36,6 +36,20 @@ Erwartungen, niemals den Kernelklassifikator. #XM/#AC nur Hostklassifikation,
 kein Zielhardwarebeleg. Das ist keine allgemeine Prozess- oder FP-Anwendungs-
 freigabe und keine vollständige64-Bit-Systemversion.
 
+R8.3d trennt FIFO und sortierte Deadlineaufnahme/-entfernung in einen privaten
+rollenunabhängigen Assemblykern. Derselbe Code läuft im Hostnachweis O0/O2
+und in sämtlichen bestehenden nativen Queueverbrauchern. Kernel-eigene,
+getrennte Arrays und ein32-Byte-Descriptor, unter IF=0 auf einer CPU
+serialisiert; kein öffentlicher Syscall und keine neue Prozessautorität.
+Die gesamte Queueform/Mitgliedschaft wird vor Mutation begrenzt überprüft.
+FIFO bleibt zyklisch, Deadlines sind nach Tick/Slot sortiert; Entfernung ist
+generationsgenau, fehlend/fremd/korrupt liefert null ohne Änderung. Interne
+Kapazität1..64, bestehendes Gastprofil weiterhin4; Generationen behalten ihre
+explizite32-Bit-Packung, höhere Bits werden nicht abgeschnitten. Vergabe und
+Überlaufsperre bleiben Aufgabe des Prozess-Lifecycles, nicht der Queue.
+Taskzustand, Rechte und bisherige Probeabnahme bleiben im Bootstrapadapter;
+die neuen Mechanismen sind noch keine allgemeine Scheduler-/Systemabnahme.
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im
