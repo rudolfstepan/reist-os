@@ -142,6 +142,8 @@ function Invoke-PythonProcess {
 
 $MsysShell = Resolve-NativeTool 'sh' @('C:\msys64\usr\bin\sh.exe')
 $MsysBin = Split-Path -Parent $MsysShell
+$Perl = Resolve-NativeTool 'perl' @((Join-Path $MsysBin 'perl.exe'))
+$Gperf = Resolve-NativeTool 'gperf' @((Join-Path $MsysBin 'gperf.exe'))
 
 $BuildDir = Join-Path $RepoRoot $OutputDirectory
 $ZigLocalCache = Join-Path $BuildDir 'zig-cache'
