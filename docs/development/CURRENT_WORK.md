@@ -2,12 +2,80 @@
 
 Stand: 11. September 2026
 
-## R8.3k: nichtterminale Aufruffehler in Umsetzung
+## R8.3k: lokale Aufruffehler und Kindübergabe abgenommen
+
+Basis `01ae89a9`, Vertrag `bd5cb57d`, freigegebener Fixture-Nachtrag
+`ad52c557`. Alle16 Prüfgruppen bestanden. READ/WRITE/GETPID/SPAWN/SPAWNV/
+WAIT trennen lokale Nutzerfehler von Kernelkorruption; Nulltransfer hat keine
+Puffer-/Geräte-/Zählerwirkung. Endpoint und Capabilities werden vor der ersten
+Spawnallokation geprüft. Privater80-Byte-Admissionkern, keine öffentliche ABI,
+keine neuen Prozessrechte und keine größeren Ressourcen-/Zeitbudgets.
+
+Die neue WAIT-Fixture erzwingt den Kindlauf vor SEND-Delegation. Ohne Korrektur
+führt dies nachweislich zu EACCES und dem eigenen UD2 des Testkindes; mit
+höchstens acht Sendversuchen und kooperativem YIELD besteht derselbe Ablauf.
+Die Eltern-Fixture behauptet nicht, dass SPAWN und DELEGATE atomar wären.
+Alle alten Status-/Generation-/Reap-Oracles bleiben erhalten.
+
+Host: tatsächlicher Assemblykern O0/O2, Nichtmutation und negative Gastoracles
+3 Tests/0.998s; Bootstrap55/0.031s, Startup4/1.275s, Exit3/0.952s,
+Context2/1.059s, Dokumentation. Normalbuild172964 Bytes und alter Dialog
+bestanden. Neue Aufrufgäste3/6 Generationen8.081s; Argumente4/8 in10.674s,
+IPC4/8 in12.058s, Exit24/48 in59.124s, Fault24/48 in63.072s,
+Busy2/4 in5.895s, Context7/14 in19.394s. i386-Byteguard5.212s bestanden.
+15 eigenständige Kernelmechanismusobjekte sind über73 Builds bytegleich,
+einschließlich aufbewahrter negativer Kontrollen. Gemischte Request-/IPC-
+Testmodi werden vor dem Build abgewiesen.
+
+Belege unter `build/codex-agent/r83k-requests/`: `10-requests-fixed.log`,
+`requests-fixed/attempt-01a356670e364911990073103cee35e9/`, Hostlogs und
+`11-argv.log` bis `21-mechanism-proof.log` mit eindeutigen Matrix-
+Verzeichnissen. Der alte Fehllauf und der erzwungene Vorher-Nachweis
+`09-forced-before-fix.log` bleiben erhalten; unauffällige Diagnoseläufe
+werden nicht als Abnahmeersatz verwendet. Die folgenden Grenzen bleiben:
+1CPU/128MiB/vier Slots/zwei Kinder, eingebettete Programme, Eltern-EXIT als
+Bootstrapabschluss. Allgemeine Prozesse, OOM-/Supervisor-Recovery, skalierbarer
+Speicher, native Dienste/Desktop/Browser und Systemabnahme sind noch offen.
+R3.6b bleibt zurückgestellt; R341-H1/H2 unverändert offen.
+
+## R8.3k: historische Blockade vor der freigegebenen Fixture-Reparatur
+
+Die nachfolgende Aufnahme ist historisch; der Nutzer hat die Erweiterung
+freigegeben, und der beschriebene Fehler ist oben mit Vorher-/Nachherbeleg
+abgenommen. Die ursprünglichen Diagnosen bleiben nachvollziehbar erhalten.
 
 Basis `01ae89a9`; neuer zusammenhängender Admissionvertrag für
 READ/WRITE/GETPID/SPAWN/SPAWNV/WAIT. Alle16 Prüfgruppen und15 erlaubten
-Dateien sind eingefroren; keine neuen Ressourcen oder Prozessrechte.
-R3.6b bleibt zurückgestellt. Noch keine Abnahme dieses Pakets.
+Dateien sind mit `bd5cb57d` eingefroren; keine neuen Ressourcen oder
+Prozessrechte. R3.6b bleibt zurückgestellt. Noch keine Abnahme oder
+Implementierungscommit dieses Pakets.
+
+Die produktive Admission ist umgesetzt: reiner80-Byte-Assemblykern,
+vollständige Quell-/Metadatenprüfung, lokale Aufruffehler und Endpointprüfung
+vor erster Spawnallokation. Tatsächlicher Host O0/O2 und Aufrufreihenfolge
+bestanden:2 Tests/0.906s. Normalbuild172964 Bytes und alter Normaldialog
+bestanden. Die ersten beiden neuen Gastfälle (Console/Startfehler) bestehen;
+der dritte WAIT-Fall scheitert in der zweiten Kindgeneration.
+
+Belege unter `build/codex-agent/r83k-requests/`: `01-request-host.log`,
+`02-normal-build.log`, `03-normal-result.log`, `04-requests.log` und
+`requests/attempt-17ccacf8441147bfb78b8f2df1a0c628/3/guest.log`.
+Das Kind erzeugt selbst UD2 an0x400539, nicht einen unerwarteten Kernelfehler.
+GDB reproduziert im Fehlerframe RAX=-13 (EACCES), nachdem der letzte globale
+Systemaufruf bereits Eltern-DELEGATE55 war: `06-fault-diagnostic.log` und
+`diagnostic-b466222705774b88848ea42659b22f7c/`. Die Ausgabe bricht erst bei
+der nachfolgenden Diagnose eines fälschlich als Taskpointer interpretierten
+User-R12 ab; Fehlerwert, Gast-RIP und Generation42 sind bereits separat
+aufgezeichnet. Weitere unauffällige Diagnosen sind ausdrücklich keine Abnahme.
+
+Die bisherige IPC-Kind-Fixture sendet ohne Synchronisierung nach SPAWN und
+verlangt sofort Erfolg. Eine Präemption vor Eltern-DELEGATE darf jedoch
+EACCES liefern. Diese legitime Ablehnung muss die Fixture über eine begrenzte
+Übergabe behandeln, nicht der Kernel durch implizite Rechte oder unterdrückte
+Präemption verstecken. Erforderliche Datei `arch/x86_64/user/child.asm` liegt
+außerhalb des eingefrorenen Pakets. Umfangsfreigabe dafür ist offen; keine
+stille Erweiterung und kein Commit des fehlgeschlagenen Kandidaten. Alle
+eigenen Änderungen und Fehlbelege bleiben sichtbar erhalten.
 
 ## R8.3j: Argumenttransport nach IPC-Reparatur abgenommen
 

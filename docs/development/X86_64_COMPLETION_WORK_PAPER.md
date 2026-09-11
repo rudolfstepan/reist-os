@@ -601,3 +601,24 @@ Dienste bleiben nachfolgende eigenständige Grenzen, nicht still erteilt.
 16 eingefrorene Gruppen inklusive echter O0/O2-Assemblyprüfung, drei realer
 Aufruffehler-Fixtures und sämtlicher alter Gastmatrizen. Neue Belege unter
 `build/codex-agent/r83k-requests/`; Commit erst nach vollständiger Abnahme.
+
+Historischer Abnahmestopp: Host und Normalgast bestehen, neue Console-/Spawnfälle ebenso.
+Die WAIT-Fixture zeigt in Generation42 eine tatsächliche frühe EACCES-Antwort,
+die das IPC-Testkind selbst mit UD2 beantwortet. SPAWN und die spätere
+Eltern-DELEGATE sind keine atomare Rechteübergabe; der Kernel darf ohne
+Capability keinen Sendzugriff gewähren. Eine begrenzte Übergabesynchronisierung
+in `arch/x86_64/user/child.asm` ist erforderlich, die Datei liegt aber außerhalb
+des eingefrorenen15-Dateien-Pakets. Freigabe steht aus, Kandidat bleibt
+uncommittet/aktiv; rote Belege und unauffällige Diagnosen bleiben getrennt.
+
+Freigegebener Nachtrag `ad52c557`: `arch/x86_64/user/child.asm` ist als
+16. Datei zugelassen. Alle16 Gategruppen bleiben unverändert. Das Kind darf
+frühe EACCES-Antworten bei höchstens acht Sendversuchen und kooperativem YIELD
+behandeln; der Kernel erteilt keinerlei implizite Rechte.
+
+Abnahme: alle16 Gruppen bestanden. Der erzwungene Kindlauf vor Delegation
+scheitert im Vorher-Bild und besteht mit der korrigierten Fixture. Neue
+Aufruffälle3/6 Generationen und alle alten Argument-/IPC-/Exit-/Fault-/Busy-/
+Contextmatrizen bestehen. Host O0/O2 plus Nichtmutation/Negativoracles;
+15 Mechanismusobjekte über73 Builds bytegleich, i386-Byteguard bestanden.
+Belege `build/codex-agent/r83k-requests/`; keine Budgeterweiterung.

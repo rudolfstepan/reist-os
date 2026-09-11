@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_REQUEST_CASE
+#define X86_64_REQUEST_CASE 0
+#endif
 #ifndef X86_64_IPC_CASE
 #define X86_64_IPC_CASE 0
 #endif
@@ -203,12 +206,21 @@ void _start(void)
     static const char prompt[] = "C:\\>";
     static const char info[] = "REIST_X86_64_RING3_SHELL_INFO_OK\r\n";
     static const char help[] = "HELP INFO RUN EXIT\r\n";
+#if X86_64_REQUEST_CASE
+#define REQUEST_STRING_INNER(n) #n
+#define REQUEST_STRING(n) REQUEST_STRING_INNER(n)
+    static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nREQUEST_" REQUEST_STRING(X86_64_REQUEST_CASE) "_OK\r\n";
+#else
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\n";
+#endif
     static const char unknown[] = "Unknown command\r\n";
     shell_u8 command[SHELL_COMMAND_CAPACITY];
     shell_u8 input_byte = 0U;
     shell_u32 command_length = 0U;
     shell_u32 polls = 0U;
+#if X86_64_REQUEST_CASE == 2
+    shell_u32 request_runs = 0U;
+#endif
 
     clear_command(command);
     if (!shell_write_exact(ready, sizeof(ready) - 1U) ||
@@ -257,13 +269,42 @@ void _start(void)
                 if (parent_pid != SHELL_PARENT_PID) {
                     shell_exit(11ULL);
                 }
+#if X86_64_REQUEST_CASE == 1
+                static const struct {shell_u8 op,fd,size; signed char result;} cases[] = {
+                    {15,1,1,-9},{20,0,1,-9},{15,0,2,-22},{20,1,65,-22},
+                    {15,0,0,0},{20,1,0,0},{20,2,0,0},{15,0,1,-14},{20,1,1,-14}
+                };
+                for (shell_u32 i=0;i<sizeof(cases)/sizeof(cases[0]);i++) {
+                    if(reist_x64_syscall3(cases[i].op,cases[i].fd,0,cases[i].size)!=cases[i].result) shell_exit(48);
+                }
+                if(reist_x64_syscall3(REIST_X64_SYS_GETPID,~0ULL,~0ULL,~0ULL)!=SHELL_PARENT_PID ||
+                   reist_x64_syscall3(REIST_X64_SYS_WRITE,0x100000001ULL,0,0)!=REIST_EBADF ||
+                   reist_x64_syscall3(REIST_X64_SYS_WRITE,1,0,~0ULL)!=-22LL) shell_exit(48);
+#elif X86_64_REQUEST_CASE == 2
+                if(reist_x64_syscall3(REIST_X64_SYS_SPAWN,(shell_u64)child_path,0,0)!=REIST_EBADF ||
+                   reist_x64_syscall3(REIST_X64_SYS_SPAWN,0,0,0)!=-14LL ||
+                   reist_x64_syscall3(REIST_X64_SYS_SPAWN,(shell_u64)child_path,1,0)!=-22LL) shell_exit(48);
+                child_path[0]='!';
+                if(reist_x64_syscall3(REIST_X64_SYS_SPAWN,(shell_u64)child_path,0,0)!=-2LL) shell_exit(48);
+                child_path[0]='/';
+#elif X86_64_REQUEST_CASE == 3
+                if(reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,(shell_u64)&child_status,0)!=-10LL ||
+                   reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,(shell_u64)&child_status,1)!=-22LL ||
+                   child_status!=0) shell_exit(48);
+#endif
                 if (reist_x64_syscall3(REIST_X64_SYS_IPC_CREATE,
                                    (shell_u64)&ipc_handle, 0ULL, 0ULL) != 0LL ||
                     ipc_handle == 0U) {
                     shell_exit(15ULL);
                 }
                 prepare_ipc_token(&ipc_message, (shell_u8)'5');
-#if X86_64_IPC_CASE
+#if X86_64_REQUEST_CASE == 2
+                if(reist_x64_syscall3(REIST_X64_SYS_IPC_SEND,ipc_handle,(shell_u64)&ipc_message,0)!=0 ||
+                   reist_x64_syscall3(REIST_X64_SYS_SPAWNV,(shell_u64)child_path,(shell_u64)child_argv,2)!=REIST_EAGAIN) shell_exit(48);
+                ipc_message.length=0;
+                if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE,ipc_handle,(shell_u64)&ipc_message,0)!=0 ||
+                   ipc_message.length!=8) shell_exit(48);
+#elif X86_64_IPC_CASE && !X86_64_REQUEST_CASE
                 /* Verify local rejection without consuming the sole queue. */
                 if(reist_x64_syscall3(REIST_X64_SYS_IPC_CREATE,0,0,0)!=-14LL ||
                    reist_x64_syscall3(REIST_X64_SYS_IPC_CREATE,(shell_u64)&ipc_handle,1,0)!=-22LL ||
@@ -298,7 +339,7 @@ void _start(void)
                 ipc_message.length=0;
                 if (reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE, ipc_handle,
                         (shell_u64)&ipc_message, 0) != REIST_EAGAIN) shell_exit(40);
-#else
+#elif !X86_64_IPC_CASE
                 if (reist_x64_syscall3(REIST_X64_SYS_IPC_SEND,
                                    (shell_u64)ipc_handle,
                                    (shell_u64)&ipc_message, 0ULL) != 0LL) {
@@ -379,6 +420,10 @@ void _start(void)
                 if (child_pid != SHELL_CHILD_PID) {
                     shell_exit(12ULL);
                 }
+#if X86_64_REQUEST_CASE == 3
+                /* Force an early child request before SEND is delegated. */
+                if(reist_x64_syscall3(REIST_X64_SYS_YIELD,0,0,0)!=0) shell_exit(48);
+#endif
                 if (reist_x64_syscall3(REIST_X64_SYS_IPC_DELEGATE,
                                    (shell_u64)ipc_handle,
                                    (shell_u64)child_pid,
@@ -386,6 +431,9 @@ void _start(void)
                     shell_exit(16ULL);
                 }
 #if X86_64_IPC_CASE
+#if X86_64_REQUEST_CASE == 2
+                if(reist_x64_syscall3(REIST_X64_SYS_SPAWNV,(shell_u64)child_path,(shell_u64)child_argv,2)!=REIST_EAGAIN) shell_exit(48);
+#endif
 #if X86_64_IPC_CASE != 3
                 for (shell_u32 n=0;n<2;n++) {
                     clear_ipc_message(&ipc_message);
@@ -511,12 +559,26 @@ child_fault_cleanup:
 cpu_budget_wait:
 #endif
 #endif
+#if X86_64_REQUEST_CASE == 3
+                child_status=0x12345678U;
+                if(reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,0,0)!=-14LL ||
+                   reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,(shell_u64)&child_status+1,0)!=-14LL ||
+                   reist_x64_syscall3(REIST_X64_SYS_WAIT,0x10000012dULL,(shell_u64)&child_status,0)!=-10LL ||
+                   reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,(shell_u64)&child_status,~0ULL)!=-22LL ||
+                   child_status!=0x12345678U) shell_exit(48);
+#endif
                 waited_pid = reist_x64_syscall3(REIST_X64_SYS_WAIT, (shell_u64)child_pid,
                                             (shell_u64)&child_status, 0ULL);
                 if (waited_pid != SHELL_CHILD_PID ||
                     child_status != SHELL_EXPECTED_CHILD_STATUS) {
                     shell_exit(13ULL);
                 }
+#if X86_64_REQUEST_CASE == 3
+                if(reist_x64_syscall3(REIST_X64_SYS_WAIT,SHELL_CHILD_PID,(shell_u64)&child_status,0)!=-10LL ||
+                   child_status!=SHELL_EXPECTED_CHILD_STATUS) shell_exit(48);
+#elif X86_64_REQUEST_CASE == 2
+                if(++request_runs==2 && reist_x64_syscall3(REIST_X64_SYS_SPAWN,(shell_u64)child_path,0,0)!=REIST_EAGAIN) shell_exit(48);
+#endif
 #if X86_64_IPC_CASE
                 if(reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE,ipc_handle,0,0)!=0 ||
                    reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE,ipc_handle+256U,0,0)!=REIST_EBADF ||

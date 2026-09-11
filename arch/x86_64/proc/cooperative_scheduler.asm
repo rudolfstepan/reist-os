@@ -14,6 +14,7 @@ extern reist_x64_context_apply
 extern reist_x64_budget_apply
 extern reist_x64_terminal_status
 extern reist_x64_startup_stack
+extern reist_x64_request_admit
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
 SHELL_CPU_STATUS          equ 256
@@ -2332,16 +2333,17 @@ scheduler_shell_syscall_dispatch64:
     jmp scheduler_shell_resume64
 
 scheduler_handle_shell_read64:
-    cmp qword [rel syscall_rdi], SHELL_STDIN
-    jne scheduler_fail
-    cmp qword [rel syscall_rdx], 1
-    jne scheduler_fail
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
     mov rax, qword [rel syscall_rsi]
     mov edx, 1
     mov ecx, PF_W
     call scheduler_validate_shell_buffer64
     test eax, eax
-    jz scheduler_fail
+    jz scheduler_request_pointer64
+    cmp dword [rel scheduler_shell_read_count], SHELL_EXPECTED_READS
+    jae scheduler_request_again64
     mov dx, COM1_LSR
     in al, dx
     test al, 0x01
@@ -2351,8 +2353,6 @@ scheduler_handle_shell_read64:
     mov rdi, qword [rel syscall_rsi]
     mov byte [rdi], al
     inc dword [rel scheduler_shell_read_count]
-    cmp dword [rel scheduler_shell_read_count], SHELL_EXPECTED_READS
-    ja scheduler_fail
     mov eax, 1
     jmp scheduler_shell_resume64
 .not_ready:
@@ -2360,22 +2360,17 @@ scheduler_handle_shell_read64:
     jmp scheduler_shell_resume64
 
 scheduler_handle_shell_write64:
-    mov rax, qword [rel syscall_rdi]
-    cmp rax, SHELL_STDOUT
-    je .descriptor_valid
-    cmp rax, SHELL_STDERR
-    jne scheduler_fail
-.descriptor_valid:
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
     mov rdx, qword [rel syscall_rdx]
-    test rdx, rdx
-    jz scheduler_fail
-    cmp rdx, SHELL_IO_MAX
-    ja scheduler_fail
     mov rax, qword [rel syscall_rsi]
     mov ecx, PF_R
     call scheduler_validate_shell_buffer64
     test eax, eax
-    jz scheduler_fail
+    jz scheduler_request_pointer64
+    cmp dword [rel scheduler_shell_write_count], SHELL_EXPECTED_WRITES
+    jae scheduler_request_again64
     mov r12, qword [rel syscall_rsi]
     mov r13, qword [rel syscall_rdx]
 .write_loop:
@@ -2387,8 +2382,6 @@ scheduler_handle_shell_write64:
     dec r13
     jnz .write_loop
     inc dword [rel scheduler_shell_write_count]
-    cmp dword [rel scheduler_shell_write_count], SHELL_EXPECTED_WRITES
-    ja scheduler_fail
     mov rax, qword [rel syscall_rdx]
     jmp scheduler_shell_resume64
 
@@ -2405,17 +2398,101 @@ scheduler_handle_shell_yield64:
     jmp scheduler_shell_resume64
 
 scheduler_handle_shell_getpid64:
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
     cmp dword [rel scheduler_current_slot], 0
     jne scheduler_fail
     cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
     jne scheduler_fail
-    cmp qword [rel syscall_rdi], 0
-    jne scheduler_fail
-    cmp qword [rel syscall_rsi], 0
-    jne scheduler_fail
-    cmp qword [rel syscall_rdx], 0
-    jne scheduler_fail
     mov rax, TASK_SHELL_PARENT_PID
+    jmp scheduler_shell_resume64
+
+; A private nonmutating request snapshot. Authority was checked by dispatch;
+; validate identity again before using the pinned parent stack mapping.
+scheduler_request_admit64:
+    push rbp
+    mov rbp, rsp
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    sub rsp, 96
+    and rsp, -16
+    cmp dword [rel scheduler_current_slot], 0
+    jne .corrupt
+    cmp qword [rel scheduler_tasks + TASK_STATE], TASK_RUNNING
+    jne .corrupt
+    cmp qword [rel scheduler_tasks + TASK_GENERATION], TASK_SHELL_GENERATION
+    jne .corrupt
+    mov rax, [rel scheduler_tasks + TASK_STACK_FRAME]
+    test rax, rax
+    jz .corrupt
+    mov rdx, DIRECT_MAP_BASE
+    add rax, rdx
+    mov [rsp + 32], rax
+    mov qword [rsp + 40], USER_STACK_BASE
+    mov rax, [rel syscall_rax]
+    mov [rsp], rax
+    mov rax, [rel syscall_rdi]
+    mov [rsp + 8], rax
+    mov rax, [rel syscall_rsi]
+    mov [rsp + 16], rax
+    mov rax, [rel syscall_rdx]
+    mov [rsp + 24], rax
+    movzx eax, byte [rel scheduler_dynamic_child_active]
+    mov [rsp + 48], rax
+    mov eax, [rel scheduler_dynamic_spawn_count]
+    mov [rsp + 56], rax
+    mov eax, [rel scheduler_dynamic_completed_count]
+    mov [rsp + 64], rax
+    mov rax, [rel scheduler_shell_ipc_endpoint_active]
+    cmp rax, 1
+    ja .corrupt
+    mov rdx, [rel scheduler_shell_ipc_message_ready]
+    cmp rdx, 1
+    ja .corrupt
+    shl rdx, 1
+    or rax, rdx
+    cmp qword [rel scheduler_shell_ipc_send_wait_generation], 0
+    je .no_sender
+    or eax, 4
+.no_sender:
+    cmp qword [rel scheduler_shell_ipc_wait_generation], 0
+    je .no_receiver
+    or eax, 8
+.no_receiver:
+    mov [rsp + 72], rax
+    mov rdi, rsp
+    call reist_x64_request_admit
+    jmp .return
+.corrupt:
+    mov rax, -4096
+.return:
+    lea rsp, [rbp - 64]
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbp
+    ret
+scheduler_request_pointer64:
+    mov rax, -14
+    jmp scheduler_shell_resume64
+scheduler_request_again64:
+    mov rax, REIST_EAGAIN
+    jmp scheduler_shell_resume64
+scheduler_request_reject64:
+    cmp rax, -4096
+    je scheduler_fail
     jmp scheduler_shell_resume64
 
 ; One fixed REIST-v1 endpoint is created only by shell generation 40. All
@@ -3129,10 +3206,9 @@ scheduler_handle_shell_spawnv64:
     jne scheduler_fail
     cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
     jne scheduler_fail
-    mov rax, [rel syscall_rdi]
-    call scheduler_validate_child_path64
-    test eax, eax
-    jz .bad_pointer
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
     xor edi, edi
     xor esi, esi
     xor edx, edx
@@ -3144,9 +3220,6 @@ scheduler_handle_shell_spawnv64:
     test rax, rax
     jle scheduler_fail
     jmp scheduler_shell_spawn_validated64
-.bad_pointer:
-    mov rax, -14
-    jmp scheduler_shell_resume64
 
 ; RDI destination kernel page (zero for validate), ESI operation, RDX trusted
 ; IPC handle. Private source page is pinned while the serialized parent runs.
@@ -3207,14 +3280,9 @@ scheduler_handle_shell_spawn64:
     jne scheduler_fail
     cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
     jne scheduler_fail
-    cmp qword [rel syscall_rsi], 0
-    jne scheduler_fail
-    cmp qword [rel syscall_rdx], 0
-    jne scheduler_fail
-    mov rax, qword [rel syscall_rdi]
-    call scheduler_validate_child_path64
-    test eax, eax
-    jz scheduler_fail
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
 scheduler_shell_spawn_validated64:
     cmp byte [rel scheduler_dynamic_child_active], 0
     jne scheduler_fail
@@ -3260,6 +3328,9 @@ scheduler_shell_spawn_validated64:
     cmp ecx, TASK_TABLE_LEVELS
     jb .child_tables_zero
 
+    call scheduler_validate_shell_child_endpoint64
+    test eax, eax
+    jz scheduler_fail
     call scheduler_save_syscall_context64
     mov edi, ELF_IMAGE_CHILD
     call x86_64_elf64_select_image64
@@ -3336,12 +3407,9 @@ scheduler_handle_shell_wait64:
     jne scheduler_fail
     cmp qword [r12 + TASK_GENERATION], TASK_SHELL_GENERATION
     jne scheduler_fail
-    cmp qword [rel syscall_rdi], TASK_SHELL_CHILD_PID
-    jne scheduler_fail
-    cmp qword [rel syscall_rdx], 0
-    jne scheduler_fail
-    cmp byte [rel scheduler_dynamic_child_active], 1
-    jne scheduler_fail
+    call scheduler_request_admit64
+    cmp rax, 1
+    jne scheduler_request_reject64
     mov eax, dword [rel scheduler_dynamic_child_generation]
     cmp eax, TASK_SHELL_CHILD_GEN
     jb scheduler_fail
@@ -3363,12 +3431,15 @@ scheduler_handle_shell_wait64:
     cmp qword [r11 + TASK_GENERATION], rax
     jne scheduler_fail
     cmp qword [r11 + TASK_STATE], TASK_READY
-    jne scheduler_fail
+    je .status_pointer
+    cmp qword [r11 + TASK_STATE], TASK_BLOCKED
+    je scheduler_request_again64
+    jmp scheduler_fail
 .status_pointer:
     mov rax, qword [rel syscall_rsi]
     call scheduler_translate_status_pointer64
     test eax, eax
-    jz scheduler_fail
+    jz scheduler_request_pointer64
     mov r15, rdx
     call scheduler_save_syscall_context64
     mov qword [r12 + TASK_STATE], TASK_WAITING
@@ -5806,6 +5877,17 @@ scheduler_build_shell_child_stack64:
     mov rax, qword [r12 + TASK_STACK_FRAME]
     test rax, rax
     jz .fail
+    call scheduler_validate_shell_child_endpoint64
+    test eax, eax
+    jz .fail
+    jmp scheduler_build_shell_child_stack_validated64
+.fail:
+    xor eax, eax
+    ret
+
+; Same bounded endpoint/capability proof before allocation and stack publish.
+; No R12/task mutation: it also runs while the current record is the parent.
+scheduler_validate_shell_child_endpoint64:
     cmp qword [rel scheduler_shell_ipc_endpoint_active], 1
     jne .fail
     cmp qword [rel scheduler_shell_ipc_endpoint_owner_generation], TASK_SHELL_GENERATION
@@ -5853,6 +5935,12 @@ scheduler_build_shell_child_stack64:
     jne .fail
     add rsi, 4
     loop .message_zero
+    mov eax, 1
+    ret
+.fail:
+    xor eax, eax
+    ret
+scheduler_build_shell_child_stack_validated64:
     cmp qword [rel syscall_rax], REIST_SYS_SPAWNV
     jne .legacy_stack
     mov rdi, DIRECT_MAP_BASE

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3k-x86_64-request-admission"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3k-x86_64-request-admission"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Local nonterminal native process and console request failures"
@@ -30,6 +30,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All16 groups. Actual production admission assembly host O0/O2 verifies full64-bit fd/count/options/path/state metadata, bounded path scan and complete nonmutation on errors. Three real shell request fixtures cover console arguments, preallocation busy/endpoint/path errors and WAIT stale/pointer/options with subsequent successful IPC/WAIT/reap in two exact generations. User fixture modes never alter kernel mechanisms; old normal/argv/exit/fault/busy/context/handoff receipts remain mandatory. Review frozen scope/queue/diff then commit and continue from clean worktree."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for new authority or broader resource/supervisor/loader boundary"]
 commit_message = "fix: contain invalid native process and console requests"
+evidence = ["python test/test_x86_64_requests.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_argv.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83k-requests/normal","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83k-requests/normal/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83k-requests/normal-guest.log","python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83k-requests/requests-fixed","python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83k-requests/argv","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83k-requests/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83k-requests/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83k-requests/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83k-requests/context","python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83k-requests/handoff","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All16 groups after authorized fixture repair ad52c557. Actual assembly O0/O2 and negative runtime/source oracles3/0.998s; bootstrap55/0.031s, argv4/1.275s, exit3/0.952s, context2/1.059s, docs7/0.677s (one historical scope skip). Normal172964 bytes and unchanged dialogue pass. Requests3/6 8.081s attempt-01a356670e364911990073103cee35e9: case3 forces pre-delegation child execution, old fixture reproducibly UD2s, bounded yielding fixture succeeds without granting rights. Original failed attempt-17ccacf8441147bfb78b8f2df1a0c628 and forced-before-fix image/log retained. Argv4/8 10.674s attempt-0e9c254f69574b3bb366ecbbe6142831; IPC4/8 12.058s attempt-9e41a4128ab44245a82799862876d622; exit24/48 59.124s attempt-df9957a2e20e4a988243837eb899e629; fault24/48 63.072s attempt-7c4ae0c3d60a459ea986b2fb06d71666; busy2/4 5.895s attempt-68c7fda289a7491f8b1ca97127e7e127; context7/14 19.394s attempt-c43b3ed5abc245cebdf9b7624cdfb92a.15 standalone mechanism objects byteidentical across73 builds including preserved negative controls. i386 guard5.212s. All bounds and old gate expectations intact. No new authority/ABI; parent bootstrap teardown/general pools/OOM/supervisor remain open. Evidence build/codex-agent/r83k-requests. Formal R3.6b activation does not revoke deferral; continue next native transaction after clean commit."
 
 [[packages]]
 id = "R8.3j1-x86_64-ipc-handoff"
@@ -2887,7 +2889,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

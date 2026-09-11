@@ -108,6 +108,25 @@ gesampelte laufende Ticks sind keine exakte CPU-Zeit oder FTTI-Zusage.
 
 ## Zweck und Grenze
 
+R8.3k trennt nichtterminale Aufrufablehnung von Kernelkorruption. READ/WRITE,
+GETPID, SPAWN/SPAWNV und WAIT verwenden einen privaten80-Byte-Snapshot und
+denselben reinen Admissionkern. Nulltransfer verändert weder Puffer, Gerät
+noch Zähler; falsche Deskriptoren/Größen/Puffer liefern EBADF/EINVAL/EFAULT.
+GETPID ignoriert Restregister. Der eingebettete Pfadadapter liefert ENOENT
+bzw. ENAMETOOLONG; Kindbelegung und ausgeschöpftes Startprofil EAGAIN.
+Endpoint-/Capability-/Queuevalidierung liegt vor der ersten Spawnallokation
+und wird vor der Stackpublikation erneut geprüft. WAIT liefert ECHILD bei
+fehlendem/fremdem Kind, EINVAL bei Optionen und EFAULT bei falschem Statusziel;
+ein derzeit BLOCKEDes Kind erhält vor Waitpublikation im Bootstrapadapter
+EAGAIN. Alle bestehenden generationgebundenen Reap-Nachweise bleiben erhalten.
+Keine POSIX-READ/WRITE/WAIT-Kompatibilitätszusage: Lesen bleibt auf ein Byte,
+Schreiben auf64 Bytes begrenzt; auch die festen Dialog-/Startquoten und der
+Eltern-EXIT als Bootstrapabschluss bleiben explizite Migrationsgrenzen.
+Die Kind-Fixture wartet nach frühem EACCES mit höchstens acht Sendversuchen
+und kooperativem YIELD auf die ausdrückliche SEND-Delegation; keine impliziten
+Rechte, unterdrückte Präemption oder größeren Kernelbudgets. Ein neuer
+Gastfall erzwingt den Kindlauf vor dieser Delegation.
+
 R8.3j ersetzt im SPAWNV-Pfad das feste Zweier-/Tokenlayout durch tatsächlichen
 Argumenttransport. Ein privater56-Byte-Descriptor und ein reiner Assemblykern
 validieren die stabile private Eltern-Stackseite vollständig vor Allokation

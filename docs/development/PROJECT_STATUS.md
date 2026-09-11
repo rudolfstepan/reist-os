@@ -4,6 +4,13 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R8.3k mit freigegebenem Nachtrag `ad52c557` abgenommen: lokale nichtterminale
+Aufruffehler, Endpointprüfung vor Spawnallokation und begrenzte Übergabe im
+Testkind. Alle16 Gruppen einschließlich erzwungenem Kindlauf vor Delegation,
+sämtlichen alten Gastmatrizen und i386-Byteguard bestanden. Keine neue
+Autorität oder Budgeterweiterung;15 Mechanismen über73 Builds bytegleich.
+Details in [CURRENT_WORK](CURRENT_WORK.md#r83k-lokale-aufruffehler-und-kindübergabe-abgenommen).
+
 R8.3j1 repariert die bei der Argumentabnahme entdeckte Timer-/IPC-Reihenfolge:
 Admission und Queue-/Waiterentscheidungen sind von Probe-Token getrennt;
 frühe Sender und Close vor/nach Senderwait sind reguläre Zustände.

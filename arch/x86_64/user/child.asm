@@ -268,6 +268,8 @@ child_ipc_handoff:
     mov al, 0x5a
     cld
     rep stosb
+    mov r14d, 8
+child_ipc_initial_send_retry:
     mov eax, REIST_SYS_IPC_SEND_TIMEOUT
     mov rdi, r12
     mov rsi, rsp
@@ -275,6 +277,19 @@ child_ipc_handoff:
 child_ipc_first_send:
     syscall
     FP_CHECK
+    cmp rax, REIST_EACCES
+    jne child_ipc_initial_send_result
+    ; SPAWN publishes READY before the parent can delegate SEND. The denial
+    ; is authoritative; yield within a fixed fixture budget, never gain rights.
+    dec r14d
+    jz child_ipc_handoff.bad
+    mov eax, REIST_SYS_YIELD
+    syscall
+    FP_CHECK
+    test rax, rax
+    jnz child_ipc_handoff.bad
+    jmp child_ipc_initial_send_retry
+child_ipc_initial_send_result:
 %if X86_64_IPC_CASE = 3
     cmp rax, REIST_EBADF
     je child_ipc_handoff.exit
