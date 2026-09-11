@@ -507,6 +507,15 @@ Abnahme und lokalem Commit wird R8.3j wiederhergestellt, mit den neuen
 IPC-Mechanismen abgeglichen und erneut vollständig abgenommen. Das ist eine
 freigegebene Paket-Neuordnung, keine zweite parallele Implementierung.
 
+Abnahme R8.3j1:14 Gruppen bestanden. IPC-Queue-/Waiter-/Widerrufsentscheidungen
+sind von Testnutzlasten und Probephasen gelöst; fehlerhafte Nutzerparameter
+werden lokal abgewiesen. Vier tatsächliche Produktionsinterleavings und acht
+Generationen per GDB beobachtet,13 Mechanismusobjekte bytegleich; Host O0/O2,
+alter Normaldialog,24 Exit-/24 Fault-/2 Busy-/7 Contextvarianten und i386-
+Byteguard bestanden. Kein Zeit-/Ressourcenbudget gelockert. Der private
+Tombstone verhindert erneute Autorität eines geschlossenen Bootstraphandles.
+Details und Profilgrenzen in [CURRENT_WORK](CURRENT_WORK.md#r83j1-präemptierbare-ipc-übergabe-repariert).
+
 Bestand `e5da029e`: SPAWNV verlangt exakt zwei Eingaben und token77, der
 Kindstack wird unabhängig davon aus Kernelkonstanten aufgebaut. Eine
 wiederverwendbare, tatsächlich mit Userdaten gespeiste Startupgrenze ersetzt

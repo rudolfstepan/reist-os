@@ -705,6 +705,46 @@ bestanden. Der native Ein-vCPU-/128-MiB-QEMU-Dialog durchlief beide
 Kindgenerationen, meldete exakt zwei `RUN_OK`-Marker und erreichte alle
 bisherigen Marker bis `RING3_SHELL_OK`.
 
+## IPC-Admission und präemptierbare Übergabe R8.3j1
+
+R8.3j1 ersetzt die unten historisch beschriebenen Token-/Sendphasen als
+Kernelentscheidung durch Capability-, Queue- und Waiterzustand. Öffentliche
+REIST-v1-Nummern und140-Byte-Nachrichten bleiben unverändert; Nutzlastlänge
+0..128 wird ohne Tokeninterpretation transportiert. Privater96-Byte-Descriptor
+prüft Generation, Handle, Rechte und volle Pointer-/Header-/Längenparameter;
+ein tatsächlicher Assembly-Planer entscheidet Enqueue, Deliver, Consume,
+Sender-/Receiverwait, Close oder Release. Fehlernummern nutzen die bestehenden
+POSIX-benannten errno-Bedeutungen; keine POSIX-/Linux-IPC-Kompatibilitätszusage.
+
+Leere Queue bei SEND_TIMEOUT ist kein Kernelzustandsfehler: sie nimmt die
+Nachricht sofort an. Volle Queue liefert EAGAIN bei SEND oder bindet den
+einzigen Sender-Snapshot an seine Deadline. Ein wartender Empfänger erhält
+die Nachricht direkt; Dequeue kann einen wartenden Sender nachrücken lassen.
+Generation, Capability, privater Ausgabeframe und exakter Deadlineeintrag sind
+vor Publikation geprüft. Release/Close wirken vor oder nach dem Peer-Wait;
+bereits freigegebene Ressourcen werden nicht erneut freigegeben.
+
+Das Profil bleibt eine CPU,128MiB, ein Endpoint, eine140-Byte-Queue und ein
+Sender- oder Empfängerwait mit10ms. Imagequellen und unmittelbare Imageausgaben
+nutzen die vorhandene Mapping-/Rechtevalidierung; blockierende Receive-Ausgaben
+benötigen weiterhin den privaten Stackframe. Nicht unterstützte Ausgabe-
+geometrie liefert vor Waitpublikation EFAULT. Keine allgemeine Pin-/Scatter-
+Abbildung und kein dynamischer Endpoint-Pool werden behauptet.
+
+Der private Handle-Tombstone bleibt nach Close bis zum Namespaceende erhalten.
+Nur das exakte letzte Handle erlaubt idempotentes Owner-Close. CREATE für
+denselben verbrauchten Bootstrap-Epochenslot oder während des Kind-Lifecycle
+liefert EAGAIN; kein geschlossenes Handle gewinnt erneut Rechte. Task- und
+Endpointgenerationsbudgets werden nicht erweitert. Unbekannte Kernelownership
+bleibt fail-closed; Nutzerparameter dürfen diesen Pfad nicht auslösen.
+
+Vier reale, per GDB beobachtete Produktionspfade und acht Generationen,
+Actual-Assembly O0/O2 mit Nichtmutations-/Negativoracles sowie alle früheren
+Normal-/Exit-/Fault-/Busy-/Context- und i386-Gates bestehen. Benutzer-Fixtures
+und ihre eingebetteten ELF-Bytes unterscheiden sich,13 eigenständige Kernel-
+Mechanismusobjekte nicht. Vollständige Belege und verbleibende Grenzen:
+[CURRENT_WORK](../development/CURRENT_WORK.md#r83j1-präemptierbare-ipc-übergabe-repariert).
+
 ## Expliziter IPC-Capability-Transfer R8.2n
 
 Der reale `RUN`-Pfad verwendet die bestehenden REIST-v1-Indizes `IPC_CREATE`

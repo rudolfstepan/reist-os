@@ -2,6 +2,72 @@
 
 Stand: 11. September 2026
 
+## R8.3j1: präemptierbare IPC-Übergabe repariert
+
+Vertrag `2d79a46b`, vorgezogen nach der vom Nutzer freigegebenen Neuordnung.
+R8.3j bleibt unangenommen in Stash
+`aed0d01b29cae7c9dd0d49100b6503b8ba135f7a` gesichert und wird nach diesem
+Paketcommit wiederhergestellt. Die ursprüngliche Fehleraufnahme bleibt unter
+`build/codex-agent/r83j-argv/21-gdb-3.log` erhalten.
+
+Die produktiven IPC-Send-/Receive-/Release-/Close-Pfade entscheiden jetzt nach
+Queue, Waiter, Capability und Generation, nicht nach token76/77/78/79 oder
+Probephasen. Ein früher SEND_TIMEOUT an eine leere Queue wird regulär
+eingestellt; volle Queue liefert EAGAIN bzw. einen deadlinegebundenen
+Sender-Snapshot. Receive entnimmt, füllt aus dem wartenden Sender nach oder
+blockiert mit derselben begrenzten Deadline. Release weckt den betroffenen
+Empfänger mit EPIPE, Close widerruft Queue/Wait/Snapshot/Capabilities und
+weckt einen tatsächlich wartenden Sender mit EBADF. Close funktioniert auch
+vor einem Senderwait. Keine zusätzliche Nutzlastinterpretation im Kernel.
+
+Privater96-Byte-Admissiondescriptor und reiner Assembly-Planer: Rechte,
+Handle, Generation, volle Pointerbreite, Header, Länge0..128 und Profilparameter
+werden vor Effekten geprüft. Ungültige Nutzeranfragen liefern lokale Fehler;
+korrupte vertrauenswürdige Metadaten bleiben fatal. Existierende validierte
+ELF-Imagequellen einschließlich Seitengrenzen bleiben unterstützt. Blockierende
+Receive-Ausgaben bleiben wie im bisherigen Profil an den privaten Stackframe
+gebunden; andere Ausgabegeometrien werden vor Waitpublikation mit EFAULT
+abgewiesen. Kein neuer allgemeiner Shared-Memory-/Endpoint-Poolvertrag.
+
+Ein privater Handle-Tombstone verhindert Wiederverwendung nach Close innerhalb
+desselben Bootstrap-Lifecycle und erlaubt ausschließlich dessen idempotentes
+Owner-Close. CREATE während eines laufenden Kind-Lifecycle oder für denselben
+verbrauchten Epochenslot liefert EAGAIN. Die normale Probe stellt ihre
+Owner-Nachricht vor erneuter SEND-Delegation ein; allein die Capability-
+Publikation stellt diese Reihenfolge sicher, nicht ein zusätzliches YIELD.
+Die Kind-Fixture toleriert höchstens acht lokale EACCES-Antworten vor der
+erneuten Delegation. Das ist begrenzte Teststeuerung, kein Kernel-Busywait.
+
+Abnahme:14 Gruppen. Actual-Assembly O0/O2 und negative Traceoracles2/0.977s,
+Bootstrap55/0.031s, Exithost3/1.004s, Faulthost3/2.059s, Contexthost2/1.216s,
+Dokumentation, Normalbuild166536 Bytes und unveränderter INFO/RUN/RUN/EXIT-
+Dialog. Vier echte IPC-Gäste/acht Generationen12.306s beobachten per GDB
+die Produktionsentscheidungen: früher Kind-Sender, wartender Empfänger,
+Close bei READY-Sender sowie Close bei blockiertem Sender. User-Fixtures
+prüfen zusätzlich falsche Handles, Pointer, Header, Größen, leere/volle
+Queue,128-Byte-Daten, Timeout, fehlendes Delegationsziel und idempotentes
+Close.13 eigenständige Kernelmechanismusobjekte sind über alle vier Varianten
+bytegleich; das unveränderte ELF-Loaderobjekt enthält absichtlich die jeweils
+anderen User-ELFs und ist nicht Teil dieses Gesamtobjektvergleichs.
+
+Unveränderte alte Oracles: Exit24 Fälle/48 Generationen67.409s,
+Fault24/48 in68.021s, Busy2/4 in7.659s, Context7/14 in21.159s.
+i386-Byteguard6.021s bestanden. Belege unter `build/codex-agent/r83j1-ipc/`:
+`handoff-final/attempt-1b436fd29d844b36a84b1013c3af4b4c/`,
+`exit-final/attempt-d6f7a68a0f1847bbace35ee0329ee7a1/`,
+`fault-final/attempt-25939bc0fd9c479498a22e443f5029aa/`,
+`busy-final/attempt-41b0461df748412ba30b7bda14190727/`,
+`context-final/attempt-4b1fe80b221340e68169c0a4b7de4911/`,
+`normal-final/`, `normal-final-guest.log` und zugehörige nummerierte Logs.
+Rote Compiler-/Quellassertionsbelege und der zunächst zu breite
+Loaderobjektvergleich bleiben erhalten. Kein Gate wurde ausgelassen oder
+durch Wiederholung ohne Korrektur grün erklärt.
+
+Weiterhin kein vollständiges64-Bit-OS: ein Endpoint, vier Slots, zwei
+Kindgenerationen,128MiB und eine CPU; allgemeine Prozess-/Supervisorzulassung,
+skalierbarer Speicher und native Dienste/Anwendungen stehen noch aus.
+R3.6b bleibt zurückgestellt, R341-H1/H2 offen; i386-Benchmark unverändert.
+
 ## R8.3i: reguläres YIELD/EXIT und gemeinsames Terminal-Reap
 
 Basis `d4560692`, Vertrag `e72d9e77`. YIELD hängt im zugelassenen Shellprofil

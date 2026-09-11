@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3j1-x86_64-ipc-handoff"
+active_id = "R8.3j-x86_64-startup-arguments"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3j1-x86_64-ipc-handoff"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native IPC admission and preemptible capability handoff"
@@ -27,10 +27,12 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All14 groups. Actual private admission assembly O0/O2 with rights/pointer/header/size/error nonmutation checks and exhaustive bounded state choices. Real deterministic handoff guest proves preemption-compatible publication/revocation, local rejection of malformed or stale requests, exact two generations and complete reap. Old normal/exit/fault/busy/context guest receipts remain required. No evidence deletion or pass-by-retry. Inspect scope/queue/diff, commit then restore and revalidate R8.3j."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for new authority, broader memory profile or services"]
 commit_message = "fix: contain native IPC requests across preemptible handoff"
+evidence = ["python test/test_x86_64_ipc_handoff.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_fault.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83j1-ipc/normal-final","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83j1-ipc/normal-final/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83j1-ipc/normal-final-guest.log","python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83j1-ipc/handoff-final","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83j1-ipc/exit-final","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83j1-ipc/fault-final","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83j1-ipc/busy-final","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83j1-ipc/context-final","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All14 groups passed. Actual IPC admission/planning assembly O0/O2 plus trace mutation2/0.977s; bootstrap55/0.031s, exit3/1.004s, fault3/2.059s, context2/1.216s, docs7/0.653s (one historical scope skip). Final normal166536 bytes and INFO/RUN/RUN/EXIT pass. Handoff4 cases/8 generations12.306s attempt-1b436fd29d844b36a84b1013c3af4b4c observes actual planner inputs for early sender, blocked receiver, READY-sender close and blocked-sender close with GDB; malformed requests and128-byte payloads checked by real userspace.13 standalone mechanism objects identical, ELF loader container excluded because it incbins fixture ELFs. Exit24/48 67.409s attempt-d6f7a68a0f1847bbace35ee0329ee7a1; fault24/48 68.021s attempt-25939bc0fd9c479498a22e443f5029aa; busy2/4 7.659s attempt-41b0461df748412ba30b7bda14190727; context7/14 21.159s attempt-4b1fe80b221340e68169c0a4b7de4911. i386 guard6.021s. Failed build/source/overbroad container hash proofs retained; final output paths preserve earlier evidence. No budget or old oracle relaxed. Restore R8.3j from aed0d01b29cae7c9dd0d49100b6503b8ba135f7a only after local commit; native general process/supervisor/memory/services/userland remain open."
 
 [[packages]]
 id = "R8.3j-x86_64-startup-arguments"
-status = "queued"
+status = "active"
 phase = "post-s0"
 risk = "high"
 title = "Bounded real SPAWNV argument transport and System-V startup stack"

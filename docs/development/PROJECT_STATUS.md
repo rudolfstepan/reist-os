@@ -4,6 +4,14 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R8.3j1 repariert die bei der Argumentabnahme entdeckte Timer-/IPC-Reihenfolge:
+Admission und Queue-/Waiterentscheidungen sind von Probe-Token getrennt;
+frühe Sender und Close vor/nach Senderwait sind reguläre Zustände.
+Vier neue beobachtete IPC-Gäste, alle alten Exit-/Fault-/Busy-/Contextgäste
+und i386-Byteguard bestehen. R8.3j wird aus dem gesicherten Kandidaten danach
+wiederhergestellt und erneut abgenommen, nicht vorzeitig als fertig markiert.
+Details und Belege: [CURRENT_WORK](CURRENT_WORK.md#r83j1-präemptierbare-ipc-übergabe-repariert).
+
 Neue Priorität: native64-Bit-Systemversion. R8.3a-SDK-Basis abgenommen:
 gemeinsamer C/C++-Transport, echte ELF64-Shell und QEMU-IPC-/Reap-Nachweis;
 alle sieben Prüfgruppen bestanden, vorhandene i386-Images unverändert.

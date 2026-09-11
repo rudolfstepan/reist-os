@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_IPC_CASE
+%define X86_64_IPC_CASE 0
+%endif
 %ifndef X86_64_EXIT_STATUS
 %define X86_64_EXIT_STATUS -1
 %endif
@@ -57,6 +60,9 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_IPC_CASE
+    jmp child_ipc_handoff
+%endif
 %if X86_64_CONTEXT_CASE
     jmp child_context_probe
 %endif
@@ -206,12 +212,20 @@ child_cpu_poison_stack:
     test rax, rax
     jnz .fail
     mov byte [rsp + 18], '9'
+    mov r13d, 8 ; bounded fixture-only admission attempts, no implicit grant
+.revocation_send:
     mov eax, REIST_SYS_IPC_SEND_TIMEOUT
     mov rdi, r12
     mov rsi, rsp
     mov edx, IPC_SEND_TIMEOUT_MS
     syscall
     FP_CHECK
+    cmp rax, REIST_EACCES
+    jne .revocation_reply
+    dec r13d
+    jnz .revocation_send
+    jmp .fail
+.revocation_reply:
     cmp rax, REIST_EBADF
     jne .fail
     mov edi, CHILD_STATUS
@@ -226,6 +240,80 @@ child_cpu_poison_stack:
     syscall
     FP_CHECK
     ud2
+
+%if X86_64_IPC_CASE
+child_ipc_handoff:
+    cmp rsp, CHILD_RSP
+    jne .bad
+    cmp qword [rsp+40], AT_REIST_IPC_HANDLE
+    jne .bad
+    mov r12, [rsp+48]
+%if X86_64_IPC_CASE = 2
+    mov eax, REIST_SYS_YIELD
+    syscall
+    FP_CHECK
+%endif
+    sub rsp, IPC_STACK_BYTES
+    mov dword [rsp], 1
+    mov dword [rsp+4], 140
+    mov dword [rsp+8], 128
+    lea rdi, [rsp+12]
+    mov ecx, 128
+    mov al, 0x5a
+    cld
+    rep stosb
+    mov eax, REIST_SYS_IPC_SEND_TIMEOUT
+    mov rdi, r12
+    mov rsi, rsp
+    mov edx, 10
+child_ipc_first_send:
+    syscall
+    FP_CHECK
+%if X86_64_IPC_CASE = 3
+    cmp rax, REIST_EBADF
+    je child_ipc_handoff.exit
+%endif
+    test rax, rax
+    jnz child_ipc_handoff.bad
+%if X86_64_IPC_CASE = 2
+    mov eax, REIST_SYS_YIELD
+    syscall
+    FP_CHECK
+%endif
+    lea rdi, [rsp+12]
+    mov ecx, 128
+    mov al, 0x5b
+    rep stosb
+    mov eax, REIST_SYS_IPC_SEND_TIMEOUT
+    mov rdi, r12
+    mov rsi, rsp
+    mov edx, 10
+child_ipc_second_send:
+    syscall
+    FP_CHECK
+%if X86_64_IPC_CASE = 3
+    cmp rax, REIST_EBADF
+    jne child_ipc_handoff.bad
+%else
+    test rax, rax
+    jnz child_ipc_handoff.bad
+    mov eax, REIST_SYS_IPC_RELEASE
+    mov rdi, r12
+    xor esi, esi
+    xor edx, edx
+    syscall
+    FP_CHECK
+    test rax, rax
+    jnz child_ipc_handoff.bad
+%endif
+child_ipc_handoff.exit:
+    mov edi, 90 + X86_64_IPC_CASE
+    mov eax, REIST_SYS_EXIT
+    syscall
+    ud2
+child_ipc_handoff.bad:
+    ud2
+%endif
 
 child_fault_probe:
 %if X86_64_FAULT_VECTOR = 0
