@@ -388,3 +388,17 @@ den Elternprozess zur echten IRQ-Fortsetzung;32 Samples, vollständiges Reap,
 Raw-Status256 und RUN werden für Generation41/42 unabhängig geprüft. Die
 Schleifenadresse stammt aus dem ELF, nicht aus einer Kernel-RIP-Freigabeliste.
 Belege `build/codex-agent/r83g-preempt/`, alle Gäste weiter maximal10s.
+
+Abnahme R8.3g: elf Gruppen bestanden. Derselbe Budgetkern läuft O0/O2 am Host
+und in tatsächlichen Shell-Kindprozessen. Permanenter Timer, absolute IPC-
+Deadlines und EOI-vor-Scheduler-Tail sind im Gast geprüft. Beide syscallfreien
+Spingenerationen geben die CPU an den Elternprozess ab und werden nach32
+Samples vollständig gereapt. Der zusätzliche negative User-RSP-Fall deckte
+einen echten Bootstrapabbruch auf und wird nun nach validierter Kernelidentität
+ohne Stackdereferenzierung lokal beendet: expliziter REIST-Raw-Status257,
+keine fingierte #GP und keine ABI-Umnummerierung. Beide Stackgenerationen
+besitzen eigene Quittungs-/ELF-Negativprüfungen; Originalgates bleiben erhalten.
+Private Terminalquittung um8-Byte-Samplefeld ergänzt, nach WAIT vollständig
+null. Neue Testflags betreffen nur Userspace, nicht die Kernelbudgetregeln.
+Normaldialog,24 alte CPU-Fehlvarianten/48 Generationen und i386-Guard grün;
+Belege und unverändert offene Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md).

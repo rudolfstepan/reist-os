@@ -80,6 +80,32 @@ Quantumproben prüfen Stack-Canaries und gespeicherte RSP unterhalb Stacktop;
 die Timer-/Rollen-/Budgetgrenzen bleiben ansonsten unverändert. Das ist noch
 keine allgemeine Präemption oder Hangbehandlung der nativen Shellprozesse.
 
+R8.3g erweitert das zugelassene Shellprofil um IF=1 und einen persistenten
+100-Hz-Scheduler-Timer. IPC benutzt absolute Deadlines und beendet nur den
+eigenen Wait, nicht die gemeinsame Uhr. IRQ prüft Identität/Profil/Kontext
+und verarbeitet begrenzte Wakeups; nach EOI übernimmt der Scheduler-Tail
+FP/GPR und dispatcht die bestehende generationsgebundene FIFO. Die bisherige
+TSC-Lease und maximal256 gelieferte Ticks begrenzen weiterhin den Bootstrap,
+nicht ein freigegebenes dauerhaft interaktives System. Keine neue öffentliche
+API oder Timer-/Prozessautorität für den Userspace.
+
+Private32-Byte-Budgetrecords gehören zur Taskgeneration. Bind nur aus null,
+Charge nur mit neuerem absoluten Tick;32 laufende Samples pro zugelassenem
+Kind, kein Reset durch Yield oder IPC. Terminales Reap entfernt auch den
+Budgetbesitz. Raw-Status256 bezeichnet hier CPU-Budgeterschöpfung,257 den
+abgewiesenen User-Stackbereich bei validierter Kind-/Kernelidentität. Beides
+sind explizite REIST-Profilwerte, keine POSIX-Signale oder fingierte Exception-
+Vektoren. Stackablehnung dereferenziert/rekonstruiert den User-RSP nicht.
+Die private Terminalquittung erhält ein zusätzliches8-Byte-Samplefeld, das
+beim WAIT-Verbrauch gelöscht und am Ende auf null geprüft wird; öffentliche
+WAIT-Struktur unverändert. Unbekannte Kernelzustände bleiben fail-closed.
+
+Abnahme: unveränderter Normaldialog,24 alte echte Faultvarianten sowie
+zwei syscallfreie Spin- und zwei RSP=0-Generationen mit unabhängiger ELF-/
+Quittungsprüfung. Budgetkern zusätzlich O0/O2 am Host. Das ist keine allgemeine
+Prozess-/Supervisor-/Kontextfehler-/SMP- oder vollständige64-Bit-Systemfreigabe;
+gesampelte laufende Ticks sind keine exakte CPU-Zeit oder FTTI-Zusage.
+
 ## Zweck und Grenze
 
 R8.1a fuehrt ein getrenntes Architektur-Prototypartefakt ein. Es beginnt im

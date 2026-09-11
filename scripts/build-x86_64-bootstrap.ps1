@@ -3,11 +3,16 @@ param(
     [ValidatePattern('^build(?:[\\/][A-Za-z0-9_.-]+)*$')]
     [string]$OutputDirectory = 'build',
     [ValidateSet(-1, 0, 3, 6, 13, 14, 16)] [int]$FaultVector = -1,
-    [ValidateRange(0, 3)] [int]$FaultPhase = 0
+    [ValidateRange(0, 3)] [int]$FaultPhase = 0,
+    [switch]$BusyChild,
+    [switch]$InvalidBusyStack
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (($BusyChild -and $FaultVector -ge 0) -or ($InvalidBusyStack -and -not $BusyChild)) {
+    throw 'Busy and fault fixtures are exclusive; InvalidBusyStack requires BusyChild.'
+}
 
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 
@@ -185,6 +190,8 @@ try {
         "X86_64_CC=$(To-MakePath $Zig) cc" `
         "X86_64_FAULT_VECTOR=$FaultVector" `
         "X86_64_FAULT_PHASE=$FaultPhase" `
+        "X86_64_BUSY_CHILD=$([int]$BusyChild.IsPresent)" `
+        "X86_64_BUSY_INVALID_STACK=$([int]$InvalidBusyStack.IsPresent)" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."

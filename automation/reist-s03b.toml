@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3g-x86_64-shell-preemption-budget"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3g-x86_64-shell-preemption-budget"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Shared shell clock, actual user preemption and bounded CPU-spin retirement"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All11 groups. Actual CPU-budget assembly O0/O2 host proof with exact generation/tick/exhaustion/reset ownership and negative snapshots; negative guest receipt oracle. Normal shell on persistent clock plus24 old real faults pass unchanged semantic receipts. Real spinning child executes no syscall in its loop, parent resumes via IRQ, budget32 is not reset on context switches, raw256 WAIT and complete reap precede each RUN for41/42. Independent ELF loop location and exact receipts checked. Native cleanup restores timer masks/contexts/profiles/frames; i386 guard and docs pass. Frozen scope/diff/queue review then local commit and next clean transaction."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","Need for arbitrary process/supervisor authority or widened native resource budget"]
 commit_message = "feat: preempt native shell tasks and contain CPU spins"
-evidence = []
+evidence = ["python test/test_x86_64_busy.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_context.py -v","python test/test_x86_64_identity.py -v","python test/test_x86_64_fp.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83g-preempt/normal-final","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83g-preempt/normal-final/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83g-preempt/normal-final-guest.log","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83g-preempt/fault-matrix","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83g-preempt/busy","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All11 groups passed. Budget/oracle/wiring3/0.870s actual O0/O2 assembly, limits1/2/32/65536, stale/high-bit/tick/corrupt nonmutation. Bootstrap55/0.033s, Context2/1.137s, Identity2/2.919s, FP2/0.896s and docs. Final normal bootstrap168392 bytes and old dialogue pass. Fault24/48 generations60.717s attempt-8ca07bd6d91745eb94a8ed0381e02b92. Busy2 cases/4 generations5.701s attempt-e39dea54d89d440c88ef32fd93cc484f: actual PAUSE/JMP loop,32 CPU samples/raw256, plus initial XOR ESP,ESP locally retired/raw257 after kernel identity validation. Extra same-boundary stack regression was initially red; no invalid stack dereference or fake exception. Exact ELF/receipt oracle verifies parent progress/reap before both RUNs. Eight kernel mechanism objects byteidentical across normal/CPU/stack fixtures. i386 guard5.031s. Evidence build/codex-agent/r83g-preempt; failed builds/early fixture CLOSE/oracle offset0/real bad-stack retained. Final normal-final paths only preserve older evidence. Source cancellation assertions now enforce shared clock ownership; all old guest receipts unchanged. Private receipt appends8-byte sample field, no public ABI change. Still128MiB/4slots/oneCPU/10s guests, bounded prototype clock256 ticks/TSC lease, sampled not exact CPU time. General process/supervisor/context-fault/SMP/system acceptance remains open. R3.6b deferred, R341-H1/H2 open; no agents/visible VMs/native dialogs/push."
 
 [[packages]]
 id = "R8.3f-x86_64-native-context-transport"
@@ -2795,7 +2796,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

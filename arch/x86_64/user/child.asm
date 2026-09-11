@@ -1,6 +1,12 @@
 BITS 64
 ; Lower 1072 bytes of this task's private stack, disjoint from argv/IPC.
 %define FP_STACK_BASE 0x00408000
+%ifndef X86_64_BUSY_CHILD
+%define X86_64_BUSY_CHILD 0
+%endif
+%ifndef X86_64_BUSY_INVALID_STACK
+%define X86_64_BUSY_INVALID_STACK 0
+%endif
 %include "arch/x86_64/user/fp_probe.inc"
 %ifndef X86_64_FAULT_VECTOR
 %define X86_64_FAULT_VECTOR -1
@@ -42,6 +48,13 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_BUSY_CHILD
+%if X86_64_BUSY_INVALID_STACK
+child_cpu_poison_stack:
+    xor esp, esp
+%endif
+    jmp child_cpu_spin
+%endif
     FAULT_PROBE 0
     mov eax, REIST_SYS_GETPID
     xor edi, edi
@@ -238,5 +251,11 @@ child_fault_instruction:
     FP_CHECK
     ud2
 
+%if X86_64_BUSY_CHILD
+child_cpu_spin:
+    pause
+    jmp short child_cpu_spin
+child_cpu_spin_end:
+%endif
 FP_PROBE_CODE
 section .note.GNU-stack noalloc noexec nowrite progbits

@@ -687,7 +687,7 @@ class X8664BootstrapContractTests(unittest.TestCase):
         remove = scheduler.index(
             "call scheduler_deadline_remove_shell_receive64", wake
         )
-        cancel = scheduler.index("call x86_64_timer_preemption_cancel64", wake)
+        cancel = scheduler.index("call scheduler_shell_deadline_complete64", wake)
         copy = scheduler.index("rep movsb", wake)
         ready = scheduler.index("TASK_STATE], TASK_READY", copy)
         self.assertEqual([remove, cancel, copy, ready],
@@ -712,7 +712,7 @@ class X8664BootstrapContractTests(unittest.TestCase):
             "call scheduler_deadline_remove_shell_send64"
         )
         cancel_send_timer = dequeue_wake.index(
-            "call x86_64_timer_preemption_cancel64"
+            "call scheduler_shell_deadline_complete64"
         )
         queued_copy = dequeue_wake.index(
             "lea rsi, [rel scheduler_shell_ipc_send_wait_message]"
@@ -728,6 +728,9 @@ class X8664BootstrapContractTests(unittest.TestCase):
                     clear_send_wait, ready_sender]),
         )
         self.assertIn("scheduler_shell_dispatch_or_idle64:", scheduler)
+        complete=scheduler.split("scheduler_shell_deadline_complete64:",1)[1].split("x86_64_scheduler_shell_timer_validate64:",1)[0]
+        self.assertIn("call x86_64_timer_shell_now64",complete)
+        self.assertNotIn("call x86_64_timer_preemption_cancel64",complete)
         self.assertIn("call x86_64_timer_sleep_disarm64", scheduler)
         self.assertIn("resq 1\nscheduler_shell_ipc_wait_handle:", scheduler)
         reap = scheduler.index("scheduler_reap_terminal64:")

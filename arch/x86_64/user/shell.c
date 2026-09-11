@@ -15,13 +15,21 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_BUSY_CHILD
+#define X86_64_BUSY_CHILD 0
+#endif
+#ifndef X86_64_BUSY_INVALID_STACK
+#define X86_64_BUSY_INVALID_STACK 0
+#endif
 #ifndef X86_64_FAULT_VECTOR
 #define X86_64_FAULT_VECTOR -1
 #endif
 #ifndef X86_64_FAULT_PHASE
 #define X86_64_FAULT_PHASE 0
 #endif
-#if X86_64_FAULT_VECTOR >= 0
+#if X86_64_BUSY_CHILD
+#define SHELL_EXPECTED_CHILD_STATUS (X86_64_BUSY_INVALID_STACK ? 257U : 256U)
+#elif X86_64_FAULT_VECTOR >= 0
 #define SHELL_EXPECTED_CHILD_STATUS (128U + X86_64_FAULT_VECTOR)
 #else
 #define SHELL_EXPECTED_CHILD_STATUS SHELL_CHILD_STATUS
@@ -270,6 +278,15 @@ void _start(void)
                                    IPC_RIGHT_SEND) != 0LL) {
                     shell_exit(16ULL);
                 }
+#if X86_64_BUSY_CHILD
+                /* The child has no syscall in its loop: this yield can only
+                 * return through real timer preemption. Keep normal IPC tests
+                 * in the default image; quota retirement fences the endpoint. */
+                if (reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
+                    shell_exit(31ULL);
+                }
+                goto cpu_budget_wait;
+#endif
                 if (reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL ||
@@ -356,6 +373,9 @@ child_fault_cleanup:
                     reist_x64_syscall3(REIST_X64_SYS_IPC_CLOSE, ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(30ULL);
                 }
+#endif
+#if X86_64_BUSY_CHILD
+cpu_budget_wait:
 #endif
                 waited_pid = reist_x64_syscall3(REIST_X64_SYS_WAIT, (shell_u64)child_pid,
                                             (shell_u64)&child_status, 0ULL);

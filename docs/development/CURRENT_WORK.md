@@ -2,6 +2,54 @@
 
 Stand: 11. September 2026
 
+## R8.3g: native Shellpräemption und begrenzter CPU-Spin
+
+Basis `74f7e30d`, Vertrag `bfa107b1`. Die zugelassenen Shell-/Kindtasks laufen
+jetzt IF=1 mit gemeinsamer100-Hz-Zeitbasis. IPC-Timeouts verwenden absolute
+Deadlines; Abschluss/Widerruf eines Waits meldet nicht mehr den Scheduling-
+Timer ab. Herkunft/Identität/Profil/Kontext und begrenzte Deadline-Wakeups
+werden vor EOI geprüft; erst danach folgen FP-/GPR-Sicherung, Scheduling
+oder Retirement. Kernel-Idle bleibt auf den geprüften HLT-Bereich begrenzt.
+
+Ein generationsgebundener32-Byte-CPU-Budgetrecord zählt laufende PIT-Samples.
+Im bestehenden Testprofil hat ein Kind32 Samples; Yield/IPC/Präemption setzen
+das Budget nicht zurück. Erschöpfung fencet IPC/Profil, räumt FP/Frames/ELF und
+Budget auf und liefert WAIT den REIST-Raw-Status256. Der Zusatzbefund eines
+absichtlich auf0 gesetzten User-RSP wird nach validierter Kernelidentität
+ebenfalls lokal abgefangen, ohne Capture/Restore/Dereferenzierung des ungültigen
+Stacks; eigener Raw-Status257. Keine simulierte CPU-Ausnahme und kein POSIX-
+Signal-/Waitstatus. Sonstige native Kontext-/Supervisor- und allgemeine
+Prozesszulassung bleiben getrennt abzunehmen.
+
+Elf Prüfgruppen bestanden: Budget/Oracle/Wiring3/0.870s, Bootstrap55/0.033s,
+Context2/1.137s, Identität2/2.919s, FP2/0.896s, Dokumentation, Normalbuild/-gast,
+24 bisherige CPU-Fehlvarianten/48 Generationen, erweiterter Busy-Gast und
+i386-Guard5.031s. Host O0/O2 prüft Limits1/2/32/65536, monotone64-Bit-Ticks,
+alte/obere Generationen und negative Snapshot-Nichtmutation. Der Gast prüft
+die tatsächlichen ELF-Instruktionen PAUSE/JMP beziehungsweise XOR ESP,ESP
+mit direktem Sprung: je zwei CPU- und Stack-Retirements, genaue Generation,
+Budget, Elternzustand, RIP und Reap-vor-WAIT/RUN. Busy-Buildparameter ändern
+nur Userspace-ELFs/Erwartungen; acht Mechanismusobjekte einschließlich Scheduler,
+Timer, Budget, Kontext und FP sind über Normal-/CPU-/Stackvariante bytegleich.
+
+Belege `build/codex-agent/r83g-preempt/`: finale Normalartefakte `normal-final/`
+und `normal-final-guest.log`, Bootstrap168392 Bytes, Probe12312, Shell3680,
+Kind1824. Busy5.701s unter `busy/attempt-e39dea54d89d440c88ef32fd93cc484f/`.
+Finale Fehlmatrix60.717s: `fault-matrix/attempt-8ca07bd6d91745eb94a8ed0381e02b92/`.
+Erhaltene rote Läufe zeigen fehlende Buildsymbole, einen unpassenden frühen
+CLOSE-Aufruf der neuen Fixture, den Quittungsoracle-Randfall bei Textoffset0
+und den echten ungültigen User-RSP. Eine alte Quellassertion für das inzwischen
+verbotene Abmelden des Wait-Timers prüft jetzt den weiter gültigen Clockbesitz.
+Keine alte Gastanforderung oder Fehlerquittung wurde entfernt.
+
+Weiterhin isolierter Bootstrap: eine CPU,128MiB/vier Slots, Clock-Lease höchstens
+256 gelieferte Ticks und bisheriger TSC-Abbruchrahmen, Gasttests höchstens10s.
+Die32 Samples sind keine universelle Anwendungspolitik oder exakte CPU-Zeit-/
+FTTI-Zusage. i386-Images/Benchmark unverändert. Allgemeine Prozess-/Endpoint-/
+Supervisorzulassung, skalierbarer Speicher, native Dienste/Desktop/Browser
+und vollständige64-Bit-Systemabnahme bleiben offen; R3.6b zurückgestellt,
+R341-H1/H2 unverändert offen.
+
 ## R8.3f: volle native Kontexte und Timerwechsel mit belegtem Stack
 
 Basis `4616b210`, Vertrag `b77ccbd1`. Der neue private Assemblykern übernimmt

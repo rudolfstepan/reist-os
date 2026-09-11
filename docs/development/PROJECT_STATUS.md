@@ -28,6 +28,12 @@ R8.3f vereinheitlicht die geprüfte volle Registersicherung von Syscall und IRQ.
 Timer-Prozesswechsel funktionieren mit belegten Stacks statt festem RSP;
 Canaries, FP und volle Registerbreite sind geprüft. Allgemeine Shellpräemption,
 Hangbehandlung und Supervisorzulassung bleiben davon getrennt und offen.
+R8.3g ergänzt im zugelassenen Shellprofil echte Timerpräemption und eine
+gemeinsame Zeitbasis für Scheduling/IPC. Syscallfreier Kind-Spin wird nach32
+CPU-Samples vollständig gereapt (Raw256), ein ungültiger User-RSP lokal
+abgefangen (Raw257). Elf Prüfgruppen einschließlich alter24 Fehlvarianten
+und vier neuen Busy-/Stackgenerationen bestanden. Keine allgemeine CPU-Policy,
+Supervisor-/beliebige-Prozess-/SMP-Freigabe oder exakte Zeitgarantie daraus.
 R8.1/R8.2 bleiben ein128MiB-Prototyp mit Test-Shell, nicht die vollständige
 64-Bit-Version. [Bestand und Fertigstellung](X86_64_COMPLETION_WORK_PAPER.md).
 

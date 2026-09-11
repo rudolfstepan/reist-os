@@ -27,10 +27,13 @@ TIMER_GENERATION          equ 1
 PREEMPT_GENERATION        equ 2
 QUANTUM_GENERATION        equ 3
 SLEEP_GENERATION          equ 4
+SHELL_GENERATION          equ 5
 TIMER_MODE_SELFTEST       equ 1
 TIMER_MODE_PREEMPT        equ 2
 TIMER_MODE_QUANTUM        equ 3
 TIMER_MODE_SLEEP          equ 4
+TIMER_MODE_SHELL          equ 5
+SHELL_MAX_TICKS           equ 256
 QUANTUM_EXPECTED_TICKS    equ 4
 SLEEP_MAX_TICKS           equ 8
 TSC_DEADLINE_CYCLES       equ 3000000000
@@ -55,6 +58,8 @@ global x86_64_timer_quantum_disarm64
 global x86_64_timer_sleep_arm64
 global x86_64_timer_sleep_disarm64
 global x86_64_timer_sleep_now64
+global x86_64_timer_shell_arm64
+global x86_64_timer_shell_now64
 
 extern pml4_table
 extern _text_start
@@ -66,6 +71,8 @@ extern x86_64_scheduler_quantum_switch64
 extern x86_64_scheduler_quantum_validate64
 extern x86_64_scheduler_timer_abort64
 extern x86_64_scheduler_deadline_tick64
+extern x86_64_scheduler_shell_timer_validate64
+extern x86_64_scheduler_shell_timer_tail64
 
 x86_64_timer_interrupt_selftest64:
     cli
@@ -189,6 +196,8 @@ x86_64_timer_interrupt64:
     je .quantum
     cmp byte [rel timer_mode], TIMER_MODE_SLEEP
     je .sleep
+    cmp byte [rel timer_mode], TIMER_MODE_SHELL
+    je .shell
     cmp dword [rel timer_generation], TIMER_GENERATION
     jne .invalid
     mov rax, cr3
@@ -308,7 +317,51 @@ x86_64_timer_interrupt64:
     out PIC1_COMMAND, al
     mov eax, 1
     ret
+.shell:
+    cmp dword [rel timer_generation], SHELL_GENERATION
+    jne .shell_invalid
+    cmp qword [rdi + EXCEPTION_FRAME_VECTOR], TIMER_VECTOR
+    jne .shell_invalid
+    cmp qword [rdi + EXCEPTION_FRAME_ERROR], 0
+    jne .shell_invalid
+    cmp dword [rel timer_ticks], SHELL_MAX_TICKS
+    jae .shell_invalid
+    rdtsc
+    shl rdx, 32
+    mov eax, eax
+    or rax, rdx
+    cmp rax, [rel timer_deadline]
+    ja .shell_invalid
+    call x86_64_scheduler_shell_timer_validate64
+    test eax, eax
+    jz .shell_invalid
+    inc dword [rel timer_ticks]
+    push rax
+    push rdi
+    mov esi, [rel timer_ticks]
+    call x86_64_scheduler_deadline_tick64
+    pop rdi
+    pop rdx
+    test eax, eax
+    jz .shell_invalid
+    inc dword [rel timer_eoi_count]
+    mov al, PIC_EOI
+    out PIC1_COMMAND, al
+    ; EDX preserves validator result:1 resumable,2 contained child stack fault.
+    ; IRQ body is complete. Switching/reap/diagnosis belong to the tail.
+    mov esi, [rel timer_ticks]
+    jmp x86_64_scheduler_shell_timer_tail64
+.shell_invalid:
+    mov al, PIC_ALL_MASKED
+    out PIC1_DATA, al
+    mov al, PIC_EOI
+    out PIC1_COMMAND, al
+    call x86_64_scheduler_timer_abort64
+    xor eax, eax
+    ret
 .invalid:
+    cmp byte [rel timer_mode], TIMER_MODE_SHELL
+    je .shell_invalid
     cmp byte [rel timer_mode], TIMER_MODE_PREEMPT
     je .abort_scheduler
     cmp byte [rel timer_mode], TIMER_MODE_QUANTUM
@@ -492,6 +545,35 @@ x86_64_timer_sleep_disarm64:
     xor eax, eax
     ret
 
+x86_64_timer_shell_arm64:
+    call x86_64_timer_preemption_arm64
+    test rax, rax
+    jz .fail
+    mov dword [rel timer_generation], SHELL_GENERATION
+    mov byte [rel timer_mode], TIMER_MODE_SHELL
+    mov eax, 1
+    ret
+.fail:
+    xor eax, eax
+    ret
+
+x86_64_timer_shell_now64:
+    cmp byte [rel timer_active], 1
+    jne .fail
+    cmp byte [rel timer_mode], TIMER_MODE_SHELL
+    jne .fail
+    cmp dword [rel timer_generation], SHELL_GENERATION
+    jne .fail
+    mov eax, [rel timer_ticks]
+    cmp eax, [rel timer_eoi_count]
+    jne .fail
+    cmp eax, SHELL_MAX_TICKS
+    jae .fail
+    ret
+.fail:
+    mov rax, -1
+    ret
+
 x86_64_timer_sleep_now64:
     cmp byte [rel timer_active], 1
     jne .sleep_now_fail
@@ -507,6 +589,8 @@ x86_64_timer_sleep_now64:
 ; timer mode, but restores every partially or fully armed preemption state.
 x86_64_timer_preemption_cancel64:
     cli
+    cmp byte [rel timer_mode], TIMER_MODE_SHELL
+    je .cancel
     cmp byte [rel timer_mode], TIMER_MODE_PREEMPT
     je .cancel
     cmp byte [rel timer_mode], TIMER_MODE_QUANTUM
