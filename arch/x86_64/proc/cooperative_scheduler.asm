@@ -321,6 +321,10 @@ global x86_64_process_table_metadata_clear64
 
 extern pml4_table
 extern physical_frame_alloc64
+extern reist_x64_frame_claim_begin
+extern reist_x64_frame_claim_take
+extern reist_x64_frame_claim_abort
+extern x86_64_elf64_load_error64
 extern physical_frame_free64
 extern physical_free_frame_count64
 extern x86_64_elf64_load64
@@ -3332,13 +3336,22 @@ scheduler_shell_spawn_validated64:
     test eax, eax
     jz scheduler_fail
     call scheduler_save_syscall_context64
+    cmp byte [rel scheduler_spawn_transaction_active], 0
+    jne scheduler_fail
+    cmp byte [rel scheduler_frame_claim_active], 0
+    jne scheduler_fail
+    call physical_free_frame_count64
+    mov dword [rel scheduler_spawn_initial_free], eax
+    mov eax, dword [rel scheduler_identity_pool + 20]
+    mov dword [rel scheduler_spawn_initial_generation], eax
+    mov byte [rel scheduler_spawn_transaction_active], 1
     mov edi, ELF_IMAGE_CHILD
     call x86_64_elf64_select_image64
     test eax, eax
     jz scheduler_fail
     call x86_64_elf64_load64
     test eax, eax
-    jz scheduler_fail
+    jz scheduler_spawn_load_failed64
     call x86_64_elf64_entry64
     cmp rax, USER_BASE
     jb scheduler_fail
@@ -3348,6 +3361,12 @@ scheduler_shell_spawn_validated64:
     call x86_64_elf64_address_flags64
     test eax, PF_X
     jz scheduler_fail
+    call scheduler_claim_child_frames64
+    cmp rax, -12
+    je scheduler_spawn_oom_rollback64
+    cmp rax, 1
+    jne scheduler_fail
+    mov byte [rel scheduler_frame_claim_active], 1
     mov edi, 1
     call scheduler_build_task64
     test eax, eax
@@ -3355,6 +3374,13 @@ scheduler_shell_spawn_validated64:
     call scheduler_build_shell_child_stack64
     test eax, eax
     jz scheduler_fail
+    mov rax, qword [rel scheduler_frame_claim + 104]
+    cmp rax, qword [rel scheduler_frame_claim + 112]
+    jne scheduler_fail
+    call scheduler_abort_frame_claim64
+    cmp rax, 1
+    jne scheduler_fail
+    mov byte [rel scheduler_spawn_transaction_active], 0
     mov edi, ELF_IMAGE_SHELL
     call x86_64_elf64_select_image64
     test eax, eax
@@ -3400,6 +3426,68 @@ scheduler_shell_spawn_validated64:
     mov qword [r12 + TASK_STATE], TASK_READY
     xor edi, edi
     jmp scheduler_enter_task64
+
+; No identity, CPU profile, queue membership or child ownership was published.
+; A malformed trusted image or failed release is never downgraded to ENOMEM.
+scheduler_spawn_load_failed64:
+    call x86_64_elf64_load_error64
+    cmp rax, -12
+    jne scheduler_fail
+scheduler_spawn_oom_rollback64:
+    call scheduler_abort_frame_claim64
+    cmp rax, 1
+    jne scheduler_fail
+    call x86_64_elf64_release64
+    cmp eax, 1
+    jne scheduler_fail
+    mov edi, ELF_IMAGE_SHELL
+    call x86_64_elf64_select_image64
+    cmp eax, 1
+    jne scheduler_fail
+    call physical_free_frame_count64
+    cmp eax, dword [rel scheduler_spawn_initial_free]
+    jne scheduler_fail
+    mov eax, dword [rel scheduler_identity_pool + 20]
+    cmp eax, dword [rel scheduler_spawn_initial_generation]
+    jne scheduler_fail
+    cmp byte [rel scheduler_dynamic_child_active], 0
+    jne scheduler_fail
+    mov eax, dword [rel scheduler_dynamic_spawn_count]
+    cmp eax, dword [rel scheduler_dynamic_completed_count]
+    jne scheduler_fail
+    cmp byte [rel scheduler_runqueue_membership + 1], 0
+    jne scheduler_fail
+    lea r11, [rel scheduler_tasks + TASK_RECORD_SIZE]
+    cmp qword [r11 + TASK_STATE], TASK_FREE
+    jne scheduler_fail
+    cmp qword [r11 + TASK_GENERATION], 0
+    jne scheduler_fail
+    cmp qword [r11 + TASK_CR3], 0
+    jne scheduler_fail
+    cmp qword [r11 + TASK_STACK_FRAME], 0
+    jne scheduler_fail
+    xor ecx, ecx
+.private_zero:
+    cmp qword [r11 + TASK_PRIVATE_FRAMES + rcx*8], 0
+    jne scheduler_fail
+    inc ecx
+    cmp ecx, USER_PAGE_COUNT
+    jb .private_zero
+    lea r11, [rel scheduler_table_frames + TASK_TABLE_LEVELS*8]
+    xor ecx, ecx
+.tables_zero:
+    cmp qword [r11 + rcx*8], 0
+    jne scheduler_fail
+    inc ecx
+    cmp ecx, TASK_TABLE_LEVELS
+    jb .tables_zero
+    call scheduler_validate_shell_child_endpoint64
+    cmp eax, 1
+    jne scheduler_fail
+    mov byte [rel scheduler_spawn_transaction_active], 0
+scheduler_spawn_oom_verified64:
+    mov rax, -12
+    jmp scheduler_shell_resume64
 
 scheduler_handle_shell_wait64:
     mov byte [rel scheduler_failure_stage], 0x56
@@ -5569,6 +5657,59 @@ x86_64_scheduler_timer_validate64:
     xor eax, eax
     ret
 
+; Claim all task frames while IF=0, before identity reserve. Only writable
+; ELF pages need private copies; RX frames are already owned by the loader.
+scheduler_claim_child_frames64:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    mov esi, TASK_TABLE_LEVELS + 1
+    xor ecx, ecx
+.count:
+    call x86_64_elf64_page_flags64
+    test eax, PF_W
+    jz .next
+    inc esi
+.next:
+    inc ecx
+    cmp ecx, USER_PAGE_COUNT
+    jb .count
+    lea rdi, [rel scheduler_frame_claim]
+    call reist_x64_frame_claim_begin
+    mov rsp, rbp
+    pop rbp
+    ret
+
+scheduler_abort_frame_claim64:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    lea rdi, [rel scheduler_frame_claim]
+    call reist_x64_frame_claim_abort
+    cmp rax, 1
+    jne .done
+    mov byte [rel scheduler_frame_claim_active], 0
+.done:
+    mov rsp, rbp
+    pop rbp
+    ret
+
+scheduler_task_frame_alloc64:
+    cmp byte [rel scheduler_frame_claim_active], 0
+    je physical_frame_alloc64
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
+    jne scheduler_fail
+    cmp ebx, 1
+    jne scheduler_fail
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    lea rdi, [rel scheduler_frame_claim]
+    call reist_x64_frame_claim_take
+    mov rsp, rbp
+    pop rbp
+    ret
+
 ; Build one private address space. EDI is 0 or 1.
 scheduler_build_task64:
     xor r12d, r12d
@@ -5616,7 +5757,7 @@ scheduler_build_task64:
     jb .table_metadata_loop
     xor ebp, ebp
 .table_allocation_loop:
-    call physical_frame_alloc64
+    call scheduler_task_frame_alloc64
     test rax, rax
     jz .fail
     test rax, PAGE_SIZE - 1
@@ -5683,7 +5824,7 @@ scheduler_build_task64:
     je .fail
     test r15d, PF_W
     jz .share_rx
-    call physical_frame_alloc64
+    call scheduler_task_frame_alloc64
     test rax, rax
     jz .fail
     test rax, PAGE_SIZE - 1
@@ -5728,7 +5869,7 @@ scheduler_build_task64:
     cmp ebp, USER_PAGE_COUNT
     jb .page_loop
 
-    call physical_frame_alloc64
+    call scheduler_task_frame_alloc64
     test rax, rax
     jz .fail
     test rax, PAGE_SIZE - 1
@@ -6763,6 +6904,8 @@ scheduler_cleanup_common64:
 scheduler_force_cleanup64:
     cli
     mov byte [rel scheduler_active], 0
+    call scheduler_abort_frame_claim64
+    mov byte [rel scheduler_spawn_transaction_active], 0
     call x86_64_timer_preemption_cancel64
     mov rax, qword [rel scheduler_original_cr3]
     test rax, rax
@@ -6927,6 +7070,18 @@ alignb 16
 scheduler_state_begin:
 scheduler_identity_pool:
     resb 24
+alignb 8
+scheduler_frame_claim:
+    resb 120
+scheduler_spawn_initial_free:
+    resd 1
+scheduler_spawn_initial_generation:
+    resd 1
+scheduler_frame_claim_active:
+    resb 1
+scheduler_spawn_transaction_active:
+    resb 1
+alignb 8
 scheduler_identity_retired:
     resd TASK_SLOT_CAPACITY
 scheduler_cpu_budgets:

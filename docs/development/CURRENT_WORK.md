@@ -2,6 +2,46 @@
 
 Stand: 11. September 2026
 
+## R8.3l: Speichermangel beim nativen Prozessstart
+
+Basis a22c30ed, eingefrorener Vertrag1927886d. SPAWN/SPAWNV reservieren
+ELF-Staging und alle privaten Taskframes vor der Identitätsvergabe. Bei
+Allokatorerschöpfung führt nur vollständig geprüfter Rollback zu ENOMEM:
+keine verbrauchte Generation oder Startquota, kein halbfertiges Kind, keine
+verlorenen Seiten. Der nächste Versuch kann normal starten und geerntet werden.
+Fehlerhafte Kernelmetadaten oder fehlgeschlagene Freigaben bleiben fatal.
+
+Privater120-Byte-Claim, höchstens13 Seiten (vier Tabellen, Stack, bis zu acht
+Schreibseiten), eindeutige Übergabe und idempotente Restfreigabe. ELF-Lader
+behält seinen booleschen Vertrag; private Last-error-Abfrage unterscheidet
+bestätigtes OOM von Korruption. Keine neue öffentliche ABI oder Autorität.
+
+Die echte QEMU-Injektion setzt an allen sechs Allokator-Eintritten des
+aktuellen Kindbilds vor Effekten einmal das Nullergebnis, jeweils in beiden
+Generationen. Alle zwölf Abläufe: ENOMEM, identischer Freiframebestand,
+unveränderte Identität, leeres Claim-/Kindobjekt, Retry, IPC/WAIT und Reap.
+Dies ist ein Fehlerpfadnachweis, keine Mehr-GiB- oder allgemeine ELF-Abnahme.
+
+Die erste Normalprüfung deckte eine8-Byte-Ausrichtungsverletzung der
+nachgelagerten CPU-Budgetdaten auf; korrigiert, rotes Bild und GDB-Diagnose
+erhalten. Zwei alte Quelltests folgen jetzt dem neuen Allokatoradapter;
+Anzahl/Privatbesitz/Share-RX/Free-Gates bleiben erhalten. Vollständige
+Abnahmebelege und18 Gategruppen unter build/codex-agent/r83l-oom.
+
+Unverändert:1CPU/128MiB/vier Slots/zwei Kinder und alle Zeitbudgets.
+Allgemeine Prozesse/Supervisor-Recovery, skalierbarer Speicher, native
+Dienste/Desktop/Browser und Systemabnahme bleiben offen. R3.6b bleibt
+zurückgestellt; R341-H1/H2 unverändert.
+
+Abnahme R8.3l: alle18 Gruppen bestanden. Neuer Hostkern O0/O2 und Oracles
+3/0.901s; Bootstrap55/0.028s, Requests3/0.841s, Startup4/1.219s,
+Exit3/0.850s, Context2/1.088s. Normalbild174728 Bytes mit unveränderten
+Shell-/Kind-ELFs. OOM6/12 Generationen7.312s; Requests3/6 in8.072s,
+Argv4/8 in10.858s, Exit24/48 in65.127s, Fault24/48 in69.265s,
+Busy2/4 in6.289s, Context7/14 in20.158s, IPC4/8 in12.290s.
+16 Kernelmechanismen über70 Builds bytegleich; i386-Guard4.931s.
+Die einzelnen Versuche und Logs bleiben unter dem oben genannten Belegpfad.
+
 ## R8.3k: lokale Aufruffehler und Kindübergabe abgenommen
 
 Basis `01ae89a9`, Vertrag `bd5cb57d`, freigegebener Fixture-Nachtrag

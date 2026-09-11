@@ -4,6 +4,12 @@ Stand: 11. September 2026. R3.44 und R3.45-JS-Farben abgenommen.
 Maßgeblich sind ausführbarer Code, die Tests und die
 aktive Paketqueue in `automation/reist-s03b.toml`.
 
+R8.3l ergänzt die native Spawn-Speichertransaktion: alle Taskframes vor
+Identitätsvergabe, bei geprüftem Rollback lokales ENOMEM und sicherer Retry.
+Alle sechs aktuellen Kindallokationen mit Gast-Fehlereinjektion in beiden
+Generationen geprüft; keine größere RAM-/Prozesskapazität oder neue Autorität.
+Details in [CURRENT_WORK](CURRENT_WORK.md#r83l-speichermangel-beim-nativen-prozessstart).
+
 R8.3k mit freigegebenem Nachtrag `ad52c557` abgenommen: lokale nichtterminale
 Aufruffehler, Endpointprüfung vor Spawnallokation und begrenzte Übergabe im
 Testkind. Alle16 Gruppen einschließlich erzwungenem Kindlauf vor Delegation,

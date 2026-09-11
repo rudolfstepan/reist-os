@@ -2,6 +2,22 @@
 
 Stand: 28. August 2026
 
+R8.3l (11. September2026): SPAWN/SPAWNV besitzen eine begrenzte
+Speichertransaktion vor der Identitätsvergabe. ELF-Staging und ein privater
+120-Byte-Claim mit maximal13 Frames (4 Tabellen + Stack + bis zu8 private
+Schreibseiten) werden vollständig reserviert, dann generationengebunden an
+den Task übertragen. OOM führt nur nach bestätigter Rücknahme aller Seiten,
+unveränderter Identität/Startquota und unveröffentlichtem Kind zu ENOMEM.
+Kein Zurückdrehen einer Generation. Metadaten-/Freigabefehler bleiben fatal.
+Der boolesche ELF-Ladevertrag bleibt bestehen; ein privater Last-error-Wert
+gilt ausschließlich für den letzten serialisierten Ladeaufruf, nicht als
+Bestandteil des88-Byte-Bildkontexts. Interne Calls verwenden System V AMD64,
+Fehler REIST-v1; keine neue öffentliche ABI/POSIX-Kompatibilitätsbehauptung.
+Die Gastprüfung injiziert Allocator-Nullrückgaben vor Effekten an sechs
+aktuellen Kindallokationen. Sie beweist Rollback/Retry in zwei Generationen,
+nicht skalierbaren Speicher, Mehrkernbetrieb oder allgemeine ELF-Programme.
+128MiB/1CPU/vier Slots/zwei Kinder und frühere Abnahmegrenzen bleiben erhalten.
+
 Ergänzung 11. September 2026: Die native64-Bit-Fertigstellung hat Vorrang.
 R8.3a hat die native Test-Shell auf den gemeinsamen C/C++-Syscalltransport
 umgestellt; Registerbreite, Nummern und echte IPC-/Reap-Abfolge sind geprüft.

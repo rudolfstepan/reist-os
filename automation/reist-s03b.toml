@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3l-x86_64-spawn-memory-transaction"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3l-x86_64-spawn-memory-transaction"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Bounded native process allocation and rollback before identity publication"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_boot.py --image build/codex-age
 acceptance = "All18 groups: shared actual claim assembly O0/O2 with every partial prefix, bad metadata, duplicate/invalid frames, failed frees and transfer/cleanup ownership. Real guest allocator entry injection at all six current child allocation positions for both generations, exact ENOMEM and rollback/free/identity receipts before successful retry, unchanged kernel mechanisms. Preserve all old request/argv/IPC/exit/fault/busy/context/runtime oracles. Scope/diff/queue review and clean local commit before next package."
 stop_conditions = ["Unattributed changes","Required source outside frozen scope","Failed gate without focused in-scope correction","New authority or broader supervisor/scalable-memory boundary"]
 commit_message = "fix: roll back native process allocation before identity publication"
-evidence = []
+evidence = ["python test/test_x86_64_spawn_oom.py -v","python test/test_x86_64_requests.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_argv.py -v","python test/test_x86_64_exit.py -v","python test/test_x86_64_context.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83l-oom/normal-fixed","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83l-oom/normal-fixed/x86_64/reist-x86_64-bootstrap.elf --timeout 10 --log build/codex-agent/r83l-oom/normal-fixed-guest.log","python scripts/run_qemu_x86_64_spawn_oom.py --evidence build/codex-agent/r83l-oom/spawn_oom","python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83l-oom/requests","python scripts/run_qemu_x86_64_argv.py --evidence build/codex-agent/r83l-oom/argv","python scripts/run_qemu_x86_64_exit.py --evidence build/codex-agent/r83l-oom/exit","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83l-oom/fault","python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83l-oom/busy","python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83l-oom/user_context","python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83l-oom/ipc_handoff","python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All18 groups. Actual frame claim O0/O2 and runtime/source negative oracles3/0.901s; requests3/0.841s, bootstrap55/0.028s, argv4/1.219s, exit3/0.850s, context2/1.088s, docs7/0.678s (one historical scope skip). Normal174728 bytes, unchanged default shell/child ELF bytes; initial misaligned budget-record failure and diagnosis retained, fixed output normal-fixed. OOM allocator-entry injection all6 current positions/12 generations7.312s attempt-0243a984f7fa4ab3b1e69f5fe4951ab7 proves free/identity/count/claim/child rollback and successful retry. Requests3/6 8.072s; argv4/8 10.858s; exit24/48 65.127s; fault24/48 69.265s; busy2/4 6.289s; context7/14 20.158s; IPC4/8 12.290s.16 mechanism objects byteidentical across70 builds, aligned production records, i386 guard4.931s. Evidence build/codex-agent/r83l-oom. No generation rewind, new authority, budget change or scalable-memory claim. General native process/pools/supervisor/services/userland remain open; continue next transaction after clean commit. R3.6b formally reactivated but explicitly deferred."
 
 [[packages]]
 id = "R8.3k-x86_64-request-admission"
@@ -2906,7 +2907,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

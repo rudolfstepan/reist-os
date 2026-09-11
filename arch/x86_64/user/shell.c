@@ -18,6 +18,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_REQUEST_CASE
 #define X86_64_REQUEST_CASE 0
 #endif
+#ifndef X86_64_OOM_CASE
+#define X86_64_OOM_CASE 0
+#endif
 #ifndef X86_64_IPC_CASE
 #define X86_64_IPC_CASE 0
 #endif
@@ -206,7 +209,9 @@ void _start(void)
     static const char prompt[] = "C:\\>";
     static const char info[] = "REIST_X86_64_RING3_SHELL_INFO_OK\r\n";
     static const char help[] = "HELP INFO RUN EXIT\r\n";
-#if X86_64_REQUEST_CASE
+#if X86_64_OOM_CASE
+    static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nOOM_OK\r\n";
+#elif X86_64_REQUEST_CASE
 #define REQUEST_STRING_INNER(n) #n
 #define REQUEST_STRING(n) REQUEST_STRING_INNER(n)
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nREQUEST_" REQUEST_STRING(X86_64_REQUEST_CASE) "_OK\r\n";
@@ -413,6 +418,13 @@ void _start(void)
                 child_pid = reist_x64_syscall3(REIST_X64_SYS_SPAWNV,
                     (shell_u64)child_path, startup_argc ? (shell_u64)startup_argv : 0ULL, startup_argc);
 #else
+#if X86_64_OOM_CASE
+                /* The external guest verifier injects exactly one allocator
+                 * failure before each generation. No kernel fixture flags. */
+                if(reist_x64_syscall3(REIST_X64_SYS_SPAWNV,
+                     (shell_u64)child_path,(shell_u64)child_argv,2ULL)!=-12LL)
+                    shell_exit(49);
+#endif
                 child_pid = reist_x64_syscall3(REIST_X64_SYS_SPAWNV,
                                            (shell_u64)child_path,
                                            (shell_u64)child_argv, 2ULL);

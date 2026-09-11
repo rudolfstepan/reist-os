@@ -30,6 +30,16 @@ kein Nachweis skalierbaren RAMs. Alle bisherigen Gastmatrizen bleiben Gates.
 128MiB/1CPU/vier Slots/zwei Kinder und Zeitbudgets unverändert. Belege unter
 build/codex-agent/r83l-oom; erst nach Abnahme committen und weiterarbeiten.
 
+Abnahme R8.3l: alle18 Gruppen bestanden. Host3/0.901s einschließlich echtem
+O0/O2-Assemblykern und negativen Gastoracles; Bootstrap55/0.028s,
+Requests3/0.841s, Startup4/1.219s, Exit3/0.850s, Context2/1.088s.
+Normalbild174728 Bytes, unveränderte Shell-/Kind-ELFs; OOM6 Fälle/12
+Generationen7.312s. Alte Request-/Argv-/Exit-/Fault-/Busy-/Context-/IPC-Matrizen
+bestehen;16 Mechanismusobjekte über70 Builds bytegleich. i386-Guard4.931s.
+Der erste Normalfehler (Ausrichtung der Budgetdaten) samt Diagnose bleibt
+erhalten; neue erfolgreiche Normalbelege unter normal-fixed. Kein anderer
+Fehler wurde zum lokalen OOM umklassifiziert, keine Quoten geändert.
+
 ## Bestand und eigentlicher Abstand
 
 R8.1a bis R8.2r sind abgenommen: Long Mode, W^X/NX, getrennte User-Adressräume,

@@ -61,6 +61,7 @@ PH_ALIGN            equ 48
 section .text
 global x86_64_elf64_loader_selftest64
 global x86_64_elf64_load64
+global x86_64_elf64_load_error64
 global x86_64_elf64_release64
 global x86_64_elf64_release_all64
 global x86_64_elf64_entry64
@@ -92,6 +93,9 @@ x86_64_elf64_loader_selftest64:
     ret
 
 x86_64_elf64_load64:
+    ; Private last-call diagnostic, not part of the stored88-byte image context.
+    ; Boolean callers remain compatible; only verified allocation rollback is OOM.
+    mov qword [rel elf_last_load_error], -4096
     cmp byte [rel elf_load_active], 0
     jne elf64_return_failure
     cld
@@ -283,7 +287,7 @@ x86_64_elf64_load64:
     call physical_frame_alloc64
     pop rcx
     test rax, rax
-    jz elf64_load_fail
+    jz elf64_load_oom
     lea rdx, [rel elf_page_frames]
     mov qword [rdx + rcx * 8], rax
 .next_allocation:
@@ -372,7 +376,19 @@ x86_64_elf64_load64:
     jmp .verify_header_loop
 
 .verified:
+    mov qword [rel elf_last_load_error], 0
     mov eax, 1
+    ret
+
+elf64_load_oom:
+    call elf64_cleanup64
+    cmp eax, 1
+    jne elf64_return_failure
+    mov qword [rel elf_last_load_error], -12
+    jmp elf64_return_failure
+
+x86_64_elf64_load_error64:
+    mov rax, qword [rel elf_last_load_error]
     ret
 
 elf64_load_fail:
@@ -586,6 +602,9 @@ user_child_elf_end:
 elf64_load_ok_message db "REIST_X86_64_ELF64_LOAD_OK", 13, 10, 0
 
 section .bss
+alignb 16
+elf_last_load_error:
+    resq 1
 alignb 16
 elf_context_window:
 elf_page_frames:

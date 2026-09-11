@@ -10,10 +10,14 @@ param(
     [ValidateRange(-1, 4294967295)] [long]$ExitStatus = -1,
     [ValidateRange(0, 3)] [int]$IpcCase = 0,
     [ValidateRange(0, 4)] [int]$ArgvCase = 0,
-    [ValidateRange(0, 3)] [int]$RequestCase = 0
+    [ValidateRange(0, 3)] [int]$RequestCase = 0,
+    [ValidateRange(0, 1)] [int]$OomCase = 0
 )
 
 Set-StrictMode -Version Latest
+if ($OomCase -ne 0 -and ($RequestCase -ne 0 -or $IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
+    throw 'OomCase is exclusive with other user fixtures.'
+}
 if ($RequestCase -ne 0 -and ($IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
     throw 'RequestCase is exclusive with other user fixtures.'
 }
@@ -217,6 +221,7 @@ try {
         "X86_64_IPC_CASE=$IpcCase" `
         "X86_64_ARGV_CASE=$ArgvCase" `
         "X86_64_REQUEST_CASE=$RequestCase" `
+        "X86_64_OOM_CASE=$OomCase" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."
