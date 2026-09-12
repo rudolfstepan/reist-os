@@ -87,6 +87,7 @@ reist_x64_user_access:
     jb .pointers
     ; Resolve the existing single PT topology for [0x400000,0x409000).
     mov r15d,7
+    mov qword [rsp+56],0
     xor ebx,ebx
 .levels:
     mov rdx,[rsp+rbx*8]
@@ -96,6 +97,9 @@ reist_x64_user_access:
     mov ecx,2
 .entry:
     mov rax,[rdx+rcx*8]
+    mov rdx,rax
+    shr rdx,63
+    or [rsp+56],rdx
     mov rdx,0x8000000007fff027 ;address, NX, P/W/U/A only
     not rdx
     test rax,rdx
@@ -108,6 +112,8 @@ reist_x64_user_access:
     cmp ebx,3
     jb .levels
     mov rax,[rsp+48]
+    cmp rax,1
+    je .execute
     cmp rax,4
     je .read
     cmp rax,2
@@ -115,6 +121,13 @@ reist_x64_user_access:
     mov r14d,7
     jmp .rights
 .read:
+    mov r14d,5
+    jmp .rights
+.execute:
+    cmp qword [rsp+40],1
+    jne .invalid
+    cmp qword [rsp+56],0
+    jne .invalid
     mov r14d,5
 .rights:
     and r15d,r14d
@@ -148,6 +161,11 @@ reist_x64_user_access:
     not rdx
     test rax,rdx
     jnz .corrupt
+    cmp qword [rsp+48],1
+    jne .data_rights
+    test rax,rax
+    js .invalid
+.data_rights:
     mov ecx,eax
     and ecx,r14d
     cmp ecx,r14d

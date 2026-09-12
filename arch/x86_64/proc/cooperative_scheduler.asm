@@ -1844,8 +1844,8 @@ scheduler_syscall_entry64:
     jz scheduler_fail
 .syscall_flags_valid:
     mov rax, qword [rel syscall_rcx]
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
+    call scheduler_validate_task_instruction64
+    test eax, eax
     jz scheduler_fail
 
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
@@ -1903,8 +1903,8 @@ scheduler_shell_admit_syscall_context64:
     test qword [rel syscall_r11], 0x4000 ; never restore user-set NT with IRETQ
     jnz .context
     mov rax, [rel syscall_rcx]
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
+    call scheduler_validate_task_instruction64
+    test eax, eax
     jz .context
     ret
 .stack:
@@ -1934,6 +1934,10 @@ scheduler_context_apply64:
     sub rsp, 48
     and rsp, -16
     mov r9d, eax
+    mov rax,[rdi+EXCEPTION_FRAME_RIP]
+    call scheduler_validate_task_instruction64
+    test eax,eax
+    jz .return
     mov [rsp], r12
     mov rax, [r12 + TASK_GENERATION]
     mov [rsp + 8], rax
@@ -1946,6 +1950,7 @@ scheduler_context_apply64:
     mov edx, r9d
     mov rdi, rsp
     call reist_x64_context_apply
+.return:
     lea rsp, [rbp - 64]
     pop r11
     pop r10
@@ -2072,6 +2077,10 @@ x86_64_scheduler_shell_timer_validate64:
     jb .unusable_stack
     cmp rax, USER_STACK_TOP
     ja .unusable_stack
+    mov rax,[rdi+EXCEPTION_FRAME_RIP]
+    call scheduler_validate_task_instruction64
+    test eax,eax
+    jz .unusable_context
     push rsi
     mov esi, 1
     xor eax, eax
@@ -3678,6 +3687,17 @@ scheduler_translate_shell_ipc_message_pointer64:
 
 ; RAX address, RDX validated bounded length and ECX PF_R/PF_W. The current
 ; generation must own the private image or private NX stack containing it.
+; RAX current task instruction pointer; preserve other registers.
+scheduler_validate_task_instruction64:
+    push rcx
+    push rdx
+    mov ecx,PF_X
+    mov edx,1
+    call scheduler_validate_shell_range64
+    pop rdx
+    pop rcx
+    ret
+
 scheduler_validate_shell_range64:
     push rbp
     mov rbp,rsp
@@ -4924,8 +4944,8 @@ x86_64_scheduler_user_exception64:
     mov rax, qword [rax + PROBE_FAULT_POINTER_OFFSET]
     cmp rax, qword [rdi + EXCEPTION_FRAME_RIP]
     jne .invalid
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
+    call scheduler_validate_task_instruction64
+    test eax, eax
     jz .invalid
 
     mov qword [r12 + TASK_STATE], TASK_FAULTED
@@ -5390,8 +5410,8 @@ scheduler_runqueue_user_exception64:
     inc rax
     cmp rax, qword [rdi + EXCEPTION_FRAME_RIP]
     jne .invalid
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
+    call scheduler_validate_task_instruction64
+    test eax, eax
     jz .invalid
     mov qword [r12 + TASK_STATE], TASK_FAULTED
     mov al, EVENT_RUNQUEUE_FAULT
@@ -5560,10 +5580,6 @@ x86_64_scheduler_quantum_validate64:
     pop rsi
     test eax, eax
     jz .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
-    jz .invalid
     mov eax, 1
     ret
 .invalid:
@@ -5630,10 +5646,6 @@ x86_64_scheduler_timer_preempt64:
     pop rsi
     test eax, eax
     jz .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
-    jz .invalid
     mov qword [r12 + TASK_STATE], TASK_PREEMPTED
     mov al, EVENT_B_PREEMPTED
     call scheduler_append_event64
@@ -5683,10 +5695,6 @@ x86_64_scheduler_timer_validate64:
     call scheduler_context_apply64
     pop rsi
     test eax, eax
-    jz .invalid
-    mov rax, qword [rdi + EXCEPTION_FRAME_RIP]
-    call x86_64_elf64_address_flags64
-    test eax, PF_X
     jz .invalid
     mov eax, 1
     ret

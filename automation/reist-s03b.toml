@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3r-x86_64-instruction-context"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3r-x86_64-instruction-context"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Task-bound native instruction admission across syscall and timer contexts"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_instruction.py --evidence build
 acceptance = "All15 risk-derived groups: actual execute and unchanged data host coverage; all old context/fault/CPU/NX cases and normal task retirement. No weakened source or runtime oracle. Freeze scope, inspect diff, commit locally after all groups, then next clean native transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for wider executable, exception, process or device authority"]
 commit_message = "fix: validate native instruction contexts against task mappings"
-evidence = []
+evidence = ["python test/test_x86_64_user_access.py -v", "python test/test_x86_64_instruction.py -v", "python test/test_x86_64_context.py -v", "python test/test_x86_64_user_context.py -v", "python test/test_x86_64_boot.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83r-instruction/normal", "python scripts/run_qemu_x86_64_instruction.py --evidence build/codex-agent/r83r-instruction/instructions", "python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83r-instruction/context", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83r-instruction/fault", "python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83r-instruction/busy", "python scripts/run_qemu_x86_64_mappings.py --evidence build/codex-agent/r83r-instruction/mappings", "python scripts/run_qemu_x86_64_user_access.py --evidence build/codex-agent/r83r-instruction/buffers", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83r-instruction/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83r-instruction/retirement", "python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All15 groups passed, contractb8339cd7. Actual old guest rejects valid second-RX-page YIELD at return0x401007, retained legacy ELF/log; initial host execute rejection retained. Actual core O0/O2 all36864 instruction positions, per-level NX/P/U and one-byte rule plus every prior data test3/4.090s. New oracle/wiring2/0.003s, context2/1.278s, user-context4/0.005s, boot56/0.030s, docs7/0.828s with historical scope skip. Normal build3.024s, all3 normal user ELFs byteidentical toab3b5531. Three actual instruction guests/six generations10.402s: legal second-page YIELD, syscall-free spin/32CPU samples, page-end SYSCALL rejected with raw258 before absent0x402000 return.21 kernel mechanisms identical normal/fixtures. Existing context7/14 22.326s; fault24/48 80.514s; CPU/stack2/4 7.089s; mapping3/6 11.293s; data buffer2generations3.235s; normal20 frame retirements1.951s; i386 guard6.079s. All guest limits/oracles unchanged, no failed final runtime gate. Evidence build/codex-agent/r83r-instruction/01-execute-red.log through09-documentation.log and UUID summaries. No public ABI, mapping authority, process/endpoint policy, capacity, visible VM, agent or push. Implementation/diagnosis time not separately measured. R3.6b formal activation retains deferral; continue next clean native transaction."
 
 [[packages]]
 id = "R8.3q-x86_64-task-user-access"
@@ -3036,7 +3037,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

@@ -4,6 +4,26 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3r: Ausführungs- und Rückkehradressen im eigenen Task
+
+Nach ab3b5531 schließt Vertragb8339cd7 die separate Rückkehr-Autoritätsgrenze.
+Realer Altgast: legaler YIELD von0x401000 wird an Rückkehr0x401007 fälschlich
+retired, weil die ausgewählte Shell nur die erste RX-Seite besitzt. Der
+gemeinsame Tabellenprüfer erhält eine Einbyte-PF_X-Abfrage mit P/U und NX
+über alle Ebenen. Syscall-Rückkehr und Kontextaufnahme/Timer werden gemeinsam
+angebunden; IRQ-Retirement bleibt nach EOI. Keine Änderung von ELF-Lader,
+Rollenpolitik, Mappingrechten oder öffentlich sichtbarer ABI.
+
+Reihenfolge: Host-Rot und echter alter Gast; Produktionskern/Adapter;
+Hostmatrix aller36.864 Instruktionspositionen zusätzlich zu den Datentests;
+drei echte Zweitseiten-Fixtures (YIELD, CPU-Spin, Rückkehr ins Loch), je zwei
+Generationen. Alte Kontext-, Fault-, CPU-, NX-, Datenpuffer- und Reap-Matrizen
+bilden mit Build/Host/Doku/i386 insgesamt15 eingefrorene Gruppen.
+Normaler Userspace bleibt unverändert, Fixtureunterschiede nur im Userabbild.
+Ergebnisse und verbleibende Systemgrenzen in [CURRENT_WORK](CURRENT_WORK.md)
+und Queue. Detailzeiten in den Belegen; Implementierungszeit nicht separat
+gemessen. Kein Routine-Clean und keine Änderung alter Prüfanforderungen.
+
 ## R8.3q: gemeinsame taskgebundene Userpuffer-Zulassung
 
 Nach Buildreparatur1aabfd50 ist dies der nächste zusammenhängende native

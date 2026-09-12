@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_INSTRUCTION_CASE
+#define X86_64_INSTRUCTION_CASE 0
+#endif
 #ifndef X86_64_MAPPING_CASE
 #define X86_64_MAPPING_CASE 0
 #endif
@@ -42,6 +45,10 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_CONTEXT_CASE
 #define X86_64_CONTEXT_CASE 0
 #endif
+#if X86_64_INSTRUCTION_CASE >= 2
+#undef X86_64_BUSY_CHILD
+#define X86_64_BUSY_CHILD 1
+#endif
 #if X86_64_CONTEXT_CASE
 #undef X86_64_BUSY_CHILD
 #define X86_64_BUSY_CHILD 1
@@ -55,7 +62,9 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_FAULT_PHASE
 #define X86_64_FAULT_PHASE 0
 #endif
-#if X86_64_MAPPING_CASE == 2 || X86_64_MAPPING_CASE == 3
+#if X86_64_INSTRUCTION_CASE == 3
+#define SHELL_EXPECTED_CHILD_STATUS 258U
+#elif X86_64_MAPPING_CASE == 2 || X86_64_MAPPING_CASE == 3
 #define SHELL_EXPECTED_CHILD_STATUS 142U
 #elif X86_64_IPC_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_IPC_CASE)
@@ -234,7 +243,9 @@ void _start(void)
     static const char prompt[] = "C:\\>";
     static const char info[] = "REIST_X86_64_RING3_SHELL_INFO_OK\r\n";
     static const char help[] = "HELP INFO RUN EXIT\r\n";
-#if X86_64_MAPPING_CASE
+#if X86_64_INSTRUCTION_CASE
+    static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nINSTRUCTION_OK\r\n";
+#elif X86_64_MAPPING_CASE
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nMAPPING_OK\r\n";
 #elif X86_64_PROFILE_CASE
     static const char run_ok[] = "REIST_X86_64_RING3_SHELL_RUN_OK\r\nPROFILE_OK\r\n";

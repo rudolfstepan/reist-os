@@ -238,7 +238,8 @@ X86_64_REQUEST_CASE ?= 0
 X86_64_OOM_CASE ?= 0
 X86_64_PROFILE_CASE ?= 0
 X86_64_MAPPING_CASE ?= 0
-X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld)
+X86_64_INSTRUCTION_CASE ?= 0
+X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_INSTRUCTION_CASE)),config/x86_64_user_instruction.ld,$(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld))
 X86_64_EFFECTIVE_IPC_CASE = $(if $(filter-out 0,$(X86_64_REQUEST_CASE) $(X86_64_OOM_CASE) $(X86_64_PROFILE_CASE)),1,$(X86_64_IPC_CASE))
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
 X86_64_C_CORE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-c-core.elf
@@ -414,6 +415,7 @@ x86_64-bootstrap:
 		-DX86_64_OOM_CASE=$(X86_64_OOM_CASE) \
 		-DX86_64_PROFILE_CASE=$(X86_64_PROFILE_CASE) \
 		-DX86_64_MAPPING_CASE=$(X86_64_MAPPING_CASE) \
+		-DX86_64_INSTRUCTION_CASE=$(X86_64_INSTRUCTION_CASE) \
 		-c arch/x86_64/user/shell.c \
 		-o $(X86_64_USER_SHELL_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
@@ -428,6 +430,7 @@ x86_64-bootstrap:
 		-DX86_64_ARGV_CASE=$(X86_64_ARGV_CASE) \
 		-DX86_64_PROFILE_CASE=$(X86_64_PROFILE_CASE) \
 		-DX86_64_MAPPING_CASE=$(X86_64_MAPPING_CASE) \
+		-DX86_64_INSTRUCTION_CASE=$(X86_64_INSTRUCTION_CASE) \
 		arch/x86_64/user/child.asm -o $(X86_64_USER_CHILD_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T $(X86_64_CHILD_LINKER) \

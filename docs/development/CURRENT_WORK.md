@@ -2,6 +2,34 @@
 
 Stand: 12. September 2026
 
+## R8.3r: taskgebundene Ausführungskontexte
+
+Basisab3b5531, Vertragb8339cd7. Der echte Altgast beendet einen gültigen
+YIELD auf der zweiten RX-Kindseite fälschlich als Kontextfehler bei RIP0x401007.
+Das eigene Testabbild und der fehlgeschlagene Dialog bleiben erhalten.
+
+Der bestehende Task-Tabellenprüfer unterstützt jetzt zusätzlich genau einen
+Instruktionsbytezugriff: P/U auf allen Ebenen, NX auf keiner Ebene. Daten-
+Prüfung unverändert, keine neuen ausführbaren Abbildungen. Syscall-Rückkehr,
+laufende Probe-Exceptionen und gemeinsame Kontextaufnahme verwenden den
+Taskbezug; Timerprüfung unterscheidet vor der Aufnahme unbrauchbare
+Kindkontexte. Deren Retirement erfolgt weiterhin nach EOI über den vorhandenen
+raw258-Pfad. Tatsächliche NX-Ausführungsfaults behalten ihren Faultpfad.
+Laderprüfung vor Taskaufbau und Bootstrap-Rollen bleiben separate Grenzen.
+
+Hostmatrix ergänzt alle36.864 Instruktionspositionen, NX und P/U über jede
+Ebene sowie Einbyte-/Overflowgrenzen; sämtliche Datentests bleiben bestehen.
+Drei ausschließlich User-Fixtures prüfen eine zweite RX-Seite: erfolgreicher
+YIELD mit normalem IPC/WAIT, syscallfreier Spin mit32 CPU-Samples und ein
+SYSCALL am Seitenende mit Rückkehradresse0x402000 in ein Loch. Je zwei
+Generation-/Reap-/Elternnachweise und identische Kernelmechanismen sind Pflicht.
+
+15 risikobasierte Gruppen einschließlich alter Kontext-/Fault-/CPU-/NX-
+Matrizen, Datenpuffergast, Task-Freigabe, normalem Build und i386-Guard.
+Ergebnisse in der Queue, Belege `build/codex-agent/r83r-instruction/`.
+Keine Erweiterung von Task-/Speicher-/Zeitbudgets oder öffentlicher ABI;
+allgemeine Prozessrollen, große Speicherprofile und native Dienste bleiben offen.
+
 ## R8.3q: taskgebundene Prüfung nativer Userpuffer
 
 Basis1aabfd50, Vertrag9af7a87e. Der alte gemeinsame Terminal-/IPC-Prüfer

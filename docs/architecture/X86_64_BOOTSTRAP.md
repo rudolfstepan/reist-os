@@ -2,6 +2,18 @@
 
 Stand: 11. September 2026
 
+Ergänzung12. September2026, R8.3r: Derselbe Task-Tabellenrecord erlaubt privat
+PF_X=1 für genau ein Instruktionsbyte. Intel64 P/U wird über alle Ebenen
+verknüpft, gesetztes NX auf einer beliebigen Ebene verweigert Ausführung;
+Schreibrecht ist keine Voraussetzung. Der read-only Prüfkern erzeugt keine
+Mappingrechte. Aufrufende Syscall-/IRQ-/Kontextadapter validieren die reale
+Taskbindung vor Rückkehr bzw. Kontextpublikation, statt globale ELF-Seiten
+als Ausführungsautorität zu benutzen. Bei gültiger Kindidentität ist eine
+unzulässige Rückkehradresse lokal raw258; im IRQ wird nur klassifiziert und
+erst nach EOI retired. Bereits ausgelöste Userfaults benötigen keine gültige
+Rückkehradresse und behalten den vorhandenen vollständigen Fault-Reap.
+Andere Kernelkorruption bleibt fatal. Alle bisherigen Kapazitäten bleiben.
+
 Ergänzung12. September2026, R8.3q: Terminal-/IPC-Userpuffer werden aus den
 tatsächlichen Tabellen des aufrufenden Tasks zugelassen, nicht aus globalen
 ELF-Parserflags. Referenz: [Intel64 SDM Vol3A, Kapitel4 Paging](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html).

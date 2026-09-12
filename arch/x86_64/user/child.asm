@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_INSTRUCTION_CASE
+%define X86_64_INSTRUCTION_CASE 0
+%endif
 %ifndef X86_64_MAPPING_CASE
 %define X86_64_MAPPING_CASE 0
 %endif
@@ -70,6 +73,12 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_INSTRUCTION_CASE
+    call child_instruction_probe
+%if X86_64_INSTRUCTION_CASE >= 2
+    ud2
+%endif
+%endif
 %if X86_64_MAPPING_CASE
     call child_mapping_probe
 %if X86_64_MAPPING_CASE = 2 || X86_64_MAPPING_CASE = 3
@@ -694,6 +703,28 @@ child_buffer_readonly:
     dd IPC_MESSAGE_VERSION, IPC_MESSAGE_SIZE, IPC_MESSAGE_LENGTH
     db 'token76',0
     times 120 db 0
+%endif
+%endif
+%if X86_64_INSTRUCTION_CASE
+section .instruction progbits alloc exec nowrite align=4096
+child_instruction_probe:
+%if X86_64_INSTRUCTION_CASE = 1
+    mov eax,REIST_SYS_YIELD
+    syscall
+    test rax,rax
+    jnz .bad
+    ret
+.bad:
+    ud2
+%elif X86_64_INSTRUCTION_CASE = 2
+    pause
+    jmp child_instruction_probe
+%else
+    mov eax,REIST_SYS_YIELD
+    jmp child_instruction_page_end
+    times 4094-($-child_instruction_probe) db 0
+child_instruction_page_end:
+    syscall ; return RIP0x402000 is absent and must never be restored
 %endif
 %endif
 section .note.GNU-stack noalloc noexec nowrite progbits

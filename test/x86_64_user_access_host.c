@@ -38,6 +38,25 @@ static int64_t access(uint64_t addr,uint64_t size,uint64_t rights) {
 }
 int main(void) {
     reset();
+    pages[3][0]&=~NX;
+    CHECK(access(BASE,1,1)==1);CHECK(access(BASE,2,1)==0);
+    CHECK(access(BASE,0,1)==0);CHECK(access(BASE,1,UINT64_C(0x100000001))==0);
+    for(unsigned level=0;level<4;level++) {
+        reset();pages[3][0]&=~NX;
+        pages[level][level==2?2:0]|=NX;
+        CHECK(access(BASE,1,1)==0);CHECK(access(BASE,1,4)==1);
+        reset();pages[3][0]&=~NX;
+        pages[level][level==2?2:0]&=~UINT64_C(2);
+        CHECK(access(BASE,1,1)==1);
+        pages[level][level==2?2:0]&=~UINT64_C(4);
+        CHECK(access(BASE,1,1)==0);
+    }
+    for(unsigned page=0;page<9;page++)for(unsigned off=0;off<4096;off++) {
+        reset();pages[3][page]&=~NX;
+        CHECK(access(BASE+4096*page+off,1,1)==1);
+        pages[3][page]=0;CHECK(access(BASE+4096*page+off,1,1)==0);
+    }
+    reset();
     /* Every offset and page edge, both data directions. Independent oracle. */
     for(unsigned page=0;page<9;page++)for(unsigned off=0;off<4096;off++) {
         uint64_t address=BASE+4096*page+off;

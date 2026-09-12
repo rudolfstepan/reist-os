@@ -13,10 +13,14 @@ param(
     [ValidateRange(0, 3)] [int]$RequestCase = 0,
     [ValidateRange(0, 1)] [int]$OomCase = 0,
     [ValidateRange(0, 1)] [int]$ProfileCase = 0,
-    [ValidateRange(0, 4)] [int]$MappingCase = 0
+    [ValidateRange(0, 4)] [int]$MappingCase = 0,
+    [ValidateRange(0, 3)] [int]$InstructionCase = 0
 )
 
 Set-StrictMode -Version Latest
+if ($InstructionCase -ne 0 -and ($MappingCase -ne 0 -or $ProfileCase -ne 0 -or $OomCase -ne 0 -or $RequestCase -ne 0 -or $IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
+    throw 'InstructionCase is exclusive with other user fixtures.'
+}
 if ($MappingCase -ne 0 -and ($ProfileCase -ne 0 -or $OomCase -ne 0 -or $RequestCase -ne 0 -or $IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
     throw 'MappingCase is exclusive with other user fixtures.'
 }
@@ -232,6 +236,7 @@ try {
         "X86_64_OOM_CASE=$OomCase" `
         "X86_64_PROFILE_CASE=$ProfileCase" `
         "X86_64_MAPPING_CASE=$MappingCase" `
+        "X86_64_INSTRUCTION_CASE=$InstructionCase" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."
@@ -306,7 +311,7 @@ try {
         }
     }
     # Only the explicit two-PT_LOAD mapping fixture adds a compact R/NX page.
-    $childLimit = if ($MappingCase -eq 4) { 12288 } elseif ($MappingCase -ne 0) { 8192 } else { 4096 }
+    $childLimit = if ($MappingCase -eq 4 -or $InstructionCase -ne 0) { 12288 } elseif ($MappingCase -ne 0) { 8192 } else { 4096 }
     if ($childBytes.Length -lt 64 -or $childBytes.Length -gt $childLimit) {
         throw "x86_64 ELF64 Ring-3 child exceeds its fixed compact page."
     }
