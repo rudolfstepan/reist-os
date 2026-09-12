@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3t-x86_64-owner-terminal-containment"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,24 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3t-x86_64-owner-terminal-containment"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Contain terminal owner failure in the bounded native bootstrap run"
+scope = "Close the remaining native owner failure boundary in one cohesive slice: normal owner EXIT with dependent state, classified user exception, unusable syscall/IRQ context and sampled CPU exhaustion. Declare the bootstrap run as an ephemeral owner/dependent lifetime, not POSIX orphan adoption. Validate ownership before effects; fence only that run, cancel its exact queue/deadline/IPC bindings, retire a live child or consume its already-reaped terminal record, then retire owner through existing frame/profile/identity/FP cleanup. Preserve independent kernel progress and exact terminal evidence, never label forced cleanup as success. No general supervisor restart/adoption policy or new process/device authority."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/user/shell.c", "arch/x86_64/user/child.asm", "test/test_x86_64_owner_terminal.py", "test/x86_64_owner_terminal_host.c", "scripts/run_qemu_x86_64_owner_terminal.py", "test/test_x86_64_boot.py", "test/test_x86_64_busy.py", "test/test_x86_64_user_context.py"]
+invariants = ["One admitted bootstrap lifetime only: owner generation40, at most two sequential children41/42, four fixed slots,128MiB/1CPU. Child has no independent lifetime grant. Unknown/stale ownership, a third task, invalid queue/deadline/capability metadata or kernel faults fail closed; never erase foreign state to make validation succeed. Existing raw uint32 EXIT and classified fault/context statuses unchanged, no new syscall. Add generation-scoped owner sampled CPU budget128 using existing budget mechanism; child32 and shared256-tick deadline unchanged. This is a bounded prototype profile, not a normal shell/service performance limit or full64bitOS claim.", "Read-only production admission is executed O0/O2 with exact allowed live/blocked/pending/reaped combinations and mutated ownership/queue/deadline/profile/IPC fields; invalid admission has no state mutation. Fencing precedes frame release; exact generations, no duplicate release or late WAIT copy to a dead parent. IRQ classification stays read-only, all retirement after EOI. Existing normal exit/fault/IPC/frame checks remain gates. Root error stays observable to old normal oracles while kernel cleanup/progress succeeds. No restart, implicit reparenting or widened Ring0 policy.", "User-only fixtures exercise no-child, endpoint-before-child, runnable child, queued/blocked sender and already-reaped child before WAIT, including both child generations. All compatible owner termination kinds tested together; no per-vector micro-packages. Actual old guest failure retained. Unique bounded hidden QEMU attempts, no retries until green, no host process termination. Existing i386 guard unchanged and all reference artifacts protected. R3.6b deferred and R341-H1/H2 open; no agents, visible VMs or push."]
+targeted_tests = ["python test/test_x86_64_owner_terminal.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_busy.py -v", "python test/test_x86_64_user_context.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_x86_64_shell_exit.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83t-owner-terminal/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_owner_terminal.py --evidence build/codex-agent/r83t-owner-terminal/owners", "python scripts/run_qemu_x86_64_shell_exit.py --evidence build/codex-agent/r83t-owner-terminal/exits", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83t-owner-terminal/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83t-owner-terminal/retirement", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83t-owner-terminal/fault", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83t-owner-terminal/requests", "python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All14 frozen groups pass after main-agent scope/ABI/cleanup review; default user ELFs remain byteidentical. New guest matrix proves exact owner cause, child state/generation, queue/deadline/IPC fencing, frame/FP/profile/identity zero and kernel continuation, with no forced cleanup. Historical failures retained. One clean local commit then continue next in-priority native transaction."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for general supervisor/adoption/restart policy, new public rights or device mediation"]
+commit_message = "fix: contain native owner termination within its bounded run"
+evidence = []
+evidence_note = "Frozen on cleanaf9ec117 under renewed12September continuous implementation instruction. Inventory confirms owner exceptions/context faults still enter child-only retirement or fatal cleanup, live-child owner EXIT rejects, and only child CPU accounting is bound. Existing independent cleanup mechanisms will be reused; this package does not port or invent a Ring0 service supervisor."
 
 [[packages]]
 id = "R3.46-display-window-options"
@@ -3073,7 +3091,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

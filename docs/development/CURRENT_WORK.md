@@ -2,6 +2,21 @@
 
 Stand: 12. September 2026
 
+## R8.3t: Ausfall des nativen Bootstrap-Eigentümers eingrenzen
+
+R8.3s ist als `af9ec117` abgenommen. Nächster zusammenhängender Schnitt ist
+der Abschluss der Eigentümergeneration bei lebendem/IPC-blockiertem oder schon
+gereaptem Kind: EXIT, Userfault, ungültiger Rückkehrkontext und CPU-Spin.
+Das begrenzte Bootstrapprofil erklärt das Kind ausdrücklich als abhängigen
+Teil desselben kurzlebigen Laufs, ohne Recht auf eine eigenständige Lebensdauer.
+Nur dieser Lauf wird nach vollständiger Besitzprüfung gefencet und gereapt.
+Keine POSIX-Reparenting-Behauptung, kein pauschales Beenden fremder Prozesse,
+kein neuer Ring-0-Supervisor und keine automatische Restartpolitik.
+Der neue Eltern-CPU-Sample-Budget128 verwendet den vorhandenen Budgetkern;
+Kind32 und gemeinsamer256-Tick-Schutz bleiben unverändert. Diese Zahlen sind
+keine Zielgrenzen für die spätere normale Shell. Vierzehn eingefrorene Gruppen
+in der Queue, Belege unter `build/codex-agent/r83t-owner-terminal/`.
+
 ## R8.3s: Wiederaufnahme und freigegebener Referenzprüfer
 
 R3.46 ist als `7bd4bef0` abgenommen. R8.3s wird darauf fortgesetzt.
