@@ -9,8 +9,25 @@ Verlauf dokumentiert auch die inzwischen behobenen Zwischenfehler.
 Nun ist genau ein größeres Paket aktiv: ELF64-Aufbereitung außerhalb Ring0,
 vier unabhängige Programme, Argumentstart, getrennte Abbildbesitzer und
 vollständiges Retirement. [Vertrag](../architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
-Noch keine Umsetzung/Abnahme dieses neuen Pakets. Allgemeines Start/Wait/Cancel,
-Ring3-Dateiladen und persistente Treiber bleiben eigenständige Sicherheitsgrenzen.
+Vertrag `de4fdb7b`; Umsetzung liegt als nicht abgenommener Kandidat im Hauptbaum.
+Zwei Hostgruppen bestehen O0/O2, NativePrograms baut. Vier positive Gäste
+(4/8GiB normal, UD2, CPU32) bestehen in22.235s mit insgesamt32 Task-Lebenszyklen,
+privaten Abbildern, Argumenten und vollständiger Speicherfreigabe.
+Die vollständige Matrix stoppt vor der ersten Katalog-Fehlerinjektion an einem
+alten Bootstrap-Fehler: Präemptions-Task A startet mit IF=1, obwohl der Timer
+erst nach seinem ersten `yield` aktiviert wird. Ein bereits anstehender IRQ0
+trifft `timer_active=0` und endet fatal. GDB bestätigt Tick/EOI3, Generation0,
+RIP0x400000 und RFLAGS0x10202; Details und Belegpfade stehen im Vertrag.
+Keine Paketabnahme, kein Implementierungscommit und keine vorgezogenen Gates.
+Die Stop-Regel für vorhandene Quellfehler verlangt eine ausdrückliche Erweiterung
+dieses Pakets um die Timer-/IF-Zulassung samt Pending-IRQ-Regression.
+Allgemeines Start/Wait/Cancel, Ring3-Dateiladen und persistente Treiber bleiben
+eigenständige Sicherheitsgrenzen.
+
+Die erneute Bündelungsanweisung nach der ausdrücklichen Rückfrage gibt diese
+Erweiterung im selben Kandidaten frei: präzise IF-Zulassung für A/B, echte
+Assembler-Regression, Pending-IRQ-Gast und zusätzliche unveränderte normale
+Bootstrap-Laufzeitprüfung. Dreizehn Gategruppen, keine Frist-/Quotenlockerung.
 
 ## R8.3ac: voller Laufzeit-/Fristenpfad samt ELF-Seitenbelegung
 
