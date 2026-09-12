@@ -4,6 +4,16 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ad: ein vollständiger Bootprogramm-Schnitt
+
+Nach der Abnahme `667e9aee` werden externe ELF64-Zulassung, vier eigenständige
+C-Programme, Argumentstart, private Abbilddaten und Retirement gemeinsam
+umgesetzt und geprüft. [Vertrag](../architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
+Kein weiteres Paket je Layout, Argument oder Fehlerfall. Die nächste
+Owner-/Start-/Wait-/Cancel-Grenze folgt erst nach sauberer Abnahme; Dateisystem,
+Treiber und persistente Recovery werden nicht in diesen Bootvertrag gemischt.
+Diese Bündelung ersetzt keine vollständige OS-Abnahme und keinen Ring3-Lader.
+
 ## R8.3ac: Laufzeit und vorhandene ELF-Seitenbelegung zusammenführen
 
 Auf `42a41aba`, erweitert durch die erneute Nutzerfreigabe und Vertrag

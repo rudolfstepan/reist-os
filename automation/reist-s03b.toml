@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ad-x86_64-boot-programs"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ad-x86_64-boot-programs"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Prepared native ELF64 boot programs: admission, independent startup, arguments and retirement"
+scope = "On667e9aee, bundle the trusted boot executable admission boundary: external bounded ELF64 preparation, versioned fixed page records, independent C programs with conventional argc/argv startup, per-task image selection, private mappings and complete image/task/heap/IPC retirement across two runs. NativePrograms presets NativeRuntime; four catalog entries beyond the three unchanged legacy fixtures. Host preparation only: no new Ring0 ELF parser or runtime filesystem/SPAWNV authority. All compatible input/layout/argument/fault cases share this package."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md","docs/README.md","Makefile","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","scripts/run_qemu_x86_64_boot_programs.py","arch/x86_64/exec/elf64_loader.asm","arch/x86_64/exec/boot_programs.inc","arch/x86_64/kernel/bootstrap_core.c","arch/x86_64/proc/process_run.h","arch/x86_64/proc/process_run.inc","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/user/boot_program.c","arch/x86_64/user/boot_start.asm","config/x86_64_boot_program.ld","test/test_x86_64_boot_programs.py","test/x86_64_boot_programs_host.c"]
+invariants = ["System V ELF64/AMD64 terminology and ordinary freestanding toolchain. ET_EXEC little endian EM_X86_64; fixed eight-page user window, reject unsupported headers, overlap, W+X, bad entry/extents before publication. Host-generated private v1 records carry fixed flags/pages/argument source; kernel validates only bounded prepared mapping/startup metadata before allocations. No parser over runtime user files in Ring0.", "Private run v2 appends image selection in the formerly reserved word without changing v1 or public syscall numbers. Four existing task slots,32 total CPU samples,512MiB/128-region heap, one wait node, persistent clock and all original cleanup/resource bounds unchanged. New images have independent contexts; shared RX/R and private RW/stack remain distinct across layouts and generations. No service restart policy or replenishment.", "NativePrograms excludes media/bulk and other fault fixtures. Four C executables and two runs with permuted images, ordinary argc/argv/envp/auxv, BSS/private writes, heap allocate/reallocate/free or terminal cleanup. Real hidden4/8GiB guests cover normal, user fault and CPU exhaustion plus malformed prepared admission/OOM rollback when practical. Exact fences, all14 final zero ranges, physical/frame balance, peer progress and default profile references. At most20s per new guest. No persistent format/private C layout change, new driver, reference rebaseline, visible VM, agents or push."]
+targeted_tests = ["python test/test_x86_64_boot_programs.py -v","python test/test_x86_64_process_run.py -v","python test/test_x86_64_user_access.py -v","python test/test_x86_64_runtime_clock.py -v","python test/test_x86_64_boot.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ad-programs/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeRuntime -OutputDirectory build/codex-agent/r83ad-programs/reference",".\\scripts\\build-x86_64-bootstrap.ps1 -NativePrograms -OutputDirectory build/codex-agent/r83ad-programs/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_boot_programs.py --image build/codex-agent/r83ad-programs/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ad-programs/guests","python scripts/run_qemu_x86_64_runtime_clock.py --image build/codex-agent/r83ad-programs/reference/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ad-programs/runtime-reference","python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All12 frozen gate groups, direct scope/ABI/authority/rollback review, queue transition and local clean commit. Host producer rejection/mutations, actual prepared-admission and run-v2/startup behavior O0/O2; genuine multi-image guests and old runtime/i386 references. A prepared boot catalog does not complete runtime file loading or the64-bitOS. Continue next cohesive owner/lifecycle boundary after acceptance."
+stop_conditions = ["Unattributed or overlapping user change", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change public ABI, resource quotas, C image format, boot persistence or old acceptance bounds", "Hardware or release authority required"]
+commit_message = "feat: start independent native ELF64 boot programs"
+evidence = []
 
 [[packages]]
 id = "R8.3ac-x86_64-runtime-clock"

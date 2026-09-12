@@ -10,6 +10,8 @@ bereits behobene Fehler enthalten.
 
 ## Globale Struktur und Zuständigkeit
 
+Aktiver nativer Programmschnitt: [Bootprogramm-Vertrag](architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
+
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren
 keine vollständigen Statuslisten, ABI-Tabellen oder Bedienungsabläufe.

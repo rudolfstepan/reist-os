@@ -2,6 +2,16 @@
 
 Stand: 12. September 2026
 
+## R8.3ad: gebündelter nativer Programmstart
+
+R8.3ac ist mit `667e9aee` und zwölf Gates abgenommen. Der folgende historische
+Verlauf dokumentiert auch die inzwischen behobenen Zwischenfehler.
+Nun ist genau ein größeres Paket aktiv: ELF64-Aufbereitung außerhalb Ring0,
+vier unabhängige Programme, Argumentstart, getrennte Abbildbesitzer und
+vollständiges Retirement. [Vertrag](../architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
+Noch keine Umsetzung/Abnahme dieses neuen Pakets. Allgemeines Start/Wait/Cancel,
+Ring3-Dateiladen und persistente Treiber bleiben eigenständige Sicherheitsgrenzen.
+
 ## R8.3ac: voller Laufzeit-/Fristenpfad samt ELF-Seitenbelegung
 
 Nach `f88a439d` und sauberem Arbeitsbaum ist der gemeinsame Zeitschnitt mit12
