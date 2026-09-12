@@ -180,6 +180,14 @@ reist_u32 x86_64_c_core_entry(
         return 0U;
     }
 
+#if X86_64_C_INTEGRITY_PROBE
+    extern reist_u32 x86_64_c_integrity_probe(void);
+    if (x86_64_c_integrity_probe()!=1U) {
+        clear_owned_state();
+        zero_bytes((volatile reist_u8 *)handoff, REIST_COPY_BOUND);
+        return 0U;
+    }
+#endif
 #if X86_64_C_PAYLOAD_PROBE
     extern reist_u32 x86_64_c_payload_probe(void);
     if (x86_64_c_payload_probe()!=1U) {

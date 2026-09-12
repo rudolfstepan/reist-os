@@ -19,6 +19,18 @@ Busyfehler, IRQ-/Stackerhalt und vollständiger Bereinigung. Elf fixierte Gates;
 erst danach allgemeine IPC-Pools. Keine neue native Userspace-Lock- oder
 SMP-Abnahme durch einen Boot-Selbsttest behaupten.
 
+Umgesetzt auf `16328ec8`: i386-Präprozessor und tatsächliches Integritätsobjekt
+bleiben identisch; die vorhandenen gemeinsamen C-Quellen bleiben unangetastet.
+Der native Gast besteht1650 Leseprüfungen einschließlich1560 Bitkorrekturen,
+80 Wiederherstellungen und aller Ablehnungs-/IRQ-/Cleanupfälle in1.681s.
+GDB liest zwölf Kontrollpunkte und zwei reale C-Aufrufe/Rückkehrstellen.
+Das normale native Bootabbild bleibt byteidentisch zu R8.3v; die bisherigen
+Prozess-/Reap- und gepinnten i386-Gates bestehen. Neue fünf Hosttests sowie
+die unveränderten Integritäts-/Kostenprüfungen unter O0/O2 sind grün.
+Der eingefrorene Scope verändert weder die SECDED-/CRC-Arithmetik noch den
+existierenden begrenzten Publikations-Lock. Dessen Eignung für einen neuen
+nativen Userspace-IPC-Pfad muss bei jener Anbindung getrennt nachgewiesen werden.
+
 ## R8.3v: mehrseitiger nativer C-Payload
 
 Nächster zusammenhängender Schnitt nach `df6b82ac`: R8.3v beseitigt vor der

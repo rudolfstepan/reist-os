@@ -47,6 +47,10 @@ static inline void irq_enable(void) {
  * @return 1 if IF=1, 0 if IF=0
  */
 static inline int irq_enabled(void) {
+#if defined(__x86_64__)
+    uint64_t flags;
+    __asm__ __volatile__("pushfq\n\tpop %0" : "=r"(flags) :: "memory");
+#else
     uint32_t flags;
     __asm__ __volatile__(
         "pushf\n"
@@ -54,6 +58,7 @@ static inline int irq_enabled(void) {
         : "=r"(flags)
         :: "memory"
     );
+#endif
     return (flags & 0x200) != 0;  // Bit 9 is IF
 }
 
@@ -67,6 +72,13 @@ static inline int irq_enabled(void) {
  *   irq_restore(flags);
  */
 static inline uint32_t irq_save(void) {
+#if defined(__x86_64__)
+    /* Defined RFLAGS status bits fit the existing uint32 token; the stack
+     * operand must nevertheless occupy the full native eight-byte slot. */
+    uint64_t flags;
+    __asm__ __volatile__("pushfq\n\tpop %0\n\tcli"
+                         : "=r"(flags) :: "memory");
+#else
     uint32_t flags;
     __asm__ __volatile__(
         "pushf\n"
@@ -75,6 +87,7 @@ static inline uint32_t irq_save(void) {
         : "=r"(flags)
         :: "memory"
     );
+#endif
     return flags;
 }
 
@@ -83,12 +96,18 @@ static inline uint32_t irq_save(void) {
  * @param flags EFLAGS value from irq_save()
  */
 static inline void irq_restore(uint32_t flags) {
+#if defined(__x86_64__)
+    uint64_t native_flags = flags;
+    __asm__ __volatile__("push %0\n\tpopfq"
+                         :: "r"(native_flags) : "memory", "cc");
+#else
     __asm__ __volatile__(
         "push %0\n"
         "popf\n"
         :: "r"(flags)
         : "memory", "cc"
     );
+#endif
 }
 
 /**

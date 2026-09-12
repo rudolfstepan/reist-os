@@ -12,6 +12,26 @@ Publikationsregeln. Er injiziert nur eigene feste Testobjekte und muss alle
 normalen Folgeprüfungen erreichen. Dies übernimmt einen existierenden
 Integritätsmechanismus, erteilt aber weder IPC- noch Geräte-/SMP-Rechte.
 
+Umsetzung `16328ec8`: der native Compiler verwendet für IRQ-Tokens intern
+`uint64_t` und `pushfq`/native `pop`, bei Restore einen nullerweiterten
+Operanden und `popfq`. Die i386-Zweige sind unverändert vorverarbeitet und
+maschinell bytegleich. Im privaten Testprofil wird exakt der bestehende
+`kernel/init/critical_object.c` gelinkt; nur dessen compilerbedingte `memcpy`-
+Abhängigkeit wird aus der vorhandenen Stringbibliothek übernommen. Sonstige
+Strings-/Parserfunktionen werden bereits beim partiellen Link verworfen.
+Der Gast führt1650 Prüflesungen mit Einzelbitfehlern in beiden Kopien,
+unabhängiger Kopienrettung, unkorrektierbaren/widersprüchlichen Kopien,
+Kapazitäts-/Versions-/Semantik-/Sequenz- und Busyfehlern aus. Ein unabhängiger
+Test-Bitwalk versiegelt ausschließlich das gültige Maximal-Sequenz-Testobjekt,
+keine alternative Produktionsarithmetik. Ein IF=1-Test maskiert und restauriert
+beide PIC-Masken, prüft Save/Restore, reale Leseoperation und Stack-Canaries.
+Danach sind alle Testobjekte und Handoffs null und die alte Shell läuft weiter.
+Zwölf GDB-Kontrollpunkte und zwei tatsächliche C-Aufrufpaare sind rein lesend;
+signierte Registerdarstellungen werden als unveränderte64-Bit-Muster verglichen.
+Belege unter `build/codex-agent/r83w-integrity/`; normale Boot-/Userartefakte
+bleiben byteidentisch. Das ist kein neuer nativer Userspace-Lockvertrag und
+kein allgemeiner IPC-, SMP- oder vollständiger OS-Nachweis.
+
 R8.3v, vor Implementierung eingefroren12.September: privates C-Payloadlayout v2.
 System-V-ELF64/EM_X86_64/ET_EXEC bleibt der native C-Linkvertrag, ELF32 nur der
 Multiboot-Transportcontainer. Physische feste Hüllbereiche: Bridge0x184000/4KiB,

@@ -244,6 +244,7 @@ X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
 X86_64_PROCESS_CASE ?= 0
 X86_64_C_PAYLOAD_PROBE ?= 0
+X86_64_C_INTEGRITY_PROBE ?= 0
 X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_INSTRUCTION_CASE)),config/x86_64_user_instruction.ld,$(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld))
 X86_64_EFFECTIVE_IPC_CASE = $(if $(filter-out 0,$(X86_64_REQUEST_CASE) $(X86_64_OOM_CASE) $(X86_64_PROFILE_CASE)),1,$(X86_64_IPC_CASE))
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
@@ -451,14 +452,23 @@ x86_64-bootstrap:
 	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
+		-DX86_64_C_INTEGRITY_PROBE=$(X86_64_C_INTEGRITY_PROBE) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
 ifeq ($(X86_64_C_PAYLOAD_PROBE),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -c test/x86_64_c_payload_fixture.c -o $(X86_64_C_PAYLOAD_PROBE_OBJ)
 endif
+ifeq ($(X86_64_C_INTEGRITY_PROBE),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/critical_object.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c test/x86_64_integrity_fixture.c -o $(X86_64_BOOTSTRAP_DIR)/integrity_probe.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -ffunction-sections -fdata-sections -c lib/libc/string.c -o $(X86_64_BOOTSTRAP_DIR)/compiler_memory_full.o
+	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy \
+		-o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory_full.o
+endif
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
-		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),)
+		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
+		$(if $(filter 1,$(X86_64_C_INTEGRITY_PROBE)),$(X86_64_BOOTSTRAP_DIR)/critical_object.o $(X86_64_BOOTSTRAP_DIR)/integrity_probe.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o,)
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --output-directory $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf32 -DC_CORE_TEXT_PATH=\"$(X86_64_C_CORE_TEXT)\" \
 		-DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" \

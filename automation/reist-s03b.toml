@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3w-x86_64-shared-integrity"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3w-x86_64-shared-integrity"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native binding of the existing shared integrity primitive"
@@ -27,6 +27,9 @@ runtime_tests = ["python scripts/run_qemu_x86_64_integrity.py --image build/code
 acceptance = "All11 frozen groups; unchanged shared integrity source and i386 preprocessor/object proof, actual native integrity fault/rejection/cleanup, preserved old guest and i386 gates, final direct scope/ABI/cleanup review then clean local commit. Retain initial native compiler failure in build/codex-agent/r83w-integrity-inventory/compile-before.log. Continue native IPC inventory only after this transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Shared integrity algorithm/publication changes required", "Failed gate without focused in-scope correction", "Need for new IPC/driver/SMP authority"]
 commit_message = "fix: bind shared integrity primitives to native x86_64 IRQ state"
+
+evidence = ["python test/test_x86_64_integrity.py -v", "python test/test_reist_critical_object.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_c_payload.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83w-integrity/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -CIntegrityProbe -OutputDirectory build/codex-agent/r83w-integrity/probe", "python scripts/run_qemu_x86_64_integrity.py --image build/codex-agent/r83w-integrity/probe/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83w-integrity/native", "python scripts/run_qemu_x86_64_process_run.py --evidence build/codex-agent/r83w-integrity/processes", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83w-integrity/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83w-integrity/retirement", "python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All11 frozen groups pass on contract16328ec8 after direct scope/ABI/cleanup review. New host5/1.781s actual old native compile failure and fixed compile, exact i386 preprocessed source and complete -g0 object equality, unchanged shared integrity/public-layout/runtime source, strict oracle mutations and actual GDB signed-register reader regression. Existing integrity5/4.566s includes326479 comparisons each O0/O2 and unchanged arithmetic guard; cost10000 reads old/current .099/.020s O0 and .040/.008s O2, not a VMware benchmark. Boot56/.033s, C-payload11/2.038s, docs7/.792s historicalD1.1 skip, inventory108/9262358b28bf4f9d9035636da352a307. Normal build3.399s and CIntegrityProbe build pass (probe time not separately measured); normal full native ELF and all3 User ELFs byteidentical to12f93954. Native integrity1.681s/f6f76212b1ff42639738ac2e0f70a2db:1650 actual reads,1560 bit corrections/80 independent-copy recoveries plus dual/conflicting/semantic/version/capacity/sequence/busy/newest-copy checks,12 read-only checkpoints/two actual C call-return pairs, masked-PIC IF=1 roundtrip, stack canaries and1032-byte BSS/handoff zero. Only existing memcpy retained from compiler memory object, no parser import. Existing process matrix9cases72tasks+5observations40tasks56.765s/b3922bd6f803418584bfb8db42170150; normal20reaps1.999s/58eb789df5fa486c9b3eed1c654f3a34; i386 images/96programs unchanged1.379s. Evidence build/codex-agent/r83w-* retained: original12 invalid push/pop32 diagnostics; first host compared debug metadata and was corrected to the actual -g0 native compile contract; fixture stack canary initialized as individual volatile stores to preserve strict nonmerge v2 sections; signed GDB RDI display normalized as raw64 bits, no guest-register or protection changes. Shared SECDED/CRC/publication source unchanged, no new userspace-facing lock, IPC, SMP, driver, runtime-parser or completedOS claim. No visible VM/dialog, other agent, unrelated process termination or push; R3.6b deferred, R341-H1/H2 open."
 
 [[packages]]
 id = "R8.3v-x86_64-c-payload-layout"
@@ -3144,7 +3147,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

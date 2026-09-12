@@ -14,6 +14,37 @@ Fehlerinjektion ausführen; i386-Präprozessor-/Maschinencodegleichheit schützt
 den bisherigen Pfad. Elf Gates sind vor Umsetzung fixiert. Keine nativen
 IPC-Pools oder neuen Userrechte in diesem vorgeschalteten Integritätsschnitt.
 
+Umgesetzt auf Vertrag `16328ec8`: ausschließlich der Long-Mode-Zweig benutzt
+native Stackoperanden. Der i386-Präprozessor und das vollständige mit `-g0`
+übersetzte Integritätsobjekt bleiben bytegleich zu `12f93954`; gemeinsamer
+Integritätsquellcode und dessen öffentlicher Header sind unverändert. Fünf
+neue Hosttests1.781s, fünf alte Integritätsgruppen4.566s mit je326479
+Vergleichsprüfungen unter O0/O2 bestehen. Die vorhandene SECDED-/CRC-
+Optimierung bleibt erhalten; der Hostkostenvergleich ist kein VMwarebenchmark.
+
+Der native Gast besteht in1.681s:1650 Leseaufrufe, darunter1560 einzelne
+Daten-/ECC-Bitkorrekturen in beiden Kopien,80 Wiederherstellungen aus der
+jeweils unabhängigen Kopie, doppelte und widersprüchlich gültige Korruption,
+Kapazitäts-/Versions-/Semantik-/Sequenzfehler, endlicher Busyfehler und Auswahl
+der neuesten gültigen Publikation. Zwölf read-only Kontrollpunkte sowie zwei
+echte C-Aufruf-/Rückkehrbeobachtungen prüfen Resultat, SysV-Stack und IRQ-Zustand.
+IF=1-Save/Restore wird separat bei maskiertem PIC ausgeführt; Masken und IF
+werden vor Weiterlauf restauriert.1032Byte C-BSS und beide Handoffs sind am
+Ende null. Beleg
+`build/codex-agent/r83w-integrity/native/attempt-f6f76212b1ff42639738ac2e0f70a2db`.
+Der Compiler benötigt nur `memcpy`; aus der vorhandenen Stringbibliothek bleibt
+genau diese Funktion im privaten Hilfsobjekt, keine Parser oder Hosted-Runtime.
+
+Normalbild und normale User-ELFs sind byteidentisch zu R8.3v. Beide Builds,
+Bootstrap56 und Payload11 Hosttests, bestehende neun Prozessvarianten mit
+fünf Beobachtungsläufen sowie20 Frame-Reaps (1.999s) bestehen. Der i386-Guard
+bestätigt Images und96 Programme (1.379s). Originale Compiler-, Debug-Metadaten-
+und GDB-Signedness-Fehler bleiben sichtbar unter `build/codex-agent/r83w-*`;
+der Signedness-Fix besitzt einen eigenen Regressionstest. Eine volatile
+Stack-Canary wird einzeln initialisiert, passend zum strikten v2-Abschnittsvertrag.
+Dokumentationsgate und Scope-/Queueprüfung schließen den lokalen Commit ab.
+Kein neuer Userspace-Lockpfad, keine IPC-Pool-/SMP- oder Systemfertigmeldung.
+
 ## R8.3v: Platz und verifizierte Bindungen für nativen C-Kernelcode
 
 R8.3u ist mit `df6b82ac` und allen14 Gates abgeschlossen. Bei der nächsten

@@ -19,7 +19,8 @@ param(
     [switch]$OwnerTerminal,
     [switch]$NativeProcesses,
     [ValidateRange(0, 8)] [int]$ProcessCase = 0,
-    [switch]$CPayloadProbe
+    [switch]$CPayloadProbe,
+    [switch]$CIntegrityProbe
 )
 
 Set-StrictMode -Version Latest
@@ -259,6 +260,7 @@ try {
         "X86_64_NATIVE_PROCESSES=$([int]$NativeProcesses.IsPresent)" `
         "X86_64_PROCESS_CASE=$ProcessCase" `
         "X86_64_C_PAYLOAD_PROBE=$([int]$CPayloadProbe.IsPresent)" `
+        "X86_64_C_INTEGRITY_PROBE=$([int]$CIntegrityProbe.IsPresent)" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."
