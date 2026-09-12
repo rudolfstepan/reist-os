@@ -8,6 +8,11 @@ BITS 64
 %if C_NATIVE_IPC_ENTRY
 %define REIST_NATIVE_IPC_BINDING 1
 %endif
+%ifdef C_NATIVE_HEAP_ENTRY
+%if C_NATIVE_HEAP_ENTRY
+%define REIST_NATIVE_HEAP_BINDING 1
+%endif
+%endif
 %endif
 extern x86_64_fp_init64
 extern x86_64_fp_clear64
@@ -4208,6 +4213,33 @@ scheduler_validate_shell_range64:
     mov rax,cr3
     mov [rsp+24],rax
     mov rdi,rsp
+%ifdef REIST_NATIVE_HEAP_BINDING
+    mov rax,rsi
+    shr rax,32
+    test rax,rax
+    jz .ordinary_range
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .heap_invalid
+    cmp qword [r10+TASK_STATE],TASK_RUNNING
+    jne .corrupt
+    mov rax,[rsp+24]
+    cmp rax,[r10+TASK_CR3]
+    jne .corrupt
+    mov r8,rsi
+    mov r9,rdx
+    cmp r9,2060
+    ja .heap_invalid
+    shl r9,3
+    or r9,rcx
+    mov esi,[rel scheduler_current_slot]
+    mov edi,7
+    call process_heap_service64
+    jmp .return
+.heap_invalid:
+    xor eax,eax
+    jmp .return
+.ordinary_range:
+%endif
 %ifdef REIST_NATIVE_IPC_BINDING
     cmp rdx,2060
     jne .small
@@ -7692,6 +7724,9 @@ scheduler_hex_nibble64:
     jmp serial_putc64
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_HEAP_BINDING
+%include "arch/x86_64/proc/process_heap.inc"
+%endif
 %ifdef REIST_NATIVE_IPC_BINDING
 %include "arch/x86_64/proc/process_ipc.inc"
 %endif

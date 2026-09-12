@@ -11,7 +11,34 @@ Heap-Retirement. Die vorhandene i386-C-Schedulerübergabe ist nativ nicht
 übernehmbar; Fortschritt wird daher mit höchstens64 Seiten pro Dispatch im
 Kernel festgehalten. Kapazitäten:128 Regionen/512MiB je Task, vier Tasks.
 [Verbindlicher Heapvertrag](../architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md).
-Die Implementierung und Abnahme dieses Pakets stehen noch aus.
+Auf Vertrag `bdb033d8` implementiert: gespeicherte Heapfortsetzungen ohne
+schlafenden C-Stack, geschützte Regions-/Tabellen-/Leafdaten und eine geschützte
+Belegungsbitmap für kurze IPC-Pointerprüfungen. Realloc erhält bei Fehlern den
+alten Inhalt; Free und Terminal-Reap geben auch Schutz- und Tabellenframes
+zurück. Wiederholtes Reap derselben beendeten Generation bleibt wirkungslos.
+Ausstehende Arbeit und Retirement sind disjunkt und an Taskzustände gebunden;
+zwischen Arbeitsschritten werden auch ohne bereiten Userprozess IRQs zugelassen.
+
+O0/O2 prüfen526 Erwerbsgrenzen, Besitzertrennung,128 Regionen, Wiederbelegung,
+Fortsetzungsabbruch, veraltete Generationen, korrupte Kontroll-/Tabellen-/
+Leafdaten und zulässige CPU-A/D-Bits. Die physische Reserve ist mit30 User-
+und zwei verbleibenden Kernelframes aus32 verwalteten Frames geprüft.
+Private C-Struktur397704Byte zusätzlich, Gesamtareal7102464Byte/RW/NX;
+ELF-Aufbau4 verlangt exakte Sektionen und Exporte, Aufbau2/3 bleiben erhalten.
+
+Vier reale4/8GiB-Gastfälle prüfen normalen Exit, Prozessfehler und CPU-Ende,
+jeweils mit Folgegeneration. Ring3 schreibt und vergleicht echte Heapbytes,
+führt erfolgreiches und fehlgeschlagenes Realloc aus und tauscht IPC über
+seitengrenzüberschreitende Heap-Puffer aus. Alle belegten Daten-/Metadatenframes
+kehren zurück; die letzten Abschlussbelege stehen in der Queue.32 CPU-Samples,
+256Ticks und10s-Gastfrist bleiben unverändert.512MiB sind Kapazität, nicht
+nachgewiesene Vollauslastung dieses zeitbegrenzten Bootstraplaufs.
+
+Zusätzliche Stackinventur mit Produktionsflags:86 C-Funktionen zusammen6536
+statische Stackbytes. Selbst deren konservative Summe plus2144Byte IPC-
+Requestslot,2048Byte ASM-Reserve und176Byte Heapadapter liegt mit10904Byte
+unter16KiB. Kein rekursiver Heapaufruf und keine C-Fortsetzung über Dispatch.
+Native Dienstintegration, Dateiladen und vollständiges Userland bleiben offen.
 
 ## R8.3z: physischer Speicher über4GiB
 

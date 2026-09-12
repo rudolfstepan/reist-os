@@ -14,6 +14,16 @@ Syscalls, Mapping, Rollback, Realloc, Pointer-/IPC-Zulassung und Reap bilden
 ein gemeinsames Paket mit14 Gates. Details:
 [Native-Heapvertrag](../architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md).
 
+Der zusammenhängende Schnitt ist auf Vertrag `bdb033d8` implementiert;
+konkrete Host-/Gastbelege und Grenzen stehen im [Arbeitsstand](CURRENT_WORK.md).
+Gespeicherte Fortsetzungen verbinden Syscalls4/5/6, private Tabellen, IPC-
+Pointerprüfung und vollständiges Terminal-Reap. Geschützte Belegungsbits
+begrenzen Prüfkosten auf lebende Regionen.4/8GiB-Tests verwenden tatsächlich
+hohe Frames und Folgegenerationen. Dies ersetzt noch keine native Dienst-
+oder Userlandintegration. Nutzerweisung vom12. September: nächste Pakete als
+größtmögliche kohärente Systempfade bündeln; unabhängige Sicherheits-, Besitz-
+und Abnahmegrenzen bleiben getrennt. Kein Wechsel vor Abschluss der14 Gates.
+
 ## R8.3z: skalierbare physische Speichergrenze gemeinsam erweitern
 
 Baseline `3e80a1c7`;14 Gates vor Umsetzung eingefroren. Die Inventur fand die
@@ -33,9 +43,9 @@ bis zum Reap. Reale1/4/8GiB-Gäste bestehen mit ursprünglichem10s-Limit je Gast
 24 Tasklebensläufen,75 Frame-Retirements und drei abgewiesenen Bootkarten.
 Das30s-Limit im zwischenzeitlichen Prüfer wurde im Abschlussreview entfernt.
 Belege und Grenzen stehen im [aktuellen Arbeitsstand](CURRENT_WORK.md).
-Als nächster Speicherbesitzschnitt bleiben private virtuelle Heapbereiche,
-Mappingrechte, OOM-Rollback und deren vollständiger generationsgebundener Reap
-zu inventarisieren; physische Kapazität allein stellt diese Rechte nicht bereit.
+Der darauf aufbauende Heapbesitz einschließlich Mappingrechten, OOM-Rollback
+und generationsgebundenem Reap wird gemeinsam in R8.3aa behandelt;
+physische Kapazität allein stellt diese Rechte nicht bereit.
 
 ## R8.3y: kompatible IPC-Nachrichtenformate vervollständigen
 

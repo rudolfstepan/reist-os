@@ -59,3 +59,22 @@ Heapbytes tatsächlich benutzen, IPC-Puffer aus dem Heap zulassen, Fortschritt
 unabhängiger Tasks und exaktes Retirement bei Free/Exit/Fault/CPU-Ende sowie
 Folgegenerationen beweisen. Höchstens256MiB werden insgesamt berührt.
 Bestehende Zeitlimits und Referenzorakel werden nicht gelockert.
+
+## Implementierungsstand auf Vertrag bdb033d8
+
+Der private64-Byte-Aufruf kopiert Slot, Generation, Root/PDPT und Argumente.
+Zwei Kontrollguards schützen auch die128 Belegungsbits; Pointerzulassung
+liest nur die ausgewählten lebenden Regionsguards. Ein PT besitzt vier
+Schutzframes für64 Gruppen zu acht erwarteten PTEs. Diese fünf Frames sind
+vor jeder Übergabe im Tabellendatensatz registriert. Der gemeinsame physische
+Allocator reserviert1/16 der verwalteten Frames vor jeder Userdatenallokation;
+Tabellen und Recovery verwenden weiterhin den Kernelzugang.
+
+Freie/terminale Taskzustände dürfen keine ausstehenden Useraufträge tragen,
+Retirementbits nur terminale Tasks; beide Masken bleiben disjunkt. Bei nur
+Kernelarbeit wird zwischen begrenzten Schritten ein validiertes IF-Fenster
+geöffnet, ohne C-Stackfortsetzung oder HLT auf ein nicht zuständiges Deadline-
+Ereignis. Nach abgeschlossener Bereinigung ist erneutes Cancel derselben
+Generation ohne Wirkung; nach Wiederbindung wird die alte Generation vor
+Effekten abgewiesen.512MiB bleiben Kapazität: die Gastfixture berührt1/2MiB
+plus IPC-Puffer pro beteiligtem Besitzer, nicht den ganzen virtuellen Rahmen.

@@ -13,6 +13,10 @@ process_demo:
     FP_BEGIN edi
     sub rsp, 256
     mov r15, rsp
+%if X86_64_NATIVE_HEAP
+    call heap_demo
+    lea r15,[rax+4000]
+%endif
     mov rdi, r15
     xor eax, eax
     mov ecx, 32
@@ -282,6 +286,7 @@ ipc_demo_call:
     call bulk_demo_prepare
 %endif
     inc dword [r15+160]
+ipc_demo_transport_call:
     xor r10d, r10d
     xor r8d, r8d
     xor r9d, r9d
@@ -293,3 +298,6 @@ ipc_demo_readonly_message:
     dd 1,140,0
     ; The following text bytes complete the readable140-byte range; content
     ; is irrelevant because the valid header must be denied write access.
+%if X86_64_NATIVE_HEAP
+%include "arch/x86_64/user/heap_demo.inc"
+%endif

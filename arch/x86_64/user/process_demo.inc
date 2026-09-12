@@ -6,6 +6,9 @@
 %ifndef X86_64_NATIVE_IPC
 %define X86_64_NATIVE_IPC 0
 %endif
+%ifndef X86_64_NATIVE_HEAP
+%define X86_64_NATIVE_HEAP 0
+%endif
 %if X86_64_NATIVE_IPC
 %if X86_64_NATIVE_BULK_IPC
 %include "arch/x86_64/user/bulk_ipc_demo.inc"

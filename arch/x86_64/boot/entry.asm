@@ -5,7 +5,7 @@
 BITS 32
 %include "arch/x86_64/mm/memory_profile.inc"
 %include C_CORE_LAYOUT_PATH
-%if C_CORE_LAYOUT_VERSION != (2 + X86_64_NATIVE_RAM)
+%if C_CORE_LAYOUT_VERSION != (2 + X86_64_NATIVE_RAM) && !(X86_64_NATIVE_RAM && C_CORE_LAYOUT_VERSION == 4)
 %error "unsupported native C layout"
 %endif
 

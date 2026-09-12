@@ -1,5 +1,14 @@
 #include "bootstrap_core.h"
 #include "../proc/process_run.h"
+#if X86_64_NATIVE_HEAP
+#include "../mm/native_heap.h"
+#if !X86_64_NATIVE_RAM || !X86_64_NATIVE_PROCESSES
+#error "NativeHeap requires NativeRAM and NativeProcesses"
+#endif
+#define NATIVE_HEAP_MASK ((1ULL<<4)|(1ULL<<5)|(1ULL<<6))
+#else
+#define NATIVE_HEAP_MASK 0
+#endif
 
 #ifndef X86_64_NATIVE_PROCESSES
 #define X86_64_NATIVE_PROCESSES 0
@@ -7,10 +16,10 @@
 #if X86_64_NATIVE_PROCESSES
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 #if X86_64_NATIVE_IPC
-#define NATIVE_RUN_MASK (REIST_X64_RUN_SYSCALLS | (0x7fULL<<49) | (1ULL<<58))
+#define NATIVE_RUN_MASK (REIST_X64_RUN_SYSCALLS | (0x7fULL<<49) | (1ULL<<58) | NATIVE_HEAP_MASK)
 #define NATIVE_RUN_BUDGET(original) 32
 #else
-#define NATIVE_RUN_MASK REIST_X64_RUN_SYSCALLS
+#define NATIVE_RUN_MASK (REIST_X64_RUN_SYSCALLS | NATIVE_HEAP_MASK)
 #define NATIVE_RUN_BUDGET(original) original
 #endif
 /* Trusted boot admission, not automatic restart or runtime process policy. */
@@ -283,6 +292,10 @@ reist_u32 x86_64_c_control_entry(
         }
     }
 #if X86_64_NATIVE_PROCESSES
+#if X86_64_NATIVE_HEAP
+    NativeHeapCall heap_boot = {0};
+    if (reist_native_heap(&heap_boot) != 1U) goto cleanup_control;
+#endif
     for (index=0; index<2; ++index) {
         if (x86_64_c_process_run64(&native_runs[index]) != 1U) {
             goto cleanup_control;

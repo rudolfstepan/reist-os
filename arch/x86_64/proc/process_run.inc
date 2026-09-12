@@ -20,6 +20,9 @@ process_run_admit64:
     cmp dword [rdi+12], 0
     jne .bad
     mov r8, (1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)
+%ifdef REIST_NATIVE_HEAP_BINDING
+    or r8,(1<<4)|(1<<5)|(1<<6)
+%endif
 %ifdef REIST_NATIVE_IPC_BINDING
     mov rax, (0x7f<<49)|(1<<58)
     or r8, rax
@@ -113,6 +116,15 @@ process_run_validate64:
     jne .bad
     cmp dword [rel scheduler_last_tick], SHELL_CLOCK_LIMIT
     jae .bad
+%ifdef REIST_NATIVE_HEAP_BINDING
+    mov eax,[rel process_heap_pending_mask]
+    mov edx,[rel process_heap_retire_mask]
+    test eax,edx
+    jnz .bad
+    or eax,edx
+    test eax,~15
+    jnz .bad
+%endif
     xor ebx, ebx
     xor ebp, ebp ; live task count
     xor r14d, r14d ; running task count
@@ -129,6 +141,20 @@ process_run_validate64:
     add r15, rax
     lea rdx, [rel process_run_generations]
     mov esi, [rdx+rbx*4]
+%ifdef REIST_NATIVE_HEAP_BINDING
+    bt dword [rel process_heap_pending_mask],ebx
+    jnc .not_heap_pending
+    cmp qword [r12+TASK_STATE],TASK_READY
+    jne .bad
+.not_heap_pending:
+    bt dword [rel process_heap_retire_mask],ebx
+    jnc .not_heap_retiring
+    cmp qword [r12+TASK_STATE],TASK_FAULTED
+    je .not_heap_retiring
+    cmp qword [r12+TASK_STATE],TASK_EXITED
+    jne .bad
+.not_heap_retiring:
+%endif
     cmp ebx, [rel process_run_plan+8]
     jae .outside
     test esi, esi
@@ -151,7 +177,11 @@ process_run_validate64:
     cmp qword [r12+TASK_STATE], TASK_BLOCKED
     je .blocked
     cmp qword [r12+TASK_STATE], TASK_RUNNING
+%ifdef REIST_NATIVE_HEAP_BINDING
+    jne .heap_terminal
+%else
     jne .bad
+%endif
     inc r14d
     cmp ebx, [rel scheduler_current_slot]
     jne .bad
@@ -228,6 +258,35 @@ process_run_validate64:
     cmp [r15+24], rax
     ja .bad
     jmp .next
+%ifdef REIST_NATIVE_HEAP_BINDING
+.heap_terminal:
+    cmp qword [r12+TASK_STATE],TASK_FAULTED
+    je .heap_terminal_state
+    cmp qword [r12+TASK_STATE],TASK_EXITED
+    jne .bad
+.heap_terminal_state:
+    bt dword [rel process_heap_retire_mask],ebx
+    jnc .bad
+    lea rax,[rel scheduler_runqueue_membership]
+    cmp byte [rax+rbx],0
+    jne .bad
+    lea rax,[rel scheduler_deadline_membership]
+    cmp byte [rax+rbx],0
+    jne .bad
+    mov eax,ebx
+    shl eax,4
+    lea rdx,[rel scheduler_syscall_profiles]
+    mov rcx,[rdx+rax]
+    or rcx,[rdx+rax+8]
+    jnz .bad
+    mov edi,ebx
+    xor edx,edx
+    xor eax,eax
+    call scheduler_budget_apply64
+    cmp eax,1
+    jne .bad
+    jmp .next
+%endif
 .outside:
     test esi, esi
     jnz .bad
@@ -478,6 +537,20 @@ x86_64_process_run64:
     cmp ebx, [rel process_run_plan+8]
     jb .ipc_bind
 %endif
+%ifdef REIST_NATIVE_HEAP_BINDING
+    xor ebx,ebx
+.heap_bind:
+    mov edi,1
+    mov esi,ebx
+    xor r8d,r8d
+    xor r9d,r9d
+    call process_heap_service64
+    test rax,rax
+    jnz scheduler_fail
+    inc ebx
+    cmp ebx,[rel process_run_plan+8]
+    jb .heap_bind
+%endif
     mov byte [rel scheduler_failure_stage], 0xE1
     call scheduler_setup_syscalls64
     test eax, eax
@@ -504,6 +577,9 @@ process_run_dispatch64:
     call process_run_validate64
     test eax, eax
     jz scheduler_fail
+%ifdef REIST_NATIVE_HEAP_BINDING
+    call process_heap_reapers64
+%endif
     lea rdx, [rel scheduler_tasks]
     mov ecx, TASK_SLOT_CAPACITY
 .quiescent:
@@ -515,6 +591,10 @@ process_run_dispatch64:
     je process_run_finish64
     cmp byte [rel scheduler_runqueue_count], 0
     jne scheduler_runqueue_dispatch64
+%ifdef REIST_NATIVE_HEAP_BINDING
+    cmp dword [rel process_heap_retire_mask],0
+    jne .kernel_work
+%endif
     cmp byte [rel scheduler_deadline_count], 0
     je scheduler_fail
     mov rax, [rel scheduler_original_cr3]
@@ -528,6 +608,22 @@ process_run_dispatch64:
     cli
 .idle_resume:
     jmp process_run_dispatch64
+%ifdef REIST_NATIVE_HEAP_BINDING
+.kernel_work:
+    ; A retiring task still has useful bounded work. Admit IRQs between steps
+    ; without sleeping until a deadline that does not own this work.
+    mov rax,[rel scheduler_original_cr3]
+    mov cr3,rax
+    lea rsp,[rel scheduler_kernel_stack_top]
+    call scheduler_restore_kernel_segments64
+    call x86_64_fp_reset64
+.work_wait:
+    sti
+    nop
+    cli
+.work_resume:
+    jmp process_run_dispatch64
+%endif
 
 process_run_enter64:
     ; EDI slot, R11 task, queue already popped by the shared dispatcher.
@@ -535,6 +631,10 @@ process_run_enter64:
     lea rdx, [rel process_run_generations]
     cmp [rdx+rdi*4], eax
     jne scheduler_fail
+%ifdef REIST_NATIVE_HEAP_BINDING
+    bt dword [rel process_heap_pending_mask],edi
+    jc process_heap_enter64
+%endif
     mov qword [r11+TASK_STATE], TASK_RUNNING
     jmp scheduler_enter_task64.state_published
 
@@ -575,6 +675,13 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_HEAP_BINDING
+    cmp qword [rel syscall_rax],4
+    jb .not_heap
+    cmp qword [rel syscall_rax],6
+    jbe process_heap_syscall64
+.not_heap:
+%endif
 %ifdef REIST_NATIVE_IPC_BINDING
     cmp qword [rel syscall_rax], 49
     jae process_ipc_syscall64
@@ -748,6 +855,40 @@ process_run_irq_validate64:
     mov rax, cr3
     cmp rax, [rel scheduler_original_cr3]
     jne .bad
+%ifdef REIST_NATIVE_HEAP_BINDING
+    mov rax,[rdi+EXCEPTION_FRAME_RIP]
+    lea rdx,[rel process_run_dispatch64.work_wait]
+    cmp rax,rdx
+    jb .deadline_idle
+    lea rdx,[rel process_run_dispatch64.work_resume]
+    cmp rax,rdx
+    ja .deadline_idle
+    mov eax,[rel process_heap_retire_mask]
+    mov edx,[rel process_heap_pending_mask]
+    or edx,eax
+    test edx,~15
+    jnz .bad
+    test edx,edx
+    jz .bad
+    test eax,~15
+    jnz .bad
+    xor edx,edx
+    mov ecx,4
+.retiring_count:
+    shr eax,1
+    adc edx,0
+    loop .retiring_count
+    movzx eax,byte [rel scheduler_deadline_count]
+    add eax,edx
+    movzx edx,byte [rel scheduler_runqueue_count]
+    add eax,edx
+    cmp eax,[rel process_run_live]
+    jne .bad
+    test qword [rdi+EXCEPTION_FRAME_RFLAGS],0x200
+    jz .bad
+    jmp .kernel_stack
+.deadline_idle:
+%endif
     cmp byte [rel scheduler_runqueue_count], 0
     jne .bad
     cmp byte [rel scheduler_deadline_count], 0
@@ -764,6 +905,7 @@ process_run_irq_validate64:
     lea rdx, [rel process_run_dispatch64.idle_resume]
     cmp rax, rdx
     ja .bad
+.kernel_stack:
     mov rax, [rdi+EXCEPTION_FRAME_RSP]
     lea rdx, [rel scheduler_kernel_stack_bottom]
     cmp rax, rdx
@@ -947,6 +1089,10 @@ process_run_retire64:
     mov rdx, [r12+TASK_GENERATION]
     call process_ipc_service64
 %endif
+%ifdef REIST_NATIVE_HEAP_BINDING
+    jmp process_heap_retire64
+process_run_complete_retire64:
+%endif
     call scheduler_release_task_frames64
     test eax, eax
     jz scheduler_fail
@@ -982,7 +1128,11 @@ process_run_retire64:
     xor eax, eax
     mov ecx, 4
     rep stosq
+%ifdef REIST_NATIVE_HEAP_BINDING
+    ret
+%else
     jmp process_run_dispatch64
+%endif
 
 process_run_finish64:
     mov byte [rel scheduler_failure_stage], 0xE2

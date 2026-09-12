@@ -80,12 +80,12 @@ _probe_init:
                              creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
             (self.folder/('compile-'+opt+'.log')).write_text(r.stdout+r.stderr,encoding='utf-8')
             self.assertEqual(r.returncode,0,r.stderr[-2500:])
-            for case in ('normal','root','raw','summary','dual','busy','entered','region','hierarchy'):
+            for case in ('normal','reserve','root','raw','summary','dual','busy','entered','region','hierarchy'):
                 r=subprocess.run([str(exe),case],cwd=ROOT,capture_output=True,text=True,timeout=30,
                                  creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                 (self.folder/(case+'-'+opt+'.log')).write_text(r.stdout+r.stderr,encoding='utf-8')
                 self.assertEqual(r.returncode,0,r.stdout+r.stderr)
-                self.assertIn('NATIVE_MEMORY_'+('HOST_OK' if case=='normal' else 'FAULT_CLOSED_OK'),r.stdout)
+                self.assertIn('NATIVE_MEMORY_'+('HOST_OK' if case in ('normal','reserve') else 'FAULT_CLOSED_OK'),r.stdout)
 
     def test_full_width_production_consumers(self):
         # Reuse the complete existing behavior matrices. Rebase only physical

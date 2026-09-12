@@ -141,6 +141,47 @@ class CPayloadTests(unittest.TestCase):
         self.assertNotEqual(r.returncode,0)
         self.assertRegex(r.stderr,r'overlap|overlapping')
 
+    def test_native_heap_layout4_exact_state_and_export(self):
+        names=[]
+        for source,name in (('arch/x86_64/kernel/bootstrap_core.c','heap-core'),
+                            ('arch/x86_64/mm/native_memory.c','heap-memory'),
+                            ('arch/x86_64/mm/native_heap.c','heap-state'),
+                            ('kernel/init/critical_object.c','heap-integrity')):
+            names.append(name)
+            r=self.run_command([self.zig,'cc',*self.flags,'-I.','-DX86_64_NATIVE_RAM=1',
+                '-DX86_64_NATIVE_PROCESSES=1','-DX86_64_NATIVE_HEAP=1',
+                '-c',source,'-o',self.folder/(name+'.o')],name)
+            self.assertEqual(r.returncode,0,r.stderr[-2000:])
+        # Core is freestanding; retain only the two required memory primitives.
+        r=self.run_command([self.zig,'cc',*self.flags,'-I.','-ffunction-sections',
+            '-c','lib/libc/string.c','-o',self.folder/'heap-string-full.o'],'heap-string')
+        self.assertEqual(r.returncode,0,r.stderr)
+        r=self.run_command([self.zig,'ld.lld','-m','elf_x86_64','-r','--gc-sections',
+            '--undefined=memcpy','--undefined=memset','-o',self.folder/'heap-string.o',
+            self.folder/'heap-string-full.o'],'heap-string-select')
+        self.assertEqual(r.returncode,0,r.stderr)
+        r=self.run_command([*self.link,'-T','config/x86_64_c_payload.ld','-o',self.folder/'heap.elf',
+            *[self.folder/(n+'.o') for n in names+['heap-string']]],'heap-link')
+        self.assertEqual(r.returncode,0,r.stderr)
+        raw=p.read_bounded(self.folder/'heap.elf');parsed=p.validate(raw)
+        self.assertEqual(parsed['layout_version'],4)
+        state=parsed['sections']['.heap_state']
+        self.assertEqual((state['type'],state['flags'],state['address'],state['size']),
+                         (8,3,p.HIGH+0x653000,397704))
+        self.assertIn(b'C_CORE_LAYOUT_VERSION 4',p.outputs(raw)['bootstrap_core_layout.inc'])
+        sh=struct.unpack_from('<Q',raw,40)[0]+64*state['index']
+        mutations=[(sh+4,'I',1),(sh+8,'Q',7),(sh+16,'Q',state['address']+4096),
+                   (sh+32,'Q',state['size']-8),(sh+48,'Q',8192)]
+        table=parsed['sections']['.symtab'];strings=parsed['sections']['.strtab']['data']
+        for pos in range(table['offset'],table['offset']+table['size'],24):
+            n=struct.unpack_from('<I',raw,pos)[0]
+            if strings[n:strings.find(b'\0',n)].decode('ascii') in ('native_heap_state','reist_native_heap'):
+                mutations += [(pos+4,'B',0),(pos+5,'B',1),(pos+6,'H',0xfff1),
+                              (pos+8,'Q',0),(pos+16,'Q',0)]
+        self.assertEqual(len(mutations),15)
+        for off,fmt,value in mutations:
+            with self.subTest(offset=off):self.reject(self.changed(off,fmt,value,raw))
+
     def changed(self,offset,fmt,value,data=None):
         result=bytearray(self.inner if data is None else data);struct.pack_into(fmt,result,offset,value);return bytes(result)
 

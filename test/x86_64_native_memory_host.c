@@ -4,8 +4,8 @@
 #include <string.h>
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"memory check line%d: %s\n",__LINE__,#x);exit(1);}}while(0)
 static int expected_fault;
-static uint64_t addresses[16];
-static unsigned char backing[16][4096];
+static uint64_t addresses[32];
+static unsigned char backing[32][4096];
 static unsigned touches;
 static NativeMemoryState snapshot;
 void reist_native_memory_fault(void) {
@@ -15,8 +15,8 @@ void reist_native_memory_fault(void) {
 void reist_native_memory_zero(uint64_t frame) {
     CHECK(frame && !(frame&4095) && frame<NATIVE_MEMORY_LIMIT);
     unsigned i;
-    for(i=0;i<16;i++) if(!addresses[i] || addresses[i]==frame)break;
-    CHECK(i<16);addresses[i]=frame;memset(backing[i],0,4096);++touches;
+    for(i=0;i<32;i++) if(!addresses[i] || addresses[i]==frame)break;
+    CHECK(i<32);addresses[i]=frame;memset(backing[i],0,4096);++touches;
 }
 static void seed(uint64_t frame) {
     uint64_t index=frame/4096;
@@ -26,6 +26,23 @@ static void seed(uint64_t frame) {
 }
 int main(int argc,char **argv) {
     CHECK(argc==2);
+    if(!strcmp(argv[1],"reserve")) {
+        uint64_t held[32];
+        for(unsigned i=0;i<32;i++)seed(UINT64_C(0x100000000)+(uint64_t)i*4096);
+        CHECK(reist_native_memory(NATIVE_MEMORY_INIT,0)==1);
+        for(unsigned i=0;i<30;i++) {
+            held[i]=reist_native_memory(NATIVE_MEMORY_USER_ALLOC,0);
+            CHECK(held[i]>=UINT64_C(0x100000000));
+        }
+        CHECK(reist_native_memory(NATIVE_MEMORY_COUNT,0)==2);
+        CHECK(reist_native_memory(NATIVE_MEMORY_USER_ALLOC,0)==0 && touches==30);
+        held[30]=reist_native_memory(NATIVE_MEMORY_ALLOC,0);
+        held[31]=reist_native_memory(NATIVE_MEMORY_ALLOC,0);
+        CHECK(held[30] && held[31] && reist_native_memory(NATIVE_MEMORY_COUNT,0)==0);
+        for(unsigned i=0;i<32;i++)CHECK(reist_native_memory(NATIVE_MEMORY_FREE,held[i])==1);
+        CHECK(reist_native_memory(NATIVE_MEMORY_COUNT,0)==32);
+        puts("NATIVE_MEMORY_HOST_OK reserve=2 user=30");return 0;
+    }
     uint64_t frames[]={0x400000,0x401000,0x7fff000,0x8000000,UINT64_C(0xfffff000),
                        UINT64_C(0x100000000),UINT64_C(0x100001000),
                        UINT64_C(0x240000000),UINT64_C(0x300000000),UINT64_C(0x3fffff000)};

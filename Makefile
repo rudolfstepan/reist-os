@@ -243,6 +243,7 @@ X86_64_SHELL_EXIT_STATUS ?= -1
 X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
 X86_64_NATIVE_RAM ?= 0
+X86_64_NATIVE_HEAP ?= 0
 X86_64_NATIVE_IPC ?= 0
 X86_64_NATIVE_BULK_IPC ?= 0
 X86_64_NATIVE_IPC_CASE ?= 0
@@ -415,6 +416,7 @@ x86_64-bootstrap:
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
 		-DX86_64_NATIVE_BULK_IPC=$(X86_64_NATIVE_BULK_IPC) \
+		-DX86_64_NATIVE_HEAP=$(X86_64_NATIVE_HEAP) \
 		-DX86_64_PROCESS_CASE=$(X86_64_PROCESS_CASE) \
 		arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
@@ -455,11 +457,12 @@ x86_64-bootstrap:
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-all -T $(X86_64_CHILD_LINKER) \
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
-	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) \
+		-DX86_64_NATIVE_HEAP=$(X86_64_NATIVE_HEAP) \
 		-DX86_64_C_INTEGRITY_PROBE=$(X86_64_C_INTEGRITY_PROBE) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
 ifeq ($(X86_64_C_PAYLOAD_PROBE),1)
@@ -481,6 +484,9 @@ endif
 ifeq ($(X86_64_NATIVE_RAM),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_memory.c -o $(X86_64_BOOTSTRAP_DIR)/native_memory.o
 endif
+ifeq ($(X86_64_NATIVE_HEAP),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_heap.c -o $(X86_64_BOOTSTRAP_DIR)/native_heap.o
+endif
 ifneq ($(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -ffunction-sections -fdata-sections -c lib/libc/string.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory_full.o
@@ -493,6 +499,7 @@ endif
 		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
 		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o,) \
 		$(if $(filter 1,$(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_memory.o,) \
+		$(if $(filter 1,$(X86_64_NATIVE_HEAP)),$(X86_64_BOOTSTRAP_DIR)/native_heap.o,) \
 		$(if $(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o,) \
 		$(if $(filter 1,$(X86_64_C_INTEGRITY_PROBE)),$(X86_64_BOOTSTRAP_DIR)/integrity_probe.o $(if $(filter 1,$(X86_64_NATIVE_RAM)),,$(X86_64_BOOTSTRAP_DIR)/critical_object.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o),)
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --output-directory $(X86_64_BOOTSTRAP_DIR)

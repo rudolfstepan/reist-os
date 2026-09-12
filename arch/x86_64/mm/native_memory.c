@@ -140,13 +140,20 @@ uint64_t reist_native_memory(uint64_t operation,uint64_t argument) {
 #ifndef REIST_NATIVE_MEMORY_HOST_TEST
     need(!irq_enabled());
 #endif
-    need(!M.entered && operation<=NATIVE_MEMORY_HIGH_FLOOR);M.entered=1;
+    need(!M.entered && operation<=NATIVE_MEMORY_USER_ALLOC);M.entered=1;
     uint64_t result=0;
     if(operation==NATIVE_MEMORY_INIT) {need(!argument);result=initialize();}
     else {
         check_control();
         if(operation==NATIVE_MEMORY_ALLOC)result=allocate(argument);
         else if(operation==NATIVE_MEMORY_FREE)result=release(argument);
+        else if(operation==NATIVE_MEMORY_USER_ALLOC) {
+            need(!argument);
+            if(M.control.free>M.control.managed/16) {
+                result=allocate(UINT64_C(0x100000000));
+                if(!result)result=allocate(0);
+            }
+        }
         else {
             need(!argument);
             if(operation==NATIVE_MEMORY_COUNT)result=M.control.free;

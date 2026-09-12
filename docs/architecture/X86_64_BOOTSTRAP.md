@@ -2,6 +2,20 @@
 
 Stand: 12. September 2026
 
+R8.3aa ergänzt auf Vertrag `bdb033d8` private native Heapbereiche. Aktivierung:
+`-NativeProcesses -NativeRAM -NativeHeap`, für den Gastnachweis zusätzlich
+`-NativeIPC`; Make verwendet entsprechend `X86_64_NATIVE_HEAP=1`. Bestehende
+Syscalls4/5/6 werden nur in expliziten Profilen zugelassen. Jeder der vier
+Tasks besitzt128 Regionen mit zusammen höchstens512MiB ab VA0x100000000,
+4KiB/RW/NX. Gespeicherte Aufträge leisten höchstens64 Seitenarbeitsschritte
+vor einer Schedulerübergabe; unabhängige Prozesse und IRQs bleiben ausführbar.
+Reap widerruft zunächst IPC und gibt danach sämtliche Heap-/Tabellen-/
+Schutzframes frei, bevor die bisherigen13 Taskframes freigegeben werden.
+Privater Aufbau4 ergänzt397704Byte geschützten Heapzustand ab physisch0x653000;
+das gesamte RW/NX-Metadatenareal beträgt7102464Byte. Aufbau2/3,16KiB Stack,
+32 CPU-Samples,256Ticks und10s-Gastfrist bleiben unverändert.
+[Heapvertrag und Nachweisgrenzen](NATIVE_PRIVATE_HEAP_CONTRACT.md).
+
 R8.3z ist auf `3e80a1c7` vor Umsetzung eingefroren. Der optionale NativeRAM-
 Pfad bündelt physische RAM-Karte, Reservierungen, geschützte Allokation und
 alle physischen64-Bit-Verbraucher. Private C-Metadaten erhalten dafür einen

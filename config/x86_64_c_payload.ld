@@ -7,6 +7,7 @@ PHDRS {
   data PT_LOAD FLAGS(6);
   bss PT_LOAD FLAGS(6);
   memory PT_LOAD FLAGS(6);
+  heap PT_LOAD FLAGS(6);
 }
 SECTIONS {
   .text 0xFFFFFFFF80185000 : {
@@ -26,6 +27,15 @@ SECTIONS {
     KEEP(*(.memory_state))
   } :memory
   ASSERT(SIZEOF(.memory_state) <= 5242880, "native memory metadata capacity")
+  .heap_state 0xFFFFFFFF80653000 (NOLOAD) : {
+    KEEP(*(.heap_state))
+  } :heap
+  ASSERT(SIZEOF(.heap_state) == 0 ||
+         (SIZEOF(.memory_state) == 4531096 && SIZEOF(.heap_state) == 397704),
+         "native heap exact metadata layout")
+  ASSERT(SIZEOF(.heap_state) == 0 ||
+         0xFFFFFFFF80653000 + SIZEOF(.heap_state) <= 0xFFFFFFFF80700000,
+         "native combined metadata capacity")
   .init_array : { *(.init_array .init_array.* .ctors .ctors.*) } :NONE
   .fini_array : { *(.fini_array .fini_array.* .dtors .dtors.*) } :NONE
   .eh_frame : { *(.eh_frame .eh_frame.* .eh_frame_hdr) } :NONE
