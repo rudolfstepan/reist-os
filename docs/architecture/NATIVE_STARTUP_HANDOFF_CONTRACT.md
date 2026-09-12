@@ -3,6 +3,15 @@
 R8.3af, frozen on accepted8a3bed10, 12 September 2026. This is a package
 contract, not runtime acceptance. All13 queue groups are mandatory.
 
+Renewed user instruction on12 September after the explicit OOM repair question
+authorizes the same attributed candidate to continue. The new fixture had only
+one RX page and six total CREATE allocations; injection after6/9 missed CREATE.
+Give the child two genuinely used private RW pages (ten total allocations),
+and guard the exact CREATE completion so missed injection fails before another
+phase. Preserve all13 gates, kernel quotas and failed evidence. Revalidate the
+affected host/build/full startup matrix; unaffected passed host evidence stays
+valid. Renewed verification retains the one-focused-repair stop condition.
+
 ## Inventory and purpose
 
 The native family now owns construction, waits, cancellation and complete
