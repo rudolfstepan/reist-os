@@ -19,4 +19,16 @@ _Static_assert(sizeof(struct reist_x64_profile_binding)==32,"binding size");
 _Static_assert(offsetof(struct reist_x64_profile_binding,mask)==24,"mask offset");
 uint64_t __attribute__((sysv_abi)) reist_x64_profile_apply(
     const struct reist_x64_profile_binding *, uint64_t operation, uint64_t number);
+/* Private v2, three mask words covering the complete append-only ABI0..132.
+ * Entire expected mask and all ranges are checked before any mutation. */
+struct reist_x64_profile_v2 { uint64_t generation, masks[3]; };
+struct reist_x64_profile_binding_v2 {
+    const uint64_t *task;
+    struct reist_x64_profile_v2 *profile;
+    uint64_t generation, masks[3];
+};
+_Static_assert(sizeof(struct reist_x64_profile_v2)==32,"profile v2 size");
+_Static_assert(sizeof(struct reist_x64_profile_binding_v2)==48,"binding v2 size");
+uint64_t __attribute__((sysv_abi)) reist_x64_profile_apply_v2(
+    const struct reist_x64_profile_binding_v2 *, uint64_t operation, uint64_t number);
 #endif

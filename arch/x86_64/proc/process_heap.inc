@@ -103,6 +103,12 @@ process_heap_enter64:
     jmp process_run_dispatch64.kernel_work
 
 process_heap_retire64:
+    call process_heap_begin_retire64
+    jmp process_run_dispatch64
+
+; Same receipt/heap transition for current exit and an already fenced peer.
+; Caller has removed queue membership and revoked profile/IPC authority.
+process_heap_begin_retire64:
     mov esi,[rel scheduler_current_slot]
     bt dword [rel process_heap_pending_mask],esi
     jc scheduler_fail
@@ -123,7 +129,7 @@ process_heap_retire64:
     jne scheduler_fail
     bts dword [rel process_heap_retire_mask],esi
     jc scheduler_fail
-    jmp process_run_dispatch64
+    ret
 
 ; At most one64-item retirement step per dispatch, round-robin across slots.
 process_heap_reapers64:

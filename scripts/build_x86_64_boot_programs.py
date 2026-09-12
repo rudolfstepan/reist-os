@@ -36,7 +36,7 @@ def prepare(raw,args):
         source[cursor:cursor+len(b)+1]=b+b'\0';cursor+=len(b)+1
     return b'RNPGv1\0\0'+struct.pack('<IIQ',1,SIZE,entry)+rights+pages+source
 
-def build(directory,cc,nasm,ld,case):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0):
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     def run(args):
@@ -52,8 +52,8 @@ def build(directory,cc,nasm,ld,case):
              '-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone',
              '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
              '-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include',
-             f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',
-             '-c','arch/x86_64/user/boot_program.c','-o',obj])
+             f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',f'-DFAMILY_CASE={family_case}',
+             '-c','arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              '-T','config/x86_64_boot_program.ld','-o',elf,start,obj])
@@ -69,4 +69,8 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--directory',required=True)
     for tool in ('cc','nasm','ld'):p.add_argument('--'+tool,required=True,nargs='+')
     p.add_argument('--case',type=int,choices=range(3),default=0)
-    a=p.parse_args();build(a.directory,a.cc,a.nasm,a.ld,a.case)
+    p.add_argument('--family',action='store_true')
+    p.add_argument('--family-case',type=int,choices=range(6),default=0)
+    a=p.parse_args()
+    if a.family_case and not a.family:p.error('family-case requires family')
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case)

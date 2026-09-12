@@ -12,6 +12,10 @@ process_run_admit64:
 %ifdef REIST_NATIVE_PROGRAMS
     je .version_ok
     cmp dword [rdi],2
+%ifdef REIST_NATIVE_LIFECYCLE
+    je .version_ok
+    cmp dword [rdi],3
+%endif
     jne .bad
 .version_ok:
 %else
@@ -53,7 +57,19 @@ process_run_admit64:
     ja .bad
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rdi],2
-    jne .v1
+    jb .v1
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rdi],3
+    jne .image
+    cmp dword [rdi+8],4
+    jne .bad
+    xor eax,eax
+    cmp ecx,2
+    setb al
+    cmp [r9],rax
+    jne .bad
+.image:
+%endif
     mov rax,[r9+24]
     sub rax,3
     cmp rax,3
@@ -180,15 +196,26 @@ process_run_validate64:
     cmp ebx, [rel process_run_plan+8]
     jae .outside
     test esi, esi
+%ifdef REIST_NATIVE_LIFECYCLE
+    jnz .has_generation
+    cmp dword [rel process_run_plan],3
+    je .outside
+.has_generation:
+%endif
     jz .bad
     cmp esi, [rel process_run_generation]
     ja .bad
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rel process_run_plan],3
+    je .generation_ready
+%endif
     mov eax, [rel process_run_generation]
     sub eax, [rel process_run_plan+8]
     inc eax
     add eax, ebx
     cmp esi, eax
     jne .bad
+.generation_ready:
     cmp qword [r12+TASK_STATE], TASK_FREE
     je .retired
     cmp [r12+TASK_GENERATION], rsi
@@ -359,8 +386,20 @@ process_run_validate64:
     cmp ebp, [rel process_run_live]
     jne .bad
     add ebp, [rel scheduler_reap_count]
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rel process_run_plan],3
+    jne .legacy_total
+    cmp ebp,[rel family_total]
+    jne .bad
+    call family_validate_runtime64
+    test eax,eax
+    jz .bad
+    jmp .total_ready
+.legacy_total:
+%endif
     cmp ebp, [rel process_run_plan+8]
     jne .bad
+.total_ready:
     call process_run_frames64
     jmp .return
 .bad:
@@ -519,7 +558,7 @@ x86_64_process_run64:
     mov [rel scheduler_initial_free], eax
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rel process_run_plan],2
-    je .prepare_build
+    jae .prepare_build
 %endif
     mov edi, ELF_IMAGE_PROBE
     call x86_64_elf64_select_image64
@@ -531,11 +570,14 @@ x86_64_process_run64:
     call x86_64_elf64_entry64
     mov [rel scheduler_entry], rax
 .prepare_build:
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_initialize64
+%endif
     mov dword [rel process_run_build_slot], 0
 .build:
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rel process_run_plan],2
-    jne .selected
+    jb .selected
     mov eax,[rel process_run_build_slot]
     shl eax,5
     lea rdi,[rel process_run_plan+16]
@@ -560,7 +602,7 @@ x86_64_process_run64:
     jz scheduler_fail
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rel process_run_plan],2
-    jne .stack_ready
+    jb .stack_ready
     mov rdi,DIRECT_MAP_BASE
     add rdi,[r12+TASK_STACK_FRAME]
     call x86_64_boot_program_stack64
@@ -599,10 +641,22 @@ x86_64_process_run64:
     test eax, eax
     jz scheduler_fail
     inc dword [rel process_run_live]
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_root_built64
+%endif
     inc dword [rel process_run_build_slot]
     mov eax, [rel process_run_build_slot]
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rel process_run_plan],3
+    jne .all_initial
+    cmp eax,2
+    jb .build
+    jmp .initial_built
+.all_initial:
+%endif
     cmp eax, [rel process_run_plan+8]
     jb .build
+.initial_built:
 %ifdef REIST_NATIVE_IPC_BINDING
     xor ebx, ebx
 .ipc_bind:
@@ -612,8 +666,17 @@ x86_64_process_run64:
     mov edx, [rax+rbx*4]
     call process_ipc_service64
     inc ebx
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rel process_run_plan],3
+    jne .all_ipc
+    cmp ebx,2
+    jb .ipc_bind
+    jmp .ipc_bound
+.all_ipc:
+%endif
     cmp ebx, [rel process_run_plan+8]
     jb .ipc_bind
+.ipc_bound:
 %endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     xor ebx,ebx
@@ -626,8 +689,17 @@ x86_64_process_run64:
     test rax,rax
     jnz scheduler_fail
     inc ebx
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp dword [rel process_run_plan],3
+    jne .all_heap
+    cmp ebx,2
+    jb .heap_bind
+    jmp .heap_bound
+.all_heap:
+%endif
     cmp ebx,[rel process_run_plan+8]
     jb .heap_bind
+.heap_bound:
 %endif
     mov byte [rel scheduler_failure_stage], 0xE1
     call scheduler_setup_syscalls64
@@ -661,6 +733,9 @@ process_run_dispatch64:
     jz scheduler_fail
 %ifdef REIST_NATIVE_HEAP_BINDING
     call process_heap_reapers64
+%endif
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_dispatch64
 %endif
     lea rdx, [rel scheduler_tasks]
     mov ecx, TASK_SLOT_CAPACITY
@@ -757,6 +832,10 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp qword [rel syscall_rax],132
+    je family_syscall64
+%endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     cmp qword [rel syscall_rax],4
     jb .not_heap
@@ -1149,6 +1228,9 @@ process_run_wake64:
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov qword [r12+TASK_STATE], TASK_READY
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_wait_expired64
+%endif
     call scheduler_runqueue_enqueue64
     test eax, eax
     jz .bad
@@ -1188,6 +1270,9 @@ process_run_retire64:
     mov rax, [rcx+rax+16]
     mov [rel process_run_receipt+16], rax
     mov [r12+TASK_STATE], rdx
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_terminal64
+%endif
     mov rsi, [r12+TASK_GENERATION]
     mov eax, edi
     shl eax, 5
@@ -1228,6 +1313,9 @@ process_run_complete_retire64:
     jz scheduler_fail
     inc dword [rel scheduler_reap_count]
     dec dword [rel process_run_live]
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_reaped64
+%endif
     call process_run_validate64
     test eax, eax
     jz scheduler_fail
@@ -1264,6 +1352,9 @@ process_run_finish64:
     call scheduler_cleanup_common64
     test eax, eax
     jz scheduler_fail
+%ifdef REIST_NATIVE_LIFECYCLE
+    call family_finish64
+%endif
     ; Per-task state was validated empty, and common cleanup proves frame balance.
     lea rdi, [rel process_run_plan]
     xor eax, eax

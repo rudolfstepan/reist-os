@@ -31,6 +31,9 @@ extern x86_64_boot_program_stack64
 %endif
 extern reist_x64_request_admit
 extern reist_x64_profile_apply
+%ifdef REIST_NATIVE_LIFECYCLE
+extern reist_x64_profile_apply_v2
+%endif
 extern reist_x64_address_space_build
 extern reist_x64_task_frames_release
 extern reist_x64_user_access
@@ -2749,6 +2752,13 @@ scheduler_save_syscall_context64:
 ; EAX operation, EDI slot, RSI exact generation, RDX policy mask, R8 number.
 ; The private core has no parent/child roles. This adapter owns record lookup.
 scheduler_profile_apply64:
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .legacy
+    cmp dword [rel process_run_plan],3
+    je family_profile_apply64
+.legacy:
+%endif
     cmp edi, TASK_SLOT_CAPACITY
     jae .invalid
     push rbp
@@ -6485,10 +6495,23 @@ scheduler_abort_frame_claim64:
 scheduler_task_frame_alloc64:
     cmp byte [rel scheduler_frame_claim_active], 0
     je physical_frame_alloc64
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .legacy
+    cmp dword [rel process_run_plan],3
+    jne scheduler_fail
+    cmp ebx,2
+    jb scheduler_fail
+    cmp ebx,4
+    jae scheduler_fail
+    jmp .claimed
+.legacy:
+%endif
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne scheduler_fail
     cmp ebx, 1
     jne scheduler_fail
+.claimed:
     push rbp
     mov rbp, rsp
     and rsp, -16
@@ -7882,6 +7905,9 @@ scheduler_hex_nibble64:
     jmp serial_putc64
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_LIFECYCLE
+%include "arch/x86_64/proc/task_family.inc"
+%endif
 %ifdef REIST_NATIVE_HEAP_BINDING
 %include "arch/x86_64/proc/process_heap.inc"
 %endif

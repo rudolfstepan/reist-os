@@ -16,14 +16,33 @@ class IdentityTests(unittest.TestCase):
         source=(ROOT/'arch/x86_64/proc/cooperative_scheduler.asm').read_text()
         core=(ROOT/'arch/x86_64/proc/identity_core.asm').read_text()
         build=source.split('scheduler_build_task64:',1)[1].split('scheduler_build_shell_child_stack64:',1)[0]
-        self.assertLess(build.index('call scheduler_identity_apply64'),build.index('call physical_frame_alloc64'))
+        # The builder consumes either new frames or an already-owned claim.
+        # Identity reservation must precede acquisition through either route.
+        self.assertLess(build.index('call scheduler_identity_apply64'),build.index('call scheduler_task_frame_alloc64'))
+        adapter=source.split('scheduler_task_frame_alloc64:',1)[1].split('reist_x64_mapping_pointer64:',1)[0]
+        self.assertIn('cmp byte [rel scheduler_frame_claim_active], 0\n    je physical_frame_alloc64',adapter)
+        self.assertIn('lea rdi, [rel scheduler_frame_claim]\n    call reist_x64_frame_claim_take',adapter)
+        self.assertLess(adapter.index('je physical_frame_alloc64'),adapter.index('call reist_x64_frame_claim_take'))
+        self.assertNotIn('call physical_frame_alloc64',build)
         rollback=build.split('.fail:',1)[1]
         self.assertLess(rollback.index('call scheduler_release_task_frames64'),rollback.index('call scheduler_identity_apply64'))
         reap=source.split('scheduler_reap_terminal64:',1)[1].split('scheduler_release_task_frames64:',1)[0]
         self.assertLess(reap.index('call scheduler_clear_shell_syscall_profile64'),reap.index('call scheduler_release_task_frames64'))
         self.assertLess(reap.index('call scheduler_release_task_frames64'),reap.index('call scheduler_identity_apply64'))
-        self.assertIn('cmp qword [r8 + TASK_STATE], TASK_RESERVED',source)
-        self.assertIn('cmp dword [rel scheduler_identity_pool + 20], TASK_SHELL_CHILD_GEN2',source)
+        # Profile admission moved into the shared core; RESERVED still gates
+        # installation before either authority word is published.
+        profile=(ROOT/'arch/x86_64/proc/syscall_profile.asm').read_text()
+        install=profile.split('.install:',1)[1].split('.revoke:',1)[0]
+        self.assertIn('cmp rcx, 9\n    jne .bad',install)
+        self.assertLess(install.index('cmp rcx, 9'),install.index('mov [r9 + 8], r11'))
+        self.assertIn('mov rcx, [r8]',profile)
+        self.assertIn('call reist_x64_profile_apply',source)
+        # The final generation is derived from the actual completed count,
+        # so early owner loss and the full two-child run share this check.
+        self.assertIn('mov eax, [rel scheduler_dynamic_completed_count]\n'
+                      '    add eax, TASK_SHELL_GENERATION\n'
+                      '    cmp dword [rel scheduler_identity_pool + 20], eax\n'
+                      '    jne .fail',source)
         for forbidden in ('SCHEDULER_MODE','TASK_SHELL','syscall','physical_frame','section .bss'):
             self.assertNotIn(forbidden,core)
 

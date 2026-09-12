@@ -2,13 +2,48 @@
 
 Stand: 12. September 2026
 
-## R8.3ae: gebündelter nativer Prozessbesitz – in Arbeit
+## R8.3ae: gebündelter nativer Prozessbesitz
 
-Saubere Basis `cbe5b956`. Ein gemeinsames Paket verbindet Task-Control,
-Startrechte, generationsgebundenes Wait/Cancel, Elternausfall und Reap.
-Die17 Gategruppen und zulässigen Dateien sind vor Umsetzung eingefroren.
+Auf Basis `cbe5b956`, Verträge `a15e133a`, `5657f10f` und `445d313c`:
+Task-Control132, vollständige generationsgebundene Syscallprofile, dynamische
+Kinder, Wait/Timeout, Cancel und Elternausfall gemeinsam implementiert.
+Zwei Roots, zwei dynamische Slots, acht Startversuche pro Root und vollständige
+IPC-/Heap-/Framefreigabe bilden eine gemeinsame Besitztransaktion.
 [Vertrag](../architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
-Noch keine Implementierungs- oder Laufzeitabnahme dieses Folgeschnitts.
+Kein Dateiparser, Dienstpolicy oder neuer Treiber im Kernel; alte ABI bleibt.
+
+Die gesamte zwölfteilige Gastmatrix besteht in96.099s:
+`build/codex-agent/r83ae-family/guests/attempt-2a60a8a7acb44bd3ac3ef828bdf00b7d`.
+216 native Tasklebensläufe,420 Frame-Retirements einschließlich alter Läufe;
+4/8GiB, Elternausfall, Kind-UD2, CPU32, OOM0/1/2/3/6/9 und Abbruch einer
+Heap-Fortsetzung. Exakte Rechte-/IPC-Fences vor Wiederverwendung, hohe Frames,
+Startargumente, Wait-Abschluss/-Timeout, Generationen, Budget und Nullbereiche.
+Neun Mechanismusobjekte bleiben zwischen allen Userfällen bytegleich.
+Die verschärfte rein lesende Prüfung bestätigt alle gespeicherten Gäste
+(`strict-revalidation-01.log`); keine neuen Kernelbytes als getestet ausgegeben.
+
+Neun Hostgruppen bestehen: Family3/.855s, ABI5/.121s, SDK3/7.409s,
+Profile4/1.202s, Identität2/2.410s, Queue2/.883s, ProcessRun5/1.670s,
+Bootprogramme6/1.536s und Bootstrap56/.035s. Tatsächliche Assemblermechanismen
+laufen O0/O2; negative Orakel ergänzen, ersetzen aber nicht die Gastbelege.
+Drei Builds bestehen, NativeLifecycle mit C-Aufbau4 und417820Byte Kernel.
+Alte zehnteilige Programm-Gastmatrix:37.470s,
+`program-reference/attempt-7964a21158ef4ea68400e5d90a084e43`;
+normaler Bootstrap:.442s; i386-Artefaktvergleich:1.033s, unveränderte Pins.
+Alle Logs liegen unter `build/codex-agent/r83ae-family/`.
+Die Queue hält die abschließende17-Gruppen-Abnahme und den Commitstatus fest.
+
+Frühere Fehler bleiben in ihren Logs erhalten: signierte GDB-Pointer,
+relativer Belegpfad, Host-Snapshot-Aliasing und veraltete Identitätsmuster.
+Die freigegebene Quelltestkorrektur prüft den vorhandenen Frame-Claim-Adapter,
+RESERVED im gemeinsamen Profilkern und die tatsächliche Abschlussgeneration;
+Reserve-/Rollback-/Reap- und O0/O2-Verhalten bleiben verpflichtend.
+Die historischen Queue-Notizen sind keine aktuellen offenen Pfadblocker.
+
+Offen bleiben Ring3-Dateiladen, Dienstüberwachung/-Recovery, Gerätetrennung,
+natives Userland/Desktop und vollständige Plattform-/Systemabnahme.
+i386 bleibt Standard/Fallback; R3.6b bleibt ausdrücklich zurückgestellt,
+R341-H1/H2 bleiben offen. Keine Fertigmeldung für das gesamte64-Bit-OS.
 
 ## R8.3ad: gebündelter nativer Programmstart
 

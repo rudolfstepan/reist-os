@@ -2,6 +2,20 @@
 
 Stand: 12. September 2026
 
+R8.3ae bündelt mit `-NativeLifecycle` Startrechte, dynamische Kinder aus dem
+vorbereiteten Katalog, Wait/Timeout, Cancel und Elternausfall. Der Windows-
+Preset aktiviert NativePrograms und dessen Abhängigkeiten. Make benötigt
+`X86_64_NATIVE_LIFECYCLE=1` zusätzlich zu diesen expliziten Abhängigkeiten;
+`X86_64_FAMILY_CASE=0..5` wählt ausschließlich die User-Fehlerfixture.
+Der private144-Byte-Run-v3 startet zwei Roots und reserviert zwei dynamische
+Slots. TASK_CONTROL132 verwendet64-Byte-v1-Anfragen, Generationhandles,
+maximal acht Startversuche pro Root und32 CPU-Samples je Task. Alte Run-v1/v2
+und Syscallnummern bleiben erhalten. Rechte-/IPC-Fencing erfolgt vor der
+begrenzten Heap-/Framefreigabe, auch bei Elternausfall und laufendem Heapauftrag.
+[Task-Family-Vertrag](NATIVE_TASK_FAMILY_CONTRACT.md). Die Queue dokumentiert
+die17 Abnahmegruppen. Das ist kein Ring3-Dateilader, Dienstsupervisor oder
+Nachweis eines vollständigen64-Bit-Systems; i386 bleibt der Standard.
+
 R8.3ad bündelt unter `de4fdb7b`/`f5357439` mit `-NativePrograms` vier separat
 gelinkte C-Programme, externe ELF64-Aufbereitung, feste Abbildzulassung,
 argc/argv-Start und vollständige Freigabe. NativeRuntime ist Voraussetzung;

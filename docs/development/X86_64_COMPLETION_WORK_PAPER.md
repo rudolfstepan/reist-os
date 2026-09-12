@@ -13,6 +13,15 @@ Keine Einzelpakete je Operation oder Fehlerfall. Umfang und17 Gategruppen:
 [Task-Family-Vertrag](../architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
 Dateipfade, ELF-Aufbereitung und Dienstpolitik bleiben außerhalb Ring0.
 
+Der gemeinsame Mechanismus ist umgesetzt: zwölf neue Gastfälle bestehen,
+216 native Tasklebensläufe und420 vollständige Frame-Retirements. Alte zehn
+Programm-Gastfälle, normaler Bootstrap, i386-Pins und neun Hostgruppen
+bestehen ebenfalls. Die abschließenden17 Gates und der lokale Commit werden
+in der Queue festgehalten; konkrete Belege stehen im [Arbeitsstand](CURRENT_WORK.md).
+Die nächste Inventur muss Ring3-Dienstintegration und wiederverwendbare
+Start-/IPC-/Recoverypolitik verbinden, ohne Dateiparser oder Treiber nach
+Ring0 zu verschieben. Ein weiterer Fehlerfall ist kein eigenes Paket.
+
 ## R8.3ad: ein vollständiger Bootprogramm-Schnitt
 
 Nach der Abnahme `667e9aee` werden externe ELF64-Zulassung, vier eigenständige

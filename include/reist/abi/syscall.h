@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #define REIST_SYSCALL_ABI_VERSION 1U
-#define REIST_SYSCALL_COUNT 132U
+#define REIST_SYSCALL_COUNT 133U
 
 #define REIST_SYSCALL_LIST(X) \
     X(TERMINAL_PUTCHAR, PUTCHAR, 0U) \
@@ -145,7 +145,25 @@
     X(PROCESS_RESTRICT, PROCESS_RESTRICT, 128U) \
     X(FILE_OBJECT_GUARD, FILE_OBJECT_GUARD, 129U) \
     X(STORAGE_JOURNAL_IO, STORAGE_JOURNAL_IO, 130U) \
-    X(TERMINAL_WRITE_COLOR, TERMINAL_WRITE_COLOR, 131U)
+    X(TERMINAL_WRITE_COLOR, TERMINAL_WRITE_COLOR, 131U) \
+    X(TASK_CONTROL, TASK_CONTROL, 132U)
+
+/* Bounded prepared-image family adapter; not path-based spawn or POSIX wait.
+ * Available only to explicitly admitted native root generations. */
+#define REIST_TASK_CONTROL_VERSION 1U
+#define REIST_TASK_CREATE 1U
+#define REIST_TASK_WAIT 2U
+#define REIST_TASK_CANCEL 3U
+#define REIST_TASK_EXITED 0U
+#define REIST_TASK_FAULTED 1U
+#define REIST_TASK_CANCELLED 2U
+#define REIST_TASK_OWNER_LOST 3U
+typedef struct {
+    uint32_t version, struct_size, operation, flags;
+    uint64_t target, image, timeout_ms, syscalls, cpu_samples, reserved;
+} reist_task_control_request_t;
+typedef char reist_task_control_size_check[
+    sizeof(reist_task_control_request_t)==64U ? 1 : -1];
 
 /* ECMA-48 base palette order; 8..15 are the REIST bright extension.
  * A typed, stateless span, not an escape-sequence/ANSI terminal protocol. */
