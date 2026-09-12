@@ -2,6 +2,17 @@
 
 Stand: 12. September 2026
 
+## R8.3s: Wiederaufnahme und freigegebener Referenzprüfer
+
+R3.46 ist als `7bd4bef0` abgenommen. R8.3s wird darauf fortgesetzt.
+Der historische JS-Artefaktprüfer scheitert bereits am unveränderten Ausgang
+wegen der abgenommenen Bootkorrektur (`02-baseline-reference-guard.log`).
+Nutzerfreigabe: eigener i386-Referenzprüfer mit fest gepinnten Artefakten und
+Negativtests; kein automatischer Basiswechsel und keine Änderung historischer
+JS-Nachweise. Elf eingefrorene Gruppen, übrige native Abnahme unverändert.
+Noch keine native Produktionsänderung; Referenzaufnahme nur ohne parallelen
+VM-/Build-Schreiber. Benutzerprozesse werden nicht beendet.
+
 ## R3.46: Anzeige-Checkboxen für Schatten und Verschiebeinhalt
 
 Nutzerpriorität unterbricht R8.3s vor jeder nativen Produktionsänderung.

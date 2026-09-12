@@ -14,6 +14,17 @@ Noch keine native Produktionsänderung. Vorbereitete eigene Hosttests unter
 `01-host-red.log`; nach R3.46-Abschluss wieder aktives Paket. Die Umsetzung
 wird als eigene Transaktion auf sauberem Commitstand neu aufgenommen.
 
+Freigegebene Abnahmeergänzung12.September: Der historische JS-Prüfer meldet
+auf dem abgenommenen `7bd4bef0` bereits `kernel drift: main-vmware`, weil
+R3.46 die Bootvorbereitung absichtlich korrigiert hat. Ein eigener nativer
+Referenzprüfer schützt jetzt den aktuellen i386-Stand und das historische
+Framebufferartefakt getrennt durch fest gepinnte SHA-256-Werte. Aufnahme vor
+nativen Änderungen, kein automatisches Neubaselining; gesperrte, fehlende oder
+veränderte Artefakte sind Fehler. Ein zusätzlicher Regressionstest prüft
+Manipulation, fehlende Dateien und Inventardrift. Historischer JS-Prüfer und
+Nachweise bleiben unverändert. Die übrigen nativen Gates bleiben eingefroren;
+insgesamt elf Prüfgruppen. Eine laufende Benutzer-VM wird nicht beendet.
+
 Frühes EXIT scheitert derzeit an exakt18 gelesenen Zeichen,
 acht Schreibaufrufen und zwei Kindern, auch wenn keinerlei fremder Besitz
 mehr besteht. Zusammenhängender Schnitt: null/ein/zwei vollständig gereapte
@@ -25,7 +36,7 @@ Kernelkorruption, muss aber jeden bisherigen Normaltest weiterhin ablehnen.
 
 Reihenfolge: alte Assembly/echten Gastfehler erhalten; regressionsfähiger
 Hosttest des tatsächlichen Abschlussprüfers; Kernelanbindung und reine
-Userspace-Fixtures; zehn eingefrorene Host-/Build-/Gast-/Doku-/i386-Gruppen.
+Userspace-Fixtures; elf eingefrorene Host-/Build-/Gast-/Doku-/i386-Gruppen.
 Keine neue API oder Testlogik im Kernel. Elternende bei lebendem Kind oder
 Endpoint samt Orphan-/Gruppen-Recovery ist eine separate destruktive Politik
 und bleibt ausdrücklich offen; der bestehende Fail-closed-Pfad wird dafür
