@@ -12,6 +12,7 @@ bereits behobene Fehler enthalten.
 
 Nativer Programmschnitt: [Bootprogramm-Vertrag](architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
 Nativer Prozessbesitz: [Task-Family-Vertrag](architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
+Nativer Start und IPC: [Startup-Handoff-Vertrag](architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

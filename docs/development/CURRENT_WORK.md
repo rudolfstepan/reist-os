@@ -2,6 +2,16 @@
 
 Stand: 12. September 2026
 
+## R8.3af: Startargumente und IPC-Übergabe – eingefroren
+
+Nach sauberem Implementierungscommit `8a3bed10` sind alle17 Gruppen von
+R8.3ae abgenommen. Die nächste gemeinsame Startgrenze umfasst variable,
+unveränderlich übernommene Argumente, SDK, explizite IPC-Verbindungsübergabe
+und die zugehörigen Fehler-/Restart-/OOM-Fälle. Vorhandene Stack-, Delegate-
+und Retirementkerne werden wiederverwendet, keine Dienstpolitik in Ring0.
+[Vertrag](../architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md),13 Gategruppen.
+Noch keine Implementierung oder Abnahme dieses neuen Pakets.
+
 ## R8.3ae: gebündelter nativer Prozessbesitz
 
 Auf Basis `cbe5b956`, Verträge `a15e133a`, `5657f10f` und `445d313c`:

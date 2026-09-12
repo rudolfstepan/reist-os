@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3af-x86_64-startup-handoff"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3af-x86_64-startup-handoff"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native configurable startup, immutable arguments and explicit IPC handoff"
+scope = "On accepted8a3bed10, one prepared-child startup transaction. TASK_CONTROL132 CREATE-v2 retains64 bytes and passes a fixed1040-byte startup-v1 snapshot (0..8 strings,128 bytes each). Reuse the existing AMD64 startup-stack core, frame claim, generation, IPC delegation and full retirement. Add SDK construction, both build frontends and real parent/child IPC handoff, bad input, cancellation, restart and OOM proofs. No new syscall number, Ring0 ELF/path parser, implicit endpoint authority, environment expansion or service-policy claim."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","include/reist/abi/syscall.h","userspace/sdk/include/reist/abi/syscall.h","userspace/sdk/include/reist/x86_64/task.h","arch/x86_64/proc/task_family.inc","arch/x86_64/proc/startup_stack.asm","arch/x86_64/proc/startup_stack.h","arch/x86_64/user/task_startup.c","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","Makefile","scripts/run_qemu_x86_64_task_startup.py","test/test_x86_64_task_startup.py","test/x86_64_task_startup_host.c","test/test_x86_64_task_family.py","test/x86_64_task_family_host.c","test/test_x86_64_argv.py"]
+invariants = ["Preserve request-v1, syscall0..132, prepared catalog format, old run/profile layouts and i386/media. CREATE-v2 only: explicit version,64-byte size, fixed1040-byte argument source copied once and admitted before attempt charging/publication; old reserved field stays zero in v1. 0..8 bounded128-byte strings, canonical unused bytes, immutable child copy, empty envp and existing auxv. No new Ring0 parser.","Four slots, two roots, eight lifetime attempts per root, CPU1..32, existing heap/IPC/frame budgets and C layout4 unchanged. Existing generation-scoped IPC delegation grants authority, never a numeric startup handle. Child handshake uses a finite deadline and sleep/blocking IPC, no busy polling. Fencing and full receipt precede replacement; failed startup validation has no allocation or identity effect.","One fixed4096-byte canonical argument scratch page inside the existing family zero range, always scrubbed on result and finish. Reuse startup_stack assembly, no second string/stack builder. Kernel copies user bytes only after full range validation. Fixed scalar/header admission and bounded string validation are part of startup mechanism, not executable/file parsing.","NativeStartup opts into NativeLifecycle; old normal/family fixtures remain separate, no changed program-case semantics. New guest deadline20s, normal4/8GiB, argument0/1/8 and length0/127, source mutation, malformed/version/pointer failures, IPC handoff and stale generation, crash/cancel/restart, OOM rollback. Host runs actual assembly O0/O2 plus SDK/oracle negatives. No nested agents, visible VMs or push."]
+targeted_tests = ["python test/test_x86_64_task_startup.py -v","python test/test_x86_64_task_family.py -v","python test/test_x86_64_argv.py -v","python test/test_syscall_abi_source.py -v","python test/test_x86_64_sdk.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83af-startup/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeLifecycle -OutputDirectory build/codex-agent/r83af-startup/family",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeStartup -OutputDirectory build/codex-agent/r83af-startup/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_task_startup.py --image build/codex-agent/r83af-startup/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83af-startup/guests","python scripts/run_qemu_x86_64_task_family.py --image build/codex-agent/r83af-startup/family/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83af-startup/family-reference","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83af-startup/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83af-startup/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All13 frozen groups plus direct ABI/ownership/rollback/scope review and clean local commit. Full old family matrix verifies unchanged v1. Only then freeze next cohesive in-priority package; R3.6b remains deferred. No full OS, filesystem loader or supervised-service acceptance claim."
+stop_conditions = ["Unattributed or overlapping user change","Required source outside frozen scope","Failed gate after one focused in-scope repair","Need to widen frozen quotas or old guest bounds","Hardware or release authority required"]
+commit_message = "feat: add immutable native startup and IPC handoff"
+evidence = []
 
 [[packages]]
 id = "R8.3ae-x86_64-task-family"
