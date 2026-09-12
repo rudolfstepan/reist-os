@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ac-x86_64-runtime-clock"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ac-x86_64-runtime-clock"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native full-width runtime clock, deadline and CPU-accounting lifecycle"
+scope = "On f88a439d, bundle one time-authority boundary end to end: explicit NativeRuntime build profile, persistent64-bit PIT clock across independent process runs, scheduler sleep/IPC deadlines, absolute CPU accounting, finite progress lease, retirement and real long-horizon guests. Existing identity/queue/budget/heap/IPC mechanisms reused. Do not mix general executable admission, Ring3 supervisor policy or device authority into this transaction. NativeRuntime presets NativeProcesses/IPC/RAM/Heap and excludes NativeImages/BulkIPC; original profiles and signed media remain unchanged. No new public ABI, resource capacity or automatic CPU/restart replenishment."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "docs/architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md", "docs/README.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "arch/x86_64/cpu/timer_interrupt.asm", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/proc/process_run.inc", "arch/x86_64/proc/process_ipc.inc", "arch/x86_64/ipc/native_ipc.c", "arch/x86_64/user/ipc_demo.inc", "test/test_x86_64_runtime_clock.py", "test/x86_64_runtime_clock_host.c", "scripts/run_qemu_x86_64_runtime_clock.py"]
+invariants = ["SysV AMD64 private transport and existing REIST millisecond ABI; monotonic-clock terminology from POSIX, not POSIX syscall compatibility or wall-clock accuracy.100Hz PIT delivered ticks, each10ms, full64-bit tick/EOI/scheduler/IPC/CPU paths. Native clock persists across process runs, no user clock setting. Admitted ticks below2^60 leave checked headroom for millisecond conversion; reject deadline horizon/overflow before queue effects. Existing100ms sleep and uint32 IPC timeout bounds,32 total CPU samples per generation unchanged. Yield, sleep and IPC never reset CPU usage.", "New optional timer mode uses same context validation/EOI-before-tail and finite3e9-cycle progress-gap lease; validate strict delivered/EOI correspondence, monotonic TSC, tick horizon and overflow before publishing. No claim that TSC cycles mean seconds or indefinite missing-IRQ detection. Existing bootstrap modes/256tick cap and original10s guest proofs unchanged. IF0 serialization, one wait node, bounded four-slot queues, heap continuation/reap and exact zero/balance preserved. Kernel corruption remains fatal, normal task CPU/fault retirement remains contained.", "Actual host production arithmetic and IPC O0/O2 exercise near32-bit wrap,2^60 horizon, backward time, duplicate/missing EOI, TSC overflow and no-effect rejection. Hidden bounded QEMU long run sleeps at least300 ticks in each of two generations, checks monotonic continuation, IPC/heap and complete retirement; debugger-seeded clock crosses2^32 without production clock-setting hooks. Normal and CPU-exhaustion cases keep identical kernel objects and unrelated peer progress. New runtime guest lease20s includes two real long runs; never weaken or edit old runners. Default native heap ELF must remain SHA256 b135c6456d48b7eb0468cf220543135588a8d7bb9dbc976fcffce7d88231d5e8. No drivers, heap capacity/public ABI/media/profile relabelling, agents, visible VMs or push. R3.6b deferred and R341-H1/H2 open."]
+targeted_tests = ["python test/test_x86_64_runtime_clock.py -v", "python test/test_x86_64_process_run.py -v", "python test/test_x86_64_native_ipc.py -v", "python test/test_x86_64_native_heap.py -v", "python test/test_x86_64_boot.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ac-clock/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -NativeProcesses -NativeIPC -NativeRAM -NativeHeap -OutputDirectory build/codex-agent/r83ac-clock/reference", ".\\scripts\\build-x86_64-bootstrap.ps1 -NativeRuntime -OutputDirectory build/codex-agent/r83ac-clock/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_runtime_clock.py --image build/codex-agent/r83ac-clock/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ac-clock/guests", "python scripts/run_qemu_x86_64_native_heap.py --image build/codex-agent/r83ac-clock/reference/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ac-clock/heap-reference", "python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All12 frozen groups, direct scope/time-width/cleanup review, original default native SHA256 match, queue transition and clean local commit. Continue next cohesive native system package; long-horizon execution is not general process startup, resident supervisor or a completed64bitOS."
+stop_conditions = ["Unattributed or overlapping user changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change public ABI, CPU/restart quotas, image layout or old acceptance limits", "Hardware or release authority required"]
+commit_message = "feat: add full-width native runtime clocks and deadlines"
+evidence = []
 
 [[packages]]
 id = "R8.3ab-x86_64-signed-boot-media"

@@ -2,6 +2,16 @@
 
 Stand: 12. September 2026
 
+## R8.3ac: voller Laufzeit-/Fristenpfad
+
+Nach `f88a439d` und sauberem Arbeitsbaum ist der gemeinsame Zeitschnitt mit12
+Gates eingefroren: expliziter NativeRuntime-Build, fortlaufende64-Bit-PIT-Uhr,
+Scheduler-/IPC-Fristen, CPU-Abrechnung und Retirement über die256-Tick-Grenze.
+[Laufzeitvertrag](../architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md).
+Kein Budget-Reset, keine größere CPU-Quote und keine vorgezogenen Lade- oder
+Supervisorrechte. Alte Profile und signierte Medien bleiben Referenzen.
+Implementierung und Abnahme stehen noch aus.
+
 ## R8.3ab: signierte native BIOS-Medien gemeinsam
 
 Nach `aac73e4f` und sauberem Arbeitsbaum sind HDD/FAT32 und Rettungsfloppy/

@@ -191,6 +191,7 @@ Arbeitspläne und historische Texte behalten ihre jeweilige Rolle und Datierung.
 - [architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md](architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md)
 - [architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md](architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md)
 - [architecture/NATIVE_BOOT_MEDIA_CONTRACT.md](architecture/NATIVE_BOOT_MEDIA_CONTRACT.md)
+- [architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md](architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md)
 - [architecture/MOUSE_SETTINGS_CONTRACT.md](architecture/MOUSE_SETTINGS_CONTRACT.md)
 - [architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md](architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md)
 - [architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md](architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md)
