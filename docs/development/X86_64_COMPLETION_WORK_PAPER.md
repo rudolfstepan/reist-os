@@ -4,6 +4,15 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ae: Start, Wait, Cancel und Elternausfall zusammen
+
+Nach `cbe5b956` wird die gemeinsame Besitzgrenze als ein Paket eingefroren:
+versioniertes Task-Control, vollständige Syscallautorität, dynamische Starts,
+endliches Warten, Abbruch, Elternausfall und vollständige Ressourcenfreigabe.
+Keine Einzelpakete je Operation oder Fehlerfall. Umfang und17 Gategruppen:
+[Task-Family-Vertrag](../architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
+Dateipfade, ELF-Aufbereitung und Dienstpolitik bleiben außerhalb Ring0.
+
 ## R8.3ad: ein vollständiger Bootprogramm-Schnitt
 
 Nach der Abnahme `667e9aee` werden externe ELF64-Zulassung, vier eigenständige

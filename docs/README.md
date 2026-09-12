@@ -11,6 +11,7 @@ bereits behobene Fehler enthalten.
 ## Globale Struktur und Zuständigkeit
 
 Nativer Programmschnitt: [Bootprogramm-Vertrag](architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
+Nativer Prozessbesitz: [Task-Family-Vertrag](architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

@@ -2,6 +2,14 @@
 
 Stand: 12. September 2026
 
+## R8.3ae: gebündelter nativer Prozessbesitz – in Arbeit
+
+Saubere Basis `cbe5b956`. Ein gemeinsames Paket verbindet Task-Control,
+Startrechte, generationsgebundenes Wait/Cancel, Elternausfall und Reap.
+Die17 Gategruppen und zulässigen Dateien sind vor Umsetzung eingefroren.
+[Vertrag](../architecture/NATIVE_TASK_FAMILY_CONTRACT.md).
+Noch keine Implementierungs- oder Laufzeitabnahme dieses Folgeschnitts.
+
 ## R8.3ad: gebündelter nativer Programmstart
 
 Auf `667e9aee`, Verträge `de4fdb7b` und `f5357439`: ELF64-Aufbereitung außerhalb
