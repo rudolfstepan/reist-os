@@ -13,6 +13,35 @@ process_demo:
     FP_BEGIN edi
     sub rsp, 256
     mov r15, rsp
+%ifdef REIST_NATIVE_RUNTIME
+    ; User-only finite long-horizon fixture, no kernel test policy or clock set.
+    ; Retain timestamp in a callee-saved register across all waits.
+    xor edi,edi
+    xor esi,esi
+    xor edx,edx
+    mov eax,42
+    call ipc_demo_call
+    mov r13,rax
+    mov ebx,30
+.runtime_sleep:
+    mov edi,100
+    xor esi,esi
+    xor edx,edx
+    mov eax,41
+    call ipc_demo_call
+    test rax,rax
+    jnz ipc_demo_bad
+    dec ebx
+    jnz .runtime_sleep
+    xor edi,edi
+    mov eax,42
+    call ipc_demo_call
+    cmp rax,r13
+    jb ipc_demo_bad
+    sub rax,r13
+    cmp rax,3000
+    jb ipc_demo_bad
+%endif
 %if X86_64_NATIVE_HEAP
     call heap_demo
     lea r15,[rax+4000]

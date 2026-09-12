@@ -21,6 +21,7 @@ param(
     [switch]$NativeIPC,
     [switch]$NativeRAM,
     [switch]$NativeHeap,
+    [switch]$NativeRuntime,
     [switch]$NativeImages,
     [switch]$NativeBulkIPC,
     [ValidateRange(0, 3)] [int]$NativeIPCCase = 0,
@@ -30,6 +31,13 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeRuntime) {
+    if ($NativeImages -or $NativeBulkIPC) { throw 'NativeRuntime excludes NativeImages and NativeBulkIPC.' }
+    $NativeProcesses = [switch]$true
+    $NativeIPC = [switch]$true
+    $NativeRAM = [switch]$true
+    $NativeHeap = [switch]$true
+}
 if ($NativeImages) {
     $NativeProcesses = [switch]$true
     $NativeIPC = [switch]$true
@@ -282,6 +290,7 @@ try {
         "X86_64_NATIVE_IPC=$([int]$NativeIPC.IsPresent)" `
         "X86_64_NATIVE_RAM=$([int]$NativeRAM.IsPresent)" `
         "X86_64_NATIVE_HEAP=$([int]$NativeHeap.IsPresent)" `
+        "X86_64_NATIVE_RUNTIME=$([int]$NativeRuntime.IsPresent)" `
         "X86_64_NATIVE_BULK_IPC=$([int]$NativeBulkIPC.IsPresent)" `
         "X86_64_NATIVE_IPC_CASE=$NativeIPCCase" `
         "X86_64_PROCESS_CASE=$ProcessCase" `

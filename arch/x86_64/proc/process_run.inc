@@ -114,7 +114,12 @@ process_run_validate64:
     call scheduler_queue_apply64
     cmp eax, 1
     jne .bad
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax,1<<60
+    cmp [rel scheduler_last_tick],rax
+%else
     cmp dword [rel scheduler_last_tick], SHELL_CLOCK_LIMIT
+%endif
     jae .bad
 %ifdef REIST_NATIVE_HEAP_BINDING
     mov eax,[rel process_heap_pending_mask]
@@ -227,10 +232,19 @@ process_run_validate64:
     jne .deadline_next
     cmp [rdx+12], bl
     jne .bad
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax, [rel scheduler_last_tick]
+%else
     mov eax, [rel scheduler_last_tick]
+%endif
     cmp [rdx], rax
     jbe .bad
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax,1<<60
+    cmp [rdx],rax
+%else
     cmp qword [rdx], SHELL_CLOCK_LIMIT
+%endif
     jae .bad
     inc r8d
 .deadline_next:
@@ -254,7 +268,11 @@ process_run_validate64:
     mov rax, [r13+16]
     cmp [r15+8], rax
     jne .bad
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax, [rel scheduler_last_tick]
+%else
     mov eax, [rel scheduler_last_tick]
+%endif
     cmp [r15+24], rax
     ja .bad
     jmp .next
@@ -474,6 +492,12 @@ x86_64_process_run64:
     mov dword [rel scheduler_identity_pool+16], TASK_SLOT_CAPACITY
     mov eax, [rel process_run_generation]
     mov [rel scheduler_identity_pool+20], eax
+%ifdef REIST_NATIVE_RUNTIME
+    call x86_64_timer_runtime_peek64
+    cmp rax,-1
+    je scheduler_fail
+    mov [rel scheduler_last_tick],rax
+%endif
     call physical_free_frame_count64
     mov [rel scheduler_initial_free], eax
     mov edi, ELF_IMAGE_PROBE
@@ -565,7 +589,11 @@ x86_64_process_run64:
     test eax, eax
     jz scheduler_fail
     mov byte [rel scheduler_active], 1
+%ifdef REIST_NATIVE_RUNTIME
+    call x86_64_timer_runtime_arm64
+%else
     call x86_64_timer_shell_arm64
+%endif
     test eax, eax
     jz scheduler_fail
     jmp process_run_dispatch64
@@ -706,7 +734,11 @@ process_run_syscall64:
     je .pid
     cmp eax, REIST_SYS_MONOTONIC_MS
     jne scheduler_fail
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax, [rel scheduler_last_tick]
+%else
     mov eax, [rel scheduler_last_tick]
+%endif
     imul rax, 10
     jmp process_run_resume64
 .pid:
@@ -724,8 +756,15 @@ process_run_syscall64:
     xor edx, edx
     mov ecx, 10
     div ecx
+%ifdef REIST_NATIVE_RUNTIME
+    add rax, [rel scheduler_last_tick]
+    jc .invalid
+    mov rdx,1<<60
+    cmp rax,rdx
+%else
     add eax, [rel scheduler_last_tick]
     cmp eax, SHELL_CLOCK_LIMIT
+%endif
     jae .invalid
     mov r15, rax
     call scheduler_save_syscall_context64
@@ -921,11 +960,21 @@ process_run_irq_validate64:
 
 ; Legacy timer calls this before EOI; only validate the next tick here.
 process_run_tick_admit64:
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax, [rel scheduler_last_tick]
+    add rax,1
+    jc .bad
+    cmp rax,rsi
+    jne .bad
+    mov rax,1<<60
+    cmp rsi,rax
+%else
     mov eax, [rel scheduler_last_tick]
     inc eax
     cmp eax, esi
     jne .bad
     cmp eax, SHELL_CLOCK_LIMIT
+%endif
     jae .bad
     mov eax, 1
     ret
@@ -965,7 +1014,11 @@ process_run_irq_tail64:
     test eax, eax
     jz scheduler_fail
     push rdi
+%ifdef REIST_NATIVE_RUNTIME
+    mov rdx, rsi
+%else
     mov edx, esi
+%endif
     mov rsi, [r12+TASK_GENERATION]
     mov edi, [rel scheduler_current_slot]
     mov eax, 2
@@ -992,11 +1045,19 @@ process_run_irq_tail64:
     ret
 
 process_run_wake64:
+%ifdef REIST_NATIVE_RUNTIME
+    mov [rel scheduler_last_tick], rsi
+%else
     mov [rel scheduler_last_tick], esi
+%endif
 %ifdef REIST_NATIVE_IPC_BINDING
     cmp byte [rel scheduler_deadline_count], 0
     je .ipc_not_due
+%ifdef REIST_NATIVE_RUNTIME
+    mov rax, rsi
+%else
     mov eax, esi
+%endif
     cmp [rel scheduler_deadline_entries], rax
     ja .ipc_not_due
     push rsi
@@ -1007,7 +1068,11 @@ process_run_wake64:
     pop rsi
 .ipc_not_due:
 %endif
+%ifdef REIST_NATIVE_RUNTIME
+    mov rbp, rsi
+%else
     mov ebp, esi
+%endif
     xor ebx, ebx
 .next:
     cmp byte [rel scheduler_deadline_count], 0

@@ -2,6 +2,19 @@
 
 Stand: 12. September 2026
 
+R8.3ac führt mit Vertrag `42a41aba` und freigegebener Zusammenführung
+`8483d0c5` ein separates `-NativeRuntime` ein: NativeProcesses/IPC/RAM/Heap,
+volle64-Bit-PIT-/EOI-/Scheduler-/IPC-/CPU-Zeitwerte und über Runzyklen
+fortgeführte Tickzählung. NativeImages/BulkIPC sind ausgeschlossen. Make
+benötigt `X86_64_NATIVE_RUNTIME=1` mit denselben vier Abhängigkeiten.
+Ticks unter2^60, begrenzte Operationsfristen und32 CPU-Samples pro Generation
+bleiben verbindlich; keine automatische Budgeterneuerung. Die vorhandenen
+Bootstrapprüfungen leiten ihre Datenseite aus acht bereits zugelassenen
+ELF-Seitenrechten ab, ohne zusätzlichen Kernelparser. Alte Profile und der
+SHA256 des bisherigen Heapkernels bleiben unverändert.
+[Laufzeit-, Seitenbelegungs- und Abnahmevertrag](NATIVE_RUNTIME_CLOCK_CONTRACT.md).
+Dies ist keine Freigabe für allgemeines Dateiladen oder residente Dienste.
+
 R8.3ab ergänzt auf Vertrag `3a279429` echte signierte BIOS-Bootmedien.
 `scripts/build-x86_64-bootstrap.ps1 -NativeImages` beziehungsweise
 `make x86_64-native-image` bündelt NativeProcesses/IPC/RAM/Heap und erzeugt

@@ -51,7 +51,11 @@ process_ipc_service64:
     mov r13, rsp
     call process_ipc_zero64
     mov r8, r13
+%ifdef REIST_NATIVE_RUNTIME
+    mov rcx, [rel scheduler_last_tick]
+%else
     mov ecx, [rel scheduler_last_tick]
+%endif
     call process_ipc_call64
     call process_ipc_ready64
     call process_ipc_zero64
@@ -129,7 +133,11 @@ process_ipc_take64:
     mov edi, 3
     mov esi, [rel scheduler_current_slot]
     mov rdx, [r12+TASK_GENERATION]
+%ifdef REIST_NATIVE_RUNTIME
+    mov rcx, [rel scheduler_last_tick]
+%else
     mov ecx, [rel scheduler_last_tick]
+%endif
     mov r8, r13
     call process_ipc_call64
     mov rax, [r13+40]
@@ -262,7 +270,11 @@ process_ipc_syscall64:
     mov edi, 1
     mov esi, [rel scheduler_current_slot]
     mov rdx, [r12+TASK_GENERATION]
+%ifdef REIST_NATIVE_RUNTIME
+    mov rcx, [rel scheduler_last_tick]
+%else
     mov ecx, [rel scheduler_last_tick]
+%endif
     mov r8, r13
     call process_ipc_call64
     cmp qword [r13+40], -4095

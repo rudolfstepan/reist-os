@@ -2,7 +2,7 @@
 
 Stand: 12. September 2026
 
-## R8.3ac: voller Laufzeit-/Fristenpfad
+## R8.3ac: voller Laufzeit-/Fristenpfad samt ELF-Seitenbelegung
 
 Nach `f88a439d` und sauberem Arbeitsbaum ist der gemeinsame Zeitschnitt mit12
 Gates eingefroren: expliziter NativeRuntime-Build, fortlaufende64-Bit-PIT-Uhr,
@@ -28,6 +28,31 @@ diese Erweiterung freigegeben: gleicher Kandidat und zwölf Gates, zusätzliche
 Ableitung der Fixture-Datenseite aus bereits geprüften ELF-Seitenrechten.
 Kein neues Parser-/Prozessrecht und keine Kapazitäts- oder Friständerung.
 Die Umsetzung wird unter der ergänzten Vertragsgrenze fortgesetzt.
+
+Umgesetzt: gemeinsamer höchstens achtstufiger Selektor für bereits zugelassene
+ELF-Seitenrechte; alle Fixture-Daten-/Magic-/Faultpointer- und Paarvergleiche
+verwenden die abgeleitete RW-Seite. Host O0/O2 prüft168 zulässige Layouts,
+338688 ungültige Rechtekombinationen sowie echte Aliasablehnung an allen sieben
+verschobenen Datenseitenpositionen. Kein neuer Parser und keine größere
+User-, Heap- oder C-Payload-Kapazität. Die direkte Diff-Prüfung hat dabei auch
+den zuvor noch festen zweiten Operand eines Isolationsvergleichs erfasst.
+
+NativeRuntime zählt über Runzyklen weiter. Tatsächliche Hostarithmetik prüft
+2^32-Übergang,2^60-Horizont, TSC-/EOI-Fehler und unveränderte CPU-Gesamtbudgets;
+IPC prüft Ablauf, Rücklaufablehnung und horizontnahe Ablehnung vor Queueeffekten.
+Der neue Gast beobachtet zusätzlich die gespeicherten64-Bit-CPU-Samplezeiten,
+die zu den tatsächlichen Reapreceipts gehören. Der Zeitnachweis ist vom
+unveränderten Frame-/Heap-/IPC-Orakel getrennt; nur dessen bereits unabhängig
+geprüftes Tickfeld wird für die alte Profilansicht projiziert. Rohlogs bleiben
+unverändert. Normallauf, echter2^32-Übergang und CPU-Ende bestehen mit zwei
+Runs je Gast. Alle zwölf Gategruppen bestehen; konkrete Belege in der Queue.
+Endgültiger Langzeitgast36,339s, Versuch `b296b12aca2d44f0bf6f07eeafb25053`:
+24 native Tasklebensläufe,374..404 tatsächliche Ticks je Run, volle CPU-
+Samplezeiten über2^32 und unveränderte32-Sample-Abbruchquote.
+Alte Heapreferenz vier4/8GiB-Fälle:27,079s, Versuch
+`d8b441262a784750a37cd883e29171de`; der gebaute Default-Heapkernel behält SHA256
+`b135c6456d48b7eb0468cf220543135588a8d7bb9dbc976fcffce7d88231d5e8`.
+Allgemeiner Dateistart, Supervisorrechte und normale native Dienste bleiben offen.
 
 ## R8.3ab: signierte native BIOS-Medien gemeinsam
 

@@ -369,6 +369,10 @@ extern x86_64_timer_sleep_arm64
 extern x86_64_timer_sleep_disarm64
 extern x86_64_timer_sleep_now64
 extern x86_64_timer_shell_arm64
+%ifdef REIST_NATIVE_RUNTIME
+extern x86_64_timer_runtime_arm64
+extern x86_64_timer_runtime_peek64
+%endif
 extern x86_64_timer_shell_now64
 
 x86_64_process_scheduler_selftest64:
@@ -1583,7 +1587,12 @@ scheduler_verify_runqueue_isolation64:
     je .fail
     cmp qword [r12 + TASK_STACK_FRAME], 0
     je .fail
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+    test rax,rax
+%else
     cmp qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)], 0
+%endif
     je .fail
     mov ebp, ebx
     inc ebp
@@ -1600,8 +1609,22 @@ scheduler_verify_runqueue_isolation64:
     mov rax, qword [r12 + TASK_STACK_FRAME]
     cmp rax, qword [r13 + TASK_STACK_FRAME]
     je .fail
+%ifdef REIST_NATIVE_RUNTIME
+    push rcx
+    call scheduler_probe_data_index64
+    cmp rax,USER_PAGE_COUNT
+    jb .runtime_data_valid2
+    pop rcx
+    jmp .fail
+.runtime_data_valid2:
+    mov ecx,eax
+    mov rax,[r12+TASK_PRIVATE_FRAMES+rcx*8]
+    cmp rax,[r13+TASK_PRIVATE_FRAMES+rcx*8]
+    pop rcx
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
     cmp rax, qword [r13 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     je .fail
     inc ebp
     jmp .inner
@@ -5627,7 +5650,11 @@ x86_64_scheduler_user_exception64:
     jne .invalid
     cmp qword [r12 + TASK_YIELDS], 1
     jne .invalid
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .invalid
     mov rdx, DIRECT_MAP_BASE
@@ -6092,7 +6119,11 @@ scheduler_runqueue_user_exception64:
     jz .invalid
     test rax, RFLAGS_SYSCALL_FORBIDDEN
     jnz .invalid
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .invalid
     mov rdx, DIRECT_MAP_BASE
@@ -6283,7 +6314,11 @@ scheduler_verify_quantum_progress64:
     jae .fail
     cmp qword [r12 + TASK_RSP], USER_STACK_BASE
     jb .fail
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
     mov rdx, DIRECT_MAP_BASE
@@ -6298,7 +6333,11 @@ scheduler_verify_quantum_progress64:
     jae .fail
     cmp qword [r12 + TASK_RSP], USER_STACK_BASE
     jb .fail
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
     mov rdx, DIRECT_MAP_BASE
@@ -6858,6 +6897,74 @@ scheduler_build_shell_child_stack_validated64:
     xor eax, eax
     ret
 
+%ifdef REIST_NATIVE_RUNTIME
+; Already-admitted page metadata, not an ELF parser. Preserve all registers
+; except RAX. At most eight queries, no state publication or page allocation.
+scheduler_probe_data_index64:
+    push rcx
+    push rdx
+    push r8
+    push r9
+    xor ecx,ecx
+    xor edx,edx ;0 before RW,1 in RW,2 after RW
+    mov r8,-1
+    xor r9d,r9d ;seen RX
+.page:
+    call x86_64_elf64_page_flags64
+    cmp eax,6
+    je .rw
+    cmp eax,5
+    je .rx
+    test eax,eax
+    jz .gap
+    cmp eax,4
+    jne .bad
+    jmp .gap
+.rx:
+    mov r9d,1
+.gap:
+    cmp edx,1
+    jne .next
+    mov edx,2
+    jmp .next
+.rw:
+    cmp edx,2
+    je .bad
+    cmp edx,1
+    je .next
+    mov r8,rcx
+    mov edx,1
+.next:
+    inc ecx
+    cmp ecx,USER_PAGE_COUNT
+    jb .page
+    test r9d,r9d
+    jz .bad
+    mov rax,r8
+    jmp .return
+.bad:
+    mov rax,-1
+.return:
+    pop r9
+    pop r8
+    pop rdx
+    pop rcx
+    ret
+
+scheduler_probe_data_frame64:
+    push rcx
+    call scheduler_probe_data_index64
+    cmp rax,USER_PAGE_COUNT
+    jae .bad
+    mov ecx,eax
+    mov rax,[r12+TASK_PRIVATE_FRAMES+rcx*8]
+    pop rcx
+    ret
+.bad:
+    xor eax,eax
+    pop rcx
+    ret
+%endif
 scheduler_verify_isolation64:
     lea r12, [rel scheduler_tasks]
     lea r13, [rel scheduler_tasks + TASK_RECORD_SIZE]
@@ -6869,12 +6976,37 @@ scheduler_verify_isolation64:
     jz .fail
     cmp rax, qword [r13 + TASK_STACK_FRAME]
     je .fail
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
+%ifdef REIST_NATIVE_RUNTIME
+    push rcx
+    call scheduler_probe_data_index64
+    cmp rax,USER_PAGE_COUNT
+    jb .runtime_data_valid
+    pop rcx
+    jmp .fail
+.runtime_data_valid:
+    mov ecx,eax
+    mov rax,[r12+TASK_PRIVATE_FRAMES+rcx*8]
+    cmp rax,[r13+TASK_PRIVATE_FRAMES+rcx*8]
+    pop rcx
+%else
     cmp rax, qword [r13 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     je .fail
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_index64
+    cmp rax,USER_PAGE_COUNT
+    jae .fail
+    mov ecx,eax
+%else
     mov ecx, PROBE_DATA_PAGE_INDEX
+%endif
     call x86_64_elf64_page_flags64
     cmp eax, PF_R | PF_W
     jne .fail
@@ -6909,7 +7041,11 @@ scheduler_verify_runqueue_magic64:
     shl rax, 8
     lea r12, [rel scheduler_tasks]
     add r12, rax
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
     mov rdx, DIRECT_MAP_BASE
@@ -6931,7 +7067,11 @@ scheduler_verify_sleep_magic64:
     shl rax, 8
     lea r12, [rel scheduler_tasks]
     add r12, rax
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
     mov rdx, DIRECT_MAP_BASE
@@ -6953,7 +7093,11 @@ scheduler_verify_dynamic_magic64:
     shl rax, 8
     lea r12, [rel scheduler_tasks]
     add r12, rax
+%ifdef REIST_NATIVE_RUNTIME
+    call scheduler_probe_data_frame64
+%else
     mov rax, qword [r12 + TASK_PRIVATE_FRAMES + (PROBE_DATA_PAGE_INDEX * 8)]
+%endif
     test rax, rax
     jz .fail
     mov rdx, DIRECT_MAP_BASE
@@ -7912,7 +8056,11 @@ alignb 16
 scheduler_deadline_entries:
     resb TASK_SLOT_CAPACITY * 16
 scheduler_last_tick:
+%ifdef REIST_NATIVE_RUNTIME
+    resq 1
+%else
     resd 1
+%endif
 scheduler_final_tick:
     resd 1
 scheduler_idle_wakes:

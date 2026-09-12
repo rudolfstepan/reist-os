@@ -4,6 +4,27 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ac: Laufzeit und vorhandene ELF-Seitenbelegung zusammenführen
+
+Auf `42a41aba`, erweitert durch die erneute Nutzerfreigabe und Vertrag
+`8483d0c5`: voller Zeitpfad statt256-Tick-Laufgrenze im expliziten
+NativeRuntime-Profil. Timer, Schlafen, IPC-Timeout, CPU-Samples und Retirement
+verwenden64-Bit-Ticks; der Zähler bleibt über unabhängige Runs erhalten.
+Die gewachsene Ring3-Fixture nutzt eine zweite RX-Seite. Die bisherigen
+Isolations-/Magic-/Faultpointerprüfungen beziehen ihre Datenseite daher aus
+den bereits validierten ELF-Seitenrechten statt aus der festen VA0x401000.
+Ein neuer Parser in Ring0 oder zusätzliche Startrechte sind nicht enthalten.
+
+Die gemeinsame Abnahme umfasst normale Langzeitläufe, echte IRQs über2^32,
+CPU-Ende bei weiterlaufenden Peers, Heap-/IPC- und vollständige Reapbelege.
+Alte32-Sample-Quoten, Defaultprofile, private Aufbau4 und signierte Medien
+bleiben unverändert; keine implizite Budget- oder Restart-Erneuerung.
+Ergebnisse und historische Fehlversuche: [CURRENT_WORK](CURRENT_WORK.md),
+[verbindlicher Laufzeitvertrag](../architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md).
+Allgemeiner Programmstart, Ring3-Supervisor und native Dienste bleiben die
+nächsten miteinander abzustimmenden Besitz-/Rechtegrenzen, nicht erledigte
+Eigenschaften dieses Mechanismusnachweises.
+
 ## R8.3ab: native Medien und BIOS-Vertrauenskette gemeinsam
 
 Nach `aac73e4f` ist der nächste große zusammengehörige Bootpfad eingefroren:

@@ -190,6 +190,10 @@ x86_64_timer_interrupt_selftest64:
 x86_64_timer_interrupt64:
     cmp byte [rel timer_active], 1
     jne .invalid
+%ifdef REIST_NATIVE_RUNTIME
+    cmp byte [rel timer_mode], 6
+    je .runtime
+%endif
     cmp byte [rel timer_mode], TIMER_MODE_PREEMPT
     je .preempt
     cmp byte [rel timer_mode], TIMER_MODE_QUANTUM
@@ -361,6 +365,49 @@ x86_64_timer_interrupt64:
     ; IRQ body is complete. Switching/reap/diagnosis belong to the tail.
     mov esi, [rel timer_ticks]
     jmp x86_64_scheduler_shell_timer_tail64
+%ifdef REIST_NATIVE_RUNTIME
+.runtime:
+    cmp dword [rel timer_generation], 6
+    jne .shell_invalid
+    cmp qword [rdi + EXCEPTION_FRAME_VECTOR], TIMER_VECTOR
+    jne .shell_invalid
+    cmp qword [rdi + EXCEPTION_FRAME_ERROR], 0
+    jne .shell_invalid
+    rdtsc
+    shl rdx,32
+    or rax,rdx
+    push rdi
+    mov rdi,rax
+    mov rsi,[rel timer_deadline]
+    mov rdx,[rel timer_runtime_ticks]
+    mov rcx,[rel timer_runtime_eois]
+    call timer_runtime_progress64
+    pop rdi
+    test rax,rax
+    jz .shell_invalid
+    push rax
+    call x86_64_scheduler_shell_timer_validate64
+    test eax,eax
+    jz .shell_clock_invalid
+    push rax
+    push rdi
+    mov rsi,[rel timer_runtime_ticks]
+    inc rsi
+    call x86_64_scheduler_deadline_tick64
+    pop rdi
+    pop rdx
+    pop rcx
+    test eax,eax
+    jz .shell_invalid
+    ; No timer publication until both context and next-tick admission pass.
+    mov [rel timer_deadline],rcx
+    inc qword [rel timer_runtime_ticks]
+    inc qword [rel timer_runtime_eois]
+    mov al,PIC_EOI
+    out PIC1_COMMAND,al
+    mov rsi,[rel timer_runtime_ticks]
+    jmp x86_64_scheduler_shell_timer_tail64
+%endif
 .shell_clock_invalid:
     pop rax
     jmp .shell_invalid
@@ -373,6 +420,10 @@ x86_64_timer_interrupt64:
     xor eax, eax
     ret
 .invalid:
+%ifdef REIST_NATIVE_RUNTIME
+    cmp byte [rel timer_mode], 6
+    je .shell_invalid
+%endif
     cmp byte [rel timer_mode], TIMER_MODE_SHELL
     je .shell_invalid
     cmp byte [rel timer_mode], TIMER_MODE_PREEMPT
@@ -595,7 +646,83 @@ timer_shell_progress64:
     xor eax, eax
     ret
 
+%ifdef REIST_NATIVE_RUNTIME
+global x86_64_timer_runtime_arm64
+global x86_64_timer_runtime_peek64
+x86_64_timer_runtime_arm64:
+    call x86_64_timer_runtime_peek64
+    cmp rax,-1
+    je .fail
+    call x86_64_timer_preemption_arm64
+    test rax,rax
+    jz .fail
+    mov dword [rel timer_generation],6
+    mov byte [rel timer_mode],6
+    mov eax,1
+    ret
+.fail:
+    xor eax,eax
+    ret
+
+; Serialized caller only; no reset, no public clock-setting operation.
+x86_64_timer_runtime_peek64:
+    cmp byte [rel timer_active],0
+    jne .fail
+    mov rax,[rel timer_runtime_ticks]
+    cmp rax,[rel timer_runtime_eois]
+    jne .fail
+    mov rdx,1<<60
+    cmp rax,rdx
+    jae .fail
+    ret
+.fail:
+    mov rax,-1
+    ret
+
+; Same pure SysV progress lease as bootstrap, with full-width runtime horizon.
+timer_runtime_progress64:
+    mov rax,(1<<60)-1
+    cmp rdx,rax
+    jae .fail
+    cmp rdx,rcx
+    jne .fail
+    mov eax,TSC_DEADLINE_CYCLES
+    cmp rsi,rax
+    jb .fail
+    cmp rdi,rsi
+    ja .fail
+    mov r8,rsi
+    sub r8,rax
+    cmp rdi,r8
+    jb .fail
+    add rax,rdi
+    jc .fail
+    ret
+.fail:
+    xor eax,eax
+    ret
+
+timer_runtime_now64:
+    cmp byte [rel timer_active],1
+    jne .fail
+    cmp dword [rel timer_generation],6
+    jne .fail
+    mov rax,[rel timer_runtime_ticks]
+    cmp rax,[rel timer_runtime_eois]
+    jne .fail
+    mov rdx,1<<60
+    cmp rax,rdx
+    jae .fail
+    ret
+.fail:
+    mov rax,-1
+    ret
+%endif
 x86_64_timer_shell_now64:
+%ifdef REIST_NATIVE_RUNTIME
+    cmp byte [rel timer_mode],6
+    je timer_runtime_now64
+%endif
     cmp byte [rel timer_active], 1
     jne .fail
     cmp byte [rel timer_mode], TIMER_MODE_SHELL
@@ -627,6 +754,10 @@ x86_64_timer_sleep_now64:
 ; timer mode, but restores every partially or fully armed preemption state.
 x86_64_timer_preemption_cancel64:
     cli
+%ifdef REIST_NATIVE_RUNTIME
+    cmp byte [rel timer_mode],6
+    je .cancel
+%endif
     cmp byte [rel timer_mode], TIMER_MODE_SHELL
     je .cancel
     cmp byte [rel timer_mode], TIMER_MODE_PREEMPT
@@ -674,3 +805,8 @@ timer_masks_saved: resb 1
 timer_saved_master_mask: resb 1
 timer_saved_slave_mask: resb 1
 timer_failure_stage: resb 1
+%ifdef REIST_NATIVE_RUNTIME
+alignb 8
+timer_runtime_ticks: resq 1
+timer_runtime_eois: resq 1
+%endif

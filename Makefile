@@ -244,6 +244,13 @@ X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
 X86_64_NATIVE_RAM ?= 0
 X86_64_NATIVE_HEAP ?= 0
+X86_64_NATIVE_RUNTIME ?= 0
+X86_64_RUNTIME_ASM = $(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),-DREIST_NATIVE_RUNTIME=1,)
+ifeq ($(X86_64_NATIVE_RUNTIME),1)
+ifneq ($(filter x86_64-native-image,$(MAKECMDGOALS)),)
+$(error NativeRuntime excludes NativeImages)
+endif
+endif
 X86_64_NATIVE_IPC ?= 0
 X86_64_NATIVE_BULK_IPC ?= 0
 X86_64_NATIVE_IPC_CASE ?= 0
@@ -420,11 +427,13 @@ x86_64-native-image: x86_64-bootstrap
 	@$(PYTHON) scripts/build_x86_64_boot_media.py --directory $(X86_64_BOOTSTRAP_DIR) --nasm $(AS) --openssl $(OPENSSL)
 
 x86_64-bootstrap:
+	@$(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),$(if $(filter 11110,$(X86_64_NATIVE_PROCESSES)$(X86_64_NATIVE_IPC)$(X86_64_NATIVE_RAM)$(X86_64_NATIVE_HEAP)$(X86_64_NATIVE_BULK_IPC)),,$(error NativeRuntime requires Processes/IPC/RAM/Heap and excludes BulkIPC))) :
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
 		-DX86_64_NATIVE_BULK_IPC=$(X86_64_NATIVE_BULK_IPC) \
 		-DX86_64_NATIVE_HEAP=$(X86_64_NATIVE_HEAP) \
+		$(X86_64_RUNTIME_ASM) \
 		-DX86_64_PROCESS_CASE=$(X86_64_PROCESS_CASE) \
 		arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
@@ -487,7 +496,7 @@ endif
 endif
 ifeq ($(X86_64_NATIVE_IPC),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c kernel/ipc/ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o
-	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC $(X86_64_RUNTIME_ASM) -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
 endif
 ifeq ($(X86_64_NATIVE_RAM),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_memory.c -o $(X86_64_BOOTSTRAP_DIR)/native_memory.o
@@ -518,14 +527,14 @@ endif
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
-	@$(AS) -f elf32 arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
+	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
 	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
 	@$(AS) -f elf32 -DUSER_PROBE_PATH=\"$(X86_64_USER_PROBE_ELF)\" \
 		-DUSER_SHELL_PATH=\"$(X86_64_USER_SHELL_ELF)\" \
 		-DUSER_CHILD_PATH=\"$(X86_64_USER_CHILD_ELF)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
 	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
-	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
+	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)

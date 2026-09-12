@@ -10,6 +10,11 @@ _Noreturn void reist_native_ipc_fault(void) {
 #endif
 
 static uint64_t current_tick;
+#ifdef REIST_NATIVE_RUNTIME
+#define NATIVE_TICK_HORIZON (UINT64_C(1)<<60)
+#else
+#define NATIVE_TICK_HORIZON UINT64_C(256)
+#endif
 /* These are fault-detection words, not logical booleans: prevent whole-TU
  * optimization from narrowing/re-encoding the stored32-bit complement. */
 static volatile uint32_t initialized,entered;
@@ -161,7 +166,7 @@ static int dispatch_request(unsigned slot,native_ipc_request_t *r) {
     uint64_t timeout=(r->number==50 || r->number==51)?1000:r->a2;
     if(timeout>UINT32_MAX || ((r->number==50 || r->number==51) && r->a2)) return -22;
     uint64_t deadline=current_tick+(timeout+9)/10;
-    if(deadline>=256) return -22; /* Admit before any queue effect. */
+    if(deadline>=NATIVE_TICK_HORIZON) return -22; /* Before any queue effect. */
     /* The shared operations own message validation and errno precedence. */
     if(r->message.version==1 && r->message.struct_size==140) r->copy_size=140;
     else if(r->bulk.version==2 && r->bulk.struct_size==2060) r->copy_size=2060;
@@ -179,7 +184,10 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
     uint32_t init_snapshot=initialized;
     native_ipc_require(init_snapshot<=1 && initialized_inverse==~init_snapshot);
     native_ipc_require(!entered && slot<4 && generation && generation<=INT32_MAX &&
-                        tick<256 && r && ((uintptr_t)r&7)==0 && operation<=NATIVE_IPC_END);
+                        tick<NATIVE_TICK_HORIZON && r && ((uintptr_t)r&7)==0 && operation<=NATIVE_IPC_END);
+#ifdef REIST_NATIVE_RUNTIME
+    native_ipc_require(tick>=current_tick);
+#endif
     entered=1;
     if(!init_snapshot) {
         native_ipc_require(operation==NATIVE_IPC_BIND);
