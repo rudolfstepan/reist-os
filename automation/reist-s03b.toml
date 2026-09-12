@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3s-x86_64-quiescent-shell-exit"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,24 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3s-x86_64-quiescent-shell-exit"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native quiescent parent termination independent of the two-child proof dialog"
+scope = "Decouple quiescent shell termination from exact test IO and two completed children. Admit zero through two fully reaped children and all existing uint32 raw exit statuses, reject invalid EXIT arguments locally before mutation. Derive exact final event order, reap count and retired generations from validated completed count, preserving all zero/ownership checks. Nonzero program status remains observable and fails every existing normal guest oracle without converting orderly cleanup into kernel failure. Live-child/endpoint parent death and orphan/group recovery are a separate destructive recovery policy, explicitly not generalized here."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/user/shell.c", "test/test_x86_64_shell_exit.py", "test/x86_64_shell_exit_host.c", "scripts/run_qemu_x86_64_shell_exit.py", "test/test_x86_64_boot.py"]
+invariants = ["Existing REIST-v1 uint32 raw exit contract, not POSIX low-eight-bit wait encoding. Public ABI unchanged. Fixed4 slots, 128MiB/1CPU, two-child ceiling,18-read/8-write quotas and all deadlines unchanged. Quiescence still requires no child, endpoint, wait or runnable peer. Existing ordered validated frame/profile/identity/FP cleanup only; never use forced cleanup as a successful exit. Trusted corruption remains fatal; active-child parent fault/recovery remains visible migration debt.", "Actual production final-verifier assembly O0/O2: all0/1/2 completion counts, exact events/reaps/generations, every retained zero check, no mutation on rejection. Preserve old executable defect and actual early-EXIT guest failure. User-only exit fixtures for uint32 edges and invalid arguments; no test selector in kernel, all kernel mechanism objects identical. New bounded10s display-none guests require exact child/parent status and cleanup/progress witnesses. Existing guest oracles unchanged, nonzero parent emits existing SHELL_ERROR marker so they cannot falsely pass. No i386 source, roles, new device authority, visible VMs, agents or push. R3.6b remains deferred."]
+targeted_tests = ["python test/test_x86_64_shell_exit.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83s-shell-exit/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_shell_exit.py --evidence build/codex-agent/r83s-shell-exit/exits", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83s-shell-exit/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83s-shell-exit/retirement", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83s-shell-exit/fault", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83s-shell-exit/requests", "python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All10 frozen risk-derived groups passed, actual old early-exit failure retained, default user ELFs unchanged. Inspect exact scope/ABI/cleanup/oracles and queue transition, local commit only after gates; continue next clean native transaction."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for live-child/group recovery or wider process/device authority"]
+commit_message = "fix: decouple native shell termination from proof dialog counts"
+evidence = []
+evidence_note = "Frozen on clean1e7645c8. Next native lifecycle slice; no new destructive parent/group recovery policy."
 
 [[packages]]
 id = "R8.3r-x86_64-instruction-context"
@@ -3037,7 +3055,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

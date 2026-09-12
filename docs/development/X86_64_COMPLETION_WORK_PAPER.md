@@ -4,6 +4,25 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3s: geordneter Shellabschluss unabhängig vom Testdialog
+
+Basis1e7645c8. Frühes EXIT scheitert derzeit an exakt18 gelesenen Zeichen,
+acht Schreibaufrufen und zwei Kindern, auch wenn keinerlei fremder Besitz
+mehr besteht. Zusammenhängender Schnitt: null/ein/zwei vollständig gereapte
+Kinder, uint32-Rohstatus und lokale Ablehnung ungültiger EXIT-Argumente.
+Die I/O-Zahlen bleiben Obergrenzen. Ereignisfolge, Reapanzahl und letzte
+Generationen werden aus validierten Abschlusszahlen abgeleitet; sämtliche
+Null-/Ressourcenprüfungen bleiben. Fehlerstatus ist Programmfehler, nicht
+Kernelkorruption, muss aber jeden bisherigen Normaltest weiterhin ablehnen.
+
+Reihenfolge: alte Assembly/echten Gastfehler erhalten; regressionsfähiger
+Hosttest des tatsächlichen Abschlussprüfers; Kernelanbindung und reine
+Userspace-Fixtures; zehn eingefrorene Host-/Build-/Gast-/Doku-/i386-Gruppen.
+Keine neue API oder Testlogik im Kernel. Elternende bei lebendem Kind oder
+Endpoint samt Orphan-/Gruppen-Recovery ist eine separate destruktive Politik
+und bleibt ausdrücklich offen; der bestehende Fail-closed-Pfad wird dafür
+nicht als vollständige Prozessisolation ausgegeben.
+
 ## R8.3r: Ausführungs- und Rückkehradressen im eigenen Task
 
 Nach ab3b5531 schließt Vertragb8339cd7 die separate Rückkehr-Autoritätsgrenze.
