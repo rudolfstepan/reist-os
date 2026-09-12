@@ -2,6 +2,17 @@
 
 Stand: 12. September 2026
 
+## R8.3ah: native Read-only-Gerätegrenze gemeinsam angehen
+
+R8.3ag ist als `abd9edb4` mit allen14 Gates lokal abgenommen; sauberer Baum.
+Die Folgeinventur findet i386-Storageabhängigkeiten und fehlende native
+Treiber-Syscallautorität. Vollständiges Profil, begrenzte PIO-Vermittlung,
+Ring3-IDENTIFY/Lesetreiber und Fence/Restart-Nachweis werden gemeinsam
+eingefroren: [PIO-Domänenvertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
+Nur QEMU und neu erzeugtes Read-only-Testmedium; keine reale Platte,
+Schreibrechte, DMA oder neue komplexe Kernel-Treiber. Noch keine Umsetzung
+oder Abnahme; Dateisystem-/Dienst-/Plattformintegration bleibt offen.
+
 ## R8.3ag: Ring3-ELF-Aufbereitung und nativer Abbildimport
 
 R8.3af ist als `7757c747` mit allen13 Gates lokal abgenommen, Arbeitsbaum sauber.

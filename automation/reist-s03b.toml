@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ah-x86_64-pio-domain"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ah-x86_64-pio-domain"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native generation-scoped read-only PIO mediation and Ring3 ATA consumer"
+scope = "On acceptedabd9edb4, bundle full syscall-profile admission, bounded generation-owned PIO, Ring3 IDENTIFY/read driver, fencing/retirement and fault/restart proof. QEMU primary master and generated read-only media only; no Ring0 ATA policy/parser, writable media, DMA or physical hardware."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/NATIVE_PIO_DOMAIN_CONTRACT.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","include/reist/abi/syscall.h","include/kernel/device_domain.h","userspace/sdk/include/reist/abi/syscall.h","userspace/sdk/include/reist/x86_64/task.h","userspace/sdk/include/reist/x86_64/pio.h","userspace/sdk/include/x86os.h","userspace/drivers/ata/native_pio.c","userspace/drivers/ata/native_pio.h","arch/x86_64/devices/pio_domain.inc","arch/x86_64/proc/task_family.inc","arch/x86_64/proc/process_run.inc","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/user/pio_domain.c","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","scripts/run_qemu_x86_64_boot_programs.py","scripts/run_qemu_x86_64_pio.py","Makefile","test/test_x86_64_pio.py","test/x86_64_pio_host.c","test/test_x86_64_task_family.py","test/x86_64_task_family_host.c","test/test_x86_64_task_startup.py","test/x86_64_task_startup_host.c"]
+invariants = ["Follow NATIVE_PIO_DOMAIN_CONTRACT.md; CREATE-v4 and40-byte full profile preserve old public layouts and meanings; all192 authority bits attenuated before publication, only113 added for the explicit platform root0/driver.","Fixed64-byte DEVICE_CONTROL operation29 request; exact generation owner, conservative primary-master whitelist, read-only commands and16-word maximum,64 operations/100ms, fail before side effects.","Driver waits and IDENTIFY/data validation remain Ring3; reset/revoke precedes task/profile/frame release, stale ownership never returns, same eight-attempt recovery budget and unchanged task/CPU/heap/image limits.","QEMU pc/TCG one CPU4/8GiB and generated read-only fixture only. Ten new guest cases within20s each, exact bytes and faults/cleanup; old import matrix and i386 pins remain mandatory."]
+targeted_tests = ["python test/test_x86_64_pio.py -v","python test/test_x86_64_image_import.py -v","python test/test_x86_64_task_family.py -v","python test/test_x86_64_task_startup.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_syscall_abi_source.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ah-pio/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeImport -OutputDirectory build/codex-agent/r83ah-pio/import",".\\scripts\\build-x86_64-bootstrap.ps1 -NativePIO -OutputDirectory build/codex-agent/r83ah-pio/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_pio.py --image build/codex-agent/r83ah-pio/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ah-pio/guests","python scripts/run_qemu_x86_64_image_import.py --image build/codex-agent/r83ah-pio/import/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ah-pio/import-reference","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83ah-pio/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83ah-pio/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All14 groups, direct authority/failure/cleanup/scope review and clean local commit; no full OS, filesystem, physical hardware or DMA isolation claim."
+stop_conditions = ["Unattributed or overlapping user change","Required source outside frozen scope","Failed gate after one focused in-scope repair","Need to widen frozen quotas or guest bounds","Physical hardware or write authority required"]
+commit_message = "feat: mediate native read-only PIO driver lifecycle"
+evidence = []
 
 [[packages]]
 id = "R8.3ag-x86_64-image-import"
