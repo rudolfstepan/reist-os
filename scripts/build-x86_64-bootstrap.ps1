@@ -21,6 +21,7 @@ param(
     [switch]$NativeIPC,
     [switch]$NativeRAM,
     [switch]$NativeHeap,
+    [switch]$NativeImages,
     [switch]$NativeBulkIPC,
     [ValidateRange(0, 3)] [int]$NativeIPCCase = 0,
     [ValidateRange(0, 8)] [int]$ProcessCase = 0,
@@ -29,6 +30,13 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeImages) {
+    $NativeProcesses = [switch]$true
+    $NativeIPC = [switch]$true
+    $NativeRAM = [switch]$true
+    $NativeHeap = [switch]$true
+    if ($NativeBulkIPC -or $NativeIPCCase -ne 0) { throw 'NativeImages selects the normal native IPC/heap profile.' }
+}
 if ($NativeBulkIPC -and -not $NativeIPC) { throw 'NativeBulkIPC requires NativeIPC.' }
 if (($NativeIPC -and (-not $NativeProcesses -or $ProcessCase -ne 0 -or $CPayloadProbe -or $CIntegrityProbe)) -or ($NativeIPCCase -ne 0 -and -not $NativeIPC)) {
     throw 'NativeIPC requires NativeProcesses and excludes other native fixtures; NativeIPCCase requires NativeIPC.'
@@ -248,7 +256,8 @@ try {
     # GNU Make may execute simple recipes directly; make the native MSYS
     # mkdir available just like the production Windows build does.
     $env:Path = "$(Split-Path -Parent $MsysShell);$env:Path"
-    & $Make 'x86_64-bootstrap' `
+    $nativeBuildTarget = if ($NativeImages) { 'x86_64-native-image' } else { 'x86_64-bootstrap' }
+    & $Make $nativeBuildTarget `
         "OUTPUT_DIR=$($OutputDirectory.Replace('\', '/'))" `
         "SHELL=$(To-MakePath $MsysShell)" `
         "AS=$(To-MakePath $Nasm)" `

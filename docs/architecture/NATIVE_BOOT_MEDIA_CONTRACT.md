@@ -55,3 +55,29 @@ einen solchen Dienst noch allgemeines ELF64-Laden in Ring3. Die mitkopierten
 Dateisystemprogramme werden nicht dadurch vertrauenswürdige ausführbare
 Objekte. Diese Autoritätsgrenzen folgen separat als größtmögliche kohärente
 Systempfade; signierte Images allein sind kein fertiges64-Bit-Betriebssystem.
+
+## Implementierung auf Vertrag3a279429
+
+Windows und Make verwenden denselben Paketbau. Der bestehende Bootkernel
+bleibt bytegleich. Der begrenzte Index ist eine JSON-Hülle mit Paketdaten und
+256-Byte-RSA-PSS-Signatur in Hex. Kanonisches `package.json` und dessen Signatur
+liegen im frischen Versuch; der Verbraucher verlangt exakte Übereinstimmung,
+Policy-verifizierte Signatur und die feste14-Dateien-Belegung, bevor er Images
+oder Konfigurationen akzeptiert. Zusätzlich bleibt die ursprüngliche
+Kernel-Signatur in jedem Bootmanifest verpflichtend. Dieser signierte
+Hostindex ergänzt keine Laufzeit-Boot-Control-Autorität.
+
+Dateihashes lesen höchstens die deklarierte Kapazität plus ein Prüfbyte;
+Wachstum oder Trunkierung während der Prüfung wird abgewiesen. Native Eingaben,
+Index, Versuch und Artefakte dürfen nicht über Symlinks/Junctions entkommen.
+Der unabhängige FAT-Leser prüft beide FAT-Kopien, maximal2048 Cluster, Zyklen,
+genaue Pfadauflösung und vollständige ELF64-Dateibytes. Die festen Programme
+liegen auf beiden Medien als `bin/shell.prg`, `usr/bin/probe.prg` und
+`usr/bin/child.prg`; es sind weiterhin Bootstrapfixtures, keine normale
+Dateisystem-Shell. Gestrippte User-ELFs benötigen keine private C-Symboltabelle.
+
+Veröffentlichung erfolgt durch einen atomaren Austausch von `native-media.json`
+nach erfolgreichem separatem Prüferprozess. Faultinjektion unmittelbar davor
+beweist den Erhalt des vorherigen Index und Pakets. Die VMX/VMDK-Prüfung lässt
+nur den exakten lokalen Native-Aufbau zu; zusätzliche Geräte/Freigaben und
+externe Extents werden auch in ansonsten gültig signierten Paketen abgewiesen.

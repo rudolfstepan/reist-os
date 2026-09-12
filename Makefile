@@ -411,6 +411,14 @@ $(CONFIG_STAMP):
 
 all: native-image
 
+.PHONY: x86_64-native-image
+x86_64-native-image: X86_64_NATIVE_PROCESSES=1
+x86_64-native-image: X86_64_NATIVE_IPC=1
+x86_64-native-image: X86_64_NATIVE_RAM=1
+x86_64-native-image: X86_64_NATIVE_HEAP=1
+x86_64-native-image: x86_64-bootstrap
+	@$(PYTHON) scripts/build_x86_64_boot_media.py --directory $(X86_64_BOOTSTRAP_DIR) --nasm $(AS) --openssl $(OPENSSL)
+
 x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \

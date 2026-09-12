@@ -10,8 +10,29 @@ atomarer Paketveröffentlichung und neun echten BIOS-Fällen gemeinsam mit13
 Gates eingefroren. Die Inventur bestätigt wiederverwendbare Multiboot-/E820-
 Übergabe in Stage2; kein paralleler Loader und kein neues Manifestformat.
 [Medienvertrag](../architecture/NATIVE_BOOT_MEDIA_CONTRACT.md).
-Umsetzung/Abnahme stehen aus. Storage/VFS und vertrauenswürdiger Dateistart
-bleiben eigenständige Autoritätsgrenzen.
+Auf Vertrag `3a279429` implementiert. Einstieg:
+`scripts/build-x86_64-bootstrap.ps1 -NativeImages`, Makeziel
+`x86_64-native-image`. Unter dem gewählten x86_64-Bauverzeichnis verweist
+`native-media.json` auf einen frischen `native-media-<id>`-Versuch mit HDD,
+Floppy, restriktiver VMX/VMDK, Bootsektoren, Kernel und drei ELF64-Fixtures.
+Research-signiertes `package.json` bindet Architektur, Profil, feste Namen,
+Dateilängen und SHA256-Werte; erst nach unabhängiger Prüfung wird der Index
+atomar veröffentlicht. Frühere Pakete und abgewiesene Kandidaten bleiben.
+
+Der unabhängige Prüfer liest beide Kernel-/Signaturslots, die Bootsektoren
+und die tatsächlichen FAT12-/FAT32-Programmketten zurück. Er akzeptiert auch
+gestrippte ELF64-Programme, aber keine i386-/ET_DYN-/W+X-Substitution. VMX und
+VMDK erlauben exakt den lokalen1CPU/4GiB-Festplattenaufbau ohne zusätzliche
+Geräte, Netzwerk, RFB, Shared Folders oder HID. Es startet keine sichtbare VM.
+
+Neun echte BIOS-Fälle bestehen einschließlich A-zu-B-Fallback und vollständiger
+20s-Beobachtung aller negativen Medien. Positive Fälle erreichen32 native
+Tasklebensläufe in acht Runzyklen, inklusive Heap-/IPC-Fixture. Verpackter
+Kernel251136Byte ist SHA256-identisch zum abgenommenen Heapkernel:
+`b135c6456d48b7eb0468cf220543135588a8d7bb9dbc976fcffce7d88231d5e8`.
+Keine Bootloader-/Kernel-/ABI-Änderung und kein i386-Rebaseline. Abschließende
+Gates und konkrete Versuche stehen in der Queue. Storage/VFS, Dienst-Recovery,
+Boot-Erfolgsbestätigung und vertrauenswürdiger Dateistart bleiben offen.
 
 ## R8.3aa: private native Heapbereiche
 

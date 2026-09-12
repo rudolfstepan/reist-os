@@ -2,6 +2,17 @@
 
 Stand: 12. September 2026
 
+R8.3ab ergänzt auf Vertrag `3a279429` echte signierte BIOS-Bootmedien.
+`scripts/build-x86_64-bootstrap.ps1 -NativeImages` beziehungsweise
+`make x86_64-native-image` bündelt NativeProcesses/IPC/RAM/Heap und erzeugt
+HDD512MiB plus Rettungsfloppy1,44MiB. Stage1/Stage2, Manifest3 und Research-
+Trustpolicy bleiben unverändert. `native-media.json` im x86_64-Ausgabeordner
+verweist auf ein separat signiertes und unabhängig geprüftes Paket. Dessen
+Kern ist bytegleich mit dem bereits abgenommenen Heapkernel. Die neue BIOS-
+Matrix prüft beide Medien,4/8GiB, Signatur-/SHA-/Manifestfehler und A/B-Fallback;
+keine normale Dateisystem-Programmausführung oder VMware-Abnahme wird behauptet.
+[Signatur-, Veröffentlichungs- und Medienvertrag](NATIVE_BOOT_MEDIA_CONTRACT.md).
+
 R8.3aa ergänzt auf Vertrag `bdb033d8` private native Heapbereiche. Aktivierung:
 `-NativeProcesses -NativeRAM -NativeHeap`, für den Gastnachweis zusätzlich
 `-NativeIPC`; Make verwendet entsprechend `X86_64_NATIVE_HEAP=1`. Bestehende

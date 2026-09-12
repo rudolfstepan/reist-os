@@ -12,6 +12,10 @@ BIOS-Normal-/Fallback-/Fehlerbelege in einem13-Gate-Paket. Vorhandener Stage2
 liefert schon Multiboot/E820 und unterstützt die ELF32-Hülle des ELF64-Kerns.
 Kein neues Format oder Schlüssel, keine Wiederimplementierung dieser Logik.
 [Verbindlicher Medienvertrag](../architecture/NATIVE_BOOT_MEDIA_CONTRACT.md).
+Auf Vertrag `3a279429` umgesetzt: gemeinsamer Windows-/Make-Preset, beide
+Medien mit identischem abgenommenen Kernel, signierter Hostindex und unabhängige
+Rückleseprüfung bis zu den FAT-Dateiketten. Neun BIOS-Fälle bestehen; konkrete
+Belege und Grenzen stehen im [aktuellen Arbeitsstand](CURRENT_WORK.md).
 Darauf folgen Dateistart und Dienstintegration nach ihren Besitzgrenzen;
 dieser Mediennachweis darf deren fehlende Laufzeitautorität nicht verdecken.
 
