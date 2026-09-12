@@ -4,6 +4,18 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ag: Ring3-ELF64 bis zum nativen Abbildbesitz zusammen
+
+Auf `7757c747`, Verträge `5d7bfef6` und `8b530433`: C-ELF-Aufbereitung,
+CREATE-v3, beide privaten Abbildkontexte, SDK/Build und Fehler-/OOM-/IPC-
+Abnahme bilden einen gemeinsamen Ladepfad. Kein Einzelpaket je ELF-Feld,
+Kindslot oder Fehlerpunkt. [Importvertrag](../architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md).
+Die achtteilige Importmatrix besteht mit148 nativen Lebensläufen. Quoten und
+alte öffentliche Versionen bleiben unverändert; Ring0 parst keine ELF-Datei.
+Gateabschluss und historische Fehler stehen im [Arbeitsstand](CURRENT_WORK.md).
+Dateibytes kommen in dieser Abnahme noch aus einem eingebetteten Ring3-Abbild;
+Dateisystem-/Gerätemediation und normaler Shell-Dateizugriff bleiben offen.
+
 ## R8.3af: konfigurierbarer Start und IPC-Verbindung zusammen
 
 Auf `8a3bed10` sind CREATE-v2, unveränderliche Startargumente, SDK und

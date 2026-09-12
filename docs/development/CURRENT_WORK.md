@@ -9,7 +9,40 @@ Die nächste gemeinsame Ladegrenze bündelt C-Aufbereitung in Ring3, CREATE-v3,
 private Abbildbesitzer, SDK/Build und vollständige Fehler-/Rollbacknachweise.
 [Eingefrorener Vertrag](../architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md).
 Vorhandene Mapping-, Stack-, IPC- und Reapmechanismen werden wiederverwendet;
-keine Dateirechte oder ELF-Parser in Ring0. Noch keine Implementierungsabnahme.
+keine Dateirechte oder ELF-Parser in Ring0.14 eingefrorene Gategruppen.
+
+Verträge `5d7bfef6` und `8b530433`: Die erneute Nutzerfreigabe nimmt die
+zentrale Laufzulassung und ihren Vertrag ausdrücklich hinzu. C-ELF64-Aufbereitung,
+CREATE-v3-Typ/SDK, Pointerkopie/-Zulassung, Build und getrennte Loaderkontexte7/8
+sind implementiert. Der Import-Scratch liegt beim Loader und wird
+auf Syscallresultat sowie globalem Loader-Teardown genullt; der bestehende
+Family-Zustand wächst dadurch nicht. Alte Root-/v1-/v2-Rechte bleiben erhalten.
+
+Neue Hostgruppe2/3.008s: tatsächlicher C-Parser und Assembler O0/O2,
+bytegleicher Vergleich mit unabhängigem Python-Produzenten, fehlgeformte
+ELFs, unverändertes Fehleroutput, versions-/slotgenaue Besitzer und alle37
+Pointerteilbereiche samt frühem Abbruch/Überlauf. Die bisher fehlende
+Run-Zulassung ist vor Korrektur tatsächlich rot nachgewiesen (`r83ag-red.log`).
+Weitere Hostgruppen bestehen: Startup4/1.556s, Family3/.877s, Bootprogramme6/
+1.509s, ABI5/.108s und ProcessRun5/1.650s. NativeImport baut in3.757s,
+C-Aufbau4 bleibt unverändert; normale und Startup-Referenzbuilds bestehen.
+
+Die vollständige Importmatrix besteht in59.106s:
+`guests/attempt-842668a1eddf443abbb34710e928d4a2`,148 native Lebensläufe und
+284 Frame-Retirements.4/8GiB, beide gleichzeitig belegten Kindslots und
+disjunkte Abbildbesitzer7/8, unveränderliche0/1/8 Argumente/Abbildkopien,
+explizite/stale IPC-Rechte, UD2, Cancel/Ersatz und OOM0/1/2/3/6/9. Zehn
+Mechanismusobjekte bleiben zwischen Normal- und OOM-Userfällen bytegleich.
+
+Historischer Gastfehler `263a33589bb0481793270cc3cdbaa6ef`,4.818s:
+Rootstatus248, bevor ein Kind entsteht. Die vorhandene generische
+Pointerprüfung erlaubt2060Byte pro Aufruf, nicht den gesamten36896-Byte-
+Record. Die fokussierte Korrektur prüft36×1024 und einmal32Byte vor der
+einmaligen Kopie; keine Vergrößerung der alten Pointer-/Heap-/CPU-Grenzen.
+Ein wiederholter Build darf nur bei bytegleichen Kind-ELFs dieselbe
+Katalogprovenienz verwenden. Logs und Fehlbelege bleiben unter
+`build/codex-agent/r83ag-import/`. Die Queue hält den abschließenden Gatezustand;
+die native Datei-/Dienst-/Plattformabnahme ist damit noch nicht abgeschlossen.
 
 ## R8.3af: Startargumente und IPC-Übergabe gemeinsam umgesetzt
 

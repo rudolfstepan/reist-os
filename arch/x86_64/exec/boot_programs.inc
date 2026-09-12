@@ -1,5 +1,6 @@
 ; SysV, pinned immutable36896-byte record. No user pointer or ELF parsing.
 ; Return1 iff complete fixed metadata/argument admission, no writes.
+global boot_program_admit64
 boot_program_admit64:
     test rdi,rdi
     jz .bad
@@ -80,7 +81,15 @@ boot_program_record64:
     ret
 
 boot_program_load64:
+%ifdef REIST_NATIVE_LIFECYCLE
+    cmp byte [rel elf_image_selector],7
+    jb .catalog
+    lea rdi,[rel elf_import_record]
+    jmp .record
+.catalog:
+%endif
     call boot_program_record64
+.record:
     push rdi
     mov esi,36896
     call boot_program_admit64

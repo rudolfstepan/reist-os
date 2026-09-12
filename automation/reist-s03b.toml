@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3ag-x86_64-image-import"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3ag-x86_64-image-import"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Ring3 ELF64 preparation and immutable native image import"
@@ -28,8 +28,24 @@ acceptance = "All14 groups, direct ABI/ownership/rollback/scope review and clean
 stop_conditions = ["Unattributed or overlapping user change","Required source outside frozen scope","Failed gate after one focused in-scope repair","Need to widen frozen quotas or guest bounds","Hardware or release authority required"]
 commit_message = "feat: import native images prepared in Ring3"
 resumption_authority = "Renewed user bundling instruction on2026-09-12 after the explicit scope question authorizes process_run.inc/process_run.h and actual slot/version regressions. Add existing process-run host gate to all13 previous groups;14 total. Resume only the same attributed candidate; old ABI, quotas and stop conditions remain unchanged."
-evidence = []
-evidence_note = "BLOCKED uncommitted partial candidate on frozen5d7bfef6 after accepted7757c747. Read-only dispatch inventory shows process_run_validate64 calls process_run_admit64 on every admission; its .image branch still permits only3..6. Imported contexts7/8 require an explicit v3 dynamic-slot-only admission update in arch/x86_64/proc/process_run.inc and matching process_run.h, both outside allowed_files. Stop without editing those files or committing implementation. Request scope authority for those two files, actual v3 slot/version regression in already allowed import host group and the existing process-run host gate in addition to all13 frozen groups. Begun C ELF parser, SDK/v3 pointer transport and loader-owned scratch/context changes remain attributed in worktree. Build/guest integration and all acceptance gates remain open; no new runtime acceptance. R3.6b deferred, R341-H1/H2 open."
+evidence = [
+"python test/test_x86_64_image_import.py -v: PASS2/3.008s host-02.log; real C parser and assembly O0/O2, byte-identical independent producer, malformed records/ELF and unchanged output, v3 slot/version matrix, all37 pointer chunks/early rejection/overflow, import oracle negatives. Intentional pre-fix run-admission regression retained in build/codex-agent/r83ag-red.log.",
+"python test/test_x86_64_task_startup.py -v: PASS4/1.556s test_x86_64_task_startup-01.log.",
+"python test/test_x86_64_task_family.py -v: PASS3/.877s test_x86_64_task_family-01.log.",
+"python test/test_x86_64_boot_programs.py -v: PASS6/1.509s test_x86_64_boot_programs-01.log.",
+"python test/test_syscall_abi_source.py -v: PASS5/.108s test_syscall_abi_source-01.log; append-only133 syscall indices.",
+"python test/test_documentation.py -v: PASS7/.706s with historical D1-only skip;116 files, inventory5796f26776fc42e781030d39cdaa3504, docs-01.log.",
+"python test/test_x86_64_process_run.py -v: PASS5/1.650s test_x86_64_process_run-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ag-import/normal: PASS2.317s normal-build-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -NativeStartup -OutputDirectory build/codex-agent/r83ag-import/startup: PASS4.796s startup-build-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -NativeImport -OutputDirectory build/codex-agent/r83ag-import/native: PASS3.757s native-build-02.log; private C layout4 unchanged.",
+"python scripts/run_qemu_x86_64_image_import.py --image build/codex-agent/r83ag-import/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ag-import/guests: PASS8/59.106s; attempt842668a1eddf443abbb34710e928d4a2,148 native lifetimes/284 frame retirements;4/8GiB, simultaneous slots2/3 with disjoint images7/8, immutable image/argv, explicit/stale IPC, UD2/cancel/replacement and OOM0/1/2/3/6/9, full context/scratch/fence/frame proof; ten mechanism objects identical across fixtures.",
+"python scripts/run_qemu_x86_64_task_startup.py --image build/codex-agent/r83ag-import/startup/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ag-import/startup-reference: PASS8/54.215s; attempte32b87562508424181babe25d29efd5f,148 native lifetimes/284 frame retirements, unchanged old startup matrix.",
+"python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83ag-import/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83ag-import/normal-guest.log: PASS.477s normal-reference-01.log.",
+"python scripts/verify_x86_64_reference_artifacts.py: PASS1.122s outer/1.038s verifier; read-only i386 pins unchanged, pins-01.log.",
+]
+evidence_note = "All14 frozen groups passed on5d7bfef6/8b530433 after7757c747. Direct ABI/ownership/rollback/cleanup/scope review passed. Initial guest263a33589bb0481793270cc3cdbaa6ef failed in4.818s at root248:36896-byte range exceeds existing2060-byte per-call bound. One focused repair uses37 fixed preflight chunks before a single copy; no pointer/CPU/heap quota widening. Successful unaffected hosts retained; changed import host/build/full matrix renewed. Both failed and final evidence remain under build/codex-agent/r83ag-import. No eligible queued native package; active_id empty, R3.6b explicitly deferred, R341-H1/H2 open. No complete file service, supervisor or full64-bit OS acceptance."
+historical_evidence_note = "BLOCKED uncommitted partial candidate on frozen5d7bfef6 after accepted7757c747. Read-only dispatch inventory shows process_run_validate64 calls process_run_admit64 on every admission; its .image branch still permits only3..6. Imported contexts7/8 require an explicit v3 dynamic-slot-only admission update in arch/x86_64/proc/process_run.inc and matching process_run.h, both outside allowed_files. Stop without editing those files or committing implementation. Request scope authority for those two files, actual v3 slot/version regression in already allowed import host group and the existing process-run host gate in addition to all13 frozen groups. Begun C ELF parser, SDK/v3 pointer transport and loader-owned scratch/context changes remain attributed in worktree. Build/guest integration and all acceptance gates remain open; no new runtime acceptance. R3.6b deferred, R341-H1/H2 open."
 
 [[packages]]
 id = "R8.3af-x86_64-startup-handoff"

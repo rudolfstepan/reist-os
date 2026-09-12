@@ -41,4 +41,11 @@ static inline int64_t reist_x64_task_create(uint64_t image,uint64_t syscalls,
     reist_task_create_v2_t q={2,64,1,0,0,image,0,syscalls,cpu_samples,(uintptr_t)startup};
     return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
 }
+static inline int64_t reist_x64_task_import(const void *prepared,uint64_t syscalls,
+                                          uint64_t cpu_samples,
+                                          const reist_task_startup_v1_t *startup)
+{
+    reist_task_create_v3_t q={3,64,1,0,0,(uintptr_t)prepared,0,syscalls,cpu_samples,(uintptr_t)startup};
+    return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
+}
 #endif

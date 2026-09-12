@@ -6,6 +6,8 @@ struct reist_x64_run_task_v1 {
     /* v1: reserved=0. v2 (NativePrograms only): immutable boot image ID3..6.
      * v3 (NativeLifecycle): same image IDs, count=4; argument=1 in root
      * slots0/1 and0 in dynamic slots2/3. Only the roots start initially.
+     * Imported image7 is additionally valid only for dynamic slot2, image8
+     * only for slot3; these private owners never alias catalog IDs3..6.
      * Same layout, explicitly different versions; not a public spawn ABI. */
     unsigned long long argument, syscalls, cpu_samples, reserved;
 };

@@ -4,7 +4,10 @@ family_request_admit64:
     cmp dword [rdi],1
     je .v1
     cmp dword [rdi],2
+    je .startup
+    cmp dword [rdi],3
     jne .invalid
+.startup:
     cmp dword [rdi+8],1
     jne .invalid
     cmp qword [rdi+56],0
@@ -53,9 +56,16 @@ family_request_admit64:
     or rax,[rdi+32]
     jnz .invalid
     mov rax,[rdi+24]
+    cmp dword [rdi],3
+    jne .catalog
+    test rax,rax
+    jz .invalid
+    jmp .cpu
+.catalog:
     sub rax,3
     cmp rax,3
     ja .invalid
+.cpu:
     mov rax,[rdi+48]
     dec rax
     cmp rax,31
@@ -422,6 +432,40 @@ family_validate_runtime64:
     ret
 
 ; Pointer/unused-register admission before copying the complete request once.
+; RAX complete image source. Preserve the existing <=2060-byte access ABI;
+; preflight every fixed chunk before any byte copy or authority publication.
+family_import_range64:
+    push r8
+    push r9
+    push rdx
+    push rcx
+    mov r8,rax
+    add rax,36895
+    jc .invalid
+    mov r9d,36896
+.chunk:
+    mov edx,1024
+    cmp r9,rdx
+    cmovb rdx,r9
+    mov rax,r8
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    cmp eax,1
+    jne .invalid
+    add r8,rdx
+    sub r9,rdx
+    jnz .chunk
+    mov eax,1
+    jmp .return
+.invalid:
+    xor eax,eax
+.return:
+    pop rcx
+    pop rdx
+    pop r9
+    pop r8
+    ret
+
 family_syscall64:
     mov rax,[rel syscall_rsi]
     or rax,[rel syscall_rdx]
@@ -443,8 +487,8 @@ family_syscall64:
     call family_request_admit64
     cmp rax,1
     jne family_result64
-    cmp dword [rel family_request],2
-    jne .admitted
+    cmp dword [rel family_request],1
+    je .admitted
     mov rax,[rel family_request+56]
     mov edx,1040
     mov ecx,PF_R
@@ -459,6 +503,28 @@ family_syscall64:
     call family_startup_admit64
     cmp rax,1
     jne family_result64
+    cmp dword [rel family_request],3
+    jne .admitted
+    mov rax,[rel family_request+24]
+    call family_import_range64
+    test eax,eax
+    jz .pointer
+    mov rsi,[rel family_request+24]
+    lea rdi,[rel elf_import_record]
+    mov ecx,4612
+    rep movsq
+    lea rdi,[rel elf_import_record]
+    mov esi,36896
+    call boot_program_admit64
+    cmp eax,1
+    jne .invalid_image
+    ; Imported records have a canonical empty catalog argument tail. Actual
+    ; arguments come exclusively from the independently admitted startup-v1.
+    lea rdi,[rel elf_import_record+32800]
+    xor eax,eax
+    mov ecx,512
+    repe scasq
+    jne .invalid_image
 .admitted:
     mov edi,[rel scheduler_current_slot]
     cmp edi,2
@@ -498,6 +564,9 @@ family_syscall64:
 .pointer:
     mov rax,-14
     jmp family_result64
+.invalid_image:
+    mov rax,-22
+    jmp family_result64
 
 family_result64:
     push rax
@@ -507,6 +576,9 @@ family_result64:
     rep stosq
     lea rdi,[rel family_startup]
     mov ecx,512
+    rep stosq
+    lea rdi,[rel elf_import_record]
+    mov ecx,4612
     rep stosq
     pop rax
     jmp process_run_resume64
@@ -530,6 +602,12 @@ family_create64:
     jmp family_result64
 .found:
     mov [rel family_build_slot],edi
+    cmp dword [rel family_request],3
+    jne .image_selected
+    ; Internal image7/8 is owned by this exact dynamic slot, never a catalog ID.
+    lea eax,[rdi+5]
+    mov [rel family_request+24],rax
+.image_selected:
     mov rax,[rel family_request+40]
     mov ecx,[rel scheduler_current_slot]
     shl ecx,5
@@ -577,8 +655,8 @@ family_create64:
     jne scheduler_fail
     mov rdi,DIRECT_MAP_BASE
     add rdi,[r12+TASK_STACK_FRAME]
-    cmp dword [rel family_request],2
-    jne .catalog_stack
+    cmp dword [rel family_request],1
+    je .catalog_stack
     mov rsi,rdi
     lea rdi,[rel family_startup]
     call family_startup_build64

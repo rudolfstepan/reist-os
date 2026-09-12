@@ -2,6 +2,19 @@
 
 Stand: 12. September 2026
 
+R8.3ag ergänzt `-NativeImport` (setzt NativeStartup) beziehungsweise Make
+`X86_64_NATIVE_IMPORT=1` mit denselben Abhängigkeiten. Ein freestanding
+Ring3-C-Adapter bereitet begrenzte System-V-ELF64-Dateibytes zu RNPGv1 auf;
+CREATE-v3 übernimmt den36896-Byte-Record und separate Startargumente.
+Die bestehenden Pointergrenzen bleiben:37 feste Teilbereiche werden komplett
+vor einer einmaligen Kopie geprüft. Der Kernel liest ausschließlich vorbereitete
+Seitenmetadaten, keinen ELF-Dateiaufbau. Private Abbildbesitzer7/8 gehören genau
+zu Kindslots2/3; Katalog3..6 und alte Versionen bleiben getrennt. Import-Scratch,
+Abbild-/Taskframes und Rechte werden vollständig bereinigt. Alle CPU-/Heap-/
+Startquoten bleiben unverändert. [Importvertrag](NATIVE_IMAGE_IMPORT_CONTRACT.md).
+Dies ist ein Ladeadapter für vorhandene Bytes, noch kein Dateisystemdienst
+oder normaler Shell-Dateistart und keine vollständige64-Bit-Systemabnahme.
+
 R8.3af ergänzt unter `-NativeStartup` variable Argumente beim dynamischen
 Start und explizite IPC-Übergabe. Der Windows-Preset aktiviert NativeLifecycle;
 Make verwendet `X86_64_NATIVE_STARTUP=1` mit dessen Abhängigkeiten. CREATE-v2

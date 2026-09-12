@@ -35,7 +35,7 @@ StartupInjectionEnd()
 end
 '''
 
-def observer(s,c,folder,ram,oom=None):
+def observer(s,c,folder,ram,oom=None,imported=None):
     code=family.proof_observer(s,c,folder,ram,oom)
     old="""            argc,a0,a1,argvnull,envnull=struct.unpack_from('<5Q',stack,off)
             assert (argc,argvnull,envnull)==(2,0,0)
@@ -84,9 +84,32 @@ class StartupScrub(gdb.Breakpoint):
 StartupCopy();StartupScrub()
 end
 '''
+    if imported is not None:
+        digest=hashlib.sha256(imported).hexdigest()
+        code=once(code,'for i in range(7)', 'for i in range(9)')
+        code=once(code,f"r=mem({s['boot_program_catalog']}+(ident-3)*36896,36896)",
+            f"r=mem({s['boot_program_catalog']}+(ident-3)*36896,36896) if slot<2 else imported_records[gen]")
+        code=once(code,"if slot==2:gdb.write('STARTUP_ARGS", "if slot>=2:gdb.write('STARTUP_ARGS")
+        pair=f'''            if slot==3:
+                other=struct.unpack('<32Q',mem({s['scheduler_tasks']}+512,256))
+                assert other[0] in (1,2,6) and other[1]==gen-1
+                def frames(v):return {{x for x in v[2:12] if x}}
+                assert not frames(t)&frames(other)
+                gdb.write('IMPORT_PAIR first=%d second=%d private=1\\n'%(other[1],gen))
+'''
+        code=once(code,'            started.add(gen);',pair+'            started.add(gen);')
+        pre=once(pre,'captured={}','captured={}\nimported_records={}\nimport hashlib')
+        pre=once(pre,"[0]==2","[0]==3")
+        pre=once(pre,'            captured[gen]=',f'''            record=mem({s['elf_import_record']},36896)
+            assert hashlib.sha256(record).hexdigest()=='{digest}'
+            imported_records[gen]=record
+            gdb.write('IMPORT_COPY gen=%d bytes=36896 immutable=1\\n'%gen)
+            captured[gen]=''')
+        pre=once(pre,"                gdb.write('STARTUP_SCRUB",f"                assert not any(mem({s['elf_import_record']},36896))\n                gdb.write('IMPORT_SCRUB bytes=36896 complete=1\\n')\n                gdb.write('STARTUP_SCRUB")
+        code=once(code,"gdb.write('FAMILY_ZERO",f"assert not any(mem({s['elf_import_record']},36896))\ngdb.write('FAMILY_ZERO")
     return code[:-len('continue\n')]+pre+(injection_guard(s,oom) if oom is not None else '')+'continue\n'
 
-def validate(serial,trace,oom=None):
+def validate(serial,trace,oom=None,imported=False):
     count=9 if oom is not None else 10
     markers=[m for m in family.REQUIRED_MARKERS if 'SHELL' not in m]+[family.process.SUCCESS]
     if any(m in serial for m in family.FAILURES) or 'OBSERVER_FAIL' in trace:raise ValueError('startup fatal/observer')
@@ -97,10 +120,11 @@ def validate(serial,trace,oom=None):
         seen=set()
         for m in receipts[run*count:(run+1)*count]:
             slot,gen,status,state,ticks,rip=struct.unpack('<4I2Q',bytes.fromhex(m[1]));n=gen-run*count
-            if not 1<=n<=count or n in seen or slot!=(n-1 if n<=2 else 2):raise ValueError('startup generation/slot')
+            expected_slot=n-1 if n<=2 else 3 if imported and n==4 else 2
+            if not 1<=n<=count or n in seen or slot!=expected_slot:raise ValueError('startup generation/slot')
             seen.add(n)
             expected=(70,4) if n==1 else (71,4) if n==2 else (60,4) if n==3 else (61,4) if n==4 else (134,3) if n==6 else (0,3) if n in (7,9) else (68,4)
-            if (status,state)!=expected or ticks>32 or not 0x400000<=rip<0x401000:raise ValueError('startup outcome '+str((slot,gen,status,state,ticks)))
+            if (status,state)!=expected or ticks>32 or not 0x400000<=rip<(0x402000 if imported and slot==0 else 0x401000):raise ValueError('startup outcome '+str((slot,gen,status,state,ticks)))
             if not (ends[run-1].end() if run else -1)<m.start()<m.end()<=ends[run].start():raise ValueError('startup receipt order')
             rows.append((slot,gen,state))
     if ends[-1].end()>serial.index('REIST_X86_64_C_KERNEL_CONTROL_OK'):raise ValueError('startup caller order')
@@ -132,12 +156,12 @@ def validate(serial,trace,oom=None):
     for i,f in enumerate(fences,17):
         if not after[i-1].end()<f.start()<f.end()<before[i].start():raise ValueError('startup fence after free')
     starts=list(re.finditer(r'FAMILY_START slot=(\d+) gen=(\d+) image=(\d+) high=1 wx=1 argv=1',trace))
-    if len(starts)!=len(rows) or {tuple(map(int,m.groups())) for m in starts}!={(s,g,3+s) for s,g,_ in rows}:raise ValueError('startup exact mapping')
+    if len(starts)!=len(rows) or {tuple(map(int,m.groups())) for m in starts}!={(s,g,s+(5 if imported and s>=2 else 3)) for s,g,_ in rows}:raise ValueError('startup exact mapping')
     for m in starts:
         i=next(i for i,r in enumerate(rows) if r[1]==int(m[2]))
         if m.end()>fences[i].start():raise ValueError('startup map order')
     args=list(re.finditer(r'STARTUP_ARGS gen=(\d+) argc=(\d+) immutable=1',trace))
-    want={(g,0 if (g-1)%count+1==3 else 1 if (g-1)%count+1==4 else 8) for s,g,_ in rows if s==2}
+    want={(g,0 if (g-1)%count+1==3 else 1 if (g-1)%count+1==4 else 8) for s,g,_ in rows if s>=2}
     if len(args)!=len(want) or {tuple(map(int,m.groups())) for m in args}!=want:raise ValueError('startup immutable arguments')
     zeros=list(re.finditer(r'PROCESS_ZERO_OK run=(\d+) zero=(\d+) free=(\d+) initial=(\d+) reaps=(\d+) generation=(\d+) ticks=(\d+)',trace))
     if len(zeros)!=2 or re.findall(r'FAMILY_ZERO run=(\d+) complete=1',trace)!=['1','2']:raise ValueError('startup final zero')
@@ -157,6 +181,18 @@ def validate(serial,trace,oom=None):
         if not injections[i].end()<b.start()<b.end()<first.start():raise ValueError('startup injection outside CREATE')
     scrub=re.findall(r'STARTUP_SCRUB bytes=4096 complete=1',trace)
     if len(scrub)<40:raise ValueError('startup request scrub')
+    if imported:
+        copies=list(re.finditer(r'IMPORT_COPY gen=(\d+) bytes=36896 immutable=1',trace))
+        if len(copies)!=len(want) or {int(m[1]) for m in copies}!={g for g,_ in want}:raise ValueError('import exact copy')
+        for m in copies:
+            start=next(x for x in starts if x[2]==m[1])
+            if m.end()>start.start():raise ValueError('import copy after publication')
+        pairs=re.findall(r'IMPORT_PAIR first=(\d+) second=(\d+) private=1',trace)
+        if pairs!=[(str(r*count+3),str(r*count+4)) for r in range(2)]:raise ValueError('import context pairing')
+        image_scrub=re.findall(r'IMPORT_SCRUB bytes=36896 complete=1',trace)
+        if len(image_scrub)!=len(scrub):raise ValueError('import scrub')
+        for label,n in (('IMPORT_COPY',len(copies)),('IMPORT_PAIR',2),('IMPORT_SCRUB',len(scrub))):
+            if trace.count(label)!=n:raise ValueError('import malformed '+label)
     for label,n in (('TASK_FRAMES_BEFORE',len(before)),('TASK_FRAMES_AFTER',len(after)),('TASK_FRAMES_FREE',len(frees)),('FAMILY_FENCE',len(fences)),('FAMILY_START',len(starts)),('STARTUP_ARGS',len(args)),('PROCESS_ZERO_OK',2),('FAMILY_ZERO',2),('FAMILY_CANCEL',4),('FAMILY_OOM',2 if oom is not None else 0),('STARTUP_OOM_BOUNDARY',len(boundaries)),('STARTUP_SCRUB',len(scrub))):
         if trace.count(label)!=n:raise ValueError('startup malformed '+label)
     return len(rows)

@@ -250,6 +250,12 @@ X86_64_PROGRAM_CASE ?= 0
 X86_64_NATIVE_LIFECYCLE ?= 0
 X86_64_FAMILY_CASE ?= 0
 X86_64_NATIVE_STARTUP ?= 0
+X86_64_NATIVE_IMPORT ?= 0
+ifeq ($(X86_64_NATIVE_IMPORT),1)
+ifneq ($(X86_64_NATIVE_STARTUP),1)
+$(error NativeImport requires NativeStartup)
+endif
+endif
 X86_64_STARTUP_CASE ?= 0
 ifeq ($(X86_64_NATIVE_STARTUP),1)
 ifneq ($(X86_64_NATIVE_LIFECYCLE)$(X86_64_FAMILY_CASE),10)
@@ -467,7 +473,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \

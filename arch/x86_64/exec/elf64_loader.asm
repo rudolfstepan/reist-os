@@ -41,7 +41,11 @@ ELF_IMAGE_SHELL     equ 1
 ELF_IMAGE_CHILD     equ 2
 ELF_CONTEXT_COUNT   equ 3
 %ifdef REIST_NATIVE_PROGRAMS
+%ifdef REIST_NATIVE_LIFECYCLE
+ELF_STORAGE_COUNT equ 9
+%else
 ELF_STORAGE_COUNT equ 7
+%endif
 extern reist_x64_startup_stack
 %else
 ELF_STORAGE_COUNT equ ELF_CONTEXT_COUNT
@@ -641,6 +645,13 @@ x86_64_elf64_release64:
 
 x86_64_elf64_release_all64:
 %ifdef REIST_NATIVE_PROGRAMS
+%ifdef REIST_NATIVE_LIFECYCLE
+    ; Loader-owned immutable staging, never an extra task/authority record.
+    lea rdi,[rel elf_import_record]
+    xor eax,eax
+    mov ecx,4612
+    rep stosq
+%endif
     push rbx
     mov ebx,ELF_STORAGE_COUNT-1
 .all:
@@ -884,4 +895,9 @@ elf_context_store:
     resb ELF_CONTEXT_COUNT * ELF_CONTEXT_SIZE
 %ifdef REIST_NATIVE_PROGRAMS
     resb (ELF_STORAGE_COUNT-ELF_CONTEXT_COUNT) * ELF_CONTEXT_SIZE
+%endif
+%ifdef REIST_NATIVE_LIFECYCLE
+alignb 16
+global elf_import_record
+elf_import_record: resb 36896
 %endif

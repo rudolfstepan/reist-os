@@ -363,6 +363,10 @@ extern x86_64_elf64_page_frame64
 extern x86_64_elf64_page_flags64
 extern x86_64_elf64_address_flags64
 extern x86_64_elf64_select_image64
+%ifdef REIST_NATIVE_LIFECYCLE
+extern elf_import_record
+extern boot_program_admit64
+%endif
 extern x86_64_exception_set_rsp0
 extern serial_write64
 extern serial_putc64

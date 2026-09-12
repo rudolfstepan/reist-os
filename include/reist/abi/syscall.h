@@ -180,6 +180,15 @@ typedef struct {
 typedef char reist_task_startup_size_check[sizeof(reist_task_startup_v1_t)==1040U ? 1 : -1];
 typedef char reist_task_create_size_check[sizeof(reist_task_create_v2_t)==64U ? 1 : -1];
 
+/* CREATE-v3: prepared points to one immutable RNPGv1 record (36896 bytes).
+ * Startup-v1 stays separate. Neither byte input grants syscall or IPC rights. */
+#define REIST_TASK_IMPORT_VERSION 3U
+typedef struct {
+    uint32_t version, struct_size, operation, flags;
+    uint64_t target, prepared, timeout_ms, syscalls, cpu_samples, startup;
+} reist_task_create_v3_t;
+typedef char reist_task_import_size_check[sizeof(reist_task_create_v3_t)==64U ? 1 : -1];
+
 /* ECMA-48 base palette order; 8..15 are the REIST bright extension.
  * A typed, stateless span, not an escape-sequence/ANSI terminal protocol. */
 #define REIST_TERMINAL_COLOR_VERSION 1U

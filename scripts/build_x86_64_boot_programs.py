@@ -36,7 +36,8 @@ def prepare(raw,args):
         source[cursor:cursor+len(b)+1]=b+b'\0';cursor+=len(b)+1
     return b'RNPGv1\0\0'+struct.pack('<IIQ',1,SIZE,entry)+rights+pages+source
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False):
+    if import_image and not startup:raise ValueError('import requires startup')
     if startup and (not family or family_case or case):raise ValueError('startup requires normal family')
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
@@ -46,19 +47,30 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         with (attempt/'build.log').open('ab') as f:f.write(r.stdout+r.stderr)
         if r.returncode:raise RuntimeError((r.stdout+r.stderr).decode(errors='replace')[-2000:])
     start=attempt/'start.o';run([*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start])
-    records=[]
-    for n in range(4):
+    records=[None]*4
+    for n in ([2,0,1,3] if import_image else range(4)):
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
+        extra=[];objects=[]
+        if import_image and n==2:extra=['-DNATIVE_IMPORT_CHILD=1']
+        if import_image and n==0:
+            blob=(attempt/'program2.prg').read_bytes()
+            # Writable input fixture is private to the Ring3 root; never a kernel parser.
+            header=attempt/'import_blob.h'
+            header.write_text('static const unsigned char import_blob[] __attribute__((section(".data.import_blob")))={'+','.join(str(b) for b in blob)+'};\n',encoding='ascii')
+            extra=['-DNATIVE_IMPORT=1','-include',str(header)]
+            parser=attempt/'image.o'
+            run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/image.c','-o',parser])
+            objects.append(parser)
         run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror',
              '-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone',
              '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
              '-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include',
              f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',f'-DFAMILY_CASE={family_case}',f'-DSTARTUP_CASE={startup_case}',
-             '-c','arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
-             '-T','config/x86_64_boot_program.ld','-o',elf,start,obj])
-        records.append(prepare(elf.read_bytes(),[f'program{n}.prg',str(n)]))
+             '-T','config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
+        records[n]=prepare(elf.read_bytes(),[f'program{n}.prg',str(n)])
     catalog=attempt/'boot-programs.bin';catalog.write_bytes(b''.join(records))
     # All inputs and all records admitted before replacing the build consumer.
     # Retain every attempt and ELF; only this explicit generated catalog changes.
@@ -73,8 +85,9 @@ if __name__=='__main__':
     p.add_argument('--family',action='store_true')
     p.add_argument('--family-case',type=int,choices=range(6),default=0)
     p.add_argument('--startup',action='store_true')
+    p.add_argument('--import-image',action='store_true')
     p.add_argument('--startup-case',type=int,choices=range(2),default=0)
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image)

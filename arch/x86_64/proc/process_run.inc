@@ -68,6 +68,11 @@ process_run_admit64:
     setb al
     cmp [r9],rax
     jne .bad
+    cmp ecx,2
+    jb .image
+    lea eax,[rcx+5]
+    cmp [r9+24],rax
+    je .next
 .image:
 %endif
     mov rax,[r9+24]

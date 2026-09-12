@@ -1,4 +1,7 @@
 #include <reist/x86_64/task.h>
+#ifdef NATIVE_IMPORT
+#include <reist/x86_64/image.h>
+#endif
 #define MASK ((1ULL<<4)|(1ULL<<5)|(1ULL<<6)|(1ULL<<9)|(1ULL<<22)|(1ULL<<40)|(1ULL<<41)|(1ULL<<42)|(0x7fULL<<49)|(1ULL<<58))
 #define S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
 #define S1(n,a) reist_x64_syscall1(REIST_X64_SYS_##n,(uintptr_t)(a))
@@ -20,7 +23,19 @@ static void number(char *out,uint32_t n) {
     out[8]=0;
 }
 static __attribute__((noinline)) int64_t create(reist_task_startup_v1_t *s) {
+#ifdef NATIVE_IMPORT
+    static unsigned char *prepared;
+    if(!prepared) {
+        int64_t p=S1(MALLOC,36896);if(p<=0) return -12;
+        prepared=(void*)(uintptr_t)p;
+    }
+    if(reist_x64_image_prepare(prepared,import_blob,sizeof(import_blob))) return -22;
+    int64_t result=reist_x64_task_import(prepared,MASK,32,s);
+    for(unsigned i=0;i<36896;i++) ((volatile unsigned char*)prepared)[i]=0x5a;
+    return result;
+#else
     return reist_x64_task_create(5,MASK,32,s);
+#endif
 }
 #elif PROGRAM_ID == 2
 /* Two genuinely private RW pages exercise all ten CREATE acquisitions:
@@ -56,12 +71,31 @@ int main(int argc,char **argv,char **envp) {
     s->argc=1;for(unsigned j=0;j<128;j++) s->arguments[0][j]='x';
     REQUIRE(create(s)==-7,209);
     REQUIRE(reist_x64_startup_init(s,0,0)==0,210);
+#ifdef NATIVE_IMPORT
+    int64_t p=S1(MALLOC,36896);REQUIRE(p>0,246);
+    unsigned char *bad=(void*)(uintptr_t)p;
+    REQUIRE(reist_x64_image_prepare(bad,import_blob,sizeof(import_blob))==0,247);
+    bad[0]^=1;REQUIRE(reist_x64_task_import(bad,MASK,32,s)==-22,248);bad[0]^=1;
+    bad[24]=7;REQUIRE(reist_x64_task_import(bad,MASK,32,s)==-22,249);bad[24]=5;
+    bad[36895]=1;REQUIRE(reist_x64_task_import(bad,MASK,32,s)==-22,250);bad[36895]=0;
+    REQUIRE(reist_x64_task_import((void*)(uintptr_t)0x100500000,MASK,32,s)==-14,251);
+    REQUIRE(S1(FREE,bad)==0,252);
+#endif
 #if STARTUP_CASE == 1
     REQUIRE(create(s)==-12,211);
 #endif
-    int64_t child=create(s);REQUIRE(child>0 && control(2,child,1000)==60,212);
+    int64_t child=create(s);REQUIRE(child>0,212);
+#ifndef NATIVE_IMPORT
+    REQUIRE(control(2,child,1000)==60,212);
+#endif
     REQUIRE(reist_x64_startup_init(s,1,empty)==0,213);
+#ifdef NATIVE_IMPORT
+    int64_t second=create(s);REQUIRE(second>0 && (uint32_t)second==3,253);
+    REQUIRE(control(2,child,1000)==60,212);
+    child=second;REQUIRE(control(2,child,1000)==61,214);
+#else
     child=create(s);REQUIRE(child>0 && control(2,child,1000)==61,214);
+#endif
     uint32_t previous=0;
     for(unsigned iteration=0;iteration<(STARTUP_CASE==1?5U:6U);iteration++) {
         unsigned mode=iteration==1?1:iteration==2?2:iteration==4?3:0;
@@ -102,7 +136,12 @@ int main(int argc,char **argv,char **envp) {
     for(unsigned i=0;i<sizeof(private_zeroes);i++) REQUIRE(!private_zeroes[i],245);
     private_marker=(uint32_t)S0(GETPID);
     private_zeroes[0]=1;private_zeroes[4095]=2;
-    if(argc==0) return 60;
+    if(argc==0) {
+#ifdef NATIVE_IMPORT_CHILD
+        REQUIRE(S1(SLEEP_MS,100)==0 && S1(SLEEP_MS,100)==0,254);
+#endif
+        return 60;
+    }
     if(argc==1) { REQUIRE(!argv[0][0],231);return 61; }
     REQUIRE(argc==8 && argv[0][0]=='w' && !argv[6][0],232);
     for(unsigned i=0;i<127;i++) REQUIRE(argv[7][i]=='Z',233);
