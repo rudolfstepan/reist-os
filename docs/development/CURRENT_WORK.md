@@ -2,6 +2,24 @@
 
 Stand: 12. September 2026
 
+## R8.3x: allgemeines natives IPC
+
+Fortsetzung nach `b90c2cab`, sauberem Arbeitsbaum und allen elf R8.3w-Gates.
+Der vorhandene IPC-C-Kern kompiliert nativ; jetzt werden seine festen Pools,
+explizite Delegation und Nachrichten zusammen mit den unabhängigen Tasks
+verbunden. Positive Wartezeiten bleiben beim Scheduler, nicht als schlafende
+C-Aufrufe auf dem gemeinsamen Syscallstack. Ein kopierter Auftrag und eine
+Deadline je Task; Ereignisse und Timeouts lösen höchstens vier Aufträge aus.
+Pointerprüfung, verspätetes Copyout und Reap bleiben an die genaue Generation
+gebunden. Kein neues IPC-Verfahren und keine Shell-/Kind-Sonderautorität.
+
+Umfang und13 Gates sind vor Implementierung in der Queue eingefroren.
+`-NativeProcesses -NativeIPC` wird ein getrenntes Testprofil; die bisherigen
+Profile und i386-Referenzbilder bleiben geschützt. Der native Plattformadapter
+muss die alten Spin-/Blocking-Abhängigkeiten explizit ersetzen; unmögliche
+Warteaufrufe und unkorrektierbarer Kernzustand dürfen keinen Erfolg vortäuschen.
+Dies ist noch keine abgenommene Funktion und keine vollständige64-Bit-Version.
+
 ## R8.3w: gemeinsamen Integritätsschutz nativ anbinden
 
 R8.3v ist mit `12f93954`, allen zehn Gates und sauberem Arbeitsbaum abgenommen.

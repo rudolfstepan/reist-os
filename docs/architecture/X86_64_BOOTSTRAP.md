@@ -2,6 +2,27 @@
 
 Stand: 12. September 2026
 
+R8.3x ist vor Umsetzung eingefroren: vorhandenes REIST-IPC-v1 mit den
+Syscallnummern49..55/58 und POSIX-errno-Bezeichnungen, keine POSIX-IPC-
+Kompatibilitätsbehauptung. Der optionale NativeIPC-Lauf delegiert diese Rechte
+explizit an unabhängige Tasks. Die unveränderten Common-Operationen arbeiten
+intern mit Timeout0; native ausstehende Aufträge besitzen eigene endliche
+Deadlines und generationsgebundene, kopierte Eingaben. Höchstens ein Auftrag
+und ein Wartelisteneintrag je Task, niemals eine C-Stackfortsetzung. Normale
+Operationen warten maximal1000ms, Timeout0 ergibt EAGAIN. Timeout ergibt
+ETIMEDOUT; Entzug während eines bereits wartenden Auftrags EPIPE, ein sofort
+benutztes altes Handle EBADF. Reap entzieht vor Framefreigabe sämtliche Rechte.
+
+Ein separater kleiner IPC-Prozessdatensatz bindet PID/Generation und lokale
+Capabilities; der große i386-Prozessdatensatz wird weder importiert noch auf
+native Taskdaten gelegt. IF0/SingleCPU ersetzt die alte Spinlock-Plattform;
+unerwartete Konkurrenz, unkorrektierbare Integrität oder ein versuchter
+gemeinsamer Blocking-Aufruf sind vertrauenswürdige Zustandsfehler, kein
+Userspace-Erfolg. Native IRQ-Klassifikation bleibt rein lesend.
+System-V-ELF64-Funktionsbindungen werden gegebenenfalls aus exakt validierten
+STT_FUNC-Symbolen generiert; normale SHF_MERGE/SHF_STRINGS-Konstantenmetadaten
+dürfen die tatsächlichen W^X/NX-Loadrechte nicht verändern. Noch nicht abgenommen.
+
 R8.3w, vor Umsetzung eingefroren: Der bestehende gemeinsame Integritätskern
 bleibt quellgleich. Der x86-IRQ-Header verwendet in Long Mode64-Bit-Stack-
 operanden; das historische uint32-Statustoken enthält weiterhin die definierten

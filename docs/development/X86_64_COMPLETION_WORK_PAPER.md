@@ -4,6 +4,29 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3x: IPC-Pools, Syscalls und Wartelebensdauer gemeinsam
+
+Baseline `b90c2cab`; dreizehn Gates vor Umsetzung eingefroren. Der vorhandene
+C-IPC-Kern wird mit kleinen expliziten nativen Prozessansichten verbunden,
+nicht mit einem Cast auf die historische große `Process`-Struktur. Seine
+Pool-/Handle-/Nachrichtenverfahren und der optimierte Integritätskern bleiben
+erhalten. Nur die Plattformbindung wird architekturspezifisch.
+
+Reihenfolge innerhalb dieses einen Pakets: Hostregression und Bindungsvertrag;
+vorhandene Pools nativ linken; explizite Syscallrechte und geprüfte Kopien;
+asynchrone Aufträge/Deadline-/Ereignisabschluss; Fencing vor Reap; reale
+unabhängige Ring3-Paare einschließlich Fehlern und Wiederverwendung prüfen.
+Der gemeinsame Kernelstack verbietet das Übernehmen schlafender C-Fortsetzungen.
+Deshalb nutzt der Adapter die alten Operationen nichtblockierend und hält
+höchstens vier kopierte Aufträge. Das ist keine Pollingschleife: Arbeit erfolgt
+nur bei IPC-Ereignis, Taskende oder endlicher Deadline, außerhalb des IRQ-Bodys.
+
+V1 behält16 Endpunkte,64 globale/8 lokale Capabilities,4 Nachrichten und128Byte
+Nutzlast, abschwächende Delegation ohne CONTROL, EAGAIN/ETIMEDOUT/EPIPE/EBADF.
+Die späteren Bulk-Syscallnummern brauchen einen breiteren Profilvertrag und
+werden hier nicht durch implizite Sonderrechte verfügbar gemacht. Weitere
+Speicher-/Dienst-/Userland-Portierung folgt erst nach akzeptiertem Commit.
+
 ## R8.3w: vorhandenen Integritätskern übernehmen
 
 Nach R8.3v `12f93954`: Die vorhandene IPC-Implementierung hängt am gemeinsamen
