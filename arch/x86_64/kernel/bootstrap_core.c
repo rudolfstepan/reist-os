@@ -1,4 +1,23 @@
 #include "bootstrap_core.h"
+#include "../proc/process_run.h"
+
+#ifndef X86_64_NATIVE_PROCESSES
+#define X86_64_NATIVE_PROCESSES 0
+#endif
+#if X86_64_NATIVE_PROCESSES
+extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
+/* Trusted boot admission, not automatic restart or runtime process policy. */
+static const struct reist_x64_run_v1 native_runs[2] = {
+    {1,144,4,0,{{0x10000,REIST_X64_RUN_SYSCALLS,4,0},
+               {0x10001,REIST_X64_RUN_SYSCALLS,8,0},
+               {0x10002,REIST_X64_RUN_SYSCALLS,12,0},
+               {0x10003,REIST_X64_RUN_SYSCALLS,16,0}}},
+    {1,144,4,0,{{0x10100,REIST_X64_RUN_SYSCALLS,20,0},
+               {0x10101,REIST_X64_RUN_SYSCALLS,24,0},
+               {0x10102,REIST_X64_RUN_SYSCALLS,28,0},
+               {0x10103,REIST_X64_RUN_SYSCALLS,32,0}}}
+};
+#endif
 
 #define REIST_HIGHER_HALF_BASE 0xFFFFFFFF80000000ULL
 #define REIST_DIRECT_MAP_BASE 0xFFFF800000000000ULL
@@ -112,9 +131,17 @@ static int validate_control(
 
     if (control->version != REIST_X86_64_CONTROL_VERSION ||
         control->size != REIST_X86_64_CONTROL_SIZE ||
+#if X86_64_NATIVE_PROCESSES
+        control->flags != REIST_X86_64_CONTROL_PROCESS_FLAGS ||
+#else
         control->flags != REIST_X86_64_CONTROL_REQUIRED_FLAGS ||
+#endif
         control->request_generation != REIST_X86_64_CONTROL_GENERATION ||
+#if X86_64_NATIVE_PROCESSES
+        control->service_id != REIST_X86_64_CONTROL_SERVICE_PROCESSES ||
+#else
         control->service_id != REIST_X86_64_CONTROL_SERVICE_SHELL ||
+#endif
         control->task_capacity != REIST_FIXED_CAPACITY ||
         control->runqueue_capacity != REIST_FIXED_CAPACITY ||
         control->syscall_abi_version != REIST_SYSCALL_ABI_VERSION ||
@@ -224,9 +251,17 @@ reist_u32 x86_64_c_control_entry(
             goto cleanup_control;
         }
     }
+#if X86_64_NATIVE_PROCESSES
+    for (index=0; index<2; ++index) {
+        if (x86_64_c_process_run64(&native_runs[index]) != 1U) {
+            goto cleanup_control;
+        }
+    }
+#else
     if (x86_64_c_process_shell64(control->request_generation) != 1U) {
         goto cleanup_control;
     }
+#endif
     result = 1U;
 
 cleanup_control:

@@ -17,6 +17,22 @@ prüfen Hostverhalten, echte Gäste und unveränderte i386-Referenzen. Der bishe
 Bootstrap bleibt Standard; allgemeine Endpoints, skalierbarer Speicher, Ring-3-
 Loader/Supervisor und echte Dienste bleiben nachgeordnete eigene Grenzen.
 
+Umsetzung12.September: `process_run.inc` ist der vom Gast benutzte gemeinsame
+Adapter, keine ungenutzte Metadatenbibliothek. Der feste C-Bootkoordinator lässt
+zwei unabhängige Vierergruppen desselben eingebetteten Demo-ELFs nacheinander
+zu; die Kernelmechanismen kennen weder Demoargumente noch Sollstatus oder
+Fehlertestnummern. Neun Uservarianten bestehen mit72 Taskabschlüssen, zusätzlich
+fünf read-only GDB-Läufe mit40 Taskabschlüssen und125 Gesamt-Frame-Reaps,
+einschließlich85 unveränderter früherer Bootstrap-Reaps (46.192s). Gemeinsame
+Generationen, Queue, Deadline, Profil, Kontext, Budget und Frame/FP-Kerne bleiben
+wiederverwendet. Hostzulassung und Wake-Übergänge laufen O0/O2, mutierte
+Besitz-/Queue-/Profil-/Framezustände lehnen ohne Mutation ab. Bestehende
+Eigentümer-, Request-, Frame- und i386-Referenzgates sind unverändert grün.
+Die Ausführung ist weiterhin optional und begrenzt; `-NativeProcesses` besitzt
+einen eigenen privaten Kontroll-Service2 und eigenen Abschlussmarker, statt
+eine nicht gestartete Shell als erfolgreich auszugeben. Endpoints, mehr RAM,
+produktiver Ring-3-Loader/Supervisor und echte Programme sind noch offen.
+
 ## R8.3t: Eigentümerabschluss mit abhängigen Prozessen
 
 Nachfolgepaket R8.3t auf `af9ec117`: gemeinsamer Eigentümer-Terminalpfad für

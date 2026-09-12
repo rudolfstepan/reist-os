@@ -8,6 +8,13 @@ BITS 64
 section .text
 global _start
 _start:
+%ifndef X86_64_NATIVE_PROCESSES
+%define X86_64_NATIVE_PROCESSES 0
+%endif
+%if X86_64_NATIVE_PROCESSES
+    cmp rdi, 0x10000
+    jae process_demo
+%endif
     cmp edi, 0x0a
     jb .early_integer_probe
     FP_BEGIN edi
@@ -51,6 +58,10 @@ _start:
     cmp edi, 0x19
     je dynamic_child
     int3
+
+%if X86_64_NATIVE_PROCESSES
+%include "arch/x86_64/user/process_demo.inc"
+%endif
 
 probe_exit:
     mov eax, 9

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3u-x86_64-independent-process-run"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3u-x86_64-independent-process-run"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Role-independent native process admission, scheduling and retirement"
@@ -27,6 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_process_run.py --evidence build
 acceptance = "All14 frozen groups pass after direct scope/ABI/cleanup review. Actual general run adapter used in guest, not an unused metadata library. Independent peer progress and exact post-reap receipts for all outcomes; failed and intermediate evidence retained. Existing default user ELFs byteidentical; alternative user demonstration profile explicitly identified. One clean local commit then continue the next in-priority native transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for new public rights, supervisor policy, device or loader format changes"]
 commit_message = "feat: run independent bounded native processes"
+evidence = ["python test/test_x86_64_process_run.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_owner_terminal.py -v", "python test/test_x86_64_busy.py -v", "python test/test_x86_64_user_context.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83u-process-run/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -NativeProcesses -OutputDirectory build/codex-agent/r83u-process-run/native", "python scripts/run_qemu_x86_64_process_run.py --evidence build/codex-agent/r83u-process-run/processes", "python scripts/run_qemu_x86_64_owner_terminal.py --evidence build/codex-agent/r83u-process-run/owners", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83u-process-run/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83u-process-run/retirement", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83u-process-run/requests", "python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All14 frozen groups pass on contract45352201 after main-agent scope/ABI/cleanup review. New host5/2.098s actual production admission, ownership/frame uniqueness and deadline-wake O0/O2, strict serial/frame oracle negatives and mocked debugger-start cleanup. Legacy host boot56/.030s, owner5/4.062s, budget3/.904s, context4/.004s, frames4/2.142s. Docs7/.747s with historicalD1.1 skip; inventory108. Normal and NativeProcesses builds pass, individual build time not separately measured; all3 default user ELFs byteidentical to3a8c97d2. Actual new matrix9configs/72tasks plus5 read-only observed boots/40tasks,125 observed total frame releases46.192s, attempt507e781618b74b04ac0478076a92bbce. Each run retires only its actual admitted slots/generations; unchanged kernel mechanisms across all9 user fixtures. Legacy owner52dialogs+5observations35.707s/80955b76e3384330b7a681b2d071177b, normalframes20/1.516s/5d1fc4ea5b774c4eb3ede06132835b44, requests3cases6generations9.142s/0e722ad801d04dafb9967ee884f702ef; pinned i386 images/96programs unchanged1.193s. Logs build/codex-agent/r83u-*; all failed/intermediate evidence retained. First serial receipt loop fixed for existing putc RBX clobber; host harness restricted to its actual BSS arena and generated include relocated; read-only zero observer exposed private syscall-stack/register copies, now scrubbed after normal cleanup. No deadline/quota relaxation, test knob in kernel mechanisms, new user authority, automatic restart, visible VM, agent, unrelated process termination or push. NativeProcesses is an optional admitted embedded-demo profile, service2/flags0x19 and dedicated final marker, not a production shell or full64bitOS. Existing namespace40/41/42 profile remains unchanged. R3.6b deferred and R341-H1/H2 open. Continue next clean in-priority native transaction."
 
 [[packages]]
 id = "R8.3t-x86_64-owner-terminal-containment"
@@ -3107,7 +3109,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

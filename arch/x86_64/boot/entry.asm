@@ -36,8 +36,16 @@ C_HANDOFF_QWORDS    equ C_HANDOFF_SIZE / 8
 C_STATE_QWORDS      equ 4
 C_CONTROL_VERSION   equ 1
 C_CONTROL_SIZE      equ 64
+%ifndef X86_64_NATIVE_PROCESSES
+%define X86_64_NATIVE_PROCESSES 0
+%endif
+%if X86_64_NATIVE_PROCESSES
+C_CONTROL_FLAGS     equ 0x19
+C_CONTROL_SERVICE   equ 2
+%else
 C_CONTROL_FLAGS     equ 0x0F
 C_CONTROL_SERVICE   equ 1
+%endif
 C_CONTROL_GENERATION equ 1
 C_CONTROL_QWORDS    equ C_CONTROL_SIZE / 8
 
@@ -116,6 +124,7 @@ extern x86_64_process_runqueue_selftest64
 extern x86_64_process_deadline_sleep_selftest64
 extern x86_64_process_spawn_wait_selftest64
 extern x86_64_process_shell64
+extern x86_64_process_run64
 extern x86_64_process_table_metadata_clear64
 extern _text_start
 extern _text_end
@@ -560,7 +569,11 @@ x86_64_nx_resume:
     call serial_write64
     lea rsi, [rel fp_lifecycle_message]
     call serial_write64
+%if X86_64_NATIVE_PROCESSES
+    lea rsi, [rel native_processes_message]
+%else
     lea rsi, [rel ring3_shell_message]
+%endif
     call serial_write64
     jmp halt64
 
@@ -938,6 +951,63 @@ x86_64_c_process_shell64:
     xor eax, eax
     ret
 
+align 256
+global x86_64_c_process_run64
+x86_64_c_process_run64:
+    lea rax, [rel _c_core_rodata_start]
+    cmp rdi, rax
+    jb .fail
+    mov rax, rdi
+    add rax, 144
+    jc .fail
+    lea rdx, [rel _c_core_rodata_end]
+    cmp rax, rdx
+    ja .fail
+    cmp byte [rel c_control_active], 0
+    jne .fail
+    pushfq
+    pop rax
+    test eax, (1<<9)
+    jnz .fail
+    mov rax, cr3
+    mov edx, pml4_table
+    cmp rax, rdx
+    jne .fail
+    mov byte [rel c_control_active], 1
+    push rbx
+    push rbp
+    push r12
+    push r13
+    push r14
+    push r15
+    sub rsp, 8
+    call x86_64_process_run64
+    add rsp, 8
+    mov r10d, eax
+    mov rax, cr3
+    mov edx, pml4_table
+    cmp rax, rdx
+    jne .invalid_return
+    pushfq
+    pop rax
+    test eax, (1<<9)
+    jz .restore
+.invalid_return:
+    xor r10d, r10d
+.restore:
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbp
+    pop rbx
+    mov byte [rel c_control_active], 0
+    mov eax, r10d
+    ret
+.fail:
+    xor eax, eax
+    ret
+
 section .text
 serial_init64:
     mov dx, COM1_DATA + 1
@@ -1027,6 +1097,7 @@ higher_half_paging_message db "REIST_X86_64_HIGHER_HALF_PAGING_OK", 13, 10, 0
 exception_recovery_message db "REIST_X86_64_EXCEPTION_RECOVERY_OK", 13, 10, 0
 c_core_handoff_message db "REIST_X86_64_C_CORE_HANDOFF_OK", 13, 10, 0
 ring3_shell_message db "REIST_X86_64_RING3_SHELL_OK", 13, 10, 0
+native_processes_message db "REIST_X86_64_NATIVE_PROCESSES_OK", 13, 10, 0
 
 align 8
 gdt64:

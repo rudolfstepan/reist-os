@@ -117,6 +117,7 @@ SCHEDULER_MODE_RUNQUEUE    equ 4
 SCHEDULER_MODE_SLEEP       equ 5
 SCHEDULER_MODE_DYNAMIC     equ 6
 SCHEDULER_MODE_SHELL       equ 7
+SCHEDULER_MODE_PROCESS     equ 8
 
 EVENT_A_READY              equ 1
 EVENT_B_READY              equ 2
@@ -1016,6 +1017,8 @@ scheduler_queue_apply64:
 
 ; EDI slot, ESI generation. Task policy stays in this bootstrap adapter.
 scheduler_runqueue_enqueue64:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .mode_valid
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .mode_valid
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -1057,6 +1060,8 @@ scheduler_runqueue_enqueue64:
 ; EAX returns slot and EDX generation. The selected entry remains published
 ; until every task and generation check succeeds.
 scheduler_runqueue_dequeue64:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .mode_valid
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .mode_valid
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -1330,6 +1335,8 @@ scheduler_deadline_remove_shell_send64:
 ; ESI is the newly accepted 100-Hz tick. At most four due entries move from
 ; BLOCKED to READY and into the generation-scoped FIFO.
 x86_64_scheduler_deadline_tick64:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_tick_admit64
     mov byte [rel scheduler_failure_stage], 0x80
     add byte [rel scheduler_failure_stage], sil
     cmp byte [rel scheduler_active], 1
@@ -1600,6 +1607,8 @@ scheduler_enter_task64:
     jne scheduler_fail
     cmp edi, TASK_COUNT
     jb .slot_valid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -1619,6 +1628,8 @@ scheduler_enter_task64:
     add r11, rax
     cmp qword [r11 + TASK_STATE], TASK_READY
     jne scheduler_fail
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_enter64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .runqueue_task
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -1723,6 +1734,8 @@ scheduler_enter_task64:
 
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_QUANTUM
     je .quantum_registers
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .quantum_registers
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
     je .quantum_registers
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_DYNAMIC
@@ -1792,6 +1805,8 @@ scheduler_syscall_entry64:
     mov edi, dword [rel scheduler_current_slot]
     cmp edi, TASK_COUNT
     jb .syscall_slot_valid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .syscall_extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .syscall_extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -1812,6 +1827,8 @@ scheduler_syscall_entry64:
     mov rax, cr3
     cmp rax, qword [r12 + TASK_CR3]
     jne scheduler_fail
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_syscall64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     je .shell_user_context
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_QUANTUM
@@ -2455,6 +2472,8 @@ scheduler_shell_deadline_complete64:
     ret
 
 x86_64_scheduler_shell_timer_validate64:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_irq_validate64
     cmp byte [rel scheduler_active], 1
     jne .fail
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
@@ -2571,6 +2590,8 @@ x86_64_scheduler_shell_timer_validate64:
 
 ; Runs strictly after PIC EOI. Kernel idle returns to its bounded HLT loop.
 x86_64_scheduler_shell_timer_tail64:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_irq_tail64
     cmp edx, 3
     je .unusable_context
     cmp edx, 2
@@ -5501,6 +5522,8 @@ scheduler_handle_dynamic_exit64:
 x86_64_scheduler_user_exception64:
     cmp byte [rel scheduler_active], 1
     jne .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je process_run_exception64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     je scheduler_retire_shell_exception64
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
@@ -6431,6 +6454,8 @@ scheduler_build_task64:
     xor r12d, r12d
     cmp edi, TASK_COUNT
     jb .slot_valid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_RUNQUEUE
     je .extended_slot
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SLEEP
@@ -6452,8 +6477,11 @@ scheduler_build_task64:
     jne .invalid
     cmp qword [r12 + TASK_CR3], 0
     jne .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .reserve_identity
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .reserved
+.reserve_identity:
     mov eax, 1
     xor esi, esi
     call scheduler_identity_apply64
@@ -6541,6 +6569,8 @@ scheduler_build_task64:
     mov qword [r12 + TASK_RIP], rax
     mov qword [r12 + TASK_RSP], USER_STACK_TOP
     mov qword [r12 + TASK_RFLAGS], USER_RFLAGS_INITIAL
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .process_id
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_PREEMPTION
     je .preempt_ids
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_QUANTUM
@@ -6620,6 +6650,9 @@ scheduler_build_task64:
 .shell_child_id:
     mov qword [r12 + TASK_RDI], 0
     mov qword [r12 + TASK_ID], TASK_SHELL_CHILD_ID
+    jmp .done
+.process_id:
+    or qword [r12 + TASK_RFLAGS], 0x200
 .done:
     mov eax, ebx
     shl rax, 5
@@ -6640,8 +6673,11 @@ scheduler_build_task64:
     call scheduler_release_task_frames64
     test eax, eax
     jz .invalid
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .retire_identity
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .invalid
+.retire_identity:
     mov edi, ebx
     mov rsi, qword [r12 + TASK_GENERATION]
     mov eax, 3
@@ -7528,8 +7564,11 @@ scheduler_cleanup_common64:
     jnz .syscalls_done
     mov byte [rel scheduler_cleanup_error], 1
 .syscalls_done:
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    je .cancel_timer
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .timer_done
+.cancel_timer:
     call x86_64_timer_preemption_cancel64
     test eax, eax
     jnz .timer_done
@@ -7628,7 +7667,11 @@ scheduler_hex_nibble64:
     add al, '0'
     jmp serial_putc64
 
+%include "arch/x86_64/proc/process_run.inc"
+
 section .rodata
+process_run_reap_message: db "REIST_X86_64_PROCESS_REAP_OK v1=", 0
+process_run_ok_message: db "REIST_X86_64_PROCESS_RUN_OK", 13, 10, 0
 scheduler_child_cpu_message: db "REIST_X86_64_CHILD_CPU_REAP_OK generation=", 0
 scheduler_child_stack_message: db "REIST_X86_64_CHILD_STACK_REAP_OK generation=", 0
 scheduler_child_context_message: db "REIST_X86_64_CHILD_CONTEXT_REAP_OK generation=", 0
@@ -7923,6 +7966,16 @@ syscall_r13: resq 1
 syscall_r14: resq 1
 syscall_r15: resq 1
 scheduler_state_end:
+
+; Run namespace is deliberately outside the legacy per-proof state reset.
+alignb 8
+process_run_generation: resd 1
+process_run_live: resd 1
+process_run_build_slot: resd 1
+alignb 8
+process_run_plan: resb 144
+process_run_generations: resd TASK_SLOT_CAPACITY
+process_run_receipt: resb 32
 
 scheduler_caller_rsp:
     resq 1

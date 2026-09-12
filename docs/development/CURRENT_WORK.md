@@ -4,8 +4,8 @@ Stand: 12. September 2026
 
 ## R8.3u: unabhängige native Prozesse
 
-R8.3t ist mit `3a8c97d2` und allen14 Prüfgruppen abgeschlossen. Der nächste
-zusammenhängende Schnitt löst die feste Shell-/Kindrollenbindung: ein explizit
+R8.3t ist mit `3a8c97d2` und allen14 Prüfgruppen abgeschlossen. Der implementierte
+zusammenhängende Schnitt R8.3u löst die feste Shell-/Kindrollenbindung: ein explizit
 zugelassener Lauf von1..4 unabhängigen Tasks, gemeinsame Präemption, Yield,
 Sleep/Deadlines, CPU-Budgets und individueller Fault-/Kontextabschluss.
 Vorhandene Identitäts-, Queue-, Profil-, Frame- und FP-Kerne bleiben zuständig.
@@ -14,6 +14,30 @@ Restartpolitik. Vertrag und14 Gates sind vor Implementierung eingefroren.
 Das alternative `-NativeProcesses`-Bootstrapprofil demonstriert diese Mechanismen;
 es ist noch keine normale Dateisystem-Shell und keine vollständige64-Bit-Version.
 R3.6b bleibt zurückgestellt, R341-H1/H2 bleiben offen.
+
+Abnahmestand12.September: neuer tatsächlicher Assembler-Zulassungs-/Besitzkern
+und Wake-Übergang O0/O2, fünf Hosttests inklusive strikter negativer Gastorakel
+und Observer-Startfehlerbereinigung (2.098s). Neun Gastkonfigurationen mit72
+Taskabschlüssen und fünf zusätzlichen rein lesenden Freigabe-/Nullbeobachtungen
+(40 weitere Tasks) bestehen in46.192s; Beleg
+`build/codex-agent/r83u-process-run/processes/attempt-507e781618b74b04ac0478076a92bbce`.
+Alle vier Slots und Generationen1..8 sind beteiligt, einschließlich roher
+uint32-Exitwerte, UD2/PF/DE, ungültiger SYSCALL-/IRQ-Kontexte und CPU-Spin.
+Private RW-Daten sowie FPU/SSE bleiben über Handoffs erhalten; Sleep weckt auch
+aus dem Kernel-HLT-Leerlauf. Jeder Fehler betrifft nur seinen zugelassenen Task.
+Der read-only Frameprüfer zählt pro Beobachtung exakt17 alte und acht neue
+Reaps, prüft Profilwiderruf vor Freigabe, eindeutige tatsächliche Backend-Frees,
+FP/Metadaten null sowie den ursprünglichen Freiframezähler nach jedem Lauf.
+
+Bestehende Gates: Bootstrap56, Owner5, Budget3, Kontext4 und Frame4 Hosttests
+grün;52 Eigentümerdialoge plus fünf Beobachtungen35.707s,20 normale Frame-Reaps
+1.516s, drei Requestfälle/sechs Generationen9.142s. Beide Profile bauen getrennt;
+die normalen drei User-ELFs sind byteidentisch zu `3a8c97d2`. Gepinnte i386-
+Images und96 Programme sind unverändert (1.193s). Originalfehler bleiben unter
+`r83u-*` erhalten: begrenzte Hexausgabe korrigiert; Hostharness auf seine eigene
+BSS-Arena begrenzt; private Syscall-Stack-/Registerkopien nach Ablauf gelöscht.
+Keine sichtbaren Testfenster, geänderten Fristen, fremden Prozesse oder Pushes.
+Dokumentationsgate und abschließender Queue-/Scopecheck vor dem lokalen Commit.
 
 ## R8.3t: Ausfall des nativen Bootstrap-Eigentümers eingrenzen
 
@@ -30,7 +54,7 @@ Kind32 und gemeinsamer256-Tick-Schutz bleiben unverändert. Diese Zahlen sind
 keine Zielgrenzen für die spätere normale Shell. Vierzehn eingefrorene Gruppen
 in der Queue, Belege unter `build/codex-agent/r83t-owner-terminal/`.
 
-Prüfstand vor lokalem Erfolgscommit:
+Abgenommen mit lokalem Erfolgscommit `3a8c97d2`:
 Die neue read-only Besitzprüfung besteht als echte Assemblerausführung unter
 O0/O2 einschließlich negativer Zustandsmutationen. Der historische Shell-UD2-
 Abbruch ist im Gast unter `legacy-proof/attempt-bfb5554ea7e64ae1b08540bad832ee2b`

@@ -2,13 +2,15 @@
 
 Stand: 11. September 2026
 
-Ergänzung12.September2026, R8.3u (vor Implementierung eingefroren): Das optionale
+Ergänzung12.September2026, R8.3u: Das vor Implementierung eingefrorene optionale
 `-NativeProcesses`-Profil verbindet bestehende Kernelmechanismen ohne feste
 Shell-/Kindrollen. Ein privater144-Byte-Deskriptor v1 enthält Anzahl1..4 sowie
 vier32-Byte-Einträge mit opakem Userargument, expliziter Syscallmaske, CPU-Samples
 und nullreserviertem Wort; unbenutzte Einträge sind vollständig null. Er ist
 nur über die begrenzte vertrauenswürdige C-Bootkoordination zugänglich, kein
-Userspace-Spawnrecht. SysV AMD64 und unveränderte REIST-v1-Nummern gelten;
+Userspace-Spawnrecht. Der private Kernelaufruf verwendet SysV AMD64, die
+User-Syscalls unveränderte REIST-v1-Nummern. Der Demo-Startadapter übergibt das
+opake Argument in RDI; er behauptet noch keinen argc/envp/auxv-Prozessstart.
 keine POSIX-Prozess-/Wait-Kompatibilitätsbehauptung. GETPID liefert die positive
 32-Bit-Taskgeneration im separaten nativen Laufnamensraum; EXIT behält uint32.
 Erlaubbar sind EXIT/GETPID/YIELD/SLEEP_MS/MONOTONIC_MS. Sleep1..100ms wird auf
@@ -24,6 +26,27 @@ auf Kernelroot/-stack, Profilwiderruf vor Framefreigabe, FP/Budget/Identität nu
 Der unveränderte eingebettete ELF-Loader ist weiterhin Bootstrap-Migrationsschuld,
 nicht Vorbild für einen produktiven Ring-0-Loader. Alte Prüfprofile bleiben
 unverändert und der Standardbuild behält byteidentische User-ELFs.
+
+Der64-Byte-C-Kontrollhandoff v1 ergänzt Service2 mit Flags0x19
+(Runqueue, kein Geräterecht, eingebettetes Prozess-ELF). Service1/Flags0x0F
+für die bisherige Shell bleiben unverändert. Der neue begrenzte C-Rodata-
+Bridgepfad bei0xFFFFFFFF80184200 prüft Descriptorbereich, IF=0, Kernelroot und
+Nicht-Reentranz. Die Bootkoordination lässt zwei Gruppen desselben Demo-ELFs
+zu;1..4 Einträge und Maskensubsets werden im tatsächlichen Hostkern geprüft.
+Die positive Taskgeneration ist laufübergreifend monoton; kein Prozess kann
+dieses privilegierte Zulassungsobjekt selbst erzeugen oder ändern.
+
+Private32-Byte-Abschlussquittung `REIST_X86_64_PROCESS_REAP_OK v1=`:
+vier little-endian uint32 (Slot, Generation, Rohstatus, terminaler Taskzustand)
+und zwei uint64 (CPU-Samples, RIP), als64 Hexziffern. Sie folgt erst auf
+Profilwiderruf, normale Frame-/FP-/Budgetfreigabe, Identitätsretirement und
+erneute Prüfung der überlebenden Peers. Kein erwarteter Status oder Testablauf
+entscheidet über erfolgreiche Kernelbereinigung. `PROCESS_RUN_OK` bestätigt
+einen vollständig bereinigten zugelassenen Lauf; der alternative finale Marker
+ist `REIST_X86_64_NATIVE_PROCESSES_OK`, ausdrücklich nicht Shell-Kompatibilität.
+Die privaten Syscall-Stack-/Registerkopien werden ebenfalls gelöscht. Normale
+und beobachtete Gastmatrizen belegen diese Reihenfolge; die Abschlussorakel
+lehnen fehlende, doppelte, falsch zugeordnete oder unvollständige Reaps ab.
 
 Ergänzung12.September2026, R8.3t: Im explizit kurzlebigen Bootstraplauf kann
 die Eigentümergeneration40 auch mit lebendem oder bereits gereaptem Kind

@@ -241,6 +241,8 @@ X86_64_MAPPING_CASE ?= 0
 X86_64_INSTRUCTION_CASE ?= 0
 X86_64_SHELL_EXIT_STATUS ?= -1
 X86_64_OWNER_TERMINAL ?= 0
+X86_64_NATIVE_PROCESSES ?= 0
+X86_64_PROCESS_CASE ?= 0
 X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_INSTRUCTION_CASE)),config/x86_64_user_instruction.ld,$(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld))
 X86_64_EFFECTIVE_IPC_CASE = $(if $(filter-out 0,$(X86_64_REQUEST_CASE) $(X86_64_OOM_CASE) $(X86_64_PROFILE_CASE)),1,$(X86_64_IPC_CASE))
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
@@ -402,7 +404,9 @@ all: native-image
 
 x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
-	@$(AS) -f elf64 arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
+	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
+		-DX86_64_PROCESS_CASE=$(X86_64_PROCESS_CASE) \
+		arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
 		-T config/x86_64_user_probe.ld -o $(X86_64_USER_PROBE_ELF) $(X86_64_USER_PROBE_OBJ)
 	@$(X86_64_CC) $(X86_64_USER_CFLAGS) -Iuserspace/sdk/include \
@@ -442,6 +446,7 @@ x86_64-bootstrap:
 		-z noexecstack --strip-all -T $(X86_64_CHILD_LINKER) \
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
+		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-debug -e x86_64_c_core_entry \
@@ -451,6 +456,7 @@ x86_64-bootstrap:
 		--section-start=.bss=0xFFFFFFFF80188000 \
 		--defsym=x86_64_c_serial_write64=0xFFFFFFFF80184000 \
 		--defsym=x86_64_c_process_shell64=0xFFFFFFFF80184100 \
+		--defsym=x86_64_c_process_run64=0xFFFFFFFF80184200 \
 		--defsym=x86_64_c_handoff=0xFFFFFFFF80188020 \
 		--defsym=x86_64_c_control_handoff=0xFFFFFFFF801880A0 \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ)
@@ -458,6 +464,7 @@ x86_64-bootstrap:
 	@$(OBJCOPY) -O binary --only-section=.rodata $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_RODATA)
 	@$(OBJCOPY) -O binary --only-section=.data $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_DATA)
 	@$(AS) -f elf32 -DC_CORE_TEXT_PATH=\"$(X86_64_C_CORE_TEXT)\" \
+		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
 		arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)

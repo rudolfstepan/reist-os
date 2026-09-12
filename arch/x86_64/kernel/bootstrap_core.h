@@ -55,6 +55,9 @@ struct __attribute__((packed)) reist_x86_64_bootstrap_handoff_v1 {
 #define REIST_X86_64_CONTROL_NO_DEVICE_AUTH (1ULL << 3)
 #define REIST_X86_64_CONTROL_REQUIRED_FLAGS 0x0FULL
 #define REIST_X86_64_CONTROL_SERVICE_SHELL  1ULL
+#define REIST_X86_64_CONTROL_PROCESS_ELF    (1ULL << 4)
+#define REIST_X86_64_CONTROL_PROCESS_FLAGS  0x19ULL
+#define REIST_X86_64_CONTROL_SERVICE_PROCESSES 2ULL
 #define REIST_X86_64_CONTROL_GENERATION     1ULL
 
 struct __attribute__((packed)) reist_x86_64_control_v1 {
