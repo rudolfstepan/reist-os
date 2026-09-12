@@ -2,6 +2,29 @@
 
 Stand: 11. September 2026
 
+Ergänzung12.September2026, R8.3u (vor Implementierung eingefroren): Das optionale
+`-NativeProcesses`-Profil verbindet bestehende Kernelmechanismen ohne feste
+Shell-/Kindrollen. Ein privater144-Byte-Deskriptor v1 enthält Anzahl1..4 sowie
+vier32-Byte-Einträge mit opakem Userargument, expliziter Syscallmaske, CPU-Samples
+und nullreserviertem Wort; unbenutzte Einträge sind vollständig null. Er ist
+nur über die begrenzte vertrauenswürdige C-Bootkoordination zugänglich, kein
+Userspace-Spawnrecht. SysV AMD64 und unveränderte REIST-v1-Nummern gelten;
+keine POSIX-Prozess-/Wait-Kompatibilitätsbehauptung. GETPID liefert die positive
+32-Bit-Taskgeneration im separaten nativen Laufnamensraum; EXIT behält uint32.
+Erlaubbar sind EXIT/GETPID/YIELD/SLEEP_MS/MONOTONIC_MS. Sleep1..100ms wird auf
+10ms-PIT-Ticks aufgerundet; jeder Task erhält1..32 CPU-Samples, der Lauf maximal
+256 Ticks und die abgenommene IRQ-Fortschrittslease. Nicht gewährte Operationen
+liefern EACCES, ungültige Argumente EINVAL. Keine IO-/IPC-/Geräteautorität.
+Die Ressourcenquoten sind Profilgrenzen dieses128MiB-Prototyps, keine künftigen
+OS-Höchstwerte. Ein Userfehler fencet und reapt nur seinen Task, nach Prüfung
+des gesamten gebundenen Laufzustands. Generationen werden zwischen zugelassenen
+Läufen nicht zurückgesetzt; Überlauf lehnt ab. Ein neuer Lauf ist eine explizite
+Zulassung des Aufrufers, kein Kernel-Restartentscheid. Reap erfolgt nach IRQ-EOI
+auf Kernelroot/-stack, Profilwiderruf vor Framefreigabe, FP/Budget/Identität null.
+Der unveränderte eingebettete ELF-Loader ist weiterhin Bootstrap-Migrationsschuld,
+nicht Vorbild für einen produktiven Ring-0-Loader. Alte Prüfprofile bleiben
+unverändert und der Standardbuild behält byteidentische User-ELFs.
+
 Ergänzung12.September2026, R8.3t: Im explizit kurzlebigen Bootstraplauf kann
 die Eigentümergeneration40 auch mit lebendem oder bereits gereaptem Kind
 enden. Kinder41/42 besitzen kein unabhängiges Lebensdauerrecht. Dies ist keine

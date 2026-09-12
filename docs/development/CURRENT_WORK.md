@@ -2,6 +2,19 @@
 
 Stand: 12. September 2026
 
+## R8.3u: unabhängige native Prozesse
+
+R8.3t ist mit `3a8c97d2` und allen14 Prüfgruppen abgeschlossen. Der nächste
+zusammenhängende Schnitt löst die feste Shell-/Kindrollenbindung: ein explizit
+zugelassener Lauf von1..4 unabhängigen Tasks, gemeinsame Präemption, Yield,
+Sleep/Deadlines, CPU-Budgets und individueller Fault-/Kontextabschluss.
+Vorhandene Identitäts-, Queue-, Profil-, Frame- und FP-Kerne bleiben zuständig.
+Ein weiterer zugelassener Lauf verwendet neue Generationen, keine implizite
+Restartpolitik. Vertrag und14 Gates sind vor Implementierung eingefroren.
+Das alternative `-NativeProcesses`-Bootstrapprofil demonstriert diese Mechanismen;
+es ist noch keine normale Dateisystem-Shell und keine vollständige64-Bit-Version.
+R3.6b bleibt zurückgestellt, R341-H1/H2 bleiben offen.
+
 ## R8.3t: Ausfall des nativen Bootstrap-Eigentümers eingrenzen
 
 Auf Basis des abgenommenen R8.3s `af9ec117` implementiert: gemeinsamer

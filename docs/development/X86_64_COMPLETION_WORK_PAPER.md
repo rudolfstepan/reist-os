@@ -4,6 +4,19 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3u: unabhängiger nativer Prozesslauf
+
+Aktuelle Fortsetzung auf Erfolgscommit `3a8c97d2`: R8.3u bündelt allgemeine
+Taskzulassung, unabhängige Lebensdauern, Scheduling/Deadlines und gemeinsamen
+individuellen Reap in einem Paket statt einzelner PID-/Syscallfälle. Das optionale
+native Prozessprofil nimmt versionierte feste1..4-Task-Deskriptoren an, mit
+explizitem Syscallmasken-/CPU-Budget pro Task. Unabhängige Peers überleben den
+Userfehler eines Tasks. Generationen bleiben über aufeinanderfolgende zugelassene
+Läufe monoton; Slotwiederverwendung erteilt keine alten Rechte. Vierzehn Gates
+prüfen Hostverhalten, echte Gäste und unveränderte i386-Referenzen. Der bisherige
+Bootstrap bleibt Standard; allgemeine Endpoints, skalierbarer Speicher, Ring-3-
+Loader/Supervisor und echte Dienste bleiben nachgeordnete eigene Grenzen.
+
 ## R8.3t: Eigentümerabschluss mit abhängigen Prozessen
 
 Nachfolgepaket R8.3t auf `af9ec117`: gemeinsamer Eigentümer-Terminalpfad für
