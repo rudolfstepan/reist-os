@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3s-x86_64-quiescent-shell-exit"
+active_id = "R3.46-display-window-options"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -13,8 +13,26 @@ external_writes = false
 push = false
 
 [[packages]]
-id = "R8.3s-x86_64-quiescent-shell-exit"
+id = "R3.46-display-window-options"
 status = "active"
+phase = "post-s0"
+risk = "medium"
+title = "Display checkboxes for window shadows and contents while moving"
+scope = "User12September priority interrupt: two native Display checkboxes. Append strict optional true/false window_shadows and drag_contents to desktop/1, missing=true. Save resolution and both choices in one existing atomic CONFIG transaction, read back all before success; apply on next desktop startup as existing settings do. Ring3 WM outline-only move uses bounded private capture/generation and preview geometry, keeps actual client geometry until release, cancels stale/closed captures and damages only old/new frame bands. Shadow painting and occlusion bounds agree. Existing contents-on accelerated path and resize behavior stay unchanged. No live config IPC, kernel or driver changes."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/DISPLAY_SETTINGS_CONTRACT.md", "docs/architecture/SYSTEM_CONFIGURATION.md", "config/etc/reist/desktop.conf", "userspace/config/include/reist/display_settings.h", "userspace/config/lib/display_settings.c", "userspace/services/config/config_service.c", "userspace/gui/apps/display/main.c", "userspace/gui/apps/display/display_model.h", "userspace/gui/apps/display/display_model.c", "userspace/gui/compositor/desktop.c", "userspace/gui/compositor/desktop_wm.c", "userspace/gui/compositor/desktop_wm.h", "test/test_display_settings_host.c", "test/test_display_applet_host.c", "test/test_display_window_options.py", "test/display_window_options_host.c", "scripts/run_qemu_display_window_options.py"]
+invariants = ["Existing REIST config/1 strict ASCII true/false, append-only optional keys; defaults preserve current shadow/full-content movement. Native checkbox controller, full-label click and keyboard Tab/Space, draft survives resize. One bounded owned CONFIG child and one atomic three-key publication, exact readback, no false success or new authority. No resolution, color-depth, storage format or hardware changes.", "Outline is compositor-owned decoration, never a client geometry publication. Bounded clipped old/new edge damage, no full-screen invalidation per pointer motion, stale/close/cancel removes preview without committing. Default accelerated movement and resize paths unchanged. No kernel, i386 ABI, device, native64 candidate, visible VM, native crash dialogs, agents or push. R341-H1/H2 and R3.6b deferral preserved. R8.3s source not implemented; own uncommitted tests retained under ignored paused-draft with red evidence."]
+targeted_tests = ["python test/test_display_window_options.py -v", "python test/test_display_settings.py -v", "python scripts/measure_cpp_baseline.py --host-test test/test_desktop_source.py -v", "python scripts/measure_cpp_baseline.py --host-test test/test_reist_config_source.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\test-reist-package.ps1 -Target qemu -Video vga", ".\\scripts\\test-reist-package.ps1 -Target vmware -Video vga"]
+runtime_tests = ["python scripts/run_qemu_display_window_options.py --image build/reist-os.img --backend std --evidence build/codex-agent/r346-window-options/std", "python scripts/run_qemu_display_window_options.py --image build/reist-os.img --backend vmware --evidence build/codex-agent/r346-window-options/vmware", "python scripts/run_qemu_display_settings.py --qemu 'C:/Program Files/qemu/qemu-system-i386.exe' --image build/reist-os.img --backend std --timeout 180 --evidence build/codex-agent/r346-window-options/display"]
+acceptance = "All10 frozen groups. Actual C O0/O2 parser/applet/WM/render/config validation; real hidden QEMU screenshots show checkbox state and shadow/outline/content behavior, persistence and post-release repaint, clean close/new shell. Existing display mode/fault/replacement proof unchanged. Main agent inspects diff/scope and commits only after gates. Then native package may resume on a new clean baseline."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for kernel/device authority or new live settings protocol"]
+commit_message = "feat: add display options for window shadows and drag contents"
+evidence = []
+evidence_note = "Freeze on dcbfb4d8 after explicit user priority switch. Native tests safely retained in build/codex-agent/r83s-shell-exit/paused-draft; no native production change."
+
+[[packages]]
+id = "R8.3s-x86_64-quiescent-shell-exit"
+status = "queued"
 phase = "post-s0"
 risk = "high"
 title = "Native quiescent parent termination independent of the two-child proof dialog"

@@ -6,7 +6,13 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3s: geordneter Shellabschluss unabhängig vom Testdialog
 
-Basis1e7645c8. Frühes EXIT scheitert derzeit an exakt18 gelesenen Zeichen,
+Basis1e7645c8, Vertragdcbfb4d8.
+Nutzerunterbrechung12.September: R3.46 Anzeige-Checkboxen hat Vorrang.
+Noch keine native Produktionsänderung. Vorbereitete eigene Hosttests unter
+`build/codex-agent/r83s-shell-exit/paused-draft/`, echter Host-Rotbeleg
+`01-host-red.log`; Paket bleibt queued und wird sauber neu aufgenommen.
+
+Frühes EXIT scheitert derzeit an exakt18 gelesenen Zeichen,
 acht Schreibaufrufen und zwei Kindern, auch wenn keinerlei fremder Besitz
 mehr besteht. Zusammenhängender Schnitt: null/ein/zwei vollständig gereapte
 Kinder, uint32-Rohstatus und lokale Ablehnung ungültiger EXIT-Argumente.
