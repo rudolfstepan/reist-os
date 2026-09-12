@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3v-x86_64-c-payload-layout"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3v-x86_64-c-payload-layout"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Bounded multi-page native C kernel payload and verified linker bindings"
+scope = "Prerequisite identified during general IPC inventory: replace the one-page C text/rodata and32-byte data/224-byte BSS bootstrap envelope with an explicit private layout v2, preserving W^X, bounded initialization and trusted symbol bindings. Link native C through an ELF64 linker script, validate/extract its exact sections and BSS size at build time, embed only those validated sections in the unchanged ELF32 Multiboot container. Map/verify every occupied C page, keep gaps absent, fully initialize the actual C BSS, retain bounded fixed handoff storage separate from growing C globals. Make existing C modules portable into native mechanisms without adding runtime ELF parsing or more in-kernel policy. No IPC implementation, service/driver port, physical-memory expansion or user ABI change in this transaction."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "Makefile", "config/x86_64_bootstrap.ld", "config/x86_64_c_payload.ld", "arch/x86_64/boot/entry.asm", "arch/x86_64/kernel/bootstrap_core.c", "arch/x86_64/kernel/bootstrap_core.h", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_c_payload.py", "test/test_x86_64_c_payload.py", "test/x86_64_c_payload_fixture.c", "scripts/run_qemu_x86_64_c_payload.py", "test/test_x86_64_boot.py"]
+invariants = ["System V ELF64 little-endian ET_EXEC EM_X86_64; exact private layout v2 envelope below2MiB: existing bridge184000/4KiB; C text185000/64KiB RX, rodata195000/32KiB R/NX, data19D000/16KiB RW/NX, BSS1A1000/256KiB RW/NX, separate fixed handoff1FF000/192bytes RW/NX. Limits are linked kernel-image capacity, not application heap limits. Actual occupied pages only; no writable direct-map alias for any bootstrap frame.128MiB task memory, four tasks, all CPU/deadline quotas unchanged. Existing C data/BSS boot-state32-byte objects remain first in their sections; entry and three bridge symbols checked against ELF and outer container, not inferred from compiler function order.", "Build-time parser rejects malformed/oversized/overlapping/wrong-permission or unknown allocated sections, unexpected load ranges, constructors/destructors/TLS/dynamic/unwind/relocations/undefined symbols and inconsistent bytes/bindings before publication. Bounded section/program/symbol counts, deterministic raw section outputs and generated size include. No hosted runtime, kernel heap or runtime executable parser. Full actual BSS clear precedes C execution and handoff; C boot-state cleanup does not erase future independent component globals. Stable public handoff structures/syscall ABI and normal user ELF bytes preserved; private fixed handoff addresses versioned in layout documentation.", "Real extra C translation unit crosses page boundaries in code, constants, initialized data and BSS. Executable behavior and poisoned pre-initialization guest BSS prove actual use/initialization; read-only GDB after initialization verifies every occupied leaf, gap, WP/NXE and no direct writable alias. Any poison injection is confined to exact new guest BSS bytes before startup initialization, never host/user files or a bypass of protection. Actual malformed-artifact mutation tests and multi-object link rejection, not only source patterns. Existing normal shell, native independent-process matrix and frame retirement remain strict gates. Main agent only, no visible VM/dialog or push; i386 references pinned, R3.6b deferred and R341-H1/H2 open."]
+targeted_tests = ["python test/test_x86_64_c_payload.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_process_run.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83v-c-payload/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -CPayloadProbe -OutputDirectory build/codex-agent/r83v-c-payload/large"]
+runtime_tests = ["python scripts/run_qemu_x86_64_c_payload.py --image build/codex-agent/r83v-c-payload/large/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83v-c-payload/layout", "python scripts/run_qemu_x86_64_process_run.py --evidence build/codex-agent/r83v-c-payload/processes", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83v-c-payload/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83v-c-payload/retirement", "python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All10 frozen groups. Actual multi-page/multi-object C execution and whole-region initialization/protection, strict input/layout rejection and unchanged existing runtime oracles. Preserve all failed evidence, direct scope/ABI/cleanup review, clean local commit then resume the general IPC/native completion dependency chain. Not a full64bitOS or large-RAM completion claim."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for runtime loader, new user/device authority or altered physical-memory contract"]
+commit_message = "feat: support validated multi-page native C kernel payloads"
 
 [[packages]]
 id = "R8.3u-x86_64-independent-process-run"
@@ -3109,7 +3125,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

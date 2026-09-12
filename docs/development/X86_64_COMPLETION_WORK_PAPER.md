@@ -6,6 +6,16 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3u: unabhängiger nativer Prozesslauf
 
+Nächster zusammenhängender Schnitt nach `df6b82ac`: R8.3v beseitigt vor der
+allgemeinen IPC-Portierung die Einseiten-/32Byte-C-Payloadgrenze. Ein eigener
+nativer ELF64-Linkerplan und Buildzeitprüfer verbinden mehrere C-Objekte mit
+begrenzten RX/R-NX/RW-NX-Sektionen; Größen, BSS-Initialisierung und Bridge-
+Symbolbindungen werden aus dem tatsächlichen ELF überprüft. Mehrseitiger
+ausführbarer C-Testpayload plus reale Paging-/BSS-Nachweise sind Bestandteil
+derselben zehn Gates. Keine größere physische RAM-Zulassung und keine
+Aufnahme von Treibern/Protokollpolitik in Ring0. Danach ist der allgemeine
+IPC-Autoritäts-/Lebensdauerschnitt wieder der nächste Kandidat.
+
 Aktuelle Fortsetzung auf Erfolgscommit `3a8c97d2`: R8.3u bündelt allgemeine
 Taskzulassung, unabhängige Lebensdauern, Scheduling/Deadlines und gemeinsamen
 individuellen Reap in einem Paket statt einzelner PID-/Syscallfälle. Das optionale

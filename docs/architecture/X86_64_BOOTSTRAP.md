@@ -2,6 +2,23 @@
 
 Stand: 11. September 2026
 
+R8.3v, vor Implementierung eingefroren12.September: privates C-Payloadlayout v2.
+System-V-ELF64/EM_X86_64/ET_EXEC bleibt der native C-Linkvertrag, ELF32 nur der
+Multiboot-Transportcontainer. Physische feste Hüllbereiche: Bridge0x184000/4KiB,
+Text0x185000/64KiB RX, Konstanten0x195000/32KiB R/NX, Daten0x19D000/16KiB RW/NX,
+BSS0x1A1000/256KiB RW/NX und Handoffs0x1FF000/192Byte RW/NX. Es werden nur die
+tatsächlich belegten Seiten abgebildet, Lücken bleiben nicht präsent. Diese
+Grenzen gelten für den gelinkten Bootstrapkernel, nicht für Userheaps.
+Der gesamte tatsächliche C-BSS-Bereich wird vor Ausführung initialisiert;
+die separaten Handoffstrukturen bleiben128/64Byte v1, ihre privaten Adressen
+sind im neuen Layout versioniert. Textentry, Boot-Stateobjekte und drei feste
+C-Bridgeadressen müssen den tatsächlichen ELF-Symbolen entsprechen. Ein
+Buildzeitprüfer erzeugt erst nach vollständiger ELF-/Bereichs-/Rechteprüfung
+die Abschnittsbytes und BSS-Größendefinition. Keine Runtime-ELF-Ausweitung,
+unbekannten allozierten Abschnitte, Konstruktoren, TLS, dynamischen Bindungen,
+Relokationen, W+X oder impliziten Hosted-Runtime-Abhängigkeiten. Alte datierte
+Einseitenangaben unten bleiben die Historie des Layouts v1, nicht das neue Ziel.
+
 Ergänzung12.September2026, R8.3u: Das vor Implementierung eingefrorene optionale
 `-NativeProcesses`-Profil verbindet bestehende Kernelmechanismen ohne feste
 Shell-/Kindrollen. Ein privater144-Byte-Deskriptor v1 enthält Anzahl1..4 sowie

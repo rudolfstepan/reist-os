@@ -2,6 +2,19 @@
 
 Stand: 12. September 2026
 
+## R8.3v: Platz und verifizierte Bindungen für nativen C-Kernelcode
+
+R8.3u ist mit `df6b82ac` und allen14 Gates abgeschlossen. Bei der nächsten
+IPC-Bestandsaufnahme zeigt sich eine vorgeschaltete Buildgrenze: der bisherige
+native C-Payload besitzt nur4KiB Text/4KiB Konstanten,32Byte Daten und224Byte
+BSS einschließlich der Handoffs. R8.3v ersetzt diese künstliche Modulgrenze
+durch einen expliziten mehrseitigen privaten ELF64-Link-/Einbettungsvertrag
+mit unveränderten Schutzrechten. So können vorhandene C-Mechanismen anschließend
+in den nativen Kernel integriert werden. Zehn Gates sind vor Umsetzung fixiert.
+Kein vorgezogener IPC-/Treiberport; weiterhin128MiB, vier Tasks und bestehende
+Zeitquoten. Die normale32-Bit-Version bleibt unverändert. Native IPC-Pools
+folgen nach dieser Build-/Schutzvoraussetzung; R3.6b bleibt zurückgestellt.
+
 ## R8.3u: unabhängige native Prozesse
 
 R8.3t ist mit `3a8c97d2` und allen14 Prüfgruppen abgeschlossen. Der implementierte
