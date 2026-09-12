@@ -4,7 +4,7 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3s: geordneter Shellabschluss unabhängig vom Testdialog
+## R8.3t: Eigentümerabschluss mit abhängigen Prozessen
 
 Nachfolgepaket R8.3t auf `af9ec117`: gemeinsamer Eigentümer-Terminalpfad für
 EXIT, Fault, unbrauchbaren Userkontext und CPU-Budget, einschließlich aller
@@ -17,6 +17,23 @@ werden. Der spätere Ring-3-Supervisor braucht eigene Zulassung und Nachweise.
 Bestehende Queue-, Deadline-, Profil-, Identitäts-, Frame- und FP-Mechanismen
 werden wiederverwendet. Vierzehn eingefrorene Gruppen prüfen Host und reale
 Gäste; 32-Bit-Referenzen bleiben gepinnt. Kein vorgezogener Geräte-/GUI-Port.
+
+Umsetzung12.September:52 Dialoge und fünf zusätzliche rein lesende GDB-
+Beobachtungen bestehen, einschließlich CPU128, ungültiger SYSCALL-/IRQ-Kontexte,
+IPC-blockierter und schon gereapter Kinder. Die Besitzprüfung läuft als echte
+Assembly O0/O2; unbekannte Generationen, fremde Queue-/IPC-Bindungen und
+Framealiasierung werden vor Effekten abgelehnt. Default-User-ELFs unverändert.
+Das freigegebene Timerscope-Delta ist in Vertrag `23ee459e` festgehalten:
+Die3e9-TSC-Zyklen sind nun nur für SHELL eine validierte Fortschrittslease,
+nicht eine frequenzabhängig zu kurze Gesamtfrist. Maximal256 PIT-Ticks sowie
+128/32 CPU-Samples bleiben fest. Hosttests prüfen reale Lease-Arithmetik,
+die alten Fatalbelege bleiben sichtbar. Kein unabhängiger Hardwarewatchdog-
+oder vollständiger OS-Claim. Bestehende30 Exitdialoge,20 Frame-Reaps,
+24 Faultfälle/48 Generationen und drei Requestfälle/sechs Generationen sind
+ebenfalls grün; i386-Referenzguard bestätigt die unveränderten Artefakte.
+Abnahmekommandos und endgültiger Transaktionsstatus stehen in der Queue.
+
+## R8.3s: geordneter Shellabschluss unabhängig vom Testdialog
 
 Basis1e7645c8, Vertragdcbfb4d8.
 Nutzerunterbrechung12.September: R3.46 Anzeige-Checkboxen wurde vorgezogen,

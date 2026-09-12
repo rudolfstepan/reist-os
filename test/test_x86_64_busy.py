@@ -65,7 +65,9 @@ class BusyTests(unittest.TestCase):
         tail=source.split('x86_64_scheduler_shell_timer_tail64:',1)[1].split('scheduler_save_syscall_context64:',1)[0]
         self.assertIn('call scheduler_context_apply64',tail)
         self.assertIn('call scheduler_budget_apply64',tail)
-        self.assertIn('scheduler_retire_shell_child_fault64.classified',tail)
+        self.assertIn('scheduler_retire_shell_context64',tail)
+        route=source.split('scheduler_retire_shell_context64:',1)[1].split('scheduler_retire_shell_owner64:',1)[0]
+        self.assertIn('jne scheduler_retire_shell_child_fault64.classified',route)
         complete=source.split('scheduler_shell_deadline_complete64:',1)[1].split('x86_64_scheduler_shell_timer_validate64:',1)[0]
         self.assertNotIn('cancel',complete)
         self.assertNotIn('mov dword [rel scheduler_last_tick], 0',source)

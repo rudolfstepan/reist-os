@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_OWNER_TERMINAL
+#define X86_64_OWNER_TERMINAL 0
+#endif
 #ifndef X86_64_SHELL_EXIT_STATUS
 #define X86_64_SHELL_EXIT_STATUS -1
 #endif
@@ -240,6 +243,54 @@ static int ipc_message_is_empty(const shell_ipc_message_t *message)
 }
 
 #endif
+#if X86_64_OWNER_TERMINAL
+/* User-only fault corpus. One ELF serves all dialogues; no kernel selectors. */
+static __attribute__((noreturn)) void owner_probe(unsigned kind, unsigned phase)
+{
+    shell_u8 path[16] __attribute__((aligned(8))) = "/shell/child";
+    shell_u8 token[16] __attribute__((aligned(8))) = "owner0";
+    shell_u64 argv[2] = {(shell_u64)path, (shell_u64)token};
+    shell_u32 handle = 0;
+    shell_ipc_message_t message __attribute__((aligned(8)));
+    token[5] = (shell_u8)('0' + phase);
+    if (phase) {
+        if (reist_x64_syscall3(REIST_X64_SYS_IPC_CREATE, (shell_u64)&handle, 0, 0))
+            shell_exit(0xBAD);
+        if (phase >= 2) {
+            if (reist_x64_syscall3(REIST_X64_SYS_SPAWNV, (shell_u64)path,
+                                  (shell_u64)argv, 2) != SHELL_CHILD_PID)
+                shell_exit(0xBAD);
+            if (phase == 3) {
+                clear_ipc_message(&message);
+                message.version = IPC_MESSAGE_VERSION;
+                message.struct_size = IPC_MESSAGE_SIZE;
+                if (reist_x64_syscall3(REIST_X64_SYS_IPC_SEND, handle, (shell_u64)&message, 0))
+                    shell_exit(0xBAD);
+            }
+            if (phase == 3 && reist_x64_syscall3(REIST_X64_SYS_IPC_DELEGATE,
+                                        handle, SHELL_CHILD_PID, IPC_RIGHT_SEND))
+                shell_exit(0xBAD);
+            /* One handoff to the delegated sender; do not spend its single
+             * deadline tick on extra parent yields. Early EXIT uses four. */
+            if (phase >= 3) for (unsigned i=0; i<(phase==3?1U:4U); ++i)
+                (void)reist_x64_syscall3(REIST_X64_SYS_YIELD, 0, 0, 0);
+        }
+    }
+    switch (kind) {
+    case 0: shell_exit(42);
+    case 1: __asm__ volatile("ud2"); break;
+    case 2: __asm__ volatile("xor %%edx,%%edx; mov $1,%%eax; xor %%ecx,%%ecx; div %%ecx" ::: "rax","rcx","rdx"); break;
+    case 3: __asm__ volatile("movq $1,0" ::: "memory"); break;
+    case 4: __asm__ volatile("cli"); break;
+    case 5: __asm__ volatile("xor %%esp,%%esp; mov $40,%%eax; syscall; ud2" ::: "rax","rcx","r11"); break;
+    case 6: __asm__ volatile("pushfq; orq $0x4000,(%%rsp); popfq; mov $40,%%eax; syscall; ud2" ::: "rax","rcx","r11","memory"); break;
+    case 7: __asm__ volatile("xor %%esp,%%esp; 1: pause; jmp 1b" ::: "memory"); break;
+    case 8: __asm__ volatile("pushfq; orq $0x4000,(%%rsp); popfq; 1: pause; jmp 1b" ::: "memory"); break;
+    case 9: __asm__ volatile("1: pause; jmp 1b"); break;
+    }
+    shell_exit(0xBAD);
+}
+#endif
 void _start(void)
 {
     static const char ready[] = "REIST_X86_64_RING3_SHELL_READY\r\n";
@@ -289,6 +340,12 @@ void _start(void)
         }
         polls = 0U;
         if (input_byte == '\r' || input_byte == '\n') {
+#if X86_64_OWNER_TERMINAL
+            if (command_length == 3 && command[0] == 'T' &&
+                command[1] >= '0' && command[1] <= '9' &&
+                command[2] >= '0' && command[2] <= '4')
+                owner_probe(command[1]-'0', command[2]-'0');
+#endif
             if (command_equals(command, "INFO", 4U, command_length)) {
                 if (!shell_write_exact(info, sizeof(info) - 1U) ||
                     !shell_write_exact(prompt, sizeof(prompt) - 1U)) {

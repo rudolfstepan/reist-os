@@ -1,4 +1,7 @@
 BITS 64
+%ifndef X86_64_OWNER_TERMINAL
+%define X86_64_OWNER_TERMINAL 0
+%endif
 %ifndef X86_64_INSTRUCTION_CASE
 %define X86_64_INSTRUCTION_CASE 0
 %endif
@@ -73,6 +76,11 @@ global _start
 
 _start:
     FP_BEGIN 0x1b
+%if X86_64_OWNER_TERMINAL
+    mov rax, [rsp + 16]
+    cmp dword [rax], 0x656e776f ; ownerN; normal token77 keeps existing path
+    je child_owner_probe
+%endif
 %if X86_64_INSTRUCTION_CASE
     call child_instruction_probe
 %if X86_64_INSTRUCTION_CASE >= 2
@@ -726,5 +734,50 @@ child_instruction_probe:
 child_instruction_page_end:
     syscall ; return RIP0x402000 is absent and must never be restored
 %endif
+%endif
+%if X86_64_OWNER_TERMINAL
+section .text
+child_owner_probe:
+    cmp byte [rax + 5], '4'
+    je .exit
+    cmp byte [rax + 5], '3'
+    jne .yield
+    mov r12, [rsp + 48]
+    sub rsp, IPC_STACK_BYTES
+    mov rdi, rsp
+    xor eax, eax
+    mov ecx, IPC_STACK_BYTES / 8
+    rep stosq
+    mov dword [rsp], IPC_MESSAGE_VERSION
+    mov dword [rsp + 4], IPC_MESSAGE_SIZE
+.send:
+    mov eax, REIST_SYS_IPC_SEND_TIMEOUT
+    mov rdi, r12
+    mov rsi, rsp
+    mov edx, IPC_SEND_TIMEOUT_MS
+    syscall
+    cmp rax, REIST_EACCES
+    jne .unexpected
+    mov eax, REIST_SYS_YIELD
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    syscall
+    jmp .send
+.yield:
+    mov eax, REIST_SYS_YIELD
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    syscall
+    jmp .yield
+.exit:
+    mov eax, REIST_SYS_EXIT
+    mov edi, 77
+    xor esi, esi
+    xor edx, edx
+    syscall
+.unexpected:
+    ud2
 %endif
 section .note.GNU-stack noalloc noexec nowrite progbits

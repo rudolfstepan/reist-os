@@ -4,8 +4,8 @@ Stand: 12. September 2026
 
 ## R8.3t: Ausfall des nativen Bootstrap-Eigentümers eingrenzen
 
-R8.3s ist als `af9ec117` abgenommen. Nächster zusammenhängender Schnitt ist
-der Abschluss der Eigentümergeneration bei lebendem/IPC-blockiertem oder schon
+Auf Basis des abgenommenen R8.3s `af9ec117` implementiert: gemeinsamer
+Abschluss der Eigentümergeneration bei lebendem/IPC-blockiertem oder schon
 gereaptem Kind: EXIT, Userfault, ungültiger Rückkehrkontext und CPU-Spin.
 Das begrenzte Bootstrapprofil erklärt das Kind ausdrücklich als abhängigen
 Teil desselben kurzlebigen Laufs, ohne Recht auf eine eigenständige Lebensdauer.
@@ -17,21 +17,33 @@ Kind32 und gemeinsamer256-Tick-Schutz bleiben unverändert. Diese Zahlen sind
 keine Zielgrenzen für die spätere normale Shell. Vierzehn eingefrorene Gruppen
 in der Queue, Belege unter `build/codex-agent/r83t-owner-terminal/`.
 
-Zwischenstand, **noch nicht abgenommen oder implementierungsseitig committet**:
+Prüfstand vor lokalem Erfolgscommit:
 Die neue read-only Besitzprüfung besteht als echte Assemblerausführung unter
 O0/O2 einschließlich negativer Zustandsmutationen. Der historische Shell-UD2-
 Abbruch ist im Gast unter `legacy-proof/attempt-bfb5554ea7e64ae1b08540bad832ee2b`
-gesichert. Neue Gastdiagnosen bestehen für Shell-UD2 ohne Kind sowie mit einem
-bereits gereapten zweiten Kind. Die übrige Matrix und eingefrorene Abnahme
-sind noch offen; insbesondere ist die Sender-Fixture noch nicht abgenommen.
+gesichert.52 Gastdialoge und fünf zusätzliche GDB-Freigabe-/Fencingbeobachtungen
+bestehen (36.041s), einschließlich CPU128 und IPC-blockierter Kinder. Beleg:
+`owners/attempt-042430ebb78f4107abffec5ebf961bb6`. Auch die bestehenden30
+Abschlussdialoge (23.090s),20 normalen Frame-Reaps (1.540s),24 Faultfälle mit
+48 Generationen (72.319s) und drei Requestfälle/sechs Generationen (8.861s)
+bestehen. Die normalen Shell-/Kind-/Probe-ELFs sind bytegleich; der gepinnte
+i386-Referenzprüfer bestätigt alle Images und96 Programme (1.192s).
+Fünf neue Hostgruppen inklusive tatsächlicher Assembler-Zulassung und
+Lease-Arithmetik laufen O0/O2 (4.058s); außerdem Bootstrap56, Budget3,
+Userkontext4, Frame4 und Shellabschluss4 grün. Ein fehlender Hostdebugger
+beendet nun garantiert nur die zuvor vom Prüfer gestartete VM, ohne Dialog;
+dieser Fehlerpfad ist zusätzlich gemockt getestet. Frühere fehlgeschlagene
+Fixture-/Diagnoseläufe bleiben erhalten. Alle eingefrorenen Kommandos und
+der endgültige Abnahmestatus stehen in `automation/reist-s03b.toml`.
 
-Konkrete Scope-Grenze: Der unveränderte `arch/x86_64/cpu/timer_interrupt.asm`
-verwendet auch für die Shell ein absolutes Fenster von3Milliarden TSC-Zyklen.
+Behobene, ausdrücklich freigegebene Scope-Grenze: Der alte
+`arch/x86_64/cpu/timer_interrupt.asm` verwendete auch für die Shell ein
+absolutes Fenster von3Milliarden TSC-Zyklen.
 Der rein lesende Debugger belegt dessen Ablauf bereits bei80PIT-/EOI-Ticks,
 während das neue Eigentümerbudget128 Samples benötigt. Gemessen:
 TSC3797572121 > Grenze3761580988, CPU-Budget80/128; danach fataler Timerabbruch.
 Beleg: `timer-diagnosis/attempt-0144594da9c84ffa99a8de6e20257eaa/observer.log`.
-Die Timerdatei liegt außerhalb des eingefrorenen Pakets. Keine heimliche
+Die Timerdatei lag außerhalb des ursprünglichen Pakets. Keine heimliche
 Fristverlängerung, Test-CPU-Verlangsamung oder Abschwächung der Abnahme:
 Am12.September ausdrücklich freigegeben: Timerdatei samt Regression im
 bestehenden Owner-Gate aufnehmen. Nur im SHELL-Modus wird die TSC-Frist zur

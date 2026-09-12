@@ -2,6 +2,60 @@
 
 Stand: 11. September 2026
 
+Ergänzung12.September2026, R8.3t: Im explizit kurzlebigen Bootstraplauf kann
+die Eigentümergeneration40 auch mit lebendem oder bereits gereaptem Kind
+enden. Kinder41/42 besitzen kein unabhängiges Lebensdauerrecht. Dies ist keine
+POSIX-Orphan-/Adoptionssemantik und kein neuer Ring-0-Service-Supervisor.
+Allgemeine Prozessadoption, Restartpolicy und Dienstzulassung bleiben offen.
+
+EXIT/uint32, klassifizierte Intel-Userexceptions, unbrauchbarer SYSCALL-/IRQ-
+Rückkehrkontext und erschöpftes CPU-Sample-Budget benutzen denselben begrenzten
+Owner-Terminalpfad. Ein reiner Besitzprüfer validiert beide Generationen,
+Profile, Budgets, exakte Queue-/Deadlineeinträge, Endpoint/Capabilities und
+gegebenenfalls den schon gereapten Terminalrecord. Vier Slots, höchstens zwei
+sequentielle Kinder und128MiB bleiben die Prototypgrenzen. Fremde/stale Tasks,
+Profilabweichungen und widersprüchliche Besitzrecords werden nicht gelöscht,
+um einen Erfolg zu erzwingen. Die maximal26 privaten Frame-IDs beider Tasks
+werden vor dem Fencing auch auf gegenseitige Aliasierung geprüft.
+
+Erst nach erfolgreicher Prüfung: Lauf sperren, genaue Queue-/Deadlinebindung
+entfernen, beide Taskprofile und IPC-Rechte widerrufen, auf Kernel-CR3 wechseln,
+lebendes Kind über den bisherigen Frame-/FP-/Identitätsreap freigeben und
+danach den Eigentümer reapen. Ein bereits gereaptes Kind wird nur konsumiert;
+kein zweiter Free und keine verspätete WAIT-Kopie an den toten Elternprozess.
+Klassifizierter Eigentümerfehler nutzt TASK_FAULTED und den privaten Event75,
+normaler EXIT weiter TASK_EXITED/Event72. Freier Speicher, Tabellen, FP,
+Budgets, Profile, IPC, Queue, Deadlines und Tombstones werden abschließend
+geprüft; Forced-Cleanup kann diesen Erfolgspfad nicht erzeugen.
+
+Privater Diagnosebeleg `OWNER_CONTAINED_OK v1=`:40 Bytes als Hex in expliziter
+Little-Endian-Reihenfolge, sechs uint32-Felder (Plan1/2/3/4 für kein Kind/READY/
+BLOCKED/schon gereapt, klassifizierte Ursache0/1, Endpoint, Nachrichtenbelegung,
+Deadlinebelegung, Kindgeneration), danach uint64 RIP und CPU-Samples. Der
+bisherige SHELL_REAP-Beleg nennt Rohstatus, Reapzahl und Generationen. Der
+historische EXIT_OK-Abschlussmarker bleibt kompatibel; SHELL_ERROR macht
+Nichtnullstatus für alte Normalprüfer weiterhin zum Fehler. Der Kernel läuft
+nach validiertem Abschluss weiter, ohne einen Wiederanlauf zu behaupten.
+
+CPU-Budgets: Eigentümer128, Kind32 Samples; gemeinsamer PIT-Zähler maximal256
+bei nominal100Hz. Die bisher über den ganzen Lauf verwendeten3Milliarden
+TSC-Zyklen liefen auf der Referenzmaschine bereits bei80Samples ab. Nach
+expliziter Scope-Freigabe gilt nur im SHELL-Modus eine Fortschrittslease:
+Die gleiche3e9-Zyklengrenze wird erst nach validiertem Interrupt-/Kontext-/
+Deadlinefortschritt erneuert, vor EOI. Rücklauf, Überlauf, Zählerabweichung
+und abgelaufene Lease werden abgelehnt; Gesamtzähler und CPU-Budgets werden
+nicht zurückgesetzt. Andere Timermodi behalten ihre bisherige absolute Frist.
+TSC-Zyklen sind keine behaupteten Sekunden. Bei ausbleibendem Interrupt ist
+diese Prüfung kein unabhängiger Hardwarewatchdog; der Gastprüfer bleibt auf
+zehn Sekunden begrenzt. Keine Frequenzkalibrierung oder Produktions-FTTI-Zusage.
+
+Nachweise: tatsächliche O0/O2-Assemblerzulassung und Zeitrechnung mit negativen
+Mutationen;52 Gastdialoge für zehn Terminierungsarten und beide Kindhistorien;
+fünf zusätzliche rein lesende Frame-/Fencing-/Nullzustandsbeobachtungen.
+Alle Dialoge verwenden dasselbe reine User-Fixture-ELF, keine Kernel-Testflags
+oder verlangsamte QEMU-CPU. Historischer fataler Owner-UD2 und80-Tick-TSC-Abbruch
+bleiben erhalten. Die drei normalen User-ELFs bleiben byteidentisch.
+
 Ergänzung12.September2026, R8.3s: Geordneter Shellabschluss verlangt keinen
 bestimmten Testdialog mehr. Null, ein oder zwei vollständig gereapte Kinder
 sind zulässig; 18 gelesene Bytes und acht Schreibaufrufe bleiben Obergrenzen.

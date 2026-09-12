@@ -44,7 +44,9 @@ class UserContextTests(unittest.TestCase):
         source = (ROOT/'arch/x86_64/proc/cooperative_scheduler.asm').read_text()
         admission = source.split('scheduler_shell_admit_syscall_context64:',1)[1].split('scheduler_context_apply64:',1)[0]
         self.assertLess(admission.index('scheduler_validate_shell_syscall_profile64'), admission.index('SYSCALL_CONTEXT_USER_RSP'))
-        self.assertIn('call scheduler_retire_shell_child_fault64.classified', admission)
+        self.assertIn('call scheduler_retire_shell_context64', admission)
+        route=source.split('scheduler_retire_shell_context64:',1)[1].split('scheduler_retire_shell_owner64:',1)[0]
+        self.assertIn('jne scheduler_retire_shell_child_fault64.classified', route)
         self.assertNotIn('mov rsp, [rel scheduler_syscall_context', admission)
         for bit in ('0x244fd7', '0x254fd7', 'SHELL_CONTEXT_STATUS'):
             self.assertIn(bit, source)

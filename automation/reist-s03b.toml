@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3t-x86_64-owner-terminal-containment"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3t-x86_64-owner-terminal-containment"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Contain terminal owner failure in the bounded native bootstrap run"
@@ -27,8 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_owner_terminal.py --evidence bu
 acceptance = "All14 frozen groups pass after main-agent scope/ABI/cleanup review; default user ELFs remain byteidentical. New guest matrix proves exact owner cause, child state/generation, queue/deadline/IPC fencing, frame/FP/profile/identity zero and kernel continuation, with no forced cleanup. Historical failures retained. One clean local commit then continue next in-priority native transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for general supervisor/adoption/restart policy, new public rights or device mediation"]
 commit_message = "fix: contain native owner termination within its bounded run"
-evidence = []
-evidence_note = "Frozen on cleanaf9ec117 under renewed12September continuous implementation instruction. Inventory confirms owner exceptions/context faults still enter child-only retirement or fatal cleanup, live-child owner EXIT rejects, and only child CPU accounting is bound. Existing independent cleanup mechanisms will be reused; this package does not port or invent a Ring0 service supervisor. Explicit12September user approval extends scope to timer_interrupt.asm and its regression in the existing owner gate. The inherited3e9-TSC-cycle window expired at80 ticks before owner128. For SHELL only it becomes a validated IRQ-progress lease, renewed only after exact generation/count/context/deadline checks; total256 delivered ticks and owner128/child32 remain fixed. Pure production arithmetic tests cover rollover/backward TSC, expired lease, bad counts and128/256 steps; real CPU-spin guest must reach128 without changing QEMU CPU speed. Other timer modes and existing14 gate groups unchanged."
+evidence = ["python test/test_x86_64_owner_terminal.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_busy.py -v", "python test/test_x86_64_user_context.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_x86_64_shell_exit.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83t-owner-terminal/normal", "python scripts/run_qemu_x86_64_owner_terminal.py --evidence build/codex-agent/r83t-owner-terminal/owners", "python scripts/run_qemu_x86_64_shell_exit.py --evidence build/codex-agent/r83t-owner-terminal/exits", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83t-owner-terminal/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83t-owner-terminal/retirement", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83t-owner-terminal/fault", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83t-owner-terminal/requests", "python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All14 groups passed after user-approved timer amendment23ee459e. Owner host5/4.058s: actual O0/O2 ownership and lease arithmetic, no-mutation negatives, strict serial/frame oracles and mocked observer-start cleanup. Existing boot56/.033s, budget3/.927s, context4/.004s, frame4/1.958s, shell-exit4/2.881s; docs7/.733s including historicalD1.1 skip. Normal build2.835s; default shell/child/probe ELF hashes identical to af9ec117. Owner matrix52dialogs plus5 read-only frame/fence/zero observations36.041s, attempt042430ebb78f4107abffec5ebf961bb6. Existing exit30/23.090s, normalframe20/1.540s, fault24cases48generations/72.319s, requests3cases6generations/8.861s; i386 reference1.192s all images/96programs unchanged. Evidence build/codex-agent/r83t-* logs and r83t-owner-terminal unique attempts retained. Actual old fatal ownerUD2 retained in legacy-proof/bfb5554ea7e64ae1b08540bad832ee2b; TSC deadline diagnostic0144594da9c84ffa99a8de6e20257eaa proves80/128samples. Authorized fix makes3e9cycles a validated SHELL-only IRQ-progress lease; global256ticks and owner128/child32 unchanged, no QEMU frequency changes or hardware-watchdog claim. Earlier fixture/oracle failures retained; sender proof uses one real handoff within its unchanged one-tick deadline. Following host-observer-start cleanup fix, only affected owner gate renewed; original successful matrix also retained. Main-agent scope/ABI/cleanup review complete; no new public right/syscall, normal dependent cancellation never double-reaps or copies WAIT to dead parent, no forced-cleanup success. R3.6b remains explicitly deferred and R341-H1/H2 open; no user-process termination, visible VM, agent or push. Continue next clean native transaction, not a full64bitOS claim."
 
 [[packages]]
 id = "R3.46-display-window-options"
@@ -3091,7 +3091,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

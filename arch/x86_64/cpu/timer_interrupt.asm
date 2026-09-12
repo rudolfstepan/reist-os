@@ -330,11 +330,19 @@ x86_64_timer_interrupt64:
     shl rdx, 32
     mov eax, eax
     or rax, rdx
-    cmp rax, [rel timer_deadline]
-    ja .shell_invalid
+    push rdi
+    mov rdi, rax
+    mov rsi, [rel timer_deadline]
+    mov edx, [rel timer_ticks]
+    mov ecx, [rel timer_eoi_count]
+    call timer_shell_progress64
+    pop rdi
+    test rax, rax
+    jz .shell_invalid
+    push rax ; proposed lease is private until context/deadline validation
     call x86_64_scheduler_shell_timer_validate64
     test eax, eax
-    jz .shell_invalid
+    jz .shell_clock_invalid
     inc dword [rel timer_ticks]
     push rax
     push rdi
@@ -342,8 +350,10 @@ x86_64_timer_interrupt64:
     call x86_64_scheduler_deadline_tick64
     pop rdi
     pop rdx
+    pop rcx
     test eax, eax
     jz .shell_invalid
+    mov [rel timer_deadline], rcx
     inc dword [rel timer_eoi_count]
     mov al, PIC_EOI
     out PIC1_COMMAND, al
@@ -351,6 +361,9 @@ x86_64_timer_interrupt64:
     ; IRQ body is complete. Switching/reap/diagnosis belong to the tail.
     mov esi, [rel timer_ticks]
     jmp x86_64_scheduler_shell_timer_tail64
+.shell_clock_invalid:
+    pop rax
+    jmp .shell_invalid
 .shell_invalid:
     mov al, PIC_ALL_MASKED
     out PIC1_DATA, al
@@ -552,6 +565,31 @@ x86_64_timer_shell_arm64:
     mov dword [rel timer_generation], SHELL_GENERATION
     mov byte [rel timer_mode], TIMER_MODE_SHELL
     mov eax, 1
+    ret
+.fail:
+    xor eax, eax
+    ret
+
+; Private pure SysV arithmetic: RDI now, RSI prior deadline, RDX delivered,
+; RCX EOIs. Returns next progress lease or0, no state/pointer effects.
+; A3e9-cycle *gap* is not3seconds. Total lifetime is still at most256 PIT
+; ticks; no tick/EOI/context proof means no renewal. Other modes unchanged.
+timer_shell_progress64:
+    cmp rdx, SHELL_MAX_TICKS
+    jae .fail
+    cmp rdx, rcx
+    jne .fail
+    mov eax, TSC_DEADLINE_CYCLES
+    cmp rsi, rax
+    jb .fail
+    cmp rdi, rsi
+    ja .fail
+    mov r8, rsi
+    sub r8, rax
+    cmp rdi, r8
+    jb .fail ; counter went backward since last validated progress
+    add rax, rdi
+    jc .fail
     ret
 .fail:
     xor eax, eax
