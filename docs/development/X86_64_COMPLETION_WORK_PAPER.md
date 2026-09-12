@@ -4,6 +4,17 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ab: native Medien und BIOS-Vertrauenskette gemeinsam
+
+Nach `aac73e4f` ist der nächste große zusammengehörige Bootpfad eingefroren:
+HDD und Rettungsfloppy, Signatur-/Inhaltsprüfung, Build-/Publikationsweg und
+BIOS-Normal-/Fallback-/Fehlerbelege in einem13-Gate-Paket. Vorhandener Stage2
+liefert schon Multiboot/E820 und unterstützt die ELF32-Hülle des ELF64-Kerns.
+Kein neues Format oder Schlüssel, keine Wiederimplementierung dieser Logik.
+[Verbindlicher Medienvertrag](../architecture/NATIVE_BOOT_MEDIA_CONTRACT.md).
+Darauf folgen Dateistart und Dienstintegration nach ihren Besitzgrenzen;
+dieser Mediennachweis darf deren fehlende Laufzeitautorität nicht verdecken.
+
 ## R8.3aa: private virtuelle Regionen bis zum Retirement
 
 Nach dem abgenommenen physischen Schnitt `d8b7e52f` wird der vorhandene

@@ -2,6 +2,17 @@
 
 Stand: 12. September 2026
 
+## R8.3ab: signierte native BIOS-Medien gemeinsam
+
+Nach `aac73e4f` und sauberem Arbeitsbaum sind HDD/FAT32 und Rettungsfloppy/
+FAT12 samt Make-/Windows-Einstieg, unabhängiger Signatur-/Inhaltsprüfung,
+atomarer Paketveröffentlichung und neun echten BIOS-Fällen gemeinsam mit13
+Gates eingefroren. Die Inventur bestätigt wiederverwendbare Multiboot-/E820-
+Übergabe in Stage2; kein paralleler Loader und kein neues Manifestformat.
+[Medienvertrag](../architecture/NATIVE_BOOT_MEDIA_CONTRACT.md).
+Umsetzung/Abnahme stehen aus. Storage/VFS und vertrauenswürdiger Dateistart
+bleiben eigenständige Autoritätsgrenzen.
+
 ## R8.3aa: private native Heapbereiche
 
 Nach `d8b7e52f` und sauberem Arbeitsbaum ist der nächste Besitzschnitt mit14
