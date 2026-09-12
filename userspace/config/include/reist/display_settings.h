@@ -7,6 +7,8 @@ extern "C" {
 #endif
 /* NULL/missing means auto. Any error clears both outputs. No I/O/allocation. */
 int reist_display_setting_parse(const char *value, uint32_t *width, uint32_t *height);
+/* Optional desktop/1 boolean: missing=true, invalid resets to true. */
+int reist_display_bool_parse(const char *value, uint32_t *enabled);
 int reist_display_setting_supported(uint32_t width, uint32_t height,
                                     const reist_display_mode_request_t *caps);
 #ifdef __cplusplus

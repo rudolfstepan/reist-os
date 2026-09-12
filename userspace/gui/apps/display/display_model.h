@@ -15,6 +15,8 @@ typedef struct display_model {
     reist_display_mode_request_t caps;
     display_choice_t choices[DISPLAY_CHOICE_CAPACITY];
     uint32_t count, selected, writable, saved_width, saved_height;
+    uint32_t window_shadows, drag_contents, saved_shadows, saved_contents;
+    uint32_t pending_shadows, pending_contents;
     int child;
     uint32_t child_generation, pending_choice, cancel_sent;
     uint64_t started_ms;

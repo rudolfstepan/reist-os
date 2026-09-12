@@ -158,8 +158,10 @@ desktop_rect_t desktop_wm_window_bounds(const desktop_wm_t *manager,
     desktop_rect_t rect = {0, 0, 0U, 0U};
     if (manager == 0 || window_index >= DESKTOP_WM_CAPACITY) return rect;
     rect = window_rect(&manager->windows[window_index]);
-    if (rect.width <= UINT32_MAX - 4U) rect.width += 4U;
-    if (rect.height <= UINT32_MAX - 4U) rect.height += 4U;
+    if (manager->window_shadows) {
+        if (rect.width <= UINT32_MAX - 4U) rect.width += 4U;
+        if (rect.height <= UINT32_MAX - 4U) rect.height += 4U;
+    }
     return rect;
 }
 
@@ -266,6 +268,25 @@ static void cancel_window_capture(desktop_wm_t *m,uint32_t index) {
     m->capture_kind=DESKTOP_WM_CAPTURE_NONE;
     m->capture_window=DESKTOP_WM_NO_WINDOW;
     m->resize_edges=m->caption_armed=0;
+    m->move_generation=0U; m->move_preview=(desktop_rect_t){0};
+}
+
+int desktop_wm_set_visual_options(desktop_wm_t *m,uint32_t shadows,uint32_t contents) {
+    if (!m || shadows>1U || contents>1U) return -22;
+    if (m->capture_kind!=DESKTOP_WM_CAPTURE_NONE) return -16;
+    m->window_shadows=shadows; m->drag_contents=contents;
+    return 0;
+}
+
+uint32_t desktop_wm_move_outline(const desktop_wm_t *m,desktop_rect_t *rect) {
+    if (rect) *rect=(desktop_rect_t){0};
+    if (!m || !rect || m->drag_contents || m->capture_kind!=DESKTOP_WM_CAPTURE_MOVE ||
+        m->capture_window<0 || m->capture_window>=(int32_t)DESKTOP_WM_CAPACITY || !m->move_generation)
+        return 0U;
+    const desktop_window_t *w=&m->windows[m->capture_window];
+    if (!w->visible || w->generation!=m->move_generation ||
+        m->move_preview.width!=w->width || m->move_preview.height!=w->height) return 0U;
+    *rect=m->move_preview; return 1U;
 }
 
 static void restore_normal_bounds(desktop_wm_t *m,desktop_window_t *w) {
@@ -406,6 +427,9 @@ void desktop_wm_initialize(desktop_wm_t *manager, uint32_t screen_width,
     manager->capture_window = DESKTOP_WM_NO_WINDOW;
     manager->caption_armed = 0;
     manager->next_generation = 0;
+    manager->window_shadows = manager->drag_contents = 1U;
+    manager->move_generation = 0U;
+    manager->move_preview = (desktop_rect_t){0};
     manager->drag_offset_x = 0;
     manager->drag_offset_y = 0;
     manager->resize_edges = 0U;
@@ -562,6 +586,8 @@ uint32_t desktop_wm_pointer_press(desktop_wm_t *manager,
         manager->capture_window = window_index;
         manager->drag_offset_x = x - manager->windows[index].x;
         manager->drag_offset_y = y - manager->windows[index].y;
+        manager->move_generation=manager->windows[index].generation;
+        manager->move_preview=window_rect(&manager->windows[index]);
     } else {
         /* Keep an implicit grab on ordinary client presses as established
          * desktop protocols do; motion cannot retarget until Button-Up. */
@@ -595,6 +621,15 @@ uint32_t desktop_wm_pointer_motion(desktop_wm_t *manager,
     if (manager->capture_kind == DESKTOP_WM_CAPTURE_RESIZE)
         return resize_window(manager, window, x, y);
     if (manager->capture_kind != DESKTOP_WM_CAPTURE_MOVE) return 0U;
+    if (window->generation!=manager->move_generation) {
+        cancel_window_capture(manager,(uint32_t)manager->capture_window); return 0U;
+    }
+    desktop_window_t preview;
+    if (!manager->drag_contents) {
+        preview=*window;
+        preview.x=manager->move_preview.x; preview.y=manager->move_preview.y;
+        window=&preview;
+    }
     int64_t proposed_x = (int64_t)x - manager->drag_offset_x;
     int64_t proposed_y = (int64_t)y - manager->drag_offset_y;
     int32_t old_x = window->x;
@@ -604,6 +639,7 @@ uint32_t desktop_wm_pointer_motion(desktop_wm_t *manager,
     window->y = proposed_y < INT32_MIN ? INT32_MIN :
                 (proposed_y > INT32_MAX ? INT32_MAX : (int32_t)proposed_y);
     clamp_window(manager, window);
+    if (!manager->drag_contents) manager->move_preview=window_rect(window);
     return old_x != window->x || old_y != window->y;
 }
 
@@ -614,10 +650,20 @@ uint32_t desktop_wm_pointer_release(desktop_wm_t *manager,
     /* Release belongs to the button-down owner, never the current hover. */
     int32_t captured = manager->capture_window;
     uint32_t capture_kind = manager->capture_kind;
+    if (capture_kind==DESKTOP_WM_CAPTURE_MOVE && !manager->drag_contents) {
+        (void)desktop_wm_pointer_motion(manager,x,y);
+        desktop_rect_t preview;
+        if (desktop_wm_move_outline(manager,&preview)) {
+            desktop_window_t *window=&manager->windows[captured];
+            changed=window->x!=preview.x || window->y!=preview.y;
+            window->x=preview.x; window->y=preview.y;
+        }
+    }
     manager->capture_kind = DESKTOP_WM_CAPTURE_NONE;
     manager->capture_window = DESKTOP_WM_NO_WINDOW;
     manager->resize_edges = 0U;
     manager->caption_armed = 0U;
+    manager->move_generation=0U; manager->move_preview=(desktop_rect_t){0};
     if (capture_kind == DESKTOP_WM_CAPTURE_CLOSE && captured >= 0 &&
         captured < (int32_t)DESKTOP_WM_CAPACITY &&
         manager->windows[captured].visible &&
@@ -644,6 +690,7 @@ typedef struct {
     uint32_t selected;
     uint32_t capture_kind,caption_armed;
     int32_t capture_window;
+    desktop_rect_t outline;
 } desktop_wm_snapshot_t;
 
 static void take_snapshot(const desktop_wm_t *manager,
@@ -657,6 +704,7 @@ static void take_snapshot(const desktop_wm_t *manager,
     snapshot->capture_kind=manager->capture_kind;
     snapshot->capture_window=manager->capture_window;
     snapshot->caption_armed=manager->caption_armed;
+    (void)desktop_wm_move_outline(manager,&snapshot->outline);
 }
 
 static uint32_t z_position(const uint32_t *z_order, uint32_t window_index) {
@@ -734,9 +782,24 @@ static void collect_right_bottom_resize_damage(
     }
 }
 
+static void outline_damage(desktop_dirty_region_t *dirty,desktop_rect_t r) {
+    if (r.width<4U || r.height<4U) return;
+    desktop_dirty_add(dirty,(desktop_rect_t){r.x,r.y,r.width,2});
+    desktop_dirty_add(dirty,(desktop_rect_t){r.x,r.y+(int32_t)r.height-2,r.width,2});
+    desktop_dirty_add(dirty,(desktop_rect_t){r.x,r.y+2,2,r.height-4});
+    desktop_dirty_add(dirty,(desktop_rect_t){r.x+(int32_t)r.width-2,r.y+2,2,r.height-4});
+}
+
 static void collect_state_damage(const desktop_wm_t *manager,
                                  const desktop_wm_snapshot_t *before,
                                  desktop_wm_dispatch_result_t *result) {
+    desktop_rect_t outline;
+    (void)desktop_wm_move_outline(manager,&outline);
+    if (before->outline.x!=outline.x || before->outline.y!=outline.y ||
+        before->outline.width!=outline.width || before->outline.height!=outline.height) {
+        outline_damage(&result->dirty,before->outline);
+        outline_damage(&result->dirty,outline);
+    }
     if (before->capture_kind!=manager->capture_kind || before->capture_window!=manager->capture_window ||
         before->caption_armed!=manager->caption_armed) {
         if (before->capture_window>=0 && before->capture_window<(int32_t)DESKTOP_WM_CAPACITY &&
@@ -856,7 +919,10 @@ int desktop_wm_dispatch(desktop_wm_t *manager,
             result->flags |= DESKTOP_WM_RESULT_LAUNCH;
             result->target = manager->selected;
         } else if (event->key == DESKTOP_WM_KEY_ESCAPE) {
-            result->flags |= DESKTOP_WM_RESULT_EXIT;
+            if (manager->capture_kind==DESKTOP_WM_CAPTURE_MOVE && !manager->drag_contents &&
+                manager->capture_window>=0)
+                cancel_window_capture(manager,(uint32_t)manager->capture_window);
+            else result->flags |= DESKTOP_WM_RESULT_EXIT;
         } else {
             return -22;
         }

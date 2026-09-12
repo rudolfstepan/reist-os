@@ -171,7 +171,15 @@ typedef struct desktop_wm {
     uint32_t screen_height;  /**< Composition surface height. */
     uint32_t caption_armed; /**< Down owner still under pointer. */
     uint32_t next_generation;
+    uint32_t window_shadows, drag_contents; /**< Startup visual policy, default on. */
+    desktop_rect_t move_preview; /**< Private outline, never client geometry. */
+    uint32_t move_generation; /**< Captured window incarnation. */
 } desktop_wm_t;
+
+/** Startup-only setting update; refuses invalid booleans or an active grab. */
+int desktop_wm_set_visual_options(desktop_wm_t *manager, uint32_t shadows, uint32_t contents);
+/** Return only a live, generation-bound outline capture. */
+uint32_t desktop_wm_move_outline(const desktop_wm_t *manager, desktop_rect_t *rect);
 
 /** Initialize an empty bounded damage set for one screen geometry. */
 void desktop_dirty_initialize(desktop_dirty_region_t *dirty,
@@ -204,7 +212,7 @@ desktop_rect_t desktop_wm_caption_rect(const desktop_wm_t *manager,
                                       uint32_t window_index, uint32_t capture_kind);
 uint32_t desktop_wm_minimize(desktop_wm_t *manager, uint32_t window_index);
 uint32_t desktop_wm_toggle_maximize(desktop_wm_t *manager, uint32_t window_index);
-/** Return decorated bounds including the fixed drop shadow. */
+/** Return decorated bounds including the optional four-pixel drop shadow. */
 desktop_rect_t desktop_wm_window_bounds(const desktop_wm_t *manager,
                                         uint32_t window_index);
 /** Return a DESKTOP_WM_RESIZE_* edge mask for one point. */

@@ -1,5 +1,21 @@
 #include "reist/display_settings.h"
 
+int reist_display_bool_parse(const char *value, uint32_t *enabled) {
+    if (!enabled) return -22;
+    *enabled = 1U;
+    if (!value) return 0;
+    static const char yes[] = "true", no[] = "false";
+    uint32_t i = 0U;
+    while (i < sizeof(yes) && value[i] == yes[i]) {
+        if (!yes[i++]) return 0;
+    }
+    i = 0U;
+    while (i < sizeof(no) && value[i] == no[i]) {
+        if (!no[i++]) { *enabled = 0U; return 0; }
+    }
+    return -22;
+}
+
 int reist_display_setting_parse(const char *value, uint32_t *width, uint32_t *height) {
     if (width) *width = 0U;
     if (height) *height = 0U;

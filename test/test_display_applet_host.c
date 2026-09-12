@@ -13,12 +13,15 @@ static uint64_t now;
 static int query_status, open_status, spawn_status, alive, exit_code, generation;
 static unsigned spawns, waits, kills, writes, fills, texts;
 static unsigned selection_reports;
+static char pending_shadows[6], pending_contents[6];
 static int paint_failure;
 int x86os_display_mode_query(reist_display_mode_request_t *out) { *out=fake_caps; return query_status; }
 int x86os_monotonic_ms(uint64_t *out) { *out=now; return 0; }
 int x86os_spawnv(const char *path,int argc,const char *const *argv) {
-    assert(!strcmp(path,"/sbin/config.prg") && argc==5);
+    assert(!strcmp(path,"/sbin/config.prg") && argc==9);
     assert(!strcmp(argv[1],"set") && !strcmp(argv[2],"desktop") && !strcmp(argv[3],"resolution"));
+    assert(!strcmp(argv[5],"window_shadows") && !strcmp(argv[7],"drag_contents"));
+    strcpy(pending_shadows,argv[6]); strcpy(pending_contents,argv[8]);
     ++spawns; strcpy(pending,argv[4]); if (spawn_status<0) return spawn_status;
     alive=1; return 42;
 }
@@ -79,7 +82,7 @@ static void reset(void) {
 }
 static void finish_save(int correct) {
     alive=0;
-    if (correct) { snprintf(disk,sizeof(disk),"schema=reist.desktop/1\ntheme=classic\nfuture.key=kept\nresolution=%s\n",pending);++writes; }
+    if (correct) { snprintf(disk,sizeof(disk),"schema=reist.desktop/1\ntheme=classic\nfuture.key=kept\nresolution=%s\nwindow_shadows=%s\ndrag_contents=%s\n",pending,pending_shadows,pending_contents);++writes; }
 }
 static void key(uint32_t code) {
     reist_gui_surface_input_t event={.type=REIST_GUI_SURFACE_INPUT_KEYBOARD,.pressed=1,.key=code};input(&event);
@@ -88,6 +91,23 @@ static void button(int32_t x,int32_t y,uint32_t pressed) {
     reist_gui_surface_input_t event={.type=REIST_GUI_SURFACE_INPUT_POINTER_BUTTON,.button=1,.pressed=pressed,.x=x,.y=y};input(&event);
 }
 int main(void) {
+    reset();assert(app.model.window_shadows && app.model.drag_contents);
+    assert(app.buttons[2].role==REIST_GUI_CONTROL_ROLE_CHECKBOX && app.buttons[3].role==REIST_GUI_CONTROL_ROLE_CHECKBOX);
+    /* Click the label, not just its square; activate only on release. */
+    button(210,332,1);assert(app.model.window_shadows);button(210,332,0);
+    assert(!app.model.window_shadows && app.focus==3);
+    key(9);assert(app.focus==4);key(' ');assert(!app.model.drag_contents);
+    assert(!layout() && !app.control_state.check[2] && !app.control_state.check[3]);
+    key(9);assert(app.focus==1);key(13);assert(spawns==1);
+    /* A new draft while saving cannot change the transaction/readback target. */
+    button(210,332,1);button(210,332,0);assert(app.model.window_shadows);
+    finish_save(1);assert(display_model_poll(&app.model)==1 && !app.model.saved_shadows && !app.model.saved_contents);
+    display_model_initialize(&app.model);assert(!app.model.window_shadows && !app.model.drag_contents);
+    reset();app.model.window_shadows=0;assert(!display_model_save(&app.model));
+    finish_save(1);strcpy(disk,"schema=reist.desktop/1\nresolution=auto\nwindow_shadows=true\ndrag_contents=true\n");
+    assert(display_model_poll(&app.model)==1 && strstr(app.model.status,"Nicht bestaetigt"));
+    reset();strcpy(disk,"schema=reist.desktop/1\nwindow_shadows=false\ndrag_contents=TRUE\n");
+    display_model_initialize(&app.model);assert(!app.model.writable && app.model.window_shadows && app.model.drag_contents);
     reset();assert(render()==0 && !selection_reports);
     app.fault_probe=1;paint_failure=-11;
     assert(render()==-11 && !selection_reports && !app.selection_reported);

@@ -131,7 +131,8 @@ static int validate_setting(const config_target_t *target,
         }
         if (text_equal(key, "theme"))
             return one_of(value, "classic", "contrast", 0) ? 0 : -22;
-        if (text_equal(key, "show_hidden"))
+        if (text_equal(key, "show_hidden") || text_equal(key, "window_shadows") ||
+            text_equal(key, "drag_contents"))
             return one_of(value, "false", "true", 0) ? 0 : -22;
         if (text_equal(key, "folder_open_mode"))
             return one_of(value, "new-window", "same-window", 0) ? 0 : -22;

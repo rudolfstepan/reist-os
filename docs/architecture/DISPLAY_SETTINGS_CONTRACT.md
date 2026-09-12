@@ -1,5 +1,41 @@
 # Startup display settings (R3.21)
 
+## Window options (R3.46, 12 September 2026)
+
+Two optional `reist.desktop/1` ASCII booleans, `window_shadows` and
+`drag_contents`, accept exactly `true` or `false`; missing means `true` to
+preserve existing behavior. Display exposes native checkboxes labelled
+"Fensterschatten" and "Fensterinhalt beim Verschieben anzeigen". The entire
+label is clickable; Tab/Space use the existing checkbox controller. Draft
+state survives applet resize. Resolution and both options are saved together
+by one existing atomic CONFIG transaction, then all three values are read
+back before success. A concurrent draft edit cannot change the pending save.
+They take effect at the next desktop start, never through a new live-mode API.
+
+These options affect ordinary compositor-managed top-level windows. Window
+shadow painting and occlusion bounds use the same setting; menu popups,
+system-dialog bevels and browser CSS shadows remain separate decorations.
+Framebuffer shadow/staging storage is unrelated and is never disabled.
+
+With contents off, pointer capture owns a generation-bound preview rectangle.
+The original client geometry/content stays put; only clipped two-pixel edge
+bands move. Release commits the clamped position once. Escape cancels without
+closing the app; close/reap/stale incarnation cancels without moving another
+window. The compositor erases a preview even when reap occurs outside input
+dispatch. No XOR framebuffer readback, allocation, busy wait, new Surface
+message or device authority. Contents-on retains its existing accelerated
+move path, and resize behavior is unchanged. Capacities remain fixed.
+
+Acceptance: actual C parser/config/applet/WM/render host behavior at O0/O2,
+four on/off combinations with checkbox/shadow/held-drag/release pixels in
+hidden snapshot QEMU standard-VGA and VMware-adapter guests, persisted
+restarts and fresh shell return. The existing display mode/fault/replacement
+proof requires a real boot UD2, not only recovery markers. Outline pixels
+include both edge colors outside the original client and its retained title;
+a blank white surface must fail the oracle. The original mode/fault/replacement
+guest remains required. No native VMware Workstation qualification is claimed
+for this change; results and evidence are in the executable queue.
+
 Defined 2026-09-07 on accepted `732b2930`; R3.21 accepted through its frozen gates.
 The executable scope and frozen gates are in `automation/reist-s03b.toml`.
 The user-authorized linker/boot reservation extension passes real-code host

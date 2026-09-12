@@ -130,6 +130,24 @@ greift. Kein Heilen unbekannter Kernkorruption, neuer Versuch oder
 veraendertes Recoverybudget. VFS-/Mappingarbeit bleibt sleepable; keine
 lange globale Preemptionssperre und keine neue Scheduler-/Syscall-ABI.
 
+### Boot-Vorbereitung vor Startfristen (R3.46)
+
+Der Bootkoordinator initialisiert den bestehenden residenten Rettungs-Cache
+und die Storage-Administration nach dem Mounten, aber vor Aufnahme der ersten
+Probe-/Storage-Generation. Kalte VFS-Ladevorgänge dieser gemeinsamen
+Voraussetzung dürfen nicht erst innerhalb bereits laufender Selbsttestfristen
+beginnen. Der bestehende idempotente Initialisierer bleibt auch im
+Storage-Startpfad geprüft. Misslingt die Boot-Vorbereitung, wird kein solcher
+Dienst gestartet; die bestehende frühe Bootfehlerbehandlung bleibt erhalten.
+
+Dies ändert keine Start-/Heartbeat-/Recoveryfrist, Restartquote, Capability,
+ISR oder Supervisorzustandsmaschine. Der Regressionstest führt die tatsächliche
+Boot-Reihenfolge mit kalter/warmer Vorbereitung und Fehlern aus. Im Gast bleibt
+die echte Ring-3-UD2-Exception mit anschließender vollständiger Recovery
+Pflicht: Wiederanlaufmarker allein ersetzen keinen Absturznachweis.
+Die vorhandene i386-Boot-/VFS-Integration bleibt sichtbare Migrationsschuld,
+keine neue Erlaubnis für komplexe Dienste im Microkernel.
+
 ## Automatische und manuelle Recovery
 
 Automatischer Neustart ist nur erlaubt, solange Versuchs- und Gesamtzeitbudget

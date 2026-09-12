@@ -17,7 +17,8 @@ void display_mode_text(char output[16], uint32_t width, uint32_t height) {
     output[used] = '\0';
 }
 
-static int read_setting(display_model_t *model, uint32_t *width, uint32_t *height) {
+static int read_setting(display_model_t *model, uint32_t *width, uint32_t *height,
+                        uint32_t *shadows, uint32_t *contents) {
     reist_vfs_file_handle_t handle = REIST_VFS_FILE_INVALID_HANDLE;
     int status = reist_vfs_file_open_rights("/etc/reist/desktop.conf",
         REIST_VFS_FILE_DEFAULT_TIMEOUT_MS,
@@ -43,6 +44,10 @@ static int read_setting(display_model_t *model, uint32_t *width, uint32_t *heigh
                                                "reist.desktop/1", &model->config);
     if (status == 0) status = reist_display_setting_parse(
         reist_config_get(&model->config, "resolution"), width, height);
+    if (status == 0) status = reist_display_bool_parse(
+        reist_config_get(&model->config, "window_shadows"), shadows);
+    if (status == 0) status = reist_display_bool_parse(
+        reist_config_get(&model->config, "drag_contents"), contents);
     return status;
 }
 
@@ -63,6 +68,8 @@ void display_model_initialize(display_model_t *model) {
         {1920,1200}, {2560,1440}, {2560,1600}
     };
     memset(model, 0, sizeof(*model));
+    model->window_shadows = model->drag_contents = 1U;
+    model->saved_shadows = model->saved_contents = 1U;
     model->status = "Nur Lesen: Anzeige nicht verfuegbar";
     int status = x86os_display_mode_query(&model->caps);
     add_choice(model, 0U, 0U);
@@ -72,7 +79,11 @@ void display_model_initialize(display_model_t *model) {
         add_choice(model, modes[i][0], modes[i][1]);
     add_choice(model, model->caps.width, model->caps.height);
     model->status = "Nur Lesen: Konfiguration ungueltig";
-    if (read_setting(model, &model->saved_width, &model->saved_height) != 0) return;
+    uint32_t width, height, shadows, contents;
+    if (read_setting(model, &width, &height, &shadows, &contents) != 0) return;
+    model->saved_width = width; model->saved_height = height;
+    model->saved_shadows = model->window_shadows = shadows;
+    model->saved_contents = model->drag_contents = contents;
     add_choice(model, model->saved_width, model->saved_height);
     model->writable = 1U;
     model->status = "Wirksam beim naechsten Desktopstart";
@@ -86,16 +97,21 @@ void display_model_initialize(display_model_t *model) {
 }
 
 int display_model_save(display_model_t *model) {
-    if (model->child > 0 || !model->writable || model->selected >= model->count) return -16;
+    if (model->child > 0 || !model->writable || model->selected >= model->count ||
+        model->window_shadows > 1U || model->drag_contents > 1U) return -16;
     if (x86os_monotonic_ms(&model->started_ms) != 0) return -5;
     const char *args[] = {"/sbin/config.prg", "set", "desktop", "resolution",
-                          model->choices[model->selected].value};
-    int child = x86os_spawnv(args[0], 5, args);
+                          model->choices[model->selected].value,
+                          "window_shadows", model->window_shadows ? "true" : "false",
+                          "drag_contents", model->drag_contents ? "true" : "false"};
+    int child = x86os_spawnv(args[0], 9, args);
     if (child <= 0) { model->status = "Speichern verweigert"; return child ? child : -5; }
     /* Only this parent reaps this PID. Capture a generation on the first live
      * observation; an immediately exited child needs no identity to be reaped. */
     model->child = child; model->child_generation = 0U; model->cancel_sent = 0U;
     model->pending_choice = model->selected;
+    model->pending_shadows = model->window_shadows;
+    model->pending_contents = model->drag_contents;
     model->status = "Speichern ...";
     return 0;
 }
@@ -125,12 +141,14 @@ int display_model_poll(display_model_t *model) {
         int child = model->child;
         int waited = x86os_wait(child, &exit_status); /* observed exited; cannot block */
         model->child = 0;
-        uint32_t width = 0U, height = 0U;
+        uint32_t width = 0U, height = 0U, shadows = 1U, contents = 1U;
         if (waited == child && !exit_status && !model->cancel_sent &&
-            read_setting(model, &width, &height) == 0 &&
+            read_setting(model, &width, &height, &shadows, &contents) == 0 &&
+            shadows == model->pending_shadows && contents == model->pending_contents &&
             width == model->choices[model->pending_choice].width &&
             height == model->choices[model->pending_choice].height) {
             model->saved_width = width; model->saved_height = height;
+            model->saved_shadows = shadows; model->saved_contents = contents;
             model->status = "Gespeichert: naechster Desktopstart";
             x86os_puts("DISPLAY_SETTINGS_SAVED ");
             x86os_puts(model->choices[model->pending_choice].value); x86os_putchar('\n');

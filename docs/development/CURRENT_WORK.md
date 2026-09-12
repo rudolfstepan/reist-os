@@ -2,6 +2,61 @@
 
 Stand: 12. September 2026
 
+## R3.46: Anzeige-Checkboxen für Schatten und Verschiebeinhalt
+
+Nutzerpriorität unterbricht R8.3s vor jeder nativen Produktionsänderung.
+Vertrag e6d98453. Native Testentwürfe und Host-Rotbeleg bleiben unter
+`build/codex-agent/r83s-shell-exit/paused-draft/` bzw. `01-host-red.log` erhalten.
+
+Anzeige verwendet zwei echte Checkboxen, einschließlich Labelklick,
+Tab/Leertaste und Resize-Erhalt. Dabei wurde der bestehende Adapterfehler
+behoben, der native semantische Tastaturereignisse fälschlich mit `pressed=1`
+versah. Beide optionalen booleschen Schlüssel bleiben standardmäßig an.
+Ein CONFIG-Kind speichert Auflösung/Schatten/Verschiebeinhalt atomar; erst
+vollständiger Readback des unveränderlichen Pending-Zustands bestätigt Erfolg.
+
+Der reine Ring-3-Rahmenmodus bindet Vorschau und Capture an die Fenster-
+Generation, behält Clientgeometrie bis Release und zeichnet nur Randstreifen.
+Esc, Close/Reap und veraltete Capture-Identität hinterlassen keine aktive
+Vorschau. Schattenzeichnung und Occlusion verwenden dieselbe Option.
+Default-Beschleunigung, Resize, ABI und Framebuffer-Staging unverändert.
+Optionen gelten beim nächsten Desktopstart. Menüs/CSS bleiben unabhängig.
+
+Abnahme in zwölf eingefrorenen Gruppen nach freigegebener Boot-Erweiterung,
+genaue Ergebnisse in der Queue;
+Belege unter `build/codex-agent/r346-window-options/`. Keine Erweiterung
+der nativen64- oder Hardware-Qualifikationsbehauptung. R341-H1/H2 und die
+R3.6b-Zurückstellung bleiben unverändert.
+
+Der zunächst blockierende alte Anzeigeprüfer blieb unverändert: Sein
+Fehlbeleg66,063s liegt nun unter `display-before-boot-fix/` und `13-display.log`.
+Die Boot-Probe kehrte tatsächlich mit Status3 vor UD2 zurück. Der read-only
+Debugger beobachtete bereits abgelaufenen geschützten Startzustand;
+frühe Haltepunkte maskierten den zeitabhängigen Fehler. Die kalte gemeinsame
+Rettungs-/Admin-Vorbereitung lag innerhalb bereits gestarteter Dienstfristen.
+
+Freigegebener Zusatzvertrag `c88d01ef`: ausschließlich Boot-Reihenfolge in
+`kernel.c`, keine Änderung an Supervisor, ISR, Probe, Rechten oder Fristen.
+Der bestehende idempotente Initialisierer läuft jetzt vor Aufnahme beider
+Dienstgenerationen. Echte C-Reihenfolge O0/O2:42 Kalt-/Warmfälle und drei
+Fehlerstufen, alter Zeitfehler regressionsgesichert. Fünf Boottests0,984s und
+bisheriger adversarial Probe-Starttest0,924s bestehen. Beide korrigierten
+Referenzbuilds72s/74s und alter Anzeige-/Fault-/Ersatzgast66,503s bestehen;
+diesmal genau eine Boot-UD2 und kein falscher Storage-Startausfall.
+`REIST.PRG` bleibt bytegleich zur B1.1-Referenz.
+
+Die einmalige Unterstrich-Injektorabweichung wurde nur im neuen Prüfablauf
+korrigiert und regressionsgesichert. Alle alten Fehlbelege bleiben erhalten.
+Beide Pixel-/Persistenzgäste bestehen auf dem korrigierten Bootstand erneut:
+Standard-VGA72,132s, VMware-Adapter74,582s. Der verschärfte Pixelprüfer verlangt
+unveränderten Originaltitel und kontrastierende Rahmenkanten außerhalb der
+alten Clientfläche; eine leere weiße Fläche kann keinen Rahmen vortäuschen.
+Fehlende/falschfarbige Kanten sind als Negativfälle abgedeckt. Fünf Options-
+Hosttests2,326s bestehen. Kein zusätzlicher Build nötig: nur der neue Prüfer
+und seine Negativfälle wurden nachgeschärft, Images unverändert.
+Nach Doku-/Scope-Abschluss wird R3.46 lokal committet und R8.3s wieder aktiv;
+native Umsetzung bleibt eine neue Transaktion auf sauberer Basis.
+
 ## R8.3r: taskgebundene Ausführungskontexte
 
 Basisab3b5531, Vertragb8339cd7. Der echte Altgast beendet einen gültigen

@@ -24,6 +24,7 @@
 #include "reist/mouse_settings.h"
 
 static reist_mouse_settings_t desktop_mouse_settings;
+static uint32_t desktop_window_shadows=1U, desktop_drag_contents=1U;
 static reist_mouse_motion_t desktop_mouse_motion;
 #include "reist/vfs_file_client.h"
 #include "reist/gui/dialog.h"
@@ -4379,7 +4380,7 @@ static void render_window(const desktop_render_context_t *context,
     uint32_t active = manager->keyboard_focus == (int32_t)window_index;
     uint32_t title_color = active ? color_active : color_inactive;
 
-    fill_rect_clipped(context, shadow, color_dark);
+    if (manager->window_shadows) fill_rect_clipped(context, shadow, color_dark);
     draw_bevel(context, frame, color_face, 1U);
     fill_rect_clipped(context, title, title_color);
     fill_rect_clipped(context, client, color_client);
@@ -4975,6 +4976,17 @@ static void render_desktop_background(
         render_icon(context, explorer, index);
 }
 
+static void render_move_outline(const desktop_render_context_t *context,
+                                const desktop_wm_t *manager) {
+    desktop_rect_t r;
+    if (!desktop_wm_move_outline(manager,&r) || r.width<4U || r.height<4U) return;
+    /* Opaque high-contrast edge bands, no XOR/readback or temporary buffer. */
+    fill_rect_clipped(context,(desktop_rect_t){r.x,r.y,r.width,2},color_title_text);
+    fill_rect_clipped(context,(desktop_rect_t){r.x,r.y+(int32_t)r.height-2,r.width,2},color_dark);
+    fill_rect_clipped(context,(desktop_rect_t){r.x,r.y+2,2,r.height-4},color_title_text);
+    fill_rect_clipped(context,(desktop_rect_t){r.x+(int32_t)r.width-2,r.y+2,2,r.height-4},color_dark);
+}
+
 static void render_desktop_clip(const desktop_render_context_t *context,
                                 const desktop_wm_t *manager,
                                 const desktop_explorer_t *explorer,
@@ -5051,6 +5063,7 @@ static void render_desktop_clip(const desktop_render_context_t *context,
     if (context->omitted_kind != DESKTOP_MOVE_CACHE_DIALOG)
         render_system_dialog(context, ui);
     render_drag_feedback(context);
+    render_move_outline(context,manager);
 }
 
 static void render_dirty_regions(const x86os_display_info_t *display,
@@ -7219,12 +7232,19 @@ static int desktop_activate_configured(void) {
     static reist_config_document_t document;
     size_t size = 0U;
     desktop_mode_width = desktop_mode_height = 0U;
+    desktop_window_shadows = desktop_drag_contents = 1U;
     int status = read_file_bounded("/etc/reist/desktop.conf", bytes, sizeof(bytes), &size);
     if (status == 0)
         status = reist_config_parse((const char *)bytes, size, "reist.desktop/1", &document);
     if (status == 0)
         status = reist_display_setting_parse(reist_config_get(&document, "resolution"),
                                             &desktop_mode_width, &desktop_mode_height);
+    uint32_t shadows=1U, contents=1U;
+    if (status == 0) status=reist_display_bool_parse(
+        reist_config_get(&document,"window_shadows"),&shadows);
+    if (status == 0) status=reist_display_bool_parse(
+        reist_config_get(&document,"drag_contents"),&contents);
+    if (status == 0) { desktop_window_shadows=shadows; desktop_drag_contents=contents; }
     reist_display_mode_request_t caps;
     if (status == 0 && desktop_mode_width) {
         status = x86os_display_mode_query(&caps);
@@ -7864,6 +7884,7 @@ static uint32_t desktop_move_capture_geometry(
         manager->capture_window < 0 ||
         manager->capture_window >= (int32_t)DESKTOP_WM_CAPACITY)
         return 0U;
+    if (manager->capture_kind==DESKTOP_WM_CAPTURE_MOVE && !manager->drag_contents) return 0U;
     uint32_t index = (uint32_t)manager->capture_window;
     /* A scene-level pixel cache is valid only for an unobscured top layer.
      * Modeless dialogs are composed above ordinary windows, so keep using the
@@ -9633,6 +9654,9 @@ int main(int argc, char **argv) {
                           4,
                           (int32_t)(display.height - taskbar - 4U),
                           max_u32(display.font_height + 8U, 24U));
+    (void)desktop_wm_set_visual_options(&manager,desktop_window_shadows,desktop_drag_contents);
+    x86os_puts("DESKTOP_WINDOW_OPTIONS shadows="); x86os_print_number((int)manager.window_shadows);
+    x86os_puts(" contents="); x86os_print_number((int)manager.drag_contents); x86os_putchar('\n');
     desktop_surface_initialize(&surfaces);
     if (desktop_surface_runtime_initialize(&surface_runtime) != 0) {
         if (runtime_activated) (void)desktop_display_deactivate();
@@ -10065,6 +10089,8 @@ int main(int argc, char **argv) {
 
     for (;;) {
         desktop_system_sound_poll(&system_sounds);
+        desktop_rect_t outline_before_iteration;
+        (void)desktop_wm_move_outline(&manager,&outline_before_iteration);
         uint64_t lifecycle_now_ms = 0U;
         int lifecycle_clock_status = x86os_monotonic_ms(&lifecycle_now_ms);
         if (lifecycle_supervised &&
@@ -10273,6 +10299,14 @@ int main(int argc, char **argv) {
          * menu capture or the focused client. Escape must not close a menu
          * which was opened by a subsequently consumed Start click. */
         uint32_t drag_key_consumed = 0U;
+        if (key==DESKTOP_KEY_ESCAPE && manager.capture_kind==DESKTOP_WM_CAPTURE_MOVE &&
+            !manager.drag_contents) {
+            desktop_wm_event_t cancel={.type=DESKTOP_WM_EVENT_KEYBOARD,.key=DESKTOP_WM_KEY_ESCAPE};
+            desktop_wm_dispatch_result_t result;
+            if (!desktop_wm_dispatch(&manager,&cancel,&result))
+                desktop_dirty_add_regions(&dirty,&result.dirty);
+            drag_key_consumed=1U;
+        }
         if (key == DESKTOP_KEY_ESCAPE &&
             desktop_drag.phase != DESKTOP_DRAG_PHASE_IDLE) {
             desktop_dirty_add(&dirty, desktop_drag_feedback_rect());
@@ -10718,6 +10752,12 @@ int main(int argc, char **argv) {
 
         /* The cached path represents exactly one unobscured move or retained
          * left/top resize. Concurrent state changes use normal composition. */
+        desktop_rect_t current_outline;
+        if (outline_before_iteration.width && !desktop_wm_move_outline(&manager,&current_outline)) {
+            /* Reap/close can cancel a grab outside input dispatch. Remove its
+             * last preview too; this is a terminal event, not motion damage. */
+            desktop_dirty_add(&dirty,outline_before_iteration);
+        }
         uint32_t cached_interaction = move_cache.kind ==
                 DESKTOP_MOVE_CACHE_RESIZE
             ? resize_render &&

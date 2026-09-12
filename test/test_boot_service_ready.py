@@ -1,4 +1,7 @@
 import unittest
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -24,6 +27,43 @@ def function(source: str, signature: str) -> str:
 
 
 class BootServiceReadyContractTests(unittest.TestCase):
+    def test_cold_preparation_precedes_timed_service_admission(self):
+        # Execute the actual boot sequencing, not a second implementation.
+        signature = 'static void start_boot_services(void)'
+        if signature in self.kernel:
+            production = function(self.kernel, signature)
+            main = function(self.kernel, 'void kernel_main(')
+            self.assertEqual(main.count('start_boot_services();'), 1)
+            self.assertLess(main.index('driver_init(multiboot_info);'),
+                            main.index('start_boot_services();'))
+            self.assertLess(main.index('start_boot_services();'),
+                            main.index('configure_network_after_service();'))
+        else:
+            start = self.kernel.index('    boot_context("userspace-start", "REIST probe"')
+            end = self.kernel.index('    supervisor_handle_t video_driver_handle', start)
+            production = signature + '{\n' + self.kernel[start:end] + '}\n'
+        sys.path.insert(0, str(ROOT/'scripts'))
+        from build_user_program import find_zig
+        from measure_cpp_baseline import suppress_windows_test_dialogs
+        suppress_windows_test_dialogs()
+        directory = ROOT/'build/codex-agent/r346-window-options/boot-host'
+        directory.mkdir(parents=True, exist_ok=True)
+        generated = directory/'boot.c'
+        generated.write_text(read('test/boot_service_preparation_host.c').replace(
+            '/* PRODUCTION */', production), encoding='utf-8')
+        env = os.environ.copy()
+        env['ZIG_GLOBAL_CACHE_DIR'] = str(ROOT/'build/zig-global-cache')
+        env['ZIG_LOCAL_CACHE_DIR'] = str(ROOT/'build/zig-cache')
+        for opt in ('-O0', '-O2'):
+            exe = directory/('boot'+opt+'.exe')
+            result = subprocess.run([str(find_zig()), 'cc', '-std=c11', opt,
+                '-UNDEBUG', '-Wall', '-Wextra', '-Werror', str(generated), '-o', str(exe)],
+                capture_output=True, text=True, env=env, timeout=60)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            result = subprocess.run([str(exe)], capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+            self.assertIn('BOOT_PREPARATION_OK', result.stdout)
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.kernel = read("kernel/init/kernel.c")

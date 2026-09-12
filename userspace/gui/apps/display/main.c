@@ -15,11 +15,12 @@ typedef struct display_app {
     reist_gui_list_item_t items[DISPLAY_CHOICE_CAPACITY];
     reist_gui_list_model_t list;
     reist_gui_list_state_t selection;
-    reist_gui_control_t buttons[2];
+    reist_gui_control_t buttons[4];
     reist_gui_control_model_t controls;
     reist_gui_control_state_t control_state;
     uint32_t focus, close_requested, redraw, usable, fault_probe, painted;
     uint32_t selection_reported, reported_selection;
+    uint32_t options_reported, reported_shadows, reported_contents;
 } display_app_t;
 static display_app_t app;
 
@@ -51,7 +52,7 @@ static int layout(void) {
     app.list = (reist_gui_list_model_t){
         .version=REIST_GUI_VALUE_API_VERSION, .struct_size=sizeof(app.list),
         .id=10U, .name="Aufloesung", .items=app.items, .item_count=app.model.count,
-        .bounds={18,100,width-36U,((height-190U)/24U)*24U}, .row_height=24U,
+        .bounds={18,100,width-36U,height<264U ? 24U : ((height-240U)/24U)*24U}, .row_height=24U,
         .flags=REIST_GUI_VALUE_VISIBLE | REIST_GUI_VALUE_ENABLED};
     reist_gui_list_state_initialize(&app.selection);
     reist_gui_value_result_t value;
@@ -65,9 +66,16 @@ static int layout(void) {
             .bounds={16+(int32_t)i*172,(int32_t)height-72,156,30},
             .flags=REIST_GUI_CONTROL_VISIBLE | REIST_GUI_CONTROL_ENABLED |
                    (i ? 0U : REIST_GUI_CONTROL_DEFAULT)};
+    for (uint32_t i = 2U; i < 4U; ++i)
+        app.buttons[i] = (reist_gui_control_t){.id=i+1U,
+            .role=REIST_GUI_CONTROL_ROLE_CHECKBOX, .action=i+1U,
+            .label=i==2U ? "Fensterschatten" : "Fensterinhalt beim Verschieben anzeigen",
+            .bounds={16,(int32_t)height-130+(int32_t)(i-2U)*26,width-32U,24},
+            .initial_check=i==2U ? app.model.window_shadows : app.model.drag_contents,
+            .flags=REIST_GUI_CONTROL_VISIBLE | REIST_GUI_CONTROL_ENABLED};
     app.controls = (reist_gui_control_model_t){
         .version=REIST_GUI_CONTROL_API_VERSION, .struct_size=sizeof(app.controls),
-        .controls=app.buttons,.control_count=2U,.surface_width=width,.surface_height=height};
+        .controls=app.buttons,.control_count=4U,.surface_width=width,.surface_height=height};
     reist_gui_control_state_initialize(&app.control_state);
     reist_gui_control_result_t result;
     reist_gui_control_result_initialize(&result);
@@ -126,12 +134,29 @@ static int paint(void) {
                  i || (app.model.writable && !app.model.child) ? DARK : 0x00808080U,FACE)) return -5;
         if (app.focus==i+1U && bevel((reist_gui_rect_t){rect.x+4,rect.y+4,rect.width-8,rect.height-8},1U)) return -5;
     }
+    for (uint32_t i=2U;i<4U;++i) {
+        reist_gui_rect_t r=app.buttons[i].bounds, box={r.x,r.y+3,18,18};
+        if (fill(box,WHITE) || bevel(box,1U)) return -5;
+        if (app.control_state.check[i] &&
+            (fill((reist_gui_rect_t){r.x+4,r.y+10,3,5},DARK) ||
+             fill((reist_gui_rect_t){r.x+7,r.y+12,3,5},DARK) ||
+             fill((reist_gui_rect_t){r.x+10,r.y+7,3,8},DARK))) return -5;
+        if (text(r.x+26,r.y+5,r.width-26,app.buttons[i].label,DARK,FACE)) return -5;
+        if (app.focus==i+1U && bevel((reist_gui_rect_t){r.x+23,r.y,r.width-23,r.height},1U)) return -5;
+    }
     if (text(16,(int32_t)app.client.height-26,app.client.width-32,app.model.status,DARK,FACE)) return -5;
     return reist_gui_surface_client_paint_commit(&app.client);
 }
 
 static int render(void) {
     int status=paint();
+    if (!status && app.fault_probe && app.usable && (!app.options_reported ||
+        app.reported_shadows!=app.model.window_shadows || app.reported_contents!=app.model.drag_contents)) {
+        x86os_puts(app.model.window_shadows ? "DISPLAY_OPTIONS_READY shadows=1" : "DISPLAY_OPTIONS_READY shadows=0");
+        x86os_puts(app.model.drag_contents ? " contents=1\n" : " contents=0\n");
+        app.reported_shadows=app.model.window_shadows; app.reported_contents=app.model.drag_contents;
+        app.options_reported=1U;
+    }
     /* QMP admission is not guest consumption. Only diagnostic launches report
      * a changed selection after the compositor accepted its complete paint. */
     if (status==0 && app.fault_probe && app.usable &&
@@ -167,7 +192,11 @@ static void input(const reist_gui_surface_input_t *in) {
         (in->key==0x101U || in->key==27U)) { app.close_requested=1U; return; }
     if (!app.usable) return;
     if (in->type==REIST_GUI_SURFACE_INPUT_KEYBOARD && in->pressed) {
-        if (in->key==9U) { focus_control((app.focus+1U)%3U); return; }
+        if (in->key==9U) {
+            /* List -> shadows -> contents -> Save -> Close. */
+            static const uint32_t next[]={3U,2U,0U,4U,1U};
+            focus_control(next[app.focus]); return;
+        }
         if (!app.focus && (in->key==0x102U || in->key==0x103U)) {
             list_key(in->key==0x102U ? REIST_GUI_VALUE_KEY_UP : REIST_GUI_VALUE_KEY_DOWN); return;
         }
@@ -181,7 +210,7 @@ static void input(const reist_gui_surface_input_t *in) {
     }
     if (in->type==REIST_GUI_SURFACE_INPUT_POINTER_BUTTON && in->button==1U && in->pressed) {
         if (inside(app.list.bounds,in->x,in->y)) focus_control(0U);
-        for (uint32_t i=0;i<2;++i)
+        for (uint32_t i=0;i<4;++i)
             if (inside(app.buttons[i].bounds,in->x,in->y)) focus_control(i+1U);
     }
     if (in->type==REIST_GUI_SURFACE_INPUT_POINTER_BUTTON ||
@@ -207,13 +236,16 @@ static void input(const reist_gui_surface_input_t *in) {
         event.type=REIST_GUI_CONTROL_EVENT_POINTER_MOTION; event.x=in->x; event.y=in->y;
     } else if (in->type==REIST_GUI_SURFACE_INPUT_KEYBOARD && in->pressed &&
                (in->key==13U || in->key==10U || (app.focus && in->key==' '))) {
-        event.type=REIST_GUI_CONTROL_EVENT_KEYBOARD; event.pressed=1U;
+        /* Native control keys are semantic activations, not raw key edges. */
+        event.type=REIST_GUI_CONTROL_EVENT_KEYBOARD;
         event.key=in->key==' ' ? REIST_GUI_CONTROL_KEY_SPACE : REIST_GUI_CONTROL_KEY_ENTER;
         if (!app.focus) focus_control(1U);
     } else return;
     reist_gui_control_result_t result; reist_gui_control_result_initialize(&result);
     if (reist_gui_control_dispatch(&app.controls,&app.control_state,&event,&result)!=0) return;
     if (result.damage_count || result.full_redraw) app.redraw=1U;
+    app.model.window_shadows=app.control_state.check[2];
+    app.model.drag_contents=app.control_state.check[3];
     if (result.activated) {
         if (result.action==1U) { (void)display_model_save(&app.model); app.redraw=1U; }
         else if (result.action==2U) app.close_requested=1U;

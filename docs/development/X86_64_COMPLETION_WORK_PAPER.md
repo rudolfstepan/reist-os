@@ -7,10 +7,12 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 ## R8.3s: geordneter Shellabschluss unabhängig vom Testdialog
 
 Basis1e7645c8, Vertragdcbfb4d8.
-Nutzerunterbrechung12.September: R3.46 Anzeige-Checkboxen hat Vorrang.
+Nutzerunterbrechung12.September: R3.46 Anzeige-Checkboxen wurde vorgezogen,
+einschließlich freigegebener Boot-Vorbereitung vor den Selbsttestfristen.
 Noch keine native Produktionsänderung. Vorbereitete eigene Hosttests unter
 `build/codex-agent/r83s-shell-exit/paused-draft/`, echter Host-Rotbeleg
-`01-host-red.log`; Paket bleibt queued und wird sauber neu aufgenommen.
+`01-host-red.log`; nach R3.46-Abschluss wieder aktives Paket. Die Umsetzung
+wird als eigene Transaktion auf sauberem Commitstand neu aufgenommen.
 
 Frühes EXIT scheitert derzeit an exakt18 gelesenen Zeichen,
 acht Schreibaufrufen und zwei Kindern, auch wenn keinerlei fremder Besitz

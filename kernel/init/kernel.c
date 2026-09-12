@@ -32,6 +32,7 @@
 #include "include/kernel/storage_safety.h"
 #include "include/kernel/storage_handover.h"
 #include "include/kernel/storage_service.h"
+#include "include/kernel/admin_maintenance.h"
 #include "include/kernel/storage_maintenance.h"
 #include "include/kernel/boot_health.h"
 #include "include/kernel/handover.h"
@@ -718,6 +719,28 @@ static int start_userspace_program(const multiboot1_info_t *boot_info,
  * @param multiboot_magic Multiboot 1 bootloader handoff magic
  * @param multiboot_info Pointer to Multiboot1 info structure
  */
+static void start_boot_services(void) {
+    /* The resident rescue set is a boot dependency, not work charged to an
+     * already admitted service's self-test deadline. Complete cold VFS reads
+     * before either timed generation can run. The existing initializer is
+     * idempotent; storage startup retains its own dependency check. */
+    boot_context("userspace-start", "rescue dependencies", "prepare",
+                 "resident programs and storage administration");
+    if (!admin_maintenance_init()) {
+        panic("Unable to prepare REIST boot service dependencies");
+    }
+    boot_context("userspace-start", "REIST probe", "spawn",
+                 "/libexec/reist/reist.prg");
+    if (!supervisor_start_probe(pit_monotonic_ms())) {
+        panic("Unable to start REIST Ring-3 probe");
+    }
+    boot_context("userspace-start", "storage service", "spawn",
+                 "/libexec/reist/storage.prg");
+    if (!storage_service_start(pit_monotonic_ms())) {
+        panic("Unable to start REIST Ring-3 storage service");
+    }
+}
+
 void kernel_main(uint32_t multiboot_magic, const multiboot1_info_t *multiboot_info) {
     if (!scheduler_kernel_context_stack_is_valid()) {
         panic("Static kernel stack guard was not initialized");
@@ -875,16 +898,7 @@ void kernel_main(uint32_t multiboot_magic, const multiboot1_info_t *multiboot_in
     }
     printf("REIST_TEST FATAL_RECOVERY_OK\n");
 #endif
-    boot_context("userspace-start", "REIST probe", "spawn",
-                 "/libexec/reist/reist.prg");
-    if (!supervisor_start_probe(pit_monotonic_ms())) {
-        panic("Unable to start REIST Ring-3 probe");
-    }
-    boot_context("userspace-start", "storage service", "spawn",
-                 "/libexec/reist/storage.prg");
-    if (!storage_service_start(pit_monotonic_ms())) {
-        panic("Unable to start REIST Ring-3 storage service");
-    }
+    start_boot_services();
     supervisor_handle_t video_driver_handle = {0U, 0U, 0U};
     bool video_driver_started = false;
     uint32_t video_ap_mask = 0U;

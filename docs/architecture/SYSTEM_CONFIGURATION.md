@@ -12,6 +12,18 @@ gueltiger, aber nicht verfuegbarer Modus faellt einmal auf `auto` zurueck.
 Farbtiefe bleibt 32 Bit (24 RGB-Bits); keine Live-Umschaltung oder neue Palette.
 Details und Fehlergrenzen: [Anzeigevertrag](DISPLAY_SETTINGS_CONTRACT.md).
 
+Die Anzeige besitzt außerdem die Checkboxen „Fensterschatten“ und
+„Fensterinhalt beim Verschieben anzeigen“. Beide sind standardmäßig an;
+ohne Inhaltsanzeige wird nur ein Rahmen gezogen und das Fenster erst beim
+Loslassen versetzt. Esc bricht diesen Vorgang ab. Gespeichert werden die
+optionalen `reist.desktop/1`-Schlüssel `window_shadows=true|false` und
+`drag_contents=true|false` zusammen mit der Auflösung in einer Transaktion.
+Wirksam beim nächsten Desktopstart, auch für bereits vorhandene Dateien
+ohne diese Schlüssel (beide Vorgaben `true`). Shell-Beispiel:
+`config set desktop window_shadows false drag_contents false`.
+Gemeint sind normale Desktopfenster, nicht Browser-CSS- oder Menüschatten;
+die internen Framebuffer-Sicherungskopien bleiben unverändert.
+
 **Systemsteuerung > Maus** öffnet das eigene `/usr/gui/bin/mouse.prg`.
 `reist.input/1` verwendet `mouse.primary_button=left|right`,
 `mouse.speed_percent=25..200`, `mouse.acceleration=flat|adaptive|off`,
