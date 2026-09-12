@@ -2,6 +2,12 @@
 
 Stand: 12. September 2026
 
+R8.3z ist auf `3e80a1c7` vor Umsetzung eingefroren. Der optionale NativeRAM-
+Pfad bündelt physische RAM-Karte, Reservierungen, geschützte Allokation und
+alle physischen64-Bit-Verbraucher. Private C-Metadaten erhalten dafür einen
+expliziten Aufbau3, nicht eine Lockerung des bisherigen Aufbaus2.
+Grenzen und Pflichtnachweise: [Speichervertrag](NATIVE_PHYSICAL_MEMORY_CONTRACT.md).
+
 R8.3y ist vor Umsetzung auf `89ab012f` eingefroren. Die bestehende REIST-ABI
 dispatcht beide Nachrichtenformate auf50/51/53/54; Bulk erfordert keine breiteren
 Syscallprofile. Private Bindung v2 erweitert die maximale Nachricht auf2060Byte

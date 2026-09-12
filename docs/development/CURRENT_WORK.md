@@ -2,6 +2,15 @@
 
 Stand: 12. September 2026
 
+## R8.3z: physischer Speicher über4GiB
+
+Nach Commit `3e80a1c7` und sauberem Worktree ist der nächste kohärente Schnitt
+mit14 Gates eingefroren: RAM-Karte/Reservierungen, geschützte Frameverwaltung,
+Direct-Map und sämtliche aktuellen physischen Verbraucher zusammen erweitern.
+NativeRAM wird an1/4/8GiB geprüft; der ursprüngliche128MiB-Default bleibt.
+[Verbindlicher Speichervertrag](../architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md).
+Private Heaps und normale native Dienste werden hier noch nicht behauptet.
+
 ## R8.3y: natives IPC-v2 einschließlich Bulk
 
 Auf Vertrag `0068bdaf` umgesetzt: dieselben50/51/53/54 nehmen jetzt v1/v2 an.

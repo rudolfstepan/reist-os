@@ -4,6 +4,19 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3z: skalierbare physische Speichergrenze gemeinsam erweitern
+
+Baseline `3e80a1c7`;14 Gates vor Umsetzung eingefroren. Die Inventur fand die
+128MiB-Grenze nicht nur im Allocator, sondern in Bootübergabe, Reservierung,
+Direct-Map, Frameclaims, Image-/Adressraumaufbau, Pointerprüfung und Reap.
+Diese kompatiblen Verbraucher werden gemeinsam behandelt. Reihenfolge:
+Hostregression; versioniertes begrenztes Metadatenareal; vorhandene RAM-Karte
+und geschützte hierarchische Frameverwaltung; vollbreite Verbraucher; reale
+1/4/8GiB-Gäste mit Frames oberhalb4GiB; abschließende Referenzen und Commit.
+[Speichervertrag](../architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md).
+Keine per-RAM-Größe getrennten Pakete, keine ungeschützte Vergrößerung der
+Bitmaps, keine RAM-weite Bitsuche je Allocation und keine neuen Prozessrechte.
+
 ## R8.3y: kompatible IPC-Nachrichtenformate vervollständigen
 
 Baseline `89ab012f`, dreizehn Gates vor Umsetzung eingefroren. Inventurkorrektur:
