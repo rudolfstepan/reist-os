@@ -3,6 +3,12 @@
 R8.3ae, frozen on cbe5b956, 12 September 2026. This is an implementation
 contract, not accepted runtime evidence. Queue gates are authoritative.
 
+Renewed user instruction on12 September after the explicit blocked-path
+question authorizes correction of the relative evidence directory and renewed
+full verification of the same attributed candidate. Resolve and validate the
+directory inside build/codex-agent before building variants. Preserve failed
+evidence, all17 gate groups and the original one-focused-repair stop condition.
+
 ## Standards and authority
 
 Use the existing SysV AMD64 transport and ELF64 prepared-image mechanism.
