@@ -4,6 +4,16 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3aa: private virtuelle Regionen bis zum Retirement
+
+Nach dem abgenommenen physischen Schnitt `d8b7e52f` wird der vorhandene
+Prozess-Heap-Vertrag nativ angebunden. Eine Inventur zeigt die feste native
+User-Pointertopologie und das vollständige synchrone13-Frame-Retirement;
+beide benötigen einen expliziten Heapbesitz und begrenzte Fortsetzungen.
+Syscalls, Mapping, Rollback, Realloc, Pointer-/IPC-Zulassung und Reap bilden
+ein gemeinsames Paket mit14 Gates. Details:
+[Native-Heapvertrag](../architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md).
+
 ## R8.3z: skalierbare physische Speichergrenze gemeinsam erweitern
 
 Baseline `3e80a1c7`;14 Gates vor Umsetzung eingefroren. Die Inventur fand die

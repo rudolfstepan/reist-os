@@ -189,6 +189,7 @@ Arbeitspläne und historische Texte behalten ihre jeweilige Rolle und Datierung.
 - [architecture/MEDICAL_HIGH_ASSURANCE_CONTRACT.md](architecture/MEDICAL_HIGH_ASSURANCE_CONTRACT.md)
 - [architecture/MEMORY_RESILIENCE.md](architecture/MEMORY_RESILIENCE.md)
 - [architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md](architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md)
+- [architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md](architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md)
 - [architecture/MOUSE_SETTINGS_CONTRACT.md](architecture/MOUSE_SETTINGS_CONTRACT.md)
 - [architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md](architecture/NETWORK_ARP_LIFECYCLE_CONTRACT.md)
 - [architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md](architecture/NETWORK_RECEIVE_PROGRESS_CONTRACT.md)

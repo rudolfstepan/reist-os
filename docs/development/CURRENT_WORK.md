@@ -2,6 +2,17 @@
 
 Stand: 12. September 2026
 
+## R8.3aa: private native Heapbereiche
+
+Nach `d8b7e52f` und sauberem Arbeitsbaum ist der nächste Besitzschnitt mit14
+Gates eingefroren: Syscalls4/5/6, explizite Rechte, dynamische private Tabellen,
+gespeicherte Auftragsfortsetzungen, IPC-Pointerprüfung und vollständiges
+Heap-Retirement. Die vorhandene i386-C-Schedulerübergabe ist nativ nicht
+übernehmbar; Fortschritt wird daher mit höchstens64 Seiten pro Dispatch im
+Kernel festgehalten. Kapazitäten:128 Regionen/512MiB je Task, vier Tasks.
+[Verbindlicher Heapvertrag](../architecture/NATIVE_PRIVATE_HEAP_CONTRACT.md).
+Die Implementierung und Abnahme dieses Pakets stehen noch aus.
+
 ## R8.3z: physischer Speicher über4GiB
 
 Nach Commit `3e80a1c7` und sauberem Worktree ist der nächste kohärente Schnitt
