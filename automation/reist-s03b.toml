@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3af-x86_64-startup-handoff"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3af-x86_64-startup-handoff"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native configurable startup, immutable arguments and explicit IPC handoff"
@@ -28,8 +28,23 @@ acceptance = "All13 frozen groups plus direct ABI/ownership/rollback/scope revie
 stop_conditions = ["Unattributed or overlapping user change","Required source outside frozen scope","Failed gate after one focused in-scope repair","Need to widen frozen quotas or old guest bounds","Hardware or release authority required"]
 commit_message = "feat: add immutable native startup and IPC handoff"
 resumption_authority = "2026-09-12 renewed user bundling instruction after explicit OOM repair question authorizes completing this same attributed candidate. Add two genuinely used private writable fixture pages so all frozen injection points0/1/2/3/6/9 occur within CREATE; guard injection at CREATE completion and fail closed if the selected point was not reached. Preserve kernel mechanisms, quotas, all13 gates and previous failures. Renew affected host/build/full startup matrix only; retain unaffected passed hosts. One focused repair and original stop conditions apply to renewed verification."
-evidence = []
-evidence_note = "BLOCKED uncommitted candidate on contractd42369a5, after accepted family8a3bed10. New host3/1.496s incl actual O0/O2 startup/SDK and negative oracles; legacy family3/.865s, argv4/1.063s, ABI5/.110s, SDK3/1.578s pass. NativeStartup build layout4 418556bytes, native-build-02 3.804s. First guest86003e6bef2c401ea08f73b8f52bccc5 failed because new fixture ignored EINVAL from SLEEP1000 (native maximum100ms). One focused repair uses ten checked100ms steps and asserts1000ms remains EINVAL. Renewed guest62a42a60ba424620b8db664c53380538 lasts43.956s: six cases pass (4/8GiB normal, OOM0/1/2/3),112 native lifetimes/214 total frame retirements, immutable0/1/8 arguments, explicit delegation, stale handles, UD2/cancel/replacement and scratch scrub. Stops at OOM6 with capture/detach failure. Read-only catalog confirms image5 flags[5,0,0,0,0,0,0,0]: one image frame plus five task frames, only six allocations. Injection after6 cannot hit this CREATE; root exits211 after unexpected success, then still-armed injection hits next root build, stageE0. OOM9 is likewise unreachable and was not run. Need renewed authority for a fixture with two writable pages (ten total allocations) and an observer guard that disarms/stops at CREATE completion instead of leaking injection into another phase; preserve all13 groups, limits and failed evidence. One-focused-repair stop reached: no further source repair, later gates or candidate commit. Normal/family builds, old family matrix, normal guest, documentation and artifact guard remain open. Logs build/codex-agent/r83af-startup. R3.6b deferred, R341-H1/H2 open; no full64-bit acceptance."
+evidence = [
+"python test/test_x86_64_task_startup.py -v: PASS4/1.535s startup-host-full-02.log; actual assembly and SDK O0/O2, oracle mutations, CREATE-local injection guard and ten-allocation extent.",
+"python test/test_x86_64_task_family.py -v: PASS3/.865s test_x86_64_task_family-01.log; unaffected retained.",
+"python test/test_x86_64_argv.py -v: PASS4/1.063s test_x86_64_argv-01.log; unaffected retained.",
+"python test/test_syscall_abi_source.py -v: PASS5/.110s test_syscall_abi_source-01.log; unaffected retained.",
+"python test/test_x86_64_sdk.py -v: PASS3/1.578s test_x86_64_sdk-01.log; unaffected retained.",
+"python test/test_documentation.py -v: PASS7/.690s with historical D1-only skip;115 documents, inventory3ec89d4c527b4103bba52b3f3990b95b, docs-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83af-startup/normal: PASS2.262s normal-build-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -NativeLifecycle -OutputDirectory build/codex-agent/r83af-startup/family: PASS4.692s family-build-01.log.",
+".\\scripts\\build-x86_64-bootstrap.ps1 -NativeStartup -OutputDirectory build/codex-agent/r83af-startup/native: PASS3.801s native-build-03.log; C layout4,418556-byte outer ELF.",
+"python scripts/run_qemu_x86_64_task_startup.py --image build/codex-agent/r83af-startup/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83af-startup/guests: PASS8 cases/54.320s; attempt26b3bb4be362421b835426b5b49b8e21;148 native lifetimes/284 full frame retirements,4/8GiB,OOM0/1/2/3/6/9, immutable0/1/8 argv, explicit/stale IPC, fault/cancel/replacement, exact CREATE-local ENOMEM and scratch scrub; ten mechanism objects identical across fixtures.",
+"python scripts/run_qemu_x86_64_task_family.py --image build/codex-agent/r83af-startup/family/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83af-startup/family-reference: PASS12 cases/95.700s; attempt7373ee15f2334a93b823725a564d4650;216 native lifetimes/420 frame retirements.",
+"python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83af-startup/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83af-startup/normal-guest.log: PASS.459s.",
+"python scripts/verify_x86_64_reference_artifacts.py: PASS1.132s outer/1.041s verifier; read-only i386 pins unchanged.",
+]
+evidence_note = "All13 frozen groups pass on d42369a5/42d7e8fc after accepted8a3bed10. Direct final ABI, bounded admission, ownership/rollback, cleanup and scope review passed; legacy v1 and quotas unchanged. Logs under build/codex-agent/r83af-startup, both failed historical attempts retained. Queue has no eligible next native package; active_id empty, R3.6b remains explicitly deferred, R341-H1/H2 open. No full64-bit OS or supervised-service acceptance claim."
+historical_evidence_note = "BLOCKED uncommitted candidate on contractd42369a5, after accepted family8a3bed10. New host3/1.496s incl actual O0/O2 startup/SDK and negative oracles; legacy family3/.865s, argv4/1.063s, ABI5/.110s, SDK3/1.578s pass. NativeStartup build layout4 418556bytes, native-build-02 3.804s. First guest86003e6bef2c401ea08f73b8f52bccc5 failed because new fixture ignored EINVAL from SLEEP1000 (native maximum100ms). One focused repair uses ten checked100ms steps and asserts1000ms remains EINVAL. Renewed guest62a42a60ba424620b8db664c53380538 lasts43.956s: six cases pass (4/8GiB normal, OOM0/1/2/3),112 native lifetimes/214 total frame retirements, immutable0/1/8 arguments, explicit delegation, stale handles, UD2/cancel/replacement and scratch scrub. Stops at OOM6 with capture/detach failure. Read-only catalog confirms image5 flags[5,0,0,0,0,0,0,0]: one image frame plus five task frames, only six allocations. Injection after6 cannot hit this CREATE; root exits211 after unexpected success, then still-armed injection hits next root build, stageE0. OOM9 is likewise unreachable and was not run. Need renewed authority for a fixture with two writable pages (ten total allocations) and an observer guard that disarms/stops at CREATE completion instead of leaking injection into another phase; preserve all13 groups, limits and failed evidence. One-focused-repair stop reached: no further source repair, later gates or candidate commit. Normal/family builds, old family matrix, normal guest, documentation and artifact guard remain open. Logs build/codex-agent/r83af-startup. R3.6b deferred, R341-H1/H2 open; no full64-bit acceptance."
 
 [[packages]]
 id = "R8.3ae-x86_64-task-family"

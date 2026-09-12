@@ -2,6 +2,18 @@
 
 Stand: 12. September 2026
 
+R8.3af ergänzt unter `-NativeStartup` variable Argumente beim dynamischen
+Start und explizite IPC-Übergabe. Der Windows-Preset aktiviert NativeLifecycle;
+Make verwendet `X86_64_NATIVE_STARTUP=1` mit dessen Abhängigkeiten. CREATE-v2
+behält64 Requestbytes; ein1040-Byte-v1-Record enthält bis zu acht128-Byte-
+Argumente. Der Kernel übernimmt ihn einmalig nach Pointerprüfung vor dem
+Startversuch und verwendet den vorhandenen AMD64-Stackbuilder. Alle4096Byte
+temporären Startdaten werden gelöscht. Alte CREATE-v1-/Katalogstarts bleiben.
+Numerische IPC-Handles in Argumenten gewähren keine Rechte; IPC_DELEGATE55
+bleibt erforderlich. Empty envp und bisheriges auxv bleiben unverändert.
+[Startup-Handoff-Vertrag](NATIVE_STARTUP_HANDOFF_CONTRACT.md). Keine
+Dateiausführung, Dienstsupervisor- oder vollständige64-Bit-Systemfreigabe.
+
 R8.3ae bündelt mit `-NativeLifecycle` Startrechte, dynamische Kinder aus dem
 vorbereiteten Katalog, Wait/Timeout, Cancel und Elternausfall. Der Windows-
 Preset aktiviert NativePrograms und dessen Abhängigkeiten. Make benötigt

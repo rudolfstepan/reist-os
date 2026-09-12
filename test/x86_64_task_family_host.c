@@ -23,7 +23,7 @@ static void setup(void) {
     family_records[2][1]=family_records[0][0];
 }
 static int lifecycle(void) {
-    uint8_t before[4096];size_t size=(size_t)(core_end-core_begin);CHECK(size<=sizeof(before));
+    uint8_t before[8192];size_t size=(size_t)(core_end-core_begin);CHECK(size<=sizeof(before));
     setup();CHECK(family_validate_runtime64()==1);
     /* Actual owner/generation validation is nonmutating on stale handles. */
     for(unsigned bit=0;bit<64;bit++) {

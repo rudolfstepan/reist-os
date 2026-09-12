@@ -165,6 +165,21 @@ typedef struct {
 typedef char reist_task_control_size_check[
     sizeof(reist_task_control_request_t)==64U ? 1 : -1];
 
+/* CREATE-v2 alone carries an immutable argument snapshot. No implicit IPC
+ * grant or environment support; v1 and its reserved-zero field are unchanged. */
+#define REIST_TASK_CREATE_VERSION 2U
+#define REIST_TASK_STARTUP_VERSION 1U
+typedef struct {
+    uint32_t version, struct_size, argc, flags;
+    char arguments[8][128];
+} reist_task_startup_v1_t;
+typedef struct {
+    uint32_t version, struct_size, operation, flags;
+    uint64_t target, image, timeout_ms, syscalls, cpu_samples, startup;
+} reist_task_create_v2_t;
+typedef char reist_task_startup_size_check[sizeof(reist_task_startup_v1_t)==1040U ? 1 : -1];
+typedef char reist_task_create_size_check[sizeof(reist_task_create_v2_t)==64U ? 1 : -1];
+
 /* ECMA-48 base palette order; 8..15 are the REIST bright extension.
  * A typed, stateless span, not an escape-sequence/ANSI terminal protocol. */
 #define REIST_TERMINAL_COLOR_VERSION 1U

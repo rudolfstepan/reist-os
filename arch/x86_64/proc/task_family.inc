@@ -2,12 +2,21 @@
 global family_request_admit64
 family_request_admit64:
     cmp dword [rdi],1
+    je .v1
+    cmp dword [rdi],2
     jne .invalid
+    cmp dword [rdi+8],1
+    jne .invalid
+    cmp qword [rdi+56],0
+    je .invalid
+    jmp .header
+.v1:
+    cmp qword [rdi+56],0
+    jne .invalid
+.header:
     cmp dword [rdi+4],64
     jne .invalid
     cmp dword [rdi+12],0
-    jne .invalid
-    cmp qword [rdi+56],0
     jne .invalid
     mov eax,[rdi+8]
     cmp eax,1
@@ -65,6 +74,96 @@ family_request_admit64:
     ret
 .invalid:
     mov rax,-22
+    ret
+
+; Fixed startup-v1 snapshot, read-only before argument/attempt publication.
+global family_startup_admit64
+family_startup_admit64:
+    cmp dword [rdi],1
+    jne .invalid
+    cmp dword [rdi+4],1040
+    jne .invalid
+    cmp dword [rdi+12],0
+    jne .invalid
+    mov r8d,[rdi+8]
+    cmp r8d,8
+    ja .large
+    xor ecx,ecx
+    lea rsi,[rdi+16]
+.cell:
+    xor r9d,r9d
+    cmp ecx,r8d
+    setae r9b
+    xor edx,edx
+.byte:
+    movzx eax,byte [rsi+rdx]
+    test r9d,r9d
+    jnz .padding
+    test eax,eax
+    setz r9b
+    jmp .next
+.padding:
+    test eax,eax
+    jnz .invalid
+.next:
+    inc edx
+    cmp edx,128
+    jb .byte
+    test r9d,r9d
+    jz .large
+    add rsi,128
+    inc ecx
+    cmp ecx,8
+    jb .cell
+    mov eax,1
+    ret
+.large:
+    mov rax,-7
+    ret
+.invalid:
+    mov rax,-22
+    ret
+
+; SysV RDI pinned4096-byte scratch, RSI disjoint private stack page.
+; Only the private vector tail is adapted; reuse the existing stack builder.
+global family_startup_build64
+family_startup_build64:
+    push rbx
+    push rbp
+    sub rsp,72
+    mov rbx,rdi
+    mov rbp,rsi
+    call family_startup_admit64
+    cmp rax,1
+    jne .return
+    xor ecx,ecx
+.vector:
+    mov eax,ecx
+    shl eax,7
+    add eax,0x1010
+    mov [rbx+1040+rcx*8],rax
+    inc ecx
+    cmp ecx,8
+    jb .vector
+    mov [rsp],rbx
+    mov [rsp+8],rbp
+    mov qword [rsp+16],0x1000
+    mov qword [rsp+24],0x409000
+    mov eax,[rbx+8]
+    mov [rsp+40],rax
+    test eax,eax
+    jz .empty
+    mov eax,0x1410
+.empty:
+    mov [rsp+32],rax
+    mov qword [rsp+48],0
+    mov rdi,rsp
+    mov esi,1
+    call reist_x64_startup_stack
+.return:
+    add rsp,72
+    pop rbp
+    pop rbx
     ret
 
 ; RUNTIME ADAPTER
@@ -344,6 +443,23 @@ family_syscall64:
     call family_request_admit64
     cmp rax,1
     jne family_result64
+    cmp dword [rel family_request],2
+    jne .admitted
+    mov rax,[rel family_request+56]
+    mov edx,1040
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    test eax,eax
+    jz .pointer
+    mov rsi,[rel family_request+56]
+    lea rdi,[rel family_startup]
+    mov ecx,130
+    rep movsq
+    lea rdi,[rel family_startup]
+    call family_startup_admit64
+    cmp rax,1
+    jne family_result64
+.admitted:
     mov edi,[rel scheduler_current_slot]
     cmp edi,2
     jae process_run_syscall64.denied
@@ -381,13 +497,16 @@ family_syscall64:
     jmp family_result64
 .pointer:
     mov rax,-14
-    jmp process_run_resume64
+    jmp family_result64
 
 family_result64:
     push rax
     lea rdi,[rel family_request]
     xor eax,eax
     mov ecx,8
+    rep stosq
+    lea rdi,[rel family_startup]
+    mov ecx,512
     rep stosq
     pop rax
     jmp process_run_resume64
@@ -458,7 +577,15 @@ family_create64:
     jne scheduler_fail
     mov rdi,DIRECT_MAP_BASE
     add rdi,[r12+TASK_STACK_FRAME]
+    cmp dword [rel family_request],2
+    jne .catalog_stack
+    mov rsi,rdi
+    lea rdi,[rel family_startup]
+    call family_startup_build64
+    jmp .stack_ready
+.catalog_stack:
     call x86_64_boot_program_stack64
+.stack_ready:
     test rax,rax
     jle scheduler_fail
     mov [r12+TASK_RSP],rax
@@ -857,6 +984,7 @@ family_build_slot: resd 1
 family_initial_free: resd 1
 family_loaded_image: resb 1
 alignb 8
+family_startup: resb 4096
 family_end:
 section .text
 %endif

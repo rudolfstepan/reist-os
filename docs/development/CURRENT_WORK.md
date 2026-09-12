@@ -2,7 +2,7 @@
 
 Stand: 12. September 2026
 
-## R8.3af: Startargumente und IPC-Übergabe – eingefroren
+## R8.3af: Startargumente und IPC-Übergabe gemeinsam umgesetzt
 
 Nach sauberem Implementierungscommit `8a3bed10` sind alle17 Gruppen von
 R8.3ae abgenommen. Die nächste gemeinsame Startgrenze umfasst variable,
@@ -10,7 +10,38 @@ unveränderlich übernommene Argumente, SDK, explizite IPC-Verbindungsübergabe
 und die zugehörigen Fehler-/Restart-/OOM-Fälle. Vorhandene Stack-, Delegate-
 und Retirementkerne werden wiederverwendet, keine Dienstpolitik in Ring0.
 [Vertrag](../architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md),13 Gategruppen.
-Noch keine Implementierung oder Abnahme dieses neuen Pakets.
+Verträge `d42369a5` und `42d7e8fc` auf Basis `8a3bed10`.
+CREATE-v2 und1040-Byte-Startdaten, einmalige Pointerprüfung/Kopie vor
+Startversuch/Allokation, vorhandener Stackbuilder, vollständiger Scratch-Scrub,
+SDK und Windows-/Make-Preset sind implementiert. Alte v1-Bedeutung bleibt.
+
+Neue Hostgruppe4/1.535s, Family3/.865s, Argv4/1.063s, ABI5/.110s und
+SDK3/1.578s bestehen. NativeStartup baut in3.801s, privater C-Aufbau4,
+418556Byte Kernel; normaler und alter Family-Build bestehen ebenfalls.
+Die vollständige achtteilige Gastmatrix besteht in54.320s:
+`guests/attempt-26b3bb4be362421b835426b5b49b8e21`.
+148 native Lebensläufe und284 Frame-Retirements,4/8GiB, unveränderliche
+0/1/8 Argumente, explizite Delegation, alte Handles, UD2, Cancel/Ersatz,
+OOM0/1/2/3/6/9 und vollständiger Scratch-Scrub. Zehn Mechanismusobjekte
+bleiben zwischen normalem und OOM-Userprogramm bytegleich.
+
+Die zwölfteilige alte Family-Matrix besteht in95.700s:
+`family-reference/attempt-7373ee15f2334a93b823725a564d4650`.
+Normaler Bootstrap:.459s; read-only i386-Artefaktvergleich:1.132s.
+Logs, Gateabschluss und historische Fehlversuche bleiben unter
+`build/codex-agent/r83af-startup/`; die Queue hält die13-Gruppen-Abnahme fest.
+
+Die ersten beiden Gastversuche bleiben als historische Fehler erhalten:
+`86003e6bef2c401ea08f73b8f52bccc5` ignorierte in der neuen Fixture EINVAL
+für1000ms Schlaf; zehn geprüfte100ms-Schritte ersetzen den ungültigen Aufruf,
+1000ms bleibt explizit abgewiesen. `62a42a60ba424620b8db664c53380538`
+erreichte OOM6/9 nicht, weil das Kind nur sechs CREATE-Allokationen brauchte;
+der Injektor traf anschließend einen fremden Rootstart. Die erneute
+Nutzerfreigabe wurde vor der Korrektur in `42d7e8fc` eingefroren. Zwei wirklich
+benutzte RW-Fixtureseiten ergeben jetzt zehn Allokationen. Der Beobachter
+prüft die Katalogbelegung vor dem Gast und erzwingt ENOMEM samt Entschärfung
+am jeweiligen CREATE-Abschluss. Ein verfehlter Punkt stoppt dort fail-closed.
+Diese Korrektur verändert weder Kernelmechanismen noch Quoten oder Fristen.
 
 ## R8.3ae: gebündelter nativer Prozessbesitz
 

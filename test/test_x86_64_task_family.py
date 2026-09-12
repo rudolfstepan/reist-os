@@ -109,6 +109,7 @@ scheduler_fail:
     ud2
 '''
         asm='BITS 64\n'+constants+'section .bss\nalignb 8\n'+exports+data+'section .text\n'+pure+'\n'+profiles
+        asm+='\n'+(ROOT/'arch/x86_64/proc/startup_stack.asm').read_text()
         asm+='\n'+''.join('global '+n+'\n' for n in names)+core+adapter
         host.TaskFrameTests().build(asm,
             ROOT/'test/x86_64_task_family_host.c','TASK_FAMILY_HOST')

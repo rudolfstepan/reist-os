@@ -4,6 +4,24 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3af: konfigurierbarer Start und IPC-Verbindung zusammen
+
+Auf `8a3bed10` sind CREATE-v2, unveränderliche Startargumente, SDK und
+explizite generationsgebundene IPC-Übergabe ein gemeinsamer Schnitt mit13
+Gategruppen. Kein Einzelpaket je Argumentzahl, Fehler, Neustart oder OOM-Punkt.
+[Startvertrag](../architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md).
+Alle acht neuen Gastfälle bestehen mit148 nativen Lebensläufen; die zwölf
+alten Family-Fälle, normaler Bootstrap und i386-Pins bestehen ebenfalls.
+Die vorab freigegebene OOM-Fixturekorrektur erhält alle Mechanismen und Grenzen;
+konkrete Belege und historische Fehler stehen im [Arbeitsstand](CURRENT_WORK.md).
+
+Die gemeinsame Start-/Besitz-/IPC-Grenze ist damit für Ring3-Verbraucher
+nutzbar. Eine vollständige Dienstüberwachung samt Self-Test, endlichen
+Restartbudgets und sicherem Ausfallzustand ist noch nicht integriert.
+Ebenso offen: Dateiladen außerhalb Ring0, native Geräte-/Dateidienste,
+normales Userland und eigene vollständige Systemabnahme. Die nächste Inventur
+bündelt einen solchen vollständigen Sicherheitsbereich; i386 bleibt Fallback.
+
 ## R8.3ae: Start, Wait, Cancel und Elternausfall zusammen
 
 Nach `cbe5b956` wird die gemeinsame Besitzgrenze als ein Paket eingefroren:
