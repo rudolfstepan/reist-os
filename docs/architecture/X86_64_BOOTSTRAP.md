@@ -1,6 +1,6 @@
 # REIST x86_64 bootstrap contract
 
-Stand: 11. September 2026
+Stand: 12. September 2026
 
 R8.3v, vor Implementierung eingefroren12.September: privates C-Payloadlayout v2.
 System-V-ELF64/EM_X86_64/ET_EXEC bleibt der native C-Linkvertrag, ELF32 nur der
@@ -18,6 +18,30 @@ die Abschnittsbytes und BSS-Größendefinition. Keine Runtime-ELF-Ausweitung,
 unbekannten allozierten Abschnitte, Konstruktoren, TLS, dynamischen Bindungen,
 Relokationen, W+X oder impliziten Hosted-Runtime-Abhängigkeiten. Alte datierte
 Einseitenangaben unten bleiben die Historie des Layouts v1, nicht das neue Ziel.
+
+Implementiert auf Vertrag `9b8cd75e`: `config/x86_64_c_payload.ld` bindet
+Entry sowie32-Byte-Bootobjekte ausdrücklich als erste Abschnittsobjekte.
+`scripts/build_x86_64_c_payload.py` akzeptiert höchstens1MiB ELF-Datei,
+32 Programmheader,128 Sektionen und4096 Symbole der einzigen Symboltabelle.
+Er prüft alle Datei-/Ladeüberlappungen, Rechte, Größen und acht feste Bindungen,
+extrahiert erst danach Text/RoData/Data sowie tatsächliche BSS-Größe und
+verifiziert das Ergebnis zusätzlich am gelinkten äußeren Container. Statische
+Section-/Bridgeadressen bleiben private Buildbindungen, keine neue User-ABI.
+Die Datei-Veröffentlichung ist jeweils atomar, nicht als Mehrdateitransaktion;
+Make stoppt bei einem Fehler vor Einbettung/Erfolgsmeldung. Eigene exklusive
+Stagingdateien erben die Ziel-ACLs, fremde Kollisionen werden nicht gelöscht.
+
+`-CPayloadProbe` bindet eine zusätzliche echte C-Übersetzungseinheit ein:
+7832Byte RX-Text einschließlich ausgeführter mehrseitiger Instruktionsfolge,
+9122Byte Konstanten,9032Byte initialisierte Daten und12032Byte BSS. Nur dieser
+Testcode bereinigt seine eigenen zusätzlichen Arrays; der normale Bootabschluss
+löscht weiterhin genau seine32-Byte-Stateobjekte und128/64-Byte-Handoffs.
+Die Gastabnahme vergiftet vier exakte neue BSS-Bytes vor Startup, schreibt
+danach keinen Zustand und kontrolliert vor/nach C sämtliche13 belegten Seiten,
+111 Lücken, WP/NXE und nicht vorhandene Bootstrap-Direct-Map-Aliase. Alle
+vorhandenen Shell-/Prozess-/Frame-Reap-Orakel bleiben unverändert erfolgreich.
+Host-Mutationen beschädigter Artefakte und reale Linkfehler ergänzen den Gast,
+ersetzen ihn nicht. Belege unter `build/codex-agent/r83v-c-payload/`.
 
 Ergänzung12.September2026, R8.3u: Das vor Implementierung eingefrorene optionale
 `-NativeProcesses`-Profil verbindet bestehende Kernelmechanismen ohne feste

@@ -15,6 +15,30 @@ Kein vorgezogener IPC-/Treiberport; weiterhin128MiB, vier Tasks und bestehende
 Zeitquoten. Die normale32-Bit-Version bleibt unverändert. Native IPC-Pools
 folgen nach dieser Build-/Schutzvoraussetzung; R3.6b bleibt zurückgestellt.
 
+Umgesetzt auf Vertrag `9b8cd75e`: ELF64-Linkerplan und begrenzter Buildprüfer
+prüfen Sektionen, Segmente, Dateibereiche, Rechte und acht Symbolbindungen
+vor der Einbettung sowie nochmals am tatsächlichen ELF32-Container. Daten-
+und BSS-Bootobjekte stehen ausdrücklich zuerst; der übrige Modulzustand wird
+bei der Boot-Handoff-Bereinigung nicht pauschal gelöscht. Veröffentlichung
+erfolgt pro Datei atomar mit vererbten Windows-ACLs; Fehler löschen nur eigene
+Stagingdateien. Elf Hosttests bestehen (2.088s), einschließlich echtem
+Mehrmodul-Link, altem Überlappungsfehler, Kapazitäts-/Konstruktorablehnung,
+mutierten ELF-Artefakten, Orakelnegativen und Debugger-Startbereinigung.
+
+Normal- und Mehrseitenbuild bestehen in3.460s/3.056s. Der reale C-Test nutzt
+7832Byte Code,9122Byte Konstanten,9032Byte Daten und12032Byte BSS. Die verdeckte
+Gastprüfung (0.672s) prüft vor und nach C13 geschützte Seiten,111 nichtpräsente
+Lücken, WP/NXE, fehlende direkte Bootstrap-Aliase und vollständige Löschung
+der vor Bootinitialisierung gezielt vergifteten BSS-Bytes. Beleg
+`build/codex-agent/r83v-c-payload/layout/attempt-4912978225bf49bd86b02cbaa039fcb3`.
+Die bestehenden neun Prozessvarianten/72 Tasks plus fünf Beobachtungen/40
+weitere Tasks bestehen (56.444s);20 normale Frame-Reaps1.882s. Bootstrap56
+und Prozess5 Hosttests grün. Alle drei normalen User-ELFs sind byteidentisch,
+der gepinnte i386-Guard bestätigt Images und96 Programme (1.140s).
+Belege und ursprünglicher Rotlauf bleiben unter `build/codex-agent/r83v-*`.
+Dokumentationsgate und abschließender Scope-/Queuecheck vor lokalem Commit;
+keine Quotenlockerung, sichtbare VM, neue Laufzeitautorität oder Push.
+
 ## R8.3u: unabhängige native Prozesse
 
 R8.3t ist mit `3a8c97d2` und allen14 Prüfgruppen abgeschlossen. Der implementierte

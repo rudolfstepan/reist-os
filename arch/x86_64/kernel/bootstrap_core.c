@@ -37,12 +37,14 @@ extern reist_u32 x86_64_c_serial_write64(const char *message,
                                          reist_u64 length);
 extern reist_u32 x86_64_c_process_shell64(reist_u64 generation);
 
+__attribute__((section(".data.boot_state"),aligned(16)))
 volatile reist_u64 x86_64_c_data_state[REIST_STATE_WORDS] = {
     0x5245495354434441ULL,
     0x1122334455667788ULL,
     0x8877665544332211ULL,
     0xA55AA55AA55AA55AULL,
 };
+__attribute__((section(".bss.boot_state"),aligned(16)))
 volatile reist_u64 x86_64_c_bss_state[REIST_STATE_WORDS];
 
 static const char c_callback_message[] = "REIST_X86_64_C_CALLBACK_OK\r\n";
@@ -156,6 +158,7 @@ static int validate_control(
     return 1;
 }
 
+__attribute__((section(".text.entry")))
 reist_u32 x86_64_c_core_entry(
     volatile struct reist_x86_64_bootstrap_handoff_v1 *handoff)
 {
@@ -176,6 +179,15 @@ reist_u32 x86_64_c_core_entry(
         zero_bytes((volatile reist_u8 *)handoff, REIST_COPY_BOUND);
         return 0U;
     }
+
+#if X86_64_C_PAYLOAD_PROBE
+    extern reist_u32 x86_64_c_payload_probe(void);
+    if (x86_64_c_payload_probe()!=1U) {
+        clear_owned_state();
+        zero_bytes((volatile reist_u8 *)handoff, REIST_COPY_BOUND);
+        return 0U;
+    }
+#endif
 
     source = (const volatile reist_u8 *)handoff;
     for (index = 0U; index < REIST_COPY_BOUND; ++index) {

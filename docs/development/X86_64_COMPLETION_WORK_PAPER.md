@@ -1,10 +1,10 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
+Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3u: unabhängiger nativer Prozesslauf
+## R8.3v: mehrseitiger nativer C-Payload
 
 Nächster zusammenhängender Schnitt nach `df6b82ac`: R8.3v beseitigt vor der
 allgemeinen IPC-Portierung die Einseiten-/32Byte-C-Payloadgrenze. Ein eigener
@@ -15,6 +15,20 @@ ausführbarer C-Testpayload plus reale Paging-/BSS-Nachweise sind Bestandteil
 derselben zehn Gates. Keine größere physische RAM-Zulassung und keine
 Aufnahme von Treibern/Protokollpolitik in Ring0. Danach ist der allgemeine
 IPC-Autoritäts-/Lebensdauerschnitt wieder der nächste Kandidat.
+
+Umsetzung auf Vertrag `9b8cd75e`: tatsächlicher Mehrmodul-Link und strikt
+begrenzter ELF-Buildprüfer; Layout v2 ist im Bootstrapvertrag beschrieben.
+Der Gast führt mehrseitigen C-Code aus und prüft alle Konstanten-/Datenbytes,
+genulltes, danach beschriebenes und wieder bereinigtes BSS. Vorherige gezielte
+BSS-Vergiftung beweist die Bootinitialisierung unabhängig vom Multibootloader.
+Zwei read-only Pagingbeobachtungen bestätigen13 belegte und111 nichtpräsente
+Seiten, WP/NXE und keine direkten Bootstrap-Aliase. Elf neue Hosttests2.088s,
+Mehrseitengast0.672s; bestehende Prozessmatrix56.444s und Frame-Reap1.882s
+grün. Normale User-ELFs und gepinnte i386-Artefakte unverändert. Keine
+physische Speichererweiterung, geänderte User-ABI oder produktive OS-Abnahme.
+Alle zehn eingefrorenen Kommandos und Transaktionsstatus stehen in der Queue.
+
+## R8.3u: unabhängiger nativer Prozesslauf
 
 Aktuelle Fortsetzung auf Erfolgscommit `3a8c97d2`: R8.3u bündelt allgemeine
 Taskzulassung, unabhängige Lebensdauern, Scheduling/Deadlines und gemeinsamen

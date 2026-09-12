@@ -18,7 +18,8 @@ param(
     [ValidateRange(-1, 4294967295)] [long]$ShellExitStatus = -1,
     [switch]$OwnerTerminal,
     [switch]$NativeProcesses,
-    [ValidateRange(0, 8)] [int]$ProcessCase = 0
+    [ValidateRange(0, 8)] [int]$ProcessCase = 0,
+    [switch]$CPayloadProbe
 )
 
 Set-StrictMode -Version Latest
@@ -257,6 +258,7 @@ try {
         "X86_64_OWNER_TERMINAL=$([int]$OwnerTerminal.IsPresent)" `
         "X86_64_NATIVE_PROCESSES=$([int]$NativeProcesses.IsPresent)" `
         "X86_64_PROCESS_CASE=$ProcessCase" `
+        "X86_64_C_PAYLOAD_PROBE=$([int]$CPayloadProbe.IsPresent)" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."
@@ -338,10 +340,10 @@ try {
     $cTextLength = (Get-Item -LiteralPath $CText).Length
     $cRodataLength = (Get-Item -LiteralPath $CRodata).Length
     $cDataLength = (Get-Item -LiteralPath $CData).Length
-    if ($cElfBytes.Length -gt 64KB -or $cTextLength -le 0 -or
-        $cTextLength -gt 4096 -or $cRodataLength -le 0 -or
-        $cRodataLength -gt 4096 -or $cDataLength -ne 32) {
-        throw "x86_64 C payload sections exceed their fixed page or ABI bounds."
+    if ($cElfBytes.Length -gt 1MB -or $cTextLength -le 0 -or
+        $cTextLength -gt 64KB -or $cRodataLength -le 0 -or
+        $cRodataLength -gt 32KB -or $cDataLength -lt 32 -or $cDataLength -gt 16KB) {
+        throw "x86_64 C payload sections exceed the private v2 layout bounds."
     }
     Write-Host "X86_64_BOOTSTRAP_BUILD_OK path=$Artifact bytes=$($item.Length)"
     Write-Host "X86_64_USER_PROBE_BUILD_OK path=$UserProbe bytes=$($probeItem.Length)"

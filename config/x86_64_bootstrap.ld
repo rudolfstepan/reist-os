@@ -53,22 +53,28 @@ SECTIONS
     _c_core_text_end = .;
   }
 
-  .c_core_rodata 0x00186000 : {
+  .c_core_rodata 0x00195000 : {
     _c_core_rodata_start = .;
     KEEP(*(.c_core_rodata))
     _c_core_rodata_end = .;
   }
 
-  .c_core_data 0x00187000 : {
+  .c_core_data 0x0019D000 : {
     _c_core_data_start = .;
     KEEP(*(.c_core_data))
     _c_core_data_end = .;
   }
 
-  .c_core_bss 0x00188000 (NOLOAD) : {
+  .c_core_bss 0x001A1000 (NOLOAD) : {
     _c_core_bss_start = .;
     KEEP(*(.c_core_bss))
     _c_core_bss_end = .;
+  }
+
+  .c_core_handoff 0x001FF000 (NOLOAD) : {
+    _c_core_handoff_start = .;
+    KEEP(*(.c_core_handoff))
+    _c_core_handoff_end = .;
   }
 
   _x86_64_bootstrap_end = .;
@@ -90,14 +96,16 @@ SECTIONS
 
   ASSERT(SIZEOF(.c_core_bridge) > 0 && SIZEOF(.c_core_bridge) <= 4096,
          "x86_64 C serial bridge exceeds one RX page")
-  ASSERT(SIZEOF(.c_core_text) > 0 && SIZEOF(.c_core_text) <= 4096,
-         "x86_64 C text exceeds one RX page")
-  ASSERT(SIZEOF(.c_core_rodata) > 0 && SIZEOF(.c_core_rodata) <= 4096,
-         "x86_64 C rodata exceeds one R/NX page")
-  ASSERT(SIZEOF(.c_core_data) == 32,
-         "x86_64 C initialized data ABI changed")
-  ASSERT(SIZEOF(.c_core_bss) == 224,
-         "x86_64 C BSS or handoff ABI changed")
+  ASSERT(SIZEOF(.c_core_text) > 0 && SIZEOF(.c_core_text) <= 65536,
+         "x86_64 C text exceeds bounded RX envelope")
+  ASSERT(SIZEOF(.c_core_rodata) > 0 && SIZEOF(.c_core_rodata) <= 32768,
+         "x86_64 C rodata exceeds bounded R/NX envelope")
+  ASSERT(SIZEOF(.c_core_data) >= 32 && SIZEOF(.c_core_data) <= 16384,
+         "x86_64 C initialized data exceeds bounded RW/NX envelope")
+  ASSERT(SIZEOF(.c_core_bss) >= 32 && SIZEOF(.c_core_bss) <= 262144,
+         "x86_64 C BSS exceeds bounded RW/NX envelope")
+  ASSERT(SIZEOF(.c_core_handoff) == 192,
+         "x86_64 C handoff ABI changed")
 
   ASSERT(_x86_64_bootstrap_end <= 0x00200000,
          "x86_64 bootstrap exceeds its single 2 MiB identity map")

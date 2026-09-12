@@ -243,6 +243,7 @@ X86_64_SHELL_EXIT_STATUS ?= -1
 X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
 X86_64_PROCESS_CASE ?= 0
+X86_64_C_PAYLOAD_PROBE ?= 0
 X86_64_CHILD_LINKER = $(if $(filter-out 0,$(X86_64_INSTRUCTION_CASE)),config/x86_64_user_instruction.ld,$(if $(filter-out 0,$(X86_64_MAPPING_CASE)),config/x86_64_user_mapping.ld,config/x86_64_user_child.ld))
 X86_64_EFFECTIVE_IPC_CASE = $(if $(filter-out 0,$(X86_64_REQUEST_CASE) $(X86_64_OOM_CASE) $(X86_64_PROFILE_CASE)),1,$(X86_64_IPC_CASE))
 X86_64_C_CORE_OBJ := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core.o
@@ -250,6 +251,8 @@ X86_64_C_CORE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-c-core.elf
 X86_64_C_CORE_TEXT := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_text.bin
 X86_64_C_CORE_RODATA := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_rodata.bin
 X86_64_C_CORE_DATA := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_data.bin
+X86_64_C_CORE_LAYOUT := $(X86_64_BOOTSTRAP_DIR)/bootstrap_core_layout.inc
+X86_64_C_PAYLOAD_PROBE_OBJ := $(X86_64_BOOTSTRAP_DIR)/c_payload_probe.o
 X86_64_USER_PROBE_OBJ := $(X86_64_BOOTSTRAP_DIR)/user_probe.o
 X86_64_USER_PROBE_ELF := $(X86_64_BOOTSTRAP_DIR)/reist-x86_64-user-probe.elf
 X86_64_USER_SHELL_OBJ := $(X86_64_BOOTSTRAP_DIR)/user_shell.o
@@ -447,23 +450,18 @@ x86_64-bootstrap:
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
+		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
+ifeq ($(X86_64_C_PAYLOAD_PROBE),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -c test/x86_64_c_payload_fixture.c -o $(X86_64_C_PAYLOAD_PROBE_OBJ)
+endif
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
-		-z noexecstack --strip-debug -e x86_64_c_core_entry \
-		--section-start=.text=0xFFFFFFFF80185000 \
-		--section-start=.rodata=0xFFFFFFFF80186000 \
-		--section-start=.data=0xFFFFFFFF80187000 \
-		--section-start=.bss=0xFFFFFFFF80188000 \
-		--defsym=x86_64_c_serial_write64=0xFFFFFFFF80184000 \
-		--defsym=x86_64_c_process_shell64=0xFFFFFFFF80184100 \
-		--defsym=x86_64_c_process_run64=0xFFFFFFFF80184200 \
-		--defsym=x86_64_c_handoff=0xFFFFFFFF80188020 \
-		--defsym=x86_64_c_control_handoff=0xFFFFFFFF801880A0 \
-		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ)
-	@$(OBJCOPY) -O binary --only-section=.text $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_TEXT)
-	@$(OBJCOPY) -O binary --only-section=.rodata $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_RODATA)
-	@$(OBJCOPY) -O binary --only-section=.data $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_DATA)
+		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
+		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
+		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),)
+	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --output-directory $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf32 -DC_CORE_TEXT_PATH=\"$(X86_64_C_CORE_TEXT)\" \
+		-DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
@@ -499,6 +497,7 @@ x86_64-bootstrap:
 		$(X86_64_PHYSICAL_MEMORY_OBJ) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
 		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ) $(X86_64_ADDRESS_SPACE_OBJ) $(X86_64_TASK_FRAMES_OBJ) $(X86_64_USER_ACCESS_OBJ)
+	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 
 check-syscall-abi:

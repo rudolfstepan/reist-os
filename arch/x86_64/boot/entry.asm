@@ -3,6 +3,10 @@
 ; references this file.
 
 BITS 32
+%include C_CORE_LAYOUT_PATH
+%if C_CORE_LAYOUT_VERSION != 2
+%error "unsupported native C layout"
+%endif
 
 MULTIBOOT_MAGIC     equ 0x1BADB002
 MULTIBOOT_FLAGS     equ (1 << 0) | (1 << 1)
@@ -144,9 +148,12 @@ extern _c_core_data_start
 extern _c_core_data_end
 extern _c_core_bss_start
 extern _c_core_bss_end
+extern _c_core_handoff_start
+extern _c_core_handoff_end
 
 x86_64_bootstrap_start:
     cli
+    cld
     mov dword [boot_magic_value], eax
     mov dword [boot_info_value], ebx
     mov esp, bootstrap_stack_top
@@ -165,8 +172,11 @@ x86_64_bootstrap_start:
 
     ; The C ABI requires a loader-independent BSS initialization proof.
     mov edi, x86_64_c_bss_state
-    mov ecx, (C_STATE_QWORDS * 8) / 4
-    rep stosd
+    mov ecx, C_CORE_BSS_BYTES
+    rep stosb
+    mov edi, _c_core_handoff_start
+    mov ecx, C_HANDOFF_SIZE + C_CONTROL_SIZE
+    rep stosb
     mov byte [c_control_active], 0
 
     mov eax, dword [boot_magic_value]
@@ -246,6 +256,12 @@ x86_64_bootstrap_start:
 
     mov esi, _c_core_bss_start
     mov edi, _c_core_bss_end
+    mov ebx, PAGE_PRESENT_WRITE
+    mov ecx, PAGE_NX_HIGH
+    call map_high_pages32
+
+    mov esi, _c_core_handoff_start
+    mov edi, _c_core_handoff_end
     mov ebx, PAGE_PRESENT_WRITE
     mov ecx, PAGE_NX_HIGH
     call map_high_pages32
@@ -588,25 +604,35 @@ x86_64_c_core_handoff64:
     jne .fail
 
     mov esi, _c_core_bridge_start
+    mov edi, _c_core_bridge_end
     mov edx, PAGE_PRESENT
     xor ecx, ecx
-    call verify_high_page64
+    call verify_c_pages64
     mov esi, _c_core_text_start
+    mov edi, _c_core_text_end
     mov edx, PAGE_PRESENT
     xor ecx, ecx
-    call verify_high_page64
+    call verify_c_pages64
     mov esi, _c_core_rodata_start
+    mov edi, _c_core_rodata_end
     mov edx, PAGE_PRESENT
     mov ecx, PAGE_NX_HIGH
-    call verify_high_page64
+    call verify_c_pages64
     mov esi, _c_core_data_start
+    mov edi, _c_core_data_end
     mov edx, PAGE_PRESENT_WRITE
     mov ecx, PAGE_NX_HIGH
-    call verify_high_page64
+    call verify_c_pages64
     mov esi, _c_core_bss_start
+    mov edi, _c_core_bss_end
     mov edx, PAGE_PRESENT_WRITE
     mov ecx, PAGE_NX_HIGH
-    call verify_high_page64
+    call verify_c_pages64
+    mov esi, _c_core_handoff_start
+    mov edi, _c_core_handoff_end
+    mov edx, PAGE_PRESENT_WRITE
+    mov ecx, PAGE_NX_HIGH
+    call verify_c_pages64
 
     lea rdi, [rel x86_64_c_handoff]
     mov r8, rdi
@@ -751,6 +777,24 @@ x86_64_c_control_handoff64:
     xor eax, eax
     ret
 
+; Bounded linked C envelope, every occupied4KiB leaf rather than the first.
+verify_c_pages64:
+    cmp esi, 0x00184000
+    jb higher_half_state_error
+    cmp edi, 0x00200000
+    ja higher_half_state_error
+    cmp esi, edi
+    jae higher_half_state_error
+    test esi, 4095
+    jnz higher_half_state_error
+    mov r9d, edi
+.next:
+    call verify_high_page64
+    add esi, 4096
+    cmp esi, r9d
+    jb .next
+    ret
+
 verify_high_page64:
     mov eax, esi
     shr eax, 12
@@ -857,7 +901,7 @@ c_kernel_control_state_error:
     call serial_write64
     jmp halt64
 
-section .c_core_bridge
+section .c_core_bridge progbits alloc exec nowrite align=256
 x86_64_c_serial_write64:
     test rdi, rdi
     jz .callback_fail
@@ -1163,7 +1207,9 @@ x86_64_c_data_state:
 section .c_core_bss nobits alloc noexec write align=16
 global x86_64_c_bss_state
 x86_64_c_bss_state:
-    resb 32
+    resb C_CORE_BSS_BYTES
+
+section .c_core_handoff nobits alloc noexec write align=16
 alignb 16
 x86_64_c_handoff:
     resb C_HANDOFF_SIZE
