@@ -17,6 +17,31 @@ Kind32 und gemeinsamer256-Tick-Schutz bleiben unverändert. Diese Zahlen sind
 keine Zielgrenzen für die spätere normale Shell. Vierzehn eingefrorene Gruppen
 in der Queue, Belege unter `build/codex-agent/r83t-owner-terminal/`.
 
+Zwischenstand, **noch nicht abgenommen oder implementierungsseitig committet**:
+Die neue read-only Besitzprüfung besteht als echte Assemblerausführung unter
+O0/O2 einschließlich negativer Zustandsmutationen. Der historische Shell-UD2-
+Abbruch ist im Gast unter `legacy-proof/attempt-bfb5554ea7e64ae1b08540bad832ee2b`
+gesichert. Neue Gastdiagnosen bestehen für Shell-UD2 ohne Kind sowie mit einem
+bereits gereapten zweiten Kind. Die übrige Matrix und eingefrorene Abnahme
+sind noch offen; insbesondere ist die Sender-Fixture noch nicht abgenommen.
+
+Konkrete Scope-Grenze: Der unveränderte `arch/x86_64/cpu/timer_interrupt.asm`
+verwendet auch für die Shell ein absolutes Fenster von3Milliarden TSC-Zyklen.
+Der rein lesende Debugger belegt dessen Ablauf bereits bei80PIT-/EOI-Ticks,
+während das neue Eigentümerbudget128 Samples benötigt. Gemessen:
+TSC3797572121 > Grenze3761580988, CPU-Budget80/128; danach fataler Timerabbruch.
+Beleg: `timer-diagnosis/attempt-0144594da9c84ffa99a8de6e20257eaa/observer.log`.
+Die Timerdatei liegt außerhalb des eingefrorenen Pakets. Keine heimliche
+Fristverlängerung, Test-CPU-Verlangsamung oder Abschwächung der Abnahme:
+Am12.September ausdrücklich freigegeben: Timerdatei samt Regression im
+bestehenden Owner-Gate aufnehmen. Nur im SHELL-Modus wird die TSC-Frist zur
+IRQ-Fortschrittslease: Erneuerung ausschließlich nach validiertem Interrupt,
+weiterhin maximal256 gelieferte Ticks, Eigentümer128 und Kind32 Samples.
+Reiner Produktions-Arithmetiktest für Überlauf, Rücklauf, verstrichene Lease
+und falsche Zähler; echter CPU-Spin ohne verlangsamte Test-CPU. Andere
+Timermodi und alle14 Abnahmegruppen bleiben erhalten. Kein Erfolgscommit
+oder Queue-Fortschritt vor vollständiger Abnahme.
+
 ## R8.3s: Wiederaufnahme und freigegebener Referenzprüfer
 
 R3.46 ist als `7bd4bef0` abgenommen. R8.3s wird darauf fortgesetzt.
