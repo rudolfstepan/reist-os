@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "B1.1-windows-sdk-archive-publication"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "B1.1-windows-sdk-archive-publication"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "medium"
 title = "Atomic shared SDK archive publication without private temporary ACLs"
@@ -29,7 +29,8 @@ runtime_tests = ["python scripts/verify_js_colors_artifacts.py"]
 acceptance = "All6 groups after approved SDK-export and SBOM-path amendments, original4 retained, plus exact three-file ACL/hash and normal-user read verification. Real Windows ACL regression, atomic failure preservation, relocated standalone C/C++ header/ABI proofs, nested SBOM containment and full isolated VMware build; no runtime gates needed for unchanged guest source. Review scope, commit locally, never push."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for broader ACL or runtime authority changes"]
 commit_message = "fix: preserve shared SDK access when publishing archives"
-evidence = []
+evidence = ["python test/test_sdk_archive_publication.py -v", "python test/test_sdk_header_export.py -v", "python test/test_release_sbom.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-windows.ps1 -Target vmware -Video vga -OutputDirectory build/codex-agent/b11-sdk-publication/reference", "python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All6 groups passed after approved header and SBOM amendments e29e344d/70c9a685. Archive host7/1.544s, relocated C/C++ header host2/1.127s retained unchanged; SBOM host9/0.257s, docs7/2.126s with one historical scope skip, full VMware/vga32.630s including boot signature/manifest and independent SBOM validation99 artifacts; i386 guard6.399s. Exactly3 main SDK archive DACLs restored to inherited access, SHA256 unchanged and normal oe3sr read verified; newly built archives also normal-user readable. All96 rebuilt PRGs byteidentical to main, JS archive debug paths differ but all8 objects have identical allocatable ELF sections. No compiler flag, link order, kernel, Storage runtime or public ABI change. Evidence build/codex-agent/b11-sdk-publication:04-host-fixed.log,05-acl-before.json,06-normal-user-read.json,10-header-host.log,14-binary-diagnostic.log,15-rebuilt-normal-user-read.json,17-sbom-host.log,18-vmware-sbom-fixed.log,19-documentation.log,20-i386-guard.log. All original failed build/test/ACL attempts retained, no gate bypass or relaxed limit. No VM started, no native64 completion claim. R3.6b formally reactivated but explicitly deferred; native64 remains next user priority."
 
 [[packages]]
 id = "R8.3p-x86_64-task-frame-retirement"
@@ -3000,7 +3001,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

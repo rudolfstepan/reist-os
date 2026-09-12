@@ -9,6 +9,7 @@ import tempfile
 
 from build_user_program import freestanding_compile_prefix
 from build_user_math import ARCHIVE,SHA256,copy_changed
+from publish_sdk_archive import publish_archive
 
 ROOT=Path(__file__).resolve().parents[1]
 TEXT=ROOT/"userspace/text"
@@ -94,7 +95,7 @@ def compile_text(zig,vendor,destination,environment,host=False,opt="-O2"):
 
 def build_text(root,zig,incremental=False):
     root=Path(root); library=root/"usr/lib/libreisttext.a"
-    inputs=(ARCHIVE,Path(__file__),ROOT/"scripts/build_user_math.py",ROOT/"scripts/build_user_program.py",zig,
+    inputs=(ARCHIVE,Path(__file__),Path(publish_archive.__code__.co_filename),ROOT/"scripts/build_user_math.py",ROOT/"scripts/build_user_program.py",zig,
         *TEXT.rglob("*.h"),TEXT/"lib/stream.c",*ROOT.joinpath("userspace/libc/include").rglob("*.h"),
         *ROOT.joinpath("userspace/math/include").rglob("*.h"),ROOT/"userspace/math/private/endian.h")
     copy_changed(TEXT/"include/stdio.h",root/"usr/include/reist/text/stdio.h")
@@ -115,6 +116,6 @@ def build_text(root,zig,incremental=False):
         candidate=directory/"libreisttext.a"
         subprocess.run([str(zig),"ar","rcs",str(candidate),*map(str,objects)],env=env,check=True,
             capture_output=True,text=True,timeout=90,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
-        library.parent.mkdir(parents=True,exist_ok=True); candidate.replace(library)
+        publish_archive(candidate, library)
         for name in MEMBERS: copy_changed(vendor/name,licenses/name)
     return library

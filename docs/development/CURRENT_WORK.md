@@ -1,6 +1,84 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 11. September 2026
+Stand: 12. September 2026
+
+## B1.1: Windows-SDK-Archive für normale Builds zugänglich veröffentlichen
+
+Nutzerfehler: `build-windows.ps1 -Target vmware -Video vga` scheitert beim
+Linken von MATHTEST/TEXTTEST/JSTEST mit `Permission denied` für `libm.a`,
+`libreisttext.a` und `libreistjs.a`. Keine fehlenden Symbole, kein ELF32-/ELF64-
+Konflikt. Genau diese drei vorhandenen Archive besaßen eine geschützte DACL
+mit Sandbox-Eigentümer-, SYSTEM- und Administratorrechten; dem normalen
+Benutzer fehlte der Zugriff. Andere SDK-Dateien erben die normalen Verzeichnisrechte.
+
+Ursache: Die drei Rezepte verschieben Archive mit `Path.replace` aus einem
+privaten temporären Python-Verzeichnis in das gemeinsame SDK. Unter dem
+getesteten Windows/Python-3.14-Profil werden dabei die privaten geerbten Regeln
+als geschützte Ziel-DACL erhalten. Ein Test im Sandboxkonto konnte deshalb
+erfolgreich sein, während derselbe Linker unter `oe3sr` den Zugriff verweigerte.
+
+Gemeinsamer Publisher: ausschließlich Archivbytes in eine exklusiv erzeugte
+normale Geschwisterdatei kopieren, flush/fsync und atomisches `os.replace` im
+Zielverzeichnis. Die neue Datei erbt dessen Rechte; keine Übernahme privater
+Quell-ACLs, kein pauschales Freigeben oder Eigentümerwechsel. Maximal64MiB pro
+Archiv,1MiB-Kopierblöcke, ar-Signatur-/Größenprüfung und Ablehnung gleicher
+Quell-/Zieldateien. Fehler vor Veröffentlichung erhalten das alte Archiv;
+Cleanup entfernt nur die eigene Stagingdatei. Alle drei Rezepte verwenden den
+Publisher und führen ihn als inkrementelle Abhängigkeit. Archivalgorithmen,
+Compilerflags, Linkreihenfolge und Gastcode bleiben unverändert.
+
+Die Vererbung der drei vorhandenen Haupt-SDK-Dateien wurde einmalig über den
+Access-Abschnitt ihrer ACL wieder aktiviert. SHA256 davor/danach identisch;
+Lesezugriff anschließend ausdrücklich unter `AsusNB\oe3sr` geprüft. Kein
+rekursiver ACL-Reset und keine Änderung der Betriebssystem-Sicherheitsregeln.
+Eine erste Set-Acl-Ausführung verlangte SeSecurityPrivilege; stattdessen wurde
+nur der erforderliche DACL-Abschnitt geändert, ohne das Privileg zu vergeben.
+
+Sieben Hosttests: tatsächlicher Windows-Temp-/Move-Fehler und neue Vererbung,
+Bytegleichheit, Copy-/Sync-/Replace-Fehler mit erhaltenem Altbestand,
+Kollision ohne Löschen fremder Dateien, Alias-/Format-/Größenfehler,
+Trunkierung/Wachstum und Anbindung aller drei Rezepte. Der erste Testhelfer
+scheiterte am PowerShell-Modulpfad; die ACL-Abfrage nutzt nun direkt die
+vorhandene .NET-Dateischnittstelle. Die anfängliche Erwartung, schon das Kind
+im Tempverzeichnis sei geschützt, wurde am echten ACL-Verhalten berichtigt:
+geschützt ist zunächst das Tempverzeichnis, nach dem Move die Zieldatei.
+Diese Testfehler bleiben als Belege erhalten; keine abgeschwächte Rechteprüfung.
+
+Genehmigter Nachtrag e29e344d: Der erste vollständige Build hat den ACL-Fehler
+nicht mehr, scheitert aber am installierten `reist/fat32_transaction.h`, dessen
+relativer Include auf `drivers/block/ata_journal.h` nur im Quellbaum stimmt.
+Die SDK-Installation exportiert deshalb die unveränderte Journal-Deklaration
+unter `reist/internal/ata_journal.h` und ersetzt ausschließlich den Include im
+generierten Adapterheader. Kein zusätzlicher Suchpfad in den Kernelquellen,
+keine doppelte Typdefinition, keine Änderung von öffentlicher ABI oder Storage.
+Unbekanntes Include-Muster wird vor Veröffentlichung abgewiesen; unveränderte
+Header behalten ihre Zeitstempel. Der Hosttest reproduziert den alten echten
+Compilerfehler und kompiliert den korrigierten Export allein aus dem verlagerten
+SDK in C und C++. Die erzeugten Layout-Probeobjekte sind jeweils bytegleich
+zur Quellbaumfassung; die exportierte Journal-Deklaration ebenfalls bytegleich.
+
+Genehmigter SBOM-Nachtrag 70c9a685: Der zweite Build erzeugt alle96 Programme
+und das VMware-Image, scheitert aber an der unnötigen Beschränkung des
+SBOM-Programmverzeichnisses auf direkte Kinder von `build`. Verschachtelte
+Ausgabeverzeichnisse werden nun akzeptiert, solange sie lexikalisch und nach
+Pfadauflösung innerhalb von `build` bleiben. Build-Wurzel selbst, Symlinks und
+Pfadausbrüche bleiben verboten. Keine rekursive Programmsuche, keine Änderung
+an SPDX2.3, Hashes, Kapazitäten oder unabhängigem Validator. Neun Hosttests
+prüfen auch verschachtelte absolute/relative Pfade, unveränderten Altbestand
+bei Ablehnung sowie injizierte Link-/Auflösungsfehler vor der Enumeration.
+
+Alle96 neu erzeugten PRGs sind bytegleich zum Hauptbuild. Die neu gebaute
+JS-Bibliothek enthält andere temporäre Debugpfade; ihre acht Objektdateien
+haben jedoch bytegleiche ladbare Sektionen. Kein Laufzeit- oder Performance-
+Unterschied wird aus einem bloß erfolgreichen Build behauptet.
+
+Abnahmesatz nach Nachträgen: drei Hostregressionen, vollständiger VMware/vga-Build im separaten
+Verzeichnis, unveränderter i386-Artefaktguard und Dokumentationsprüfung.
+Ein vorhandener SDK-usr-Bestand dient als inkrementelle Basis; die geänderten
+drei Rezepte werden real neu gebaut. Kein Clean des Hauptbuilds, kein Start
+einer sichtbaren VM, keine neue Gast-Laufzeitbehauptung. Verbindlicher
+Abnahmestand in der Queue; Belege `build/codex-agent/b11-sdk-publication/`.
+Die native64-Fertigstellung bleibt die nächste Priorität; R3.6b zurückgestellt.
 
 ## R8.3p: validierte Task-Frame-Freigabe und Rollback
 

@@ -74,9 +74,12 @@ def generate_sbom(
         directory = _absolute_lexical(
             program_dir if program_dir.is_absolute() else root / program_dir
         )
-        if _has_symlink_component(directory, build_root) or \
-                not directory.is_dir() or directory.parent != build_root:
-            raise ValueError("SBOM program directory must be directly under build")
+        if directory == build_root or not directory.is_relative_to(build_root) or \
+                _has_symlink_component(directory, build_root) or \
+                not directory.is_dir() or \
+                not directory.resolve().is_relative_to(build_root.resolve()):
+            raise ValueError("SBOM program directory must remain under build "
+                             "without symlinks or resolved path escapes")
         candidates.extend(sorted(directory.glob("*.PRG"), key=lambda p: p.name))
     if not candidates or len(candidates) > MAX_FILES:
         raise ValueError("SBOM artifact count is outside [1, 160]")

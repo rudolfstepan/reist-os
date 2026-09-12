@@ -3,6 +3,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -39,6 +40,65 @@ class ReleaseSbomTests(unittest.TestCase):
                     ["SHA1", "SHA256"],
                 )
             self.assertIn("packageVerificationCode", document["packages"][0])
+
+    def test_nested_program_directory_round_trip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, programs, artifacts, output = self.fixture(directory)
+            nested = root / "build/codex-agent/reference/programs"
+            nested.parent.mkdir(parents=True)
+            programs.rename(nested)
+            (nested / "ignored.txt").write_bytes(b"not a program")
+            (nested / "child").mkdir()
+            (nested / "child/ignored.PRG").write_bytes(b"not recursive")
+            output = nested.parent / output.name
+            for value in (nested, nested.relative_to(root)):
+                with self.subTest(program_dir=value):
+                    document = generate_sbom(root, output, artifacts, value)
+                    self.assertEqual(validate_sbom(output, root), 5)
+                    self.assertEqual(
+                        {f["fileName"] for f in document["files"]},
+                        {"./build/kernel.bin", "./build/kernel.bin.sig",
+                         "./build/reist-os.img",
+                         "./build/codex-agent/reference/programs/A.PRG",
+                         "./build/codex-agent/reference/programs/B.PRG"})
+
+    def test_program_directory_boundaries_preserve_previous_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, programs, artifacts, output = self.fixture(directory)
+            outside = root / "build-other/programs"
+            outside.mkdir(parents=True)
+            (outside / "outside.PRG").write_bytes(b"outside")
+            output.write_bytes(b"previous SBOM")
+            for value in (root / "build", root, outside,
+                          Path("build/../build-other/programs"),
+                          root / "build/missing", artifacts[0]):
+                with self.subTest(program_dir=value):
+                    with self.assertRaisesRegex(ValueError, "program directory"):
+                        generate_sbom(root, output, artifacts, value)
+                    self.assertEqual(output.read_bytes(), b"previous SBOM")
+
+    def test_program_directory_link_rejection_before_collection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, programs, artifacts, output = self.fixture(directory)
+            output.write_bytes(b"previous SBOM")
+            original_check = generate_release_sbom._has_symlink_component
+            original_resolve = Path.resolve
+            for kind in ("symlink", "resolved escape"):
+                with self.subTest(kind=kind), mock.patch.object(
+                    generate_release_sbom, "_has_symlink_component",
+                    side_effect=lambda path, boundary: (
+                        True if kind == "symlink" and path == programs
+                        else original_check(path, boundary))
+                ), mock.patch.object(
+                    Path, "resolve", autospec=True,
+                    side_effect=lambda path, *args, **kwargs: (
+                        root if kind == "resolved escape" and path == programs
+                        else original_resolve(path, *args, **kwargs))
+                ), mock.patch.object(Path, "glob", side_effect=AssertionError(
+                    "invalid directory must be rejected before enumeration")):
+                    with self.assertRaisesRegex(ValueError, "program directory"):
+                        generate_sbom(root, output, artifacts, programs)
+                    self.assertEqual(output.read_bytes(), b"previous SBOM")
 
     def test_artifact_and_relationship_drift_fail_closed(self):
         with tempfile.TemporaryDirectory() as directory:

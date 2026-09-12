@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 
 from build_user_program import freestanding_compile_prefix
+from publish_sdk_archive import publish_archive
 
 ROOT=Path(__file__).resolve().parents[1]
 ARCHIVE=ROOT/"third_party/musl-1.2.6.tar.gz"
@@ -104,7 +105,7 @@ def build_math(root,zig,incremental=False):
     root=Path(root)
     library=root/"usr/lib/libm.a"
     headers=tuple(PUBLIC.glob("*.h"))
-    inputs=(ARCHIVE,Path(__file__),ROOT/"scripts/build_user_program.py",zig,
+    inputs=(ARCHIVE,Path(__file__),Path(publish_archive.__code__.co_filename),ROOT/"scripts/build_user_program.py",zig,
             *MATH_ROOT.rglob("*.h"),MATH_ROOT/"lib/fenv.c")
     for header in headers: copy_changed(header,root/"usr/include/reist/math"/header.name)
     metadata=root/"usr/lib/pkgconfig/reistmath.pc"
@@ -130,5 +131,5 @@ def build_math(root,zig,incremental=False):
             creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
         for name in MEMBERS: copy_changed(vendor/name,license_root/name)
         library.parent.mkdir(parents=True,exist_ok=True)
-        candidate.replace(library)
+        publish_archive(candidate, library)
     return library

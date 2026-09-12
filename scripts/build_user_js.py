@@ -10,6 +10,7 @@ import tempfile
 
 from build_user_program import freestanding_compile_prefix,find_zig
 from build_user_math import copy_changed
+from publish_sdk_archive import publish_archive
 
 ROOT=Path(__file__).resolve().parents[1]
 ARCHIVE=ROOT/"third_party/quickjs-2026-06-04.tar.xz"
@@ -130,7 +131,7 @@ def compile_core(zig,generated,destination,env,host=False,opt="-O2"):
 def build_js(root,zig,incremental=False):
     root=Path(root); library=root/"usr/lib/libreistjs.a"
     inputs=(ARCHIVE,ARCHIVE.with_suffix("").with_suffix(".sha256"),Path(__file__),zig,
-        ROOT/"scripts/build_user_program.py",*JS.rglob("*.h"),*JS.joinpath("lib").glob("*.c"),
+        Path(publish_archive.__code__.co_filename),ROOT/"scripts/build_user_program.py",*JS.rglob("*.h"),*JS.joinpath("lib").glob("*.c"),
         *ROOT.joinpath("userspace/libc/include").rglob("*.h"),
         *ROOT.joinpath("userspace/math/include").glob("*.h"),*ROOT.joinpath("userspace/text/include").glob("*.h"))
     copy_changed(JS/"include/reist_js.h",root/"usr/include/reist/js/reist_js.h")
@@ -153,7 +154,7 @@ def build_js(root,zig,incremental=False):
         candidate=directory/"libreistjs.a"
         subprocess.run([str(zig),"ar","rcs",str(candidate),*map(str,objects)],env=env,check=True,
             capture_output=True,text=True,timeout=90,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
-        candidate.replace(library)
+        publish_archive(candidate, library)
         for name in MEMBERS: copy_changed(original/name,license_root/name)
     return library
 

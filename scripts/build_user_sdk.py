@@ -395,6 +395,31 @@ def build_sdk_sections(runtime, html):
         future.result()
 
 
+def install_public_headers(include_dir: Path, public_headers) -> None:
+    """Relocate the existing journal declaration, without changing its ABI.
+
+    The source-tree adapter's relative include cannot escape an installed
+    sysroot. Keep the identical dependency under an internal SDK path; only
+    the generated adapter include changes. Validate the expected edge before
+    publishing headers, and preserve timestamps when contents are unchanged.
+    """
+    plan = []
+    for root, header in public_headers:
+        data = header.read_bytes()
+        if header == STORAGE_INCLUDE_ROOT / 'reist/fat32_transaction.h':
+            old = b'#include "../../../../drivers/block/ata_journal.h"'
+            if data.count(old) != 1:
+                raise ValueError('unexpected FAT32 journal header dependency')
+            data = data.replace(old,b'#include "reist/internal/ata_journal.h"',1)
+            dependency = ROOT / 'drivers/block/ata_journal.h'
+            plan.append((include_dir/'reist/internal/ata_journal.h',dependency.read_bytes()))
+        plan.append((include_dir/header.relative_to(root),data))
+    for destination, data in plan:
+        if not destination.is_file() or destination.read_bytes() != data:
+            destination.parent.mkdir(parents=True,exist_ok=True)
+            destination.write_bytes(data)
+
+
 def build_sdk(output: Path, zig: Path, incremental: bool = False,
               cache_directory: Path | None = None) -> SdkArtifacts:
     """Build headers, startup object and reusable static libraries once."""
@@ -463,12 +488,7 @@ def build_sdk(output: Path, zig: Path, incremental: bool = False,
                            *config_headers, *tls_headers, MBEDTLS_ARCHIVE))):
         raise FileNotFoundError("REIST SDK sources are incomplete")
 
-    for root, header in public_headers:
-        destination = artifacts.include_dir / header.relative_to(root)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        if (not destination.is_file() or
-                destination.read_bytes() != header.read_bytes()):
-            shutil.copy2(header, destination)
+    install_public_headers(artifacts.include_dir,public_headers)
     artifacts.library_dir.mkdir(parents=True, exist_ok=True)
     write_pkg_config(artifacts.library_dir)
     from build_html_engine import build as build_html_libraries
