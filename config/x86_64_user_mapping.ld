@@ -12,7 +12,7 @@ SECTIONS
   ASSERT(. <= 0x00401000, "mapping fixture exceeds compact RX page")
   . = 0x00401000;
   .rodata : { *(.rodata .rodata.*) } :rodata
-  ASSERT(. <= 0x00402000, "mapping fixture exceeds compact R/NX page")
+  ASSERT(. <= 0x00403000, "mapping fixture exceeds two compact R/NX pages")
   /DISCARD/ : {
     *(.data .data.*) *(.bss .bss.*) *(.comment) *(.note .note.*)
     *(.eh_frame .eh_frame.*)

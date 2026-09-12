@@ -13,7 +13,7 @@ param(
     [ValidateRange(0, 3)] [int]$RequestCase = 0,
     [ValidateRange(0, 1)] [int]$OomCase = 0,
     [ValidateRange(0, 1)] [int]$ProfileCase = 0,
-    [ValidateRange(0, 3)] [int]$MappingCase = 0
+    [ValidateRange(0, 4)] [int]$MappingCase = 0
 )
 
 Set-StrictMode -Version Latest
@@ -306,7 +306,7 @@ try {
         }
     }
     # Only the explicit two-PT_LOAD mapping fixture adds a compact R/NX page.
-    $childLimit = if ($MappingCase -ne 0) { 8192 } else { 4096 }
+    $childLimit = if ($MappingCase -eq 4) { 12288 } elseif ($MappingCase -ne 0) { 8192 } else { 4096 }
     if ($childBytes.Length -lt 64 -or $childBytes.Length -gt $childLimit) {
         throw "x86_64 ELF64 Ring-3 child exceeds its fixed compact page."
     }

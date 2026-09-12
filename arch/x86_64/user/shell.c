@@ -55,7 +55,7 @@ typedef unsigned char shell_u8;
 #ifndef X86_64_FAULT_PHASE
 #define X86_64_FAULT_PHASE 0
 #endif
-#if X86_64_MAPPING_CASE >= 2
+#if X86_64_MAPPING_CASE == 2 || X86_64_MAPPING_CASE == 3
 #define SHELL_EXPECTED_CHILD_STATUS 142U
 #elif X86_64_IPC_CASE
 #define SHELL_EXPECTED_CHILD_STATUS (90U + X86_64_IPC_CASE)
@@ -539,7 +539,7 @@ void _start(void)
                     reist_x64_syscall3(REIST_X64_SYS_YIELD, 0ULL, 0ULL, 0ULL) != 0LL) {
                     shell_exit(20ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE >= 2) && X86_64_FAULT_PHASE < 2
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE == 2 || X86_64_MAPPING_CASE == 3) && X86_64_FAULT_PHASE < 2
                 goto child_fault_cleanup;
 #endif
                 clear_ipc_message(&ipc_message);
@@ -603,7 +603,7 @@ void _start(void)
                                    (shell_u64)ipc_handle, 0ULL, 0ULL) != 0LL) {
                     shell_exit(18ULL);
                 }
-#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE >= 2) && X86_64_FAULT_PHASE < 3
+#if (X86_64_FAULT_VECTOR >= 0 || X86_64_EXIT_STATUS >= 0 || X86_64_ARGV_CASE || X86_64_MAPPING_CASE == 2 || X86_64_MAPPING_CASE == 3) && X86_64_FAULT_PHASE < 3
 child_fault_cleanup:
                 clear_ipc_message(&ipc_message);
                 ipc_message.version = IPC_MESSAGE_VERSION;

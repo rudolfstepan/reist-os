@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3q-x86_64-task-user-access"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3q-x86_64-task-user-access"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Task-bound native user-buffer admission against actual page tables"
@@ -27,7 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_user_access.py --evidence build
 acceptance = "All13 groups. Risk-derived matrix covers changed buffer admission and unchanged IPC/request/protection/reap consumers, not unrelated historical full matrices. Real old defect, host and guest tests, no relaxed existing oracle. Review exact scope, frozen gates and queue transition, local commit then next clean native transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for broader address-space, process or device authority"]
 commit_message = "fix: bind native user buffer access to task page tables"
-evidence = []
+evidence = ["python test/test_x86_64_user_access.py -v", "python test/test_x86_64_mappings.py -v", "python test/test_x86_64_requests.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_ipc_observer.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83q-user-access/normal", "python scripts/run_qemu_x86_64_user_access.py --evidence build/codex-agent/r83q-user-access/buffers", "python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83q-user-access/requests", "python scripts/run_qemu_x86_64_mappings.py --evidence build/codex-agent/r83q-user-access/mappings", "python scripts/run_qemu_x86_64_ipc_handoff.py --evidence build/codex-agent/r83q-user-access/ipc", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83q-user-access/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83q-user-access/retirement", "python scripts/verify_js_colors_artifacts.py"]
+evidence_note = "All13 groups passed, contract9af7a87e. New host3/2.443s retains old real range ASM selector mismatch and actual new O0/O2 production core, all36864 offsets/two directions, per-level permissions, cross-page holes, stale/CR3/frame/backend failures and nonmutation. Existing mapping host5/1.414s, requests3/0.929s, boot56/0.042s, IPC observer5/0.090s, docs7/0.738s with historical scope skip. Normal build3.206s, all3 normal user ELFs byteidentical to9cb27ace. Actual cross-page R/NX child SEND at0x401fc0, unmapped0x403fc0 EFAULT, two normal generations5.394s;21 kernel mechanisms byteidentical normal/fixture. Existing request3cases/6generations8.750s, mapping3/6 12.046s, IPC4/8 13.426s, actual20 task releases1.543s, unchanged i386 guard4.232s. Evidence build/codex-agent/r83q-user-access/01-red.log through09-documentation.log and UUID summaries; reused host builder stores detailed compiler logs under r83p-retirement/USER_ACCESS_* directories. Initial missing-core/runner red retained. No failed runtime gate, no budget or oracle relaxation, no visible VM/agent/push. Implementation/diagnosis time not separately measured. General roles, RIP/start adapters, endpoint pools and scalable memory remain open. R3.6b formal activation retains explicit deferral; next clean native transaction follows."
 
 [[packages]]
 id = "B1.1-windows-sdk-archive-publication"
@@ -3018,7 +3019,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

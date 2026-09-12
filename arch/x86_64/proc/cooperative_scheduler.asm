@@ -18,6 +18,7 @@ extern reist_x64_request_admit
 extern reist_x64_profile_apply
 extern reist_x64_address_space_build
 extern reist_x64_task_frames_release
+extern reist_x64_user_access
 global reist_x64_mapping_pointer64
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
@@ -2748,8 +2749,6 @@ scheduler_ipc_admission64:
     mov ecx, PF_W
 .range_flags:
     mov rax, [rel syscall_rsi]
-    cmp rax, USER_STACK_BASE
-    jae .admit
     push rbx
     push r12
     push r13
@@ -2764,6 +2763,8 @@ scheduler_ipc_admission64:
     pop rbx
     test eax, eax
     jz .pointer
+    cmp qword [rel syscall_rsi], USER_STACK_BASE
+    jae .admit
     mov qword [rsp + 64], USER_BASE
     mov qword [rsp + 72], USER_BASE
     mov qword [rsp + 88], USER_END - USER_BASE
@@ -3678,47 +3679,65 @@ scheduler_translate_shell_ipc_message_pointer64:
 ; RAX address, RDX validated bounded length and ECX PF_R/PF_W. The current
 ; generation must own the private image or private NX stack containing it.
 scheduler_validate_shell_range64:
-    mov r8, rax
-    cmp r8, USER_BASE
-    jb .invalid
-    mov r9, r8
-    add r9, rdx
-    jc .invalid
-    mov r14d, ecx
-    cmp r8, USER_STACK_BASE
-    jae .stack_buffer
-    cmp r9, USER_END
-    ja .invalid
-    dec r9
-    mov rax, r8
-    call x86_64_elf64_address_flags64
-    test eax, r14d
-    jz .invalid
-    mov rax, r9
-    call x86_64_elf64_address_flags64
-    test eax, r14d
-    jz .invalid
-    mov eax, 1
-    ret
-.stack_buffer:
-    cmp r9, USER_STACK_TOP
-    ja .invalid
-    mov eax, dword [rel scheduler_current_slot]
-    cmp eax, 1
-    ja .invalid
-    shl rax, 8
-    lea r10, [rel scheduler_tasks]
-    add r10, rax
-    cmp r12, r10
-    jne .invalid
-    cmp qword [r10 + TASK_STATE], TASK_RUNNING
-    jne .invalid
-    cmp qword [r10 + TASK_STACK_FRAME], 0
-    je .invalid
-    mov eax, 1
-    ret
-.invalid:
-    xor eax, eax
+    push rbp
+    mov rbp,rsp
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    sub rsp,48
+    and rsp,-16
+    mov rsi,rax
+    mov eax,[rel scheduler_current_slot]
+    cmp eax,TASK_SLOT_CAPACITY
+    jae .corrupt
+    mov r10,rax
+    shl r10,8
+    lea r11,[rel scheduler_tasks]
+    add r10,r11
+    cmp r12,r10
+    jne .corrupt
+    mov [rsp],r10
+    shl rax,5
+    lea r11,[rel scheduler_table_frames]
+    add rax,r11
+    mov [rsp+8],rax
+    mov rax,[r10+TASK_GENERATION]
+    mov [rsp+16],rax
+    mov rax,cr3
+    mov [rsp+24],rax
+    mov rdi,rsp
+    call reist_x64_user_access
+    jmp .return
+.corrupt:
+    mov rax,-4096
+.return:
+    lea rsp,[rbp-104]
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rbp
+    cmp rax,-4096
+    je scheduler_fail
     ret
 
 scheduler_validate_shell_ipc_endpoint64:

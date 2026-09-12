@@ -2,6 +2,24 @@
 
 Stand: 11. September 2026
 
+Ergänzung12. September2026, R8.3q: Terminal-/IPC-Userpuffer werden aus den
+tatsächlichen Tabellen des aufrufenden Tasks zugelassen, nicht aus globalen
+ELF-Parserflags. Referenz: [Intel64 SDM Vol3A, Kapitel4 Paging](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html).
+P/U gilt auf allen vier Ebenen, Schreiben erfordert zusätzlich W; NX ist kein
+Leseverbot. Nur die bereits verwendeten4KiB-Einträge mit P/W/U/A, Blatt-D
+und NX sind zulässig, keine großen Seiten/PKU oder neuen Mappingrechte.
+
+Privater32-Byte-SysV-AMD64-Record: Taskpointer, Pointer auf vier physische
+Tabellenrecords, Generation, aktives CR3. Gepinnte Kernelobjekte und IF0
+bleiben Aufruferpflicht. Identität, RUNNING, CR3/PML4, vier eindeutige Frames
+im128MiB-Profil und exakte Tabellenkette werden vor Nutzung geprüft; ein
+Blatt darf keine eigene Tabelle aliasieren, die Stackseite muss taskgebunden
+sein. Maximal140 Bytes/zwei Blätter im bisherigen achtseitigen Imagebereich
+plus Stack. Keine Allokation, Datenkopie, Userdereferenz oder Zustandsmutation
+im Kern. Ungültige Userbereiche/Rechte werden lokal abgelehnt, beschädigte
+Bindungen/Topologie bleiben fatal. Kein Schutzclaim für beliebig beschädigte
+gepinnte Kernelpointer und keine allgemeine SMP-/Prozesszulassung.
+
 R8.3p (11. September2026): Ein privater32-Byte-SysV-AMD64-Bindungsrecord
 benennt die bereits gehaltenen8 Privatframe-, Stack-,4 Tabellen- und
 CR3-Records. Er ist kein Userpointervertrag. Alle gebundenen Bereiche sind

@@ -4,6 +4,33 @@ Stand: 11. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3q: gemeinsame taskgebundene Userpuffer-Zulassung
+
+Nach Buildreparatur1aabfd50 ist dies der nächste zusammenhängende native
+Speicherzugriffsschnitt, Vertrag9af7a87e. Die alten global ausgewählten
+ELF-Seitenflags sind kein zuverlässiger Beleg für den gerade laufenden Task.
+Terminal und IPC erhalten deshalb gemeinsam eine read-only Prüfung der
+tatsächlichen generation-/CR3-gebundenen Seitentabellen. Keine Erweiterung
+der Geräte-, Prozess-, Speicher- oder Scriptrechte.
+
+Reihenfolge: alten falschen Imagebezug ausführbar erhalten; gemeinsamen
+SysV-AMD64-Kern mit tatsächlicher Assembly O0/O2 prüfen; vorhandene
+Terminal-/IPC-Pufferadapter anbinden; getrennte R/NX-Kinddaten über eine
+Seitengrenze real per IPC transportieren, Loch als EFAULT ablehnen; normale
+zwei Generationen mit WAIT/Reap und unveränderten Kernmechanismen nachweisen.
+Alle36.864 Bytepositionen, beide Zugriffsrichtungen, Zwischenebenenrechte,
+Überlauf/Null/Stale/CR3/Frame-/Backendfehler und Nichtmutation gehören zusammen.
+
+Risikobasierte13 Gruppen statt ungezielt übernommener historischer Vollmatrix:
+neue Host-/Gastgruppe, vorhandene Mapping/Request/Boot/IPC-Observer-Hosts,
+normaler Build, Request-/Mapping-/IPC-/Task-Reap-Gäste, i386-Guard und Doku.
+Kein bestehendes Oracle oder Zeitbudget wird abgeschwächt. Normaler Userspace
+bleibt bytegleich; nur User-Fixture4 besitzt die größeren Testdaten.
+Verbindlicher Abnahmestand in der Queue und [CURRENT_WORK](CURRENT_WORK.md).
+Implementierungs-/Diagnosezeit nicht separat gemessen; Build-/Testzeiten in
+den vorhandenen Logs, keine geschätzte Zeit als Messwert. Allgemeine Rollen,
+RIP-/Startparameterbindung, Endpoint-Pools und großer RAM bleiben offen.
+
 ## R8.3p: gemeinsame validierte Task-Frame-Freigabe
 
 Basis a0f919a3 (R8.3o, alle25 Gruppen abgenommen). Der bisherige

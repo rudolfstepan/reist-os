@@ -2,6 +2,37 @@
 
 Stand: 12. September 2026
 
+## R8.3q: taskgebundene Prüfung nativer Userpuffer
+
+Basis1aabfd50, Vertrag9af7a87e. Der alte gemeinsame Terminal-/IPC-Prüfer
+verwendet die global ausgewählten ELF-Seitenflags. Damit kann er gültige
+Datenseiten eines anderen laufenden Tasks zurückweisen. Der ausführbare
+Alttest erhält genau diese Abhängigkeit; keine neue Parserimplementierung.
+
+Der neue32-Byte-SysV-AMD64-Bindungsrecord benennt Task, vier Tabellenrecords,
+Generation und tatsächlich aktives CR3. Der gemeinsame read-only Kern prüft
+Taskzustand, Bindung, eindeutige Frames, Tabellenkette und P/U-/Schreibrechte
+über alle Ebenen. Für maximal140 Bytes werden höchstens zwei Blattseiten
+geprüft. NX-Daten bleiben lesbar, fehlende oder nicht erlaubte Userseiten
+liefern lokale Ablehnung; beschädigte Kernelbindungen bleiben fatal. Kein
+Speicherzugriff über den Userpointer vor Zulassung, keine Allokation oder
+neue Rechte. Die bestehenden Terminal-/IPC-Konsumenten nutzen denselben Kern.
+
+Host: tatsächliche Assembly O0/O2, alle36.864 Bytepositionen und beide
+Datenrichtungen, Zwischenebenenrechte, Löcher, Überläufe, Generation/CR3,
+Frame-/Backend-Aliase, Nullrückgaben und Nichtmutation. Gast: ausschließlich
+User-Fixture4 erweitert das Kindabbild um zwei R/NX-Seiten;140-Byte-Nachricht
+ab0x401fc0 überquert die Seitengrenze, ungültiger Pointer0x403fc0 liefert
+EFAULT. Normales IPC/WAIT/Reap und beide Generationen bleiben Pflicht.
+Kernelmechanismen sind im normalen und Fixture-Build bytegleich.
+
+Risikobasierte13 Prüfgruppen: neuer Host/Gast, bestehende Mapping-/Request-/
+IPC-Prüfungen, normaler Build, echter Task-Reap, i386-Guard und Dokumentation.
+Verbindliche Ergebnisse in der Queue, Belege `build/codex-agent/r83q-user-access/`.
+Keine Vergrößerung der128MiB-/Task-/Zeitbudgets. Allgemeine Prozessrollen,
+RIP-/Startparameteradapter und skalierbarer Speicher bleiben Folgearbeiten;
+dies ist noch keine vollständige native Systemversion. R3.6b bleibt verschoben.
+
 ## B1.1: Windows-SDK-Archive für normale Builds zugänglich veröffentlichen
 
 Nutzerfehler: `build-windows.ps1 -Target vmware -Video vga` scheitert beim

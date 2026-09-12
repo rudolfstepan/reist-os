@@ -72,7 +72,7 @@ _start:
     FP_BEGIN 0x1b
 %if X86_64_MAPPING_CASE
     call child_mapping_probe
-%if X86_64_MAPPING_CASE >= 2
+%if X86_64_MAPPING_CASE = 2 || X86_64_MAPPING_CASE = 3
     ud2 ; no fault means the mapping failed to enforce its protection
 %endif
 %endif
@@ -188,9 +188,24 @@ child_cpu_poison_stack:
     FP_CHECK
     cmp rax, REIST_EACCES
     jne .fail
+%if X86_64_MAPPING_CASE = 4
+    ; A hole must return EFAULT before reading an IPC header or publishing it.
+    mov eax, REIST_SYS_IPC_SEND
+    mov rdi, r12
+    mov esi, 0x403fc0
+    xor edx, edx
+.buffer_hole_instruction:
+    syscall
+    FP_CHECK
+    cmp rax, -14
+    jne _start.fail
+%endif
     mov eax, REIST_SYS_IPC_SEND
     mov rdi, r12
     mov rsi, rsp
+%if X86_64_MAPPING_CASE = 4
+    lea rsi, [rel child_buffer_readonly]
+%endif
     xor edx, edx
     syscall
     FP_CHECK
@@ -673,5 +688,12 @@ child_mapping_probe.bad:
 section .rodata align=4096
 child_mapping_readonly:
     dq 0x4e58524f444154c3 ; starts with RET, but must never be fetched from R/NX
+%if X86_64_MAPPING_CASE = 4
+    times 4096-64-($-child_mapping_readonly) db 0
+child_buffer_readonly:
+    dd IPC_MESSAGE_VERSION, IPC_MESSAGE_SIZE, IPC_MESSAGE_LENGTH
+    db 'token76',0
+    times 120 db 0
+%endif
 %endif
 section .note.GNU-stack noalloc noexec nowrite progbits
