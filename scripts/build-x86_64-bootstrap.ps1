@@ -18,12 +18,17 @@ param(
     [ValidateRange(-1, 4294967295)] [long]$ShellExitStatus = -1,
     [switch]$OwnerTerminal,
     [switch]$NativeProcesses,
+    [switch]$NativeIPC,
+    [ValidateRange(0, 3)] [int]$NativeIPCCase = 0,
     [ValidateRange(0, 8)] [int]$ProcessCase = 0,
     [switch]$CPayloadProbe,
     [switch]$CIntegrityProbe
 )
 
 Set-StrictMode -Version Latest
+if (($NativeIPC -and (-not $NativeProcesses -or $ProcessCase -ne 0 -or $CPayloadProbe -or $CIntegrityProbe)) -or ($NativeIPCCase -ne 0 -and -not $NativeIPC)) {
+    throw 'NativeIPC requires NativeProcesses and excludes other native fixtures; NativeIPCCase requires NativeIPC.'
+}
 if ($ProcessCase -ne 0 -and -not $NativeProcesses) {
     throw 'ProcessCase requires NativeProcesses.'
 }
@@ -258,6 +263,8 @@ try {
         "X86_64_SHELL_EXIT_STATUS=$ShellExitStatus" `
         "X86_64_OWNER_TERMINAL=$([int]$OwnerTerminal.IsPresent)" `
         "X86_64_NATIVE_PROCESSES=$([int]$NativeProcesses.IsPresent)" `
+        "X86_64_NATIVE_IPC=$([int]$NativeIPC.IsPresent)" `
+        "X86_64_NATIVE_IPC_CASE=$NativeIPCCase" `
         "X86_64_PROCESS_CASE=$ProcessCase" `
         "X86_64_C_PAYLOAD_PROBE=$([int]$CPayloadProbe.IsPresent)" `
         "X86_64_C_INTEGRITY_PROBE=$([int]$CIntegrityProbe.IsPresent)" `

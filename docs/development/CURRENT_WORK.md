@@ -13,12 +13,49 @@ Deadline je Task; Ereignisse und Timeouts lösen höchstens vier Aufträge aus.
 Pointerprüfung, verspätetes Copyout und Reap bleiben an die genaue Generation
 gebunden. Kein neues IPC-Verfahren und keine Shell-/Kind-Sonderautorität.
 
-Umfang und13 Gates sind vor Implementierung in der Queue eingefroren.
-`-NativeProcesses -NativeIPC` wird ein getrenntes Testprofil; die bisherigen
-Profile und i386-Referenzbilder bleiben geschützt. Der native Plattformadapter
-muss die alten Spin-/Blocking-Abhängigkeiten explizit ersetzen; unmögliche
-Warteaufrufe und unkorrektierbarer Kernzustand dürfen keinen Erfolg vortäuschen.
-Dies ist noch keine abgenommene Funktion und keine vollständige64-Bit-Version.
+Umgesetzt auf Vertrag `27d5b50c`,13 Gates vor Implementierung eingefroren.
+`-NativeProcesses -NativeIPC` führt zwei unabhängige IPC-Paare in je zwei
+Generationen aus. Die Variante `-NativeIPCCase 0..3` verändert nur Usercode:
+Normalbetrieb, Besitzer-UD2, Peer-Freigabe und Besitzer-CPU-Hänger. Alle vier
+Fälle mit32 nativen Tasks bestehen in41.954s einschließlich vier Builds und
+read-only Beobachtung:78 tatsächliche Blockierungen/Abschlüsse,112 geprüfte
+140Byte-Copyouts im jeweiligen CR3,32 IPC-Fences vor Framefreigabe und100
+gesamte Frame-Reaps einschließlich alter Bootproben.17 Kernobjekte bleiben
+über die Userfälle bytegleich. Beleg
+`build/codex-agent/r83x-native-ipc/guests/attempt-5dc502d902704cd1923f38abdf04b153`.
+
+Das längere IPC-Testprofil nutzt die bereits erlaubten32 CPU-Samples pro Task;
+es erweitert keine Obergrenze. Die alten Pläne mit4..32 Samples bleiben
+unverändert. Ein früher Lauf erschöpfte vier Samples schon vor der absichtlichen
+Endlosschleife; der Kern fing dies korrekt ab. Die Peer-Freigabeprobe lässt
+den Besitzer vor Freigabe tatsächlich blockieren. Beide alten Fehlbelege
+bleiben erhalten. IRQ-Klassifikation bleibt read-only; C-Timeoutarbeit erfolgt
+nur bei einer fälligen Deadline und fragt dann keine Nachrichtenqueues ab.
+
+Sieben neue Hostgruppen5.808s prüfen tatsächliche O0/O2-Operationen, Pools,
+alte Handles, Fehlersemantik, Korrektur und zwölf explizite Fail-closed-Läufe,
+unveränderte i386-Vorverarbeitung und alte IPC-Verhaltenstests, reale
+ELF64-Funktionsexporte samt Negativfällen und Beobachterregressionen.
+Die getrennt kompilierte native TU muss drei echte32-Bit-Schutzwörter behalten:
+LLVM hatte unmarkierte Wörter auf boolesche Bytes umcodiert. Volatile-Wörter
+und ein einmal gelesener Initialisierungssnapshot erhalten den beabsichtigten
+Komplement-/Busyvertrag; der native Maschinencode ist eigens geprüft.
+Gemeinsame IPC-Operationskörper, SECDED/CRC und öffentliche Header sind gleich.
+
+Alte Hosts: Integrität5/1.806s, C-Payload11/2.106s, Prozess5/2.517s,
+Userzugriff3/4.239s, Boot56/.037s. Normalbuild3.571s, IPC-Build4.060s;
+die alten Prozessgäste9 Fälle/72 Tasks plus fünf Beobachtungen/40 Tasks
+bestehen in56.491s. Normaler Framegast20 Reaps/2.098s und i386-Referenzguard
+1.205s bestehen. Das normale native Gesamt-ELF und seine drei User-ELFs sind
+byteidentisch zu R8.3w. Kein neuer VMware-Benchmark oder voller OS-Nachweis.
+Native IPC benötigt24754Byte C-Text,2480Byte Konstanten,36Byte Daten und
+113472Byte BSS; W^X/NX und alle bisherigen Hüllbereiche bleiben erhalten.
+Nur `memcpy`/`memset` werden aus der bestehenden Compiler-Runtime behalten.
+
+Nächster nativer Schnitt bleibt nach dem sauberen Paketcommit festzulegen:
+allgemeiner Laufzeit-Prozessstart, breitere Syscallprofile und skalierbare
+Speicher-/Dienst-/Userland-Anbindung sind weiterhin offen. Bulk-IPC braucht
+den breiteren Profilvertrag. R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## R8.3w: gemeinsamen Integritätsschutz nativ anbinden
 

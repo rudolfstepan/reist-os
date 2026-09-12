@@ -27,6 +27,30 @@ Die späteren Bulk-Syscallnummern brauchen einen breiteren Profilvertrag und
 werden hier nicht durch implizite Sonderrechte verfügbar gemacht. Weitere
 Speicher-/Dienst-/Userland-Portierung folgt erst nach akzeptiertem Commit.
 
+Umsetzung auf `27d5b50c`: dieser gesamte IPC-Schnitt ist gemeinsam gebaut und
+im echten Ring3 geprüft, nicht in weitere Pool-/Timeout-/Fehlerpakete geteilt.
+Vier Userfälle mit32 Tasks zeigen normale Kommunikation, Besitzer-UD2,
+Peer-Freigabe und CPU-Begrenzung;78 Warteabschlüsse,112 adressraumgebundene
+Copyouts und32 Fences vor Reap sind unabhängig beobachtet. Die neue Plattform
+verwendet weder alte schlafende C-Stacks noch Spin-Retries. Bereits geschlossene
+Endpointgenerationen bleiben erhalten; Prozessansichten und ausstehende
+Nachrichten sind vor Freigabe des jeweiligen privaten Adressraums null.
+Unzugängliche alte Queue-Speicherbytes werden nicht als forensisch gelöscht
+ausgewiesen. Shared-IPC-Verfahren und Integritätsarithmetik bleiben quellgleich.
+
+Effizienzkorrekturen aus der Abnahme: Timerarbeit erst bei fälliger Deadline,
+keine Nachrichtenpolls auf Uhrticks; vorhandene32-Sample-Grenze für das längere
+IPC-Testprofil nutzen, alte Profile unverändert; Produktions-TU zusätzlich
+getrennt auf die tatsächliche Speicherbreite redundanter Kontrollwörter prüfen.
+Ein in die Fehlertest-TU eingebundener C-Kern allein erfasst die anders
+optimierte Produktionsübersetzung nicht. Fehlercode-Präzedenz der Nachrichten
+bleibt beim gemeinsamen Kern, kein zweiter fast gleicher Validator im Adapter.
+
+Normalbild samt User-ELFs bleibt byteidentisch; alte Prozessmatrix und
+Frame-/i386-Guards bestehen. Vollständige Zahlen und Belegpfade stehen im
+[aktuellen Arbeitsstand](CURRENT_WORK.md). Die Auswahl des nächsten großen
+nativen Schnitts erfolgt erst nach Abnahme und sauberem lokalen Commit.
+
 ## R8.3w: vorhandenen Integritätskern übernehmen
 
 Nach R8.3v `12f93954`: Die vorhandene IPC-Implementierung hängt am gemeinsamen

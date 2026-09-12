@@ -242,6 +242,8 @@ X86_64_INSTRUCTION_CASE ?= 0
 X86_64_SHELL_EXIT_STATUS ?= -1
 X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
+X86_64_NATIVE_IPC ?= 0
+X86_64_NATIVE_IPC_CASE ?= 0
 X86_64_PROCESS_CASE ?= 0
 X86_64_C_PAYLOAD_PROBE ?= 0
 X86_64_C_INTEGRITY_PROBE ?= 0
@@ -409,6 +411,7 @@ all: native-image
 x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
+		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
 		-DX86_64_PROCESS_CASE=$(X86_64_PROCESS_CASE) \
 		arch/x86_64/user/probe.asm -o $(X86_64_USER_PROBE_OBJ)
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings \
@@ -452,6 +455,7 @@ x86_64-bootstrap:
 	@$(X86_64_CC) $(X86_64_CFLAGS) -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
+		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) \
 		-DX86_64_C_INTEGRITY_PROBE=$(X86_64_C_INTEGRITY_PROBE) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
 ifeq ($(X86_64_C_PAYLOAD_PROBE),1)
@@ -464,10 +468,19 @@ ifeq ($(X86_64_C_INTEGRITY_PROBE),1)
 	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy \
 		-o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory_full.o
 endif
+ifeq ($(X86_64_NATIVE_IPC),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c kernel/ipc/ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -ffunction-sections -fdata-sections -c lib/libc/string.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory_full.o
+	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy --undefined=memset \
+		-o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory_full.o
+endif
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
 		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
+		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o,) \
 		$(if $(filter 1,$(X86_64_C_INTEGRITY_PROBE)),$(X86_64_BOOTSTRAP_DIR)/critical_object.o $(X86_64_BOOTSTRAP_DIR)/integrity_probe.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o,)
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --output-directory $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf32 -DC_CORE_TEXT_PATH=\"$(X86_64_C_CORE_TEXT)\" \
@@ -484,7 +497,7 @@ endif
 		-DUSER_CHILD_PATH=\"$(X86_64_USER_CHILD_ELF)\" \
 		arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
-	@$(AS) -f elf32 arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
+	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3x-x86_64-native-ipc"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3x-x86_64-native-ipc"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Shared native IPC pools and independent-task syscall/wait lifecycle"
@@ -27,6 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_native_ipc.py --evidence build/
 acceptance = "All13 frozen groups, actual host behavior at O0/O2 and real Ring3 IPC/wait/fault/reap proof; direct scope/ABI/cleanup review, queue transition and clean local commit. Keep original native compile inventory. Continue only after the accepted transaction; no claim that IPC finishes64bitOS."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Need to alter shared integrity algorithm or existing IPC semantics", "Failed gate without focused in-scope correction", "Need for wider profiles, SMP, memory-capacity or device authority"]
 commit_message = "feat: bind shared IPC to independent native x86_64 tasks"
+evidence = ["python test/test_x86_64_native_ipc.py -v","python test/test_x86_64_integrity.py -v","python test/test_x86_64_c_payload.py -v","python test/test_x86_64_process_run.py -v","python test/test_x86_64_user_access.py -v","python test/test_x86_64_boot.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83x-native-ipc/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeProcesses -NativeIPC -OutputDirectory build/codex-agent/r83x-native-ipc/native","python scripts/run_qemu_x86_64_native_ipc.py --evidence build/codex-agent/r83x-native-ipc/guests","python scripts/run_qemu_x86_64_process_run.py --evidence build/codex-agent/r83x-native-ipc/processes","python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83x-native-ipc/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83x-native-ipc/retirement","python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All13 frozen groups pass on contract27d5b50c; final direct scope/ABI/cleanup review,20 allowed files, no shared operation-body/header/integrity algorithm changes. New host7/5.808s: actual native adapter O0/O2, FIFO/backpressure/wait/timeout/reap/generation and16-endpoint/8-cap exhaustion, corrected guard and12 fail-closed executions, exact common errno precedence, no message polling on clock notification, identical i386 preprocessing and legacy IPC behavior O0/O2, strict serial/wait/copyout oracle mutations, owned VM cleanup and real ELF export negatives. Separately compiled production TU proves initialized/initialized_inverse/entered remain4-byte fault-detection words; original LLVM1-byte narrowing retained as red evidence. Existing integrity5/1.806s, payload11/2.106s, process5/2.517s, user-access3/4.239s, boot56/.037s. Docs7/.817s historicalD1 skip,108files/dad636f9f60d406285c16a276df51094. Normal build3.571s; final native IPC build4.060s. Four actual Ring3 cases/32tasks in41.954s including builds and read-only GDB,78 exact waits/completions,112 actual140byte copyouts/current CR3,32 IPC fences before frame free and100 total frame reaps;17 kernel objects identical across user-only cases. Native evidence5dc502d902704cd1923f38abdf04b153. Old process9cases72tasks+5observations40tasks56.491s/d2a700e6380a41c086092c980d662e7c; old20frames2.098s/329b0364de714974820ddf0ab65ec0b1; pinned i386 guard1.205s. Normal entire bootstrap SHA c0f47aed934816c79424040a3a2606bf49959e0fec860ebdc206405c85da2182 and all3 normal user ELFs byteidentical to b90c2cab. Native profile uses already-permitted32 CPU samples; old plans and global limits unchanged. Final native ELF231556bytes; C24754text/2480rodata/36data/113472BSS, only existing memcpy/memset retained. SHF_MERGE relaxation was unnecessary and not implemented. Preserve all build/codex-agent/r83x-* failed evidence: initial missing binding/import, test errno assumption/NDEBUG/include collision, release fixture that had not actually blocked,4-sample fixture exhausted before intentional CPU spin, adapter message errno duplication and production-word narrowing. All corrected in frozen scope, no weakened gate or profile ceiling, reference rebaseline, visible VM/dialog, agent, unrelated process termination or push. Inactive endpoint generations retained; no forensic-zero claim for unreachable old queue bytes. No full64bitOS, SMP, bulk/wider-profile or VMware performance claim; R3.6b deferred and R341-H1/H2 open. Next native transaction follows only from a clean committed baseline."
 
 [[packages]]
 id = "R8.3w-x86_64-shared-integrity"
@@ -3163,7 +3165,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

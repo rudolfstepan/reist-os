@@ -3,6 +3,12 @@
 %ifndef X86_64_PROCESS_CASE
 %define X86_64_PROCESS_CASE 0
 %endif
+%ifndef X86_64_NATIVE_IPC
+%define X86_64_NATIVE_IPC 0
+%endif
+%if X86_64_NATIVE_IPC
+%include "arch/x86_64/user/ipc_demo.inc"
+%else
 process_demo:
     mov r12, rdi
     FP_BEGIN edi
@@ -110,3 +116,4 @@ process_demo_bad:
     ud2
 align 4
 process_demo_status: dd 0, 42, 0x80000000, 0xFFFFFFFF
+%endif

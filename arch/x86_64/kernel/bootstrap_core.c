@@ -6,16 +6,23 @@
 #endif
 #if X86_64_NATIVE_PROCESSES
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
+#if X86_64_NATIVE_IPC
+#define NATIVE_RUN_MASK (REIST_X64_RUN_SYSCALLS | (0x7fULL<<49) | (1ULL<<58))
+#define NATIVE_RUN_BUDGET(original) 32
+#else
+#define NATIVE_RUN_MASK REIST_X64_RUN_SYSCALLS
+#define NATIVE_RUN_BUDGET(original) original
+#endif
 /* Trusted boot admission, not automatic restart or runtime process policy. */
 static const struct reist_x64_run_v1 native_runs[2] = {
-    {1,144,4,0,{{0x10000,REIST_X64_RUN_SYSCALLS,4,0},
-               {0x10001,REIST_X64_RUN_SYSCALLS,8,0},
-               {0x10002,REIST_X64_RUN_SYSCALLS,12,0},
-               {0x10003,REIST_X64_RUN_SYSCALLS,16,0}}},
-    {1,144,4,0,{{0x10100,REIST_X64_RUN_SYSCALLS,20,0},
-               {0x10101,REIST_X64_RUN_SYSCALLS,24,0},
-               {0x10102,REIST_X64_RUN_SYSCALLS,28,0},
-               {0x10103,REIST_X64_RUN_SYSCALLS,32,0}}}
+    {1,144,4,0,{{0x10000,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(4),0},
+               {0x10001,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(8),0},
+               {0x10002,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(12),0},
+               {0x10003,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(16),0}}},
+    {1,144,4,0,{{0x10100,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(20),0},
+               {0x10101,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(24),0},
+               {0x10102,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(28),0},
+               {0x10103,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(32),0}}}
 };
 #endif
 

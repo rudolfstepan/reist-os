@@ -2,6 +2,12 @@
 ; It is deliberately not linked into any production i386 kernel or image.
 
 BITS 64
+%ifdef C_CORE_LAYOUT_PATH
+%include C_CORE_LAYOUT_PATH
+%if C_NATIVE_IPC_ENTRY
+%define REIST_NATIVE_IPC_BINDING 1
+%endif
+%endif
 extern x86_64_fp_init64
 extern x86_64_fp_clear64
 extern x86_64_fp_save64
@@ -1719,6 +1725,13 @@ scheduler_enter_task64:
     test rax, PAGE_SIZE - 1
     jnz scheduler_fail
     mov cr3, rax
+
+%ifdef REIST_NATIVE_IPC_BINDING
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PROCESS
+    jne .ipc_take_done
+    call process_ipc_take64
+.ipc_take_done:
+%endif
 
     push qword USER_DATA_SELECTOR
     push qword [r11 + TASK_RSP]
@@ -7668,6 +7681,9 @@ scheduler_hex_nibble64:
     jmp serial_putc64
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_IPC_BINDING
+%include "arch/x86_64/proc/process_ipc.inc"
+%endif
 
 section .rodata
 process_run_reap_message: db "REIST_X86_64_PROCESS_REAP_OK v1=", 0

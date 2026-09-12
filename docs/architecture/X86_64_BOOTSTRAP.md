@@ -21,7 +21,47 @@ gemeinsamer Blocking-Aufruf sind vertrauenswürdige Zustandsfehler, kein
 Userspace-Erfolg. Native IRQ-Klassifikation bleibt rein lesend.
 System-V-ELF64-Funktionsbindungen werden gegebenenfalls aus exakt validierten
 STT_FUNC-Symbolen generiert; normale SHF_MERGE/SHF_STRINGS-Konstantenmetadaten
-dürfen die tatsächlichen W^X/NX-Loadrechte nicht verändern. Noch nicht abgenommen.
+dürfen die tatsächlichen W^X/NX-Loadrechte nicht verändern.
+
+R8.3x umgesetzt auf `27d5b50c`: `reist_native_ipc` ist der einzige neue
+allowlistgebundene C-Aufruf. Er wird als einmaliges globales STT_FUNC-Symbol
+vollständig innerhalb des validierten Textsegments geprüft; seine Adresse
+wird in den NASM-Include geschrieben, nicht geraten. Der tatsächlich
+gelinkte Konstantenbereich bleibt bei SHF_ALLOC: die vorgesehene optionale
+SHF_MERGE/SHF_STRINGS-Erweiterung wurde nicht benötigt und nicht implementiert.
+Die strengen v2-ELF-Abschnitts-/Loadrechte sind unverändert.
+
+Der private208Byte-Auftrag enthält fünf64-Bit-Eingabewörter, Resultat,
+Deadline, Abschlussmaske, eine140Byte-Nachricht und ein32-Bit-Handle.
+Die vier108Byte-Prozessansichten und vier216Byte-Pendingdatensätze werden
+gegen feste redundante Integritätssnapshots geprüft. Retirementgenerationen
+sind ebenfalls geschützt. Init-/Komplement-/Busywörter bleiben explizit
+volatile uint32, nach separater Produktionsübersetzung maschinell geprüft;
+ein validierter Init-Snapshot verhindert mehrfaches Lesen für diese Entscheidung.
+Unkorrigierbarer Zustand oder unerlaubte gemeinsame Blocking-/Locknutzung
+führt über UD2 in die vorhandene vertrauenswürdige Kernel-Fatalgrenze.
+Dies ersetzt keinen vollständigen Watchdog-/SMP-Abnahmenachweis.
+
+IPC-PIDs entsprechen hier den vorhandenen GETPID-Generationen und müssen
+positive int32 bleiben; ein neuer Lauf wird vor Allocation verworfen, wenn
+diese Grenze überschritten würde. Sonstige Native-Profiles bleiben unverändert.
+Die endliche Wartezeit muss noch innerhalb des bestehenden256-Tick-Laufs
+liegen, sonst EINVAL vor Queueseiteneffekten. V1-Nachrichten und ihre genaue
+Fehlercode-Präzedenz prüft allein der gemeinsame Kern. Timer erledigen nur
+fällige Timeouts; Nachrichtenzustand wird ausschließlich bei IPC-Ereignissen
+erneut versucht. Ein Ende mit Rest-Capabilities/Endpoints/Nachrichten ist fatal.
+Inaktive Endpunktgenerationen werden nicht auf null zurückgesetzt und alte
+Queuebytes nicht als forensisch gelöscht behauptet. Tatsächlich null sind die
+Prozessansicht, Pendingdaten und anschließend die freigegebenen Taskframes.
+
+Der optionale `-NativeProcesses -NativeIPC`-Gast delegiert nur49..55/58 und
+verwendet32 Samples je Task innerhalb der unveränderten Maximalgrenze.
+Vier ausschließlich nutzerseitige Fälle `-NativeIPCCase 0..3` belegen32
+Tasklebensläufe,78 Warteabschlüsse,112 reale Copyouts und32 IPC-Fences vor
+Framefreigabe;17 Kernobjekte sind über alle Fälle bytegleich. Normales
+Gesamt-ELF/User-ELFs, alte Prozessgäste und i386-Referenzen bleiben unverändert.
+Die Grenzen128MiB/vier Tasks, Bulk-/breite Profile, Laufzeit-ELF-Start,
+Dienste und vollständige64-Bit-OS-Abnahme bleiben sichtbar offen.
 
 R8.3w, vor Umsetzung eingefroren: Der bestehende gemeinsame Integritätskern
 bleibt quellgleich. Der x86-IRQ-Header verwendet in Long Mode64-Bit-Stack-

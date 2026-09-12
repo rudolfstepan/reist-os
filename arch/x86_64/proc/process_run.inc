@@ -20,6 +20,10 @@ process_run_admit64:
     cmp dword [rdi+12], 0
     jne .bad
     mov r8, (1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)
+%ifdef REIST_NATIVE_IPC_BINDING
+    mov rax, (0x7f<<49)|(1<<58)
+    or r8, rax
+%endif
     not r8
     xor ecx, ecx
 .entry:
@@ -374,6 +378,10 @@ x86_64_process_run64:
     mov eax, [rel process_run_generation]
     add eax, [rdi+8]
     jc .reject
+%ifdef REIST_NATIVE_IPC_BINDING
+    test eax, eax ; existing common IPC PID is positive int32
+    js .reject
+%endif
     mov rax, cr3
     mov edx, pml4_table
     cmp rax, rdx
@@ -453,6 +461,18 @@ x86_64_process_run64:
     mov eax, [rel process_run_build_slot]
     cmp eax, [rel process_run_plan+8]
     jb .build
+%ifdef REIST_NATIVE_IPC_BINDING
+    xor ebx, ebx
+.ipc_bind:
+    mov edi, 0
+    mov esi, ebx
+    lea rax, [rel process_run_generations]
+    mov edx, [rax+rbx*4]
+    call process_ipc_service64
+    inc ebx
+    cmp ebx, [rel process_run_plan+8]
+    jb .ipc_bind
+%endif
     mov byte [rel scheduler_failure_stage], 0xE1
     call scheduler_setup_syscalls64
     test eax, eax
@@ -550,6 +570,10 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_IPC_BINDING
+    cmp qword [rel syscall_rax], 49
+    jae process_ipc_syscall64
+%endif
     ; Unused arguments must be zero before syscall-visible effects.
     mov rax, [rel syscall_rsi]
     or rax, [rel syscall_rdx]
@@ -822,6 +846,20 @@ process_run_irq_tail64:
 
 process_run_wake64:
     mov [rel scheduler_last_tick], esi
+%ifdef REIST_NATIVE_IPC_BINDING
+    cmp byte [rel scheduler_deadline_count], 0
+    je .ipc_not_due
+    mov eax, esi
+    cmp [rel scheduler_deadline_entries], rax
+    ja .ipc_not_due
+    push rsi
+    mov edi, 2
+    xor esi, esi
+    mov edx, [rel process_run_generations]
+    call process_ipc_service64
+    pop rsi
+.ipc_not_due:
+%endif
     mov ebp, esi
     xor ebx, ebx
 .next:
@@ -898,6 +936,12 @@ process_run_retire64:
     lea rsp, [rel scheduler_kernel_stack_top]
     call scheduler_restore_kernel_segments64
     call x86_64_fp_reset64
+%ifdef REIST_NATIVE_IPC_BINDING
+    mov edi, 4
+    mov esi, [rel scheduler_current_slot]
+    mov rdx, [r12+TASK_GENERATION]
+    call process_ipc_service64
+%endif
     call scheduler_release_task_frames64
     test eax, eax
     jz scheduler_fail
@@ -937,6 +981,12 @@ process_run_retire64:
 
 process_run_finish64:
     mov byte [rel scheduler_failure_stage], 0xE2
+%ifdef REIST_NATIVE_IPC_BINDING
+    mov edi, 5
+    xor esi, esi
+    mov edx, [rel process_run_generations]
+    call process_ipc_service64
+%endif
     call scheduler_cleanup_common64
     test eax, eax
     jz scheduler_fail

@@ -19,6 +19,7 @@ BINDINGS={'x86_64_c_core_entry':HIGH+0x185000,
           'x86_64_c_control_handoff':HIGH+0x1ff080}
 OUTPUTS=('bootstrap_core_text.bin','bootstrap_core_rodata.bin','bootstrap_core_data.bin',
          'bootstrap_core_layout.inc','bootstrap_core_layout.json')
+CALL_EXPORTS={'reist_native_ipc':'C_NATIVE_IPC_ENTRY'}
 
 
 def require(ok,message):
@@ -82,7 +83,7 @@ def elf(data,bits):
                 name=string(strings,n)
                 if name:
                     # Local labels may repeat; externally bound names may not.
-                    if name in BINDINGS:require(name not in symbols,'ELF duplicate binding')
+                    if name in BINDINGS or name in CALL_EXPORTS:require(name not in symbols,'ELF duplicate binding')
                     symbols[name]=dict(value=value,size=length,index=index,type=t&15,binding=t>>4,visibility=other)
     require(symtabs==1,'ELF exact symbol table')
     occupied.sort()
@@ -131,6 +132,12 @@ def validate(data):
         require(s['index']==(sections[section]['index'] if section else 0xfff1),'C binding section '+name)
         if section in ('.data','.bss'):require(s['size']==32 and s['type']==1,'C boot state object')
         if section=='.text':require(s['type']==2 and 0<s['size']<=sections[section]['size'],'C function entry')
+    for name in CALL_EXPORTS:
+        if name not in symbols:continue
+        s=symbols[name];t=sections['.text']
+        require(s['binding']==1 and s['visibility']==0 and s['type']==2 and
+                s['index']==t['index'] and s['size']>0 and t['address']<=s['value'] and
+                s['value']+s['size']<=t['address']+t['size'],'C call export '+name)
     return parsed
 
 
@@ -141,7 +148,9 @@ def outputs(data):
                   bindings=BINDINGS)
     result={f'bootstrap_core_{n[1:]}.bin':s[n]['data'] for n in ('.text','.rodata','.data')}
     result['bootstrap_core_layout.inc']=(f'; Generated from validated ELF64, private layout v{VERSION}.\n'
-        f'%define C_CORE_LAYOUT_VERSION {VERSION}\n%define C_CORE_BSS_BYTES {s[".bss"]["size"]}\n').encode('ascii')
+        f'%define C_CORE_LAYOUT_VERSION {VERSION}\n%define C_CORE_BSS_BYTES {s[".bss"]["size"]}\n'+
+        ''.join(f'%define {define} {p["symbols"].get(name,{}).get("value",0):#x}\n'
+                for name,define in CALL_EXPORTS.items())).encode('ascii')
     result['bootstrap_core_layout.json']=(json.dumps(metadata,indent=2,sort_keys=True)+'\n').encode('ascii')
     return result
 

@@ -11,12 +11,22 @@
 #include "include/kernel/ipc.h"
 #include "include/kernel/critical_object.h"
 
+#ifdef REIST_NATIVE_IPC
+#include "arch/x86_64/ipc/platform.h"
+#else
 #include "kernel/proc/process.h"
 #include "kernel/sched/scheduler.h"
 #include "kernel/sched/wait_queue.h"
 #include "kernel/time/pit.h"
+#endif
 
-#ifdef REIST_HOST_TEST
+#ifdef REIST_NATIVE_IPC
+static spinlock_t ipc_state_lock;
+static uint32_t ipc_lock(void) { return native_ipc_lock(&ipc_state_lock); }
+static void ipc_unlock(uint32_t flags) {
+    native_ipc_unlock(&ipc_state_lock, flags);
+}
+#elif defined(REIST_HOST_TEST)
 #include <string.h>
 static uint32_t ipc_lock(void) { return 0U; }
 static void ipc_unlock(uint32_t flags) { (void)flags; }
