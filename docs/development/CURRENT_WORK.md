@@ -10,7 +10,24 @@ Scheduler-/IPC-Fristen, CPU-Abrechnung und Retirement über die256-Tick-Grenze.
 [Laufzeitvertrag](../architecture/NATIVE_RUNTIME_CLOCK_CONTRACT.md).
 Kein Budget-Reset, keine größere CPU-Quote und keine vorgezogenen Lade- oder
 Supervisorrechte. Alte Profile und signierte Medien bleiben Referenzen.
-Implementierung und Abnahme stehen noch aus.
+Vertrag `42a41aba`; Umsetzung liegt als uncommitteter Kandidat im Hauptbaum.
+Zwei neue Hostgruppen bestehen O0/O2: tatsächliche Timer-/Tickarithmetik,
+IPC über2^32, Horizontprüfung vor Queueeffekten, rückläufige Zeit und Cleanup.
+NativeRuntime baut, ist aber nicht abgenommen. Der erste Gast scheitert in
+der bisherigen Bootstrap-Isolationsprüfung (Stage03), noch vor dem nativen
+Langzeitlauf: Die zusätzliche Userfixture wächst von4083 auf4175 Textbytes;
+dadurch liegt ihre RW-Datenseite bei0x402000 statt0x401000. Der Scheduler
+prüft weiterhin fest `PROBE_DATA_PAGE_INDEX=1`. Die neuen Zeitpfade haben
+damit noch keinen Gastnachweis. Fehlerbeleg:
+`build/codex-agent/r83ac-clock/guests/attempt-3d2105eb225d445c8200bc7d90ed6d41`.
+Die eingefrorene Stop-Bedingung verbietet eine erforderliche Layoutänderung.
+Keine Anpassung der erwarteten Seite, kein Abschwächen des Orakels und kein
+Implementierungscommit; weitere Gates wurden nach diesem Befund angehalten.
+Mit der erneuten Bündelungsanweisung nach der ausdrücklichen Rückfrage ist
+diese Erweiterung freigegeben: gleicher Kandidat und zwölf Gates, zusätzliche
+Ableitung der Fixture-Datenseite aus bereits geprüften ELF-Seitenrechten.
+Kein neues Parser-/Prozessrecht und keine Kapazitäts- oder Friständerung.
+Die Umsetzung wird unter der ergänzten Vertragsgrenze fortgesetzt.
 
 ## R8.3ab: signierte native BIOS-Medien gemeinsam
 

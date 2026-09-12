@@ -37,6 +37,28 @@ lassen. Kein neuer öffentlicher ABI- oder persistenter Medienaufbau.
 
 ## Eingefrorene Abnahme
 
+### Freigegebene Zusammenführung am12. September
+
+Nach dem expliziten Erweiterungswunsch und der erneuten Nutzeranweisung zur
+Bündelung wird die vorhandene Umsetzung mit ELF-Seitenbelegung fortgesetzt.
+Die Quellenänderungen bleiben der zugeordnete, noch nicht abgenommene Kandidat
+dieser Transaktion; nur die Vertragsergänzung wird vorher lokal committed.
+Alle zwölf Gatebefehle und Zeit-/Ressourcenlimits bleiben bestehen.
+
+Der bestehende Loader hat bereits acht geprüfte ELF-Seiten. NativeRuntime
+ermittelt die erste RW-Seite aus diesen vorhandenen PF-Rechten in höchstens
+acht Schritten; keine neue ELF-Analyse in Ring0. Fehlende RW-/RX-Seiten,
+unbekannte oder W+X-Rechte sowie getrennte RW-Bereiche werden verworfen.
+Alle bisherigen Fixture-Magic-, Faultpointer- und Isolationsverbraucher lesen
+diese abgeleitete Datenseite. Der Fixturevertrag behält seine Feldoffsets ab
+Beginn des RW-Bereichs, aber nicht die feste VA0x401000. Tatsächliche O0/O2-
+Tests prüfen sämtliche zulässigen Seitenpositionen und ungültige Layouts.
+Der echte Gast muss mit Datenseite0x402000 sämtliche alten Isolationsbelege
+und anschließend den Laufzeit-/IPC-/Heap-/CPU-Ende-Pfad bestehen.
+Defaultprofile, achtseitige Userkapazität, private C-Struktur und persistente
+Medienformate bleiben unverändert. Das ist weiterhin kein allgemeiner
+Ring3-Dateiloader; dessen andere Autoritätsgrenze wird nicht vorweggenommen.
+
 Zwölf Gategruppen in `automation/reist-s03b.toml`: tatsächliche Hostarithmetik
 und IPC O0/O2, bisherige Prozess-/IPC-/Heap-/Boot-/Dokumentationstests, drei
 Buildprofile, neuer Langzeitgast, unveränderter Heapgast und i386-Referenz.
