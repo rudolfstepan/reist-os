@@ -2,6 +2,16 @@
 
 Stand: 12. September 2026
 
+R8.3y ist vor Umsetzung auf `89ab012f` eingefroren. Die bestehende REIST-ABI
+dispatcht beide Nachrichtenformate auf50/51/53/54; Bulk erfordert keine breiteren
+Syscallprofile. Private Bindung v2 erweitert die maximale Nachricht auf2060Byte
+und bewahrt die ursprüngliche Empfangskapazität auch bei zurückgegebenem v1.
+Header12Byte zuerst prüfen, dann genau140/2060Byte über alle betroffenen Seiten,
+vor Effekten und nochmals vor verzögerter Ausgabe im eigenen Adressraum.
+Die alte140Byte-Adressprüfung bleibt bestehen; ein expliziter Dateneinstieg
+erlaubt2060Byte mit denselben Eigentums-/P/U/W/NX-Prüfungen. Alle Aussagen zu
+208/216Byte weiter unten beschreiben den akzeptierten historischen X-Stand.
+
 R8.3x ist vor Umsetzung eingefroren: vorhandenes REIST-IPC-v1 mit den
 Syscallnummern49..55/58 und POSIX-errno-Bezeichnungen, keine POSIX-IPC-
 Kompatibilitätsbehauptung. Der optionale NativeIPC-Lauf delegiert diese Rechte

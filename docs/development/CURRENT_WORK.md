@@ -55,7 +55,10 @@ Nur `memcpy`/`memset` werden aus der bestehenden Compiler-Runtime behalten.
 Nächster nativer Schnitt bleibt nach dem sauberen Paketcommit festzulegen:
 allgemeiner Laufzeit-Prozessstart, breitere Syscallprofile und skalierbare
 Speicher-/Dienst-/Userland-Anbindung sind weiterhin offen. Bulk-IPC braucht
-den breiteren Profilvertrag. R3.6b bleibt ausdrücklich zurückgestellt.
+keinen breiteren Profilvertrag: diese frühere Annahme war falsch;50/51/53/54
+selektieren bereits beide Formate anhand des Headers. R8.3y ist auf `89ab012f`
+mit13 Gates eingefroren und schließt die native v2-Bindung einschließlich
+Seitenprüfung und Wartelebensdauer. R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## R8.3w: gemeinsamen Integritätsschutz nativ anbinden
 

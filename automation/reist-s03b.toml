@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3y-x86_64-native-bulk-ipc"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -13,7 +13,24 @@ external_writes = false
 push = false
 
 [[packages]]
+id = "R8.3y-x86_64-native-bulk-ipc"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Complete compatible native IPC v1/v2 message transport"
+scope = "Correct the X planning error: existing bulk messages use the SAME syscall50/51/53/54 and explicit header version2/size2060. Reuse unchanged common operations, complete header-first native admission, bounded cross-page snapshots and delayed copyout for both compatible formats. No wider profile or new public authority. Private binding v2 preserves original receive capacity even when a v2 receive returns a v1 message. Protect pending controls before trusting capacity; extra large-message integrity work only for active bulk requests. Preserve old140-byte user-access entry; add a bounded2060-byte data entry using the same ownership/page checks. All lifecycle/wait/deadline/reap rules unchanged."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "arch/x86_64/ipc/native_ipc.h", "arch/x86_64/ipc/native_ipc.c", "arch/x86_64/proc/process_ipc.inc", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/mm/user_access.asm", "arch/x86_64/mm/user_access.h", "arch/x86_64/user/ipc_demo.inc", "arch/x86_64/user/process_demo.inc", "arch/x86_64/user/bulk_ipc_demo.inc", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "test/test_x86_64_native_ipc.py", "test/x86_64_native_ipc_host.c", "test/test_x86_64_bulk_ipc.py", "test/x86_64_user_access_host.c", "scripts/run_qemu_x86_64_native_ipc.py", "scripts/run_qemu_x86_64_bulk_ipc.py"]
+invariants = ["Reference existing REIST IPC ABI v1/v2 and POSIX errno subset, SysV AMD64 private calls and Intel64 P/U/W/NX checks. Public headers/syscall numbers/profiles/common IPC/integrity bodies unchanged. Header12 first, exact140/2060 read and full output permissions before dequeue; reject bad version/size EINVAL, inaccessible selected range EFAULT. Existing shared length errno precedence unchanged. Receive capacity is immutable across async completion, v2 may return v1 with zero-filled tail. Four-entry v1 FIFO and separate single bulk slot, not a global FIFO. Rights and sender exclusion unchanged.", "Four independent tasks/128MiB/256ticks/32 CPU samples/16KiB kernel stack unchanged. One pending operation and exact deadline membership per task. No C stack continuation, extra polling, heap, sleep in critical path or unbounded scan. Metadata integrity precedes capacity-selected payload validation; pending snapshots never alias user memory. Extra bulk protection only for actual active bulk snapshots; inactive tail never consumed. Generation-scoped cancellation and zero pending/client records before frame release, stale handles never regain rights. Uncorrectable trusted state uses existing fatal boundary. User-only normal/fault/release/CPU variants cannot alter kernel objects.", "Actual O0/O2 host behavior plus real Ring3 cross-page2048-byte transfer, mixed v1/v2, backpressure, delayed copyout, timeout, close/release/fault/CPU reap and second generations. Preserve all old native IPC and20-frame oracle requirements, adjust only explicitly versioned private layout and RX fixture header. No agents, visible VM/dialog, unrelated process termination, reference rebaseline or push. R3.6b deferred and R341-H1/H2 open; native services/general memory/fullOS remain future boundaries."]
+targeted_tests = ["python test/test_x86_64_native_ipc.py -v", "python test/test_x86_64_bulk_ipc.py -v", "python test/test_x86_64_user_access.py -v", "python test/test_x86_64_c_payload.py -v", "python test/test_x86_64_process_run.py -v", "python test/test_x86_64_boot.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83y-bulk/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -NativeProcesses -NativeIPC -NativeBulkIPC -OutputDirectory build/codex-agent/r83y-bulk/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_native_ipc.py --evidence build/codex-agent/r83y-bulk/v1", "python scripts/run_qemu_x86_64_bulk_ipc.py --evidence build/codex-agent/r83y-bulk/v2", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83y-bulk/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83y-bulk/retirement", "python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All13 frozen groups, focused red evidence retained, direct scope/ABI/cleanup review, queue transition and clean local commit. Continue from clean baseline only. No full64bitOS claim."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change common IPC/integrity semantics, public rights, memory or CPU ceilings"]
+commit_message = "feat: complete native IPC v2 bulk message transport"
+
+[[packages]]
 id = "R8.3x-x86_64-native-ipc"
+scope_erratum = "Inventory after89ab012f disproved the frozen scope assertion that bulk IPC needs wider syscall numbers/profiles: authoritative include/reist/abi/syscall.h and kernel/syscall/syscall_table.c dispatch v1/v2 through50/51/53/54 by header. X proved v1 only; R8.3y completes the compatible v2 omission. Historical frozen scope/gates/evidence retained, not retroactively rewritten."
 status = "done"
 phase = "post-s0"
 risk = "high"
@@ -3165,7 +3182,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

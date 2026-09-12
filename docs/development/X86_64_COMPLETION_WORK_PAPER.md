@@ -4,6 +4,16 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3y: kompatible IPC-Nachrichtenformate vervollständigen
+
+Baseline `89ab012f`, dreizehn Gates vor Umsetzung eingefroren. Inventurkorrektur:
+Bulk benutzt schon50/51/53/54, nicht neue Syscallnummern. Ein breiteres Profil
+ist dafür nicht nötig. Die alte Annahme im X-Vertrag bleibt als korrigierte
+Historie sichtbar. Reihenfolge: Regression; Header-/Seitenprüfung; private
+v2-Snapshots mit erhaltener Empfangskapazität; tatsächliche Ring3-Transfers
+und Fehler-/Reapprüfung; Commit. Keine neuen Rechte oder gemeinsamen IPC-
+Verfahren. Zusätzliche Integritätsarbeit nur für aktive große Aufträge.
+
 ## R8.3x: IPC-Pools, Syscalls und Wartelebensdauer gemeinsam
 
 Baseline `b90c2cab`; dreizehn Gates vor Umsetzung eingefroren. Der vorhandene
@@ -23,8 +33,8 @@ nur bei IPC-Ereignis, Taskende oder endlicher Deadline, außerhalb des IRQ-Bodys
 
 V1 behält16 Endpunkte,64 globale/8 lokale Capabilities,4 Nachrichten und128Byte
 Nutzlast, abschwächende Delegation ohne CONTROL, EAGAIN/ETIMEDOUT/EPIPE/EBADF.
-Die späteren Bulk-Syscallnummern brauchen einen breiteren Profilvertrag und
-werden hier nicht durch implizite Sonderrechte verfügbar gemacht. Weitere
+Bulk benutzt dieselben Syscalls, wurde in X aber noch nicht angebunden;
+die frühere gegenteilige Planannahme war falsch. Weitere
 Speicher-/Dienst-/Userland-Portierung folgt erst nach akzeptiertem Commit.
 
 Umsetzung auf `27d5b50c`: dieser gesamte IPC-Schnitt ist gemeinsam gebaut und
