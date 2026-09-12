@@ -2,6 +2,15 @@
 
 Stand: 12. September 2026
 
+## R8.3ag: Ring3-ELF-Aufbereitung und nativer Abbildimport
+
+R8.3af ist als `7757c747` mit allen13 Gates lokal abgenommen, Arbeitsbaum sauber.
+Die nächste gemeinsame Ladegrenze bündelt C-Aufbereitung in Ring3, CREATE-v3,
+private Abbildbesitzer, SDK/Build und vollständige Fehler-/Rollbacknachweise.
+[Eingefrorener Vertrag](../architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md).
+Vorhandene Mapping-, Stack-, IPC- und Reapmechanismen werden wiederverwendet;
+keine Dateirechte oder ELF-Parser in Ring0. Noch keine Implementierungsabnahme.
+
 ## R8.3af: Startargumente und IPC-Übergabe gemeinsam umgesetzt
 
 Nach sauberem Implementierungscommit `8a3bed10` sind alle17 Gruppen von

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ag-x86_64-image-import"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ag-x86_64-image-import"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Ring3 ELF64 preparation and immutable native image import"
+scope = "On accepted7757c747, bundle reusable Ring3 ELF64 preparation, CREATE-v3 fixed-record transport, independent imported image ownership, SDK/build consumers and full rollback/IPC/restart proof. Preserve catalog v1/v2 and all runtime budgets; no file/device or Ring0 ELF parser authority."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","include/reist/abi/syscall.h","userspace/sdk/include/reist/abi/syscall.h","userspace/sdk/include/reist/x86_64/task.h","userspace/sdk/include/reist/x86_64/image.h","userspace/sdk/lib/x86_64/image.c","arch/x86_64/proc/task_family.inc","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/exec/elf64_loader.asm","arch/x86_64/exec/boot_programs.inc","arch/x86_64/user/task_startup.c","config/x86_64_import_program.ld","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","Makefile","scripts/run_qemu_x86_64_task_startup.py","scripts/run_qemu_x86_64_image_import.py","test/test_x86_64_image_import.py","test/x86_64_image_import_host.c"]
+invariants = ["Follow NATIVE_IMAGE_IMPORT_CONTRACT.md; fixed64-byte v3 request,36896-byte immutable prepared record and1040-byte startup; admit before attempts/allocation. Existing public versions unchanged.","Separate contexts7/8 for dynamic slots2/3; no catalog alias or inherited authority; exact fencing/reap/rollback/scratch clearing, all task/CPU/heap/IPC budgets unchanged.","C parser stays Ring3; existing Python producer remains independent host reference. Actual O0/O2 behavior and real4/8GiB/OOM guests required; NativeImport-only two-RX root layout stays inside eight pages."]
+targeted_tests = ["python test/test_x86_64_image_import.py -v","python test/test_x86_64_task_startup.py -v","python test/test_x86_64_task_family.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_syscall_abi_source.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ag-import/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeStartup -OutputDirectory build/codex-agent/r83ag-import/startup",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeImport -OutputDirectory build/codex-agent/r83ag-import/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_image_import.py --image build/codex-agent/r83ag-import/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ag-import/guests","python scripts/run_qemu_x86_64_task_startup.py --image build/codex-agent/r83ag-import/startup/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ag-import/startup-reference","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83ag-import/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83ag-import/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All13 groups, direct ABI/ownership/rollback/scope review and clean local commit before next package; no full OS or file service acceptance."
+stop_conditions = ["Unattributed or overlapping user change","Required source outside frozen scope","Failed gate after one focused in-scope repair","Need to widen frozen quotas or guest bounds","Hardware or release authority required"]
+commit_message = "feat: import native images prepared in Ring3"
+evidence = []
 
 [[packages]]
 id = "R8.3af-x86_64-startup-handoff"
