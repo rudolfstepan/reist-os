@@ -1,8 +1,40 @@
 # Native boot program admission
 
-Status: R8.3ad contractde4fdb7b on667e9aee; attributed implementation candidate
-retained, blocked at the pre-existing bootstrap IRQ-admission boundary.
-Not accepted; no implementation commit or queue advancement.
+Status: implemented on667e9aee under contractsde4fdb7b/f5357439. The original
+blocker below is corrected; final13-group acceptance/commit is recorded in
+the executable queue. Prepared boot admission is not a completed native OS.
+
+## Implementation evidence
+
+Six new host tests cover actual fixed-record/run-v2/startup assembly and the
+preemption IF branches O0/O2, producer malformed-input rejection, preservation
+of the old catalog on failed publication, guest-oracle mutations and cleanup
+after debugger startup failure. The old IF behavior has a retained failing
+regression before the correction; the flags test exercises49152 combinations
+at each optimization level without widening forbidden flags.
+
+Final new matrix: attempta9533e48306e447c81f48e01e718b341,37.284s, under
+`build/codex-agent/r83ad-programs/guests/`. Normal4/8GiB, UD2 and CPU32 complete
+32 native task lifetimes and100 total old/new frame retirements. Six negative
+guests reject malformed header/rights/arguments and allocation failure after
+0/1/2 acquisitions, with exact pre-load free count and zero retained ownership.
+All positive guests verify each actual mapped page, permissions, private frame,
+initial stack, argc/argv/envp/auxv and all14 final scrub ranges. Heap controls,
+regions and table records and every image context are empty after retirement.
+
+The debugger queries `monitor info pic` read-only before the preemption test's
+first task. Six of ten guests observe IRQ0 pending and unmasked with IF0;
+the exact subsequent admissions are A(IF0,unarmed), B(IF1,armed), A(IF0,unarmed).
+No controller mutation, delayed deadline, ignored IRQ or removed fatal check.
+At least one actual pending IRQ is mandatory for accepting the matrix.
+The normal bootstrap guest, existing long-runtime/2^32/heap/IPC/CPU guests
+and pinned i386 artifact verification also pass. Their original limits remain.
+
+The three legacy staged contexts remain the prefix of seven bounded contexts;
+four prepared records add147584 immutable bytes, not a parser. Run-v1 and
+default catalog absence remain supported. No public syscall or C-payload
+layout change. Fixed image/argument bounds are deliberate bootstrap limits;
+the four test programs are not new shell commands or a filesystem search path.
 
 ## Authorized same-package amendment
 
@@ -23,7 +55,7 @@ unchanged normal bootstrap runtime gate (thirteen groups total).
 The contract amendment is committed alone; attributed candidate edits remain
 visible and uncommitted until complete acceptance.
 
-## Blocking evidence,12 September2026
+## Historical blocking evidence,12 September2026 (resolved)
 
 The two initial host groups pass (actual prepared/run-v2/startup assembly
 O0/O2 and external producer rejection). NativePrograms builds, layout4 retained.
@@ -47,7 +79,7 @@ a pre-existing source failure under the repository stop rule, not an OOM
 rollback result. Original failed traces are retained; no deadline, expected
 fault, hardware state or old oracle has been changed to hide it.
 
-Required authority: amend this same transaction to close the old
+The authority requested at the stop was to amend this same transaction to close the old
 preemption-test timer/IF admission window and prove a pending-IRQ regression,
 with affected old-reference gates renewed. Do not silently change the frozen
 default-profile guarantee. The remaining negative cases and old-reference
@@ -94,9 +126,10 @@ the existing heap, clock, stack and C-payload limits remain unchanged.
 
 ## Acceptance and next boundary
 
-The executable queue freezes twelve gates: producer and actual admission
+The executable queue freezes thirteen gates: producer and actual admission
 behavior, old process/access/runtime/bootstrap/docs tests, three builds,
-real multi-image guests, original runtime guests and the i386 artifact check.
+real multi-image guests, original runtime guests, the i386 artifact check and
+the unchanged normal bootstrap guest added by the authorized amendment.
 New guest leases are20s; old leases and oracles remain unchanged. Exact frame
 balance, generation fencing and every existing final zero range are required.
 

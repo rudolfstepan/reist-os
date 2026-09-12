@@ -2,6 +2,21 @@
 
 Stand: 12. September 2026
 
+R8.3ad bündelt unter `de4fdb7b`/`f5357439` mit `-NativePrograms` vier separat
+gelinkte C-Programme, externe ELF64-Aufbereitung, feste Abbildzulassung,
+argc/argv-Start und vollständige Freigabe. NativeRuntime ist Voraussetzung;
+Medien-/Bulk- und andere native Fehlerfixtures sind ausgeschlossen. Make
+verwendet `X86_64_NATIVE_PROGRAMS=1` mit NativeRuntime und dessen Abhängigkeiten.
+Der Kernel erhält vorbereitete, unveränderliche Seitenrecords; kein neuer
+ELF-Parser und kein Laufzeit-Dateiladen in Ring0. [Bootprogramm-Vertrag](NATIVE_BOOT_PROGRAMS_CONTRACT.md).
+
+Die freigegebene Korrektur des alten Präemptionstests hält IF für den
+kooperativen Task A vor Timeraktivierung und nach Disarm gesperrt. Nur B
+läuft unter aktiviertem Timer mit IF1; die Syscall-Zulassung prüft dies exakt.
+Neu gebaute Bootstrapkernel haben deshalb geänderte Schedulerbytes. Die
+folgenden historischen Bytegleichheitsangaben gelten für die damaligen
+Abnahmen; bereits veröffentlichte Medien und i386-Referenzen bleiben erhalten.
+
 R8.3ac führt mit Vertrag `42a41aba` und freigegebener Zusammenführung
 `8483d0c5` ein separates `-NativeRuntime` ein: NativeProcesses/IPC/RAM/Heap,
 volle64-Bit-PIT-/EOI-/Scheduler-/IPC-/CPU-Zeitwerte und über Runzyklen

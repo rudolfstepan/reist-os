@@ -24,6 +24,12 @@ extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 #endif
 /* Trusted boot admission, not automatic restart or runtime process policy. */
 static const struct reist_x64_run_v1 native_runs[2] = {
+#if X86_64_NATIVE_PROGRAMS
+    {2,144,4,0,{{0,NATIVE_RUN_MASK,32,3},{0,NATIVE_RUN_MASK,32,4},
+               {0,NATIVE_RUN_MASK,32,5},{0,NATIVE_RUN_MASK,32,6}}},
+    {2,144,4,0,{{0,NATIVE_RUN_MASK,32,6},{0,NATIVE_RUN_MASK,32,5},
+               {0,NATIVE_RUN_MASK,32,4},{0,NATIVE_RUN_MASK,32,3}}}
+#else
     {1,144,4,0,{{0x10000,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(4),0},
                {0x10001,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(8),0},
                {0x10002,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(12),0},
@@ -32,6 +38,7 @@ static const struct reist_x64_run_v1 native_runs[2] = {
                {0x10101,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(24),0},
                {0x10102,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(28),0},
                {0x10103,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(32),0}}}
+#endif
 };
 #endif
 

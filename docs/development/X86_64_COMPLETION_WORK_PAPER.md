@@ -13,11 +13,12 @@ Kein weiteres Paket je Layout, Argument oder Fehlerfall. Die nächste
 Owner-/Start-/Wait-/Cancel-Grenze folgt erst nach sauberer Abnahme; Dateisystem,
 Treiber und persistente Recovery werden nicht in diesen Bootvertrag gemischt.
 Diese Bündelung ersetzt keine vollständige OS-Abnahme und keinen Ring3-Lader.
-Aktueller Kandidat: zwei Hostgruppen, Build und vier positive Gäste bestehen.
-Die vollständige Abnahme ist wegen eines nachgewiesenen alten Timer-/IF-Fensters
-im Präemptionstest angehalten, noch vor der Katalog-Fehlerinjektion. Keine
-Fertigmeldung und kein Implementierungscommit; der Vertrag enthält den
-konkreten Beleg und den erforderlichen Erweiterungsumfang desselben Pakets.
+Der gemeinsame Kandidat enthält jetzt auch die über `f5357439` freigegebene
+Timer-/IF-Korrektur. Sechs Hosttests, drei Builds, alle zehn neuen Gastfälle,
+alte Laufzeitgäste, normaler Bootstrap und i386-Referenz bestehen. In sechs
+Gästen ist der zuvor tödliche, anstehende IRQ0 direkt am PIC nachgewiesen.
+Keine Frist-, CPU- oder Heapquotenlockerung. Der ausführbare Queue-Status ist
+maßgeblich für die abschließende13-Gruppen-Abnahme und den lokalen Commit.
 
 ## R8.3ac: Laufzeit und vorhandene ELF-Seitenbelegung zusammenführen
 

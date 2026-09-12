@@ -4,30 +4,26 @@ Stand: 12. September 2026
 
 ## R8.3ad: gebündelter nativer Programmstart
 
-R8.3ac ist mit `667e9aee` und zwölf Gates abgenommen. Der folgende historische
-Verlauf dokumentiert auch die inzwischen behobenen Zwischenfehler.
-Nun ist genau ein größeres Paket aktiv: ELF64-Aufbereitung außerhalb Ring0,
-vier unabhängige Programme, Argumentstart, getrennte Abbildbesitzer und
-vollständiges Retirement. [Vertrag](../architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
-Vertrag `de4fdb7b`; Umsetzung liegt als nicht abgenommener Kandidat im Hauptbaum.
-Zwei Hostgruppen bestehen O0/O2, NativePrograms baut. Vier positive Gäste
-(4/8GiB normal, UD2, CPU32) bestehen in22.235s mit insgesamt32 Task-Lebenszyklen,
-privaten Abbildern, Argumenten und vollständiger Speicherfreigabe.
-Die vollständige Matrix stoppt vor der ersten Katalog-Fehlerinjektion an einem
-alten Bootstrap-Fehler: Präemptions-Task A startet mit IF=1, obwohl der Timer
-erst nach seinem ersten `yield` aktiviert wird. Ein bereits anstehender IRQ0
-trifft `timer_active=0` und endet fatal. GDB bestätigt Tick/EOI3, Generation0,
-RIP0x400000 und RFLAGS0x10202; Details und Belegpfade stehen im Vertrag.
-Keine Paketabnahme, kein Implementierungscommit und keine vorgezogenen Gates.
-Die Stop-Regel für vorhandene Quellfehler verlangt eine ausdrückliche Erweiterung
-dieses Pakets um die Timer-/IF-Zulassung samt Pending-IRQ-Regression.
-Allgemeines Start/Wait/Cancel, Ring3-Dateiladen und persistente Treiber bleiben
-eigenständige Sicherheitsgrenzen.
+Auf `667e9aee`, Verträge `de4fdb7b` und `f5357439`: ELF64-Aufbereitung außerhalb
+Ring0, vier unabhängige C-Programme, Argumentstart, getrennte Abbildbesitzer,
+private Daten/Stacks/Heaps und vollständiges Retirement gemeinsam umgesetzt.
+`-NativePrograms` bündelt NativeRuntime; keine neue öffentliche Syscall-ABI.
+[Vertrag und Abnahmegrenzen](../architecture/NATIVE_BOOT_PROGRAMS_CONTRACT.md).
 
-Die erneute Bündelungsanweisung nach der ausdrücklichen Rückfrage gibt diese
-Erweiterung im selben Kandidaten frei: präzise IF-Zulassung für A/B, echte
-Assembler-Regression, Pending-IRQ-Gast und zusätzliche unveränderte normale
-Bootstrap-Laufzeitprüfung. Dreizehn Gategruppen, keine Frist-/Quotenlockerung.
+Sechs neue Hosttests bestehen, darunter echte Assembler-Regressionen O0/O2.
+Die zehnteilige Gastmatrix besteht in37.284s:4/8GiB normal, UD2, CPU32,
+ungültige Header/Rechte/Argumente und alle drei Zuteilungsfehler des Abbilds.
+32 native Task-Lebenszyklen, alle14 Scrub-Bereiche und exakte Framebilanz.
+In sechs Gästen liegt vor dem kooperativen Task A ein nicht maskierter IRQ0
+an; IF bleibt dort0. Task B startet mit IF1 erst bei aktivem Timer. Damit ist
+auch das alte Timer-/IF-Fenster innerhalb desselben Pakets geschlossen.
+Alte Langzeit-/2^32-/Heap-/IPC-Gäste, normaler Bootstrap und i386-Referenz
+bestehen unverändert. Abschließender Paketstatus und13 Gates stehen in der Queue.
+
+Das ist ein vorbereiteter Bootkatalog, kein allgemeiner Ring3-Dateilader und
+noch keine vollständige64-Bit-OS-Version. Owner-/Start-/Wait-/Cancel-Lebensdauer,
+Ring3-Dienste und persistente Treiber bleiben die folgenden Sicherheitsgrenzen.
+Die nachstehenden älteren Abschnitte bewahren auch historische Zwischenfehler.
 
 ## R8.3ac: voller Laufzeit-/Fristenpfad samt ELF-Seitenbelegung
 

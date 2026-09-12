@@ -40,6 +40,12 @@ ELF_IMAGE_PROBE     equ 0
 ELF_IMAGE_SHELL     equ 1
 ELF_IMAGE_CHILD     equ 2
 ELF_CONTEXT_COUNT   equ 3
+%ifdef REIST_NATIVE_PROGRAMS
+ELF_STORAGE_COUNT equ 7
+extern reist_x64_startup_stack
+%else
+ELF_STORAGE_COUNT equ ELF_CONTEXT_COUNT
+%endif
 ELF_CONTEXT_SIZE    equ 88
 
 EH_TYPE             equ 16
@@ -338,6 +344,10 @@ x86_64_elf64_load64:
     mov byte [rel elf_entry_is_executable], 0
     mov qword [rel elf_entry_address], 0
 
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp byte [rel elf_image_selector], 3
+    jae boot_program_load64
+%endif
     cmp byte [rel elf_image_selector], ELF_IMAGE_PROBE
     je .select_probe
     cmp byte [rel elf_image_selector], ELF_IMAGE_SHELL
@@ -630,6 +640,23 @@ x86_64_elf64_release64:
     ret
 
 x86_64_elf64_release_all64:
+%ifdef REIST_NATIVE_PROGRAMS
+    push rbx
+    mov ebx,ELF_STORAGE_COUNT-1
+.all:
+    mov edi,ebx
+    call x86_64_elf64_select_image64
+    test eax,eax
+    jz .all_done
+    call x86_64_elf64_release64
+    test eax,eax
+    jz .all_done
+    dec ebx
+    jns .all
+.all_done:
+    pop rbx
+    ret
+%else
     mov edi, ELF_IMAGE_CHILD
     call x86_64_elf64_select_image64
     test eax, eax
@@ -653,9 +680,14 @@ x86_64_elf64_release_all64:
 .fail:
     xor eax, eax
     ret
+%endif
 
 x86_64_elf64_select_image64:
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp edi, ELF_STORAGE_COUNT-1
+%else
     cmp edi, ELF_IMAGE_CHILD
+%endif
     ja .invalid
     cmp dil, byte [rel elf_image_selector]
     je .same
@@ -776,6 +808,10 @@ elf64_cleanup64:
     pop rbp
     ret
 
+%ifdef REIST_NATIVE_PROGRAMS
+%include "arch/x86_64/exec/boot_programs.inc"
+%endif
+
 section .rodata
 align 16
 user_probe_elf_start:
@@ -791,6 +827,16 @@ align 16
 user_child_elf_start:
     incbin USER_CHILD_PATH
 user_child_elf_end:
+
+%ifdef REIST_NATIVE_PROGRAMS
+align 16
+boot_program_catalog:
+    incbin BOOT_PROGRAM_CATALOG_PATH
+boot_program_catalog_end:
+    %if boot_program_catalog_end-boot_program_catalog != 4*36896
+        %error "boot program catalog must contain four exact records"
+    %endif
+%endif
 
 elf64_load_ok_message db "REIST_X86_64_ELF64_LOAD_OK", 13, 10, 0
 elf_context_release_orders: db 0,1,2, 0,2,1, 1,0,2, 1,2,0, 2,0,1, 2,1,0
@@ -836,3 +882,6 @@ elf_image_selector:
 alignb 16
 elf_context_store:
     resb ELF_CONTEXT_COUNT * ELF_CONTEXT_SIZE
+%ifdef REIST_NATIVE_PROGRAMS
+    resb (ELF_STORAGE_COUNT-ELF_CONTEXT_COUNT) * ELF_CONTEXT_SIZE
+%endif

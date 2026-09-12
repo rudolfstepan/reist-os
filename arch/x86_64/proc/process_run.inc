@@ -9,7 +9,14 @@ process_run_admit64:
     test rdi, 7
     jnz .bad
     cmp dword [rdi], 1
+%ifdef REIST_NATIVE_PROGRAMS
+    je .version_ok
+    cmp dword [rdi],2
     jne .bad
+.version_ok:
+%else
+    jne .bad
+%endif
     cmp dword [rdi+4], 144
     jne .bad
     mov edx, [rdi+8]
@@ -44,6 +51,16 @@ process_run_admit64:
     dec rax
     cmp rax, 31
     ja .bad
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp dword [rdi],2
+    jne .v1
+    mov rax,[r9+24]
+    sub rax,3
+    cmp rax,3
+    ja .bad
+    jmp .next
+.v1:
+%endif
     cmp qword [r9+24], 0
     jne .bad
     jmp .next
@@ -500,6 +517,10 @@ x86_64_process_run64:
 %endif
     call physical_free_frame_count64
     mov [rel scheduler_initial_free], eax
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp dword [rel process_run_plan],2
+    je .prepare_build
+%endif
     mov edi, ELF_IMAGE_PROBE
     call x86_64_elf64_select_image64
     test eax, eax
@@ -509,12 +530,45 @@ x86_64_process_run64:
     jz scheduler_fail
     call x86_64_elf64_entry64
     mov [rel scheduler_entry], rax
+.prepare_build:
     mov dword [rel process_run_build_slot], 0
 .build:
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp dword [rel process_run_plan],2
+    jne .selected
+    mov eax,[rel process_run_build_slot]
+    shl eax,5
+    lea rdi,[rel process_run_plan+16]
+    mov edi,[rdi+rax+24]
+    call x86_64_elf64_select_image64
+    cmp eax,1
+    jne scheduler_fail
+    call x86_64_elf64_entry64
+    test rax,rax
+    jnz .entry_ready
+    call x86_64_elf64_load64
+    cmp eax,1
+    jne scheduler_fail
+    call x86_64_elf64_entry64
+.entry_ready:
+    mov [rel scheduler_entry],rax
+.selected:
+%endif
     mov edi, [rel process_run_build_slot]
     call scheduler_build_task64
     test eax, eax
     jz scheduler_fail
+%ifdef REIST_NATIVE_PROGRAMS
+    cmp dword [rel process_run_plan],2
+    jne .stack_ready
+    mov rdi,DIRECT_MAP_BASE
+    add rdi,[r12+TASK_STACK_FRAME]
+    call x86_64_boot_program_stack64
+    test rax,rax
+    jle scheduler_fail
+    mov [r12+TASK_RSP],rax
+.stack_ready:
+%endif
     mov edi, [rel process_run_build_slot]
     mov rsi, [r12+TASK_GENERATION]
     lea rdx, [rel process_run_generations]

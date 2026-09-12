@@ -26,6 +26,9 @@ extern reist_x64_context_apply
 extern reist_x64_budget_apply
 extern reist_x64_terminal_status
 extern reist_x64_startup_stack
+%ifdef REIST_NATIVE_PROGRAMS
+extern x86_64_boot_program_stack64
+%endif
 extern reist_x64_request_admit
 extern reist_x64_profile_apply
 extern reist_x64_address_space_build
@@ -1908,6 +1911,16 @@ scheduler_syscall_entry64:
 .preempt_syscall_flags:
     test rax, RFLAGS_PREEMPT_FORBIDDEN
     jnz scheduler_fail
+    ; The preemption fixture's A is cooperative while the timer is unarmed.
+    ; Check the precise admitted IF, including its post-disarm continuation.
+    cmp byte [rel scheduler_mode], SCHEDULER_MODE_PREEMPTION
+    jne .armed_syscall_flags
+    cmp dword [rel scheduler_current_slot], 0
+    jne .armed_syscall_flags
+    test rax, 0x200
+    jnz scheduler_fail
+    jmp .syscall_flags_valid
+.armed_syscall_flags:
     test rax, 0x200
     jz scheduler_fail
 .syscall_flags_valid:
@@ -6688,13 +6701,14 @@ scheduler_build_task64:
     mov qword [r12 + TASK_ID], TASK_B_ID
     jmp .done
 .preempt_ids:
-    or qword [r12 + TASK_RFLAGS], 0x200
     test ebx, ebx
     jnz .preempt_b
     mov qword [r12 + TASK_RDI], TASK_A_PREEMPT_ID
     mov qword [r12 + TASK_ID], TASK_A_PREEMPT_ID
     jmp .done
 .preempt_b:
+    ; A enables the timer before this task can be dispatched with IF set.
+    or qword [r12 + TASK_RFLAGS], 0x200
     mov qword [r12 + TASK_RDI], TASK_B_PREEMPT_ID
     mov qword [r12 + TASK_ID], TASK_B_PREEMPT_ID
     jmp .done
