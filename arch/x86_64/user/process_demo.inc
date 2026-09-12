@@ -7,7 +7,11 @@
 %define X86_64_NATIVE_IPC 0
 %endif
 %if X86_64_NATIVE_IPC
+%if X86_64_NATIVE_BULK_IPC
+%include "arch/x86_64/user/bulk_ipc_demo.inc"
+%else
 %include "arch/x86_64/user/ipc_demo.inc"
+%endif
 %else
 process_demo:
     mov r12, rdi

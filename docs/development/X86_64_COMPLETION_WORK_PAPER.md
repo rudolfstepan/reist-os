@@ -14,6 +14,28 @@ v2-Snapshots mit erhaltener Empfangskapazität; tatsächliche Ring3-Transfers
 und Fehler-/Reapprüfung; Commit. Keine neuen Rechte oder gemeinsamen IPC-
 Verfahren. Zusätzliche Integritätsarbeit nur für aktive große Aufträge.
 
+Umgesetzt auf Vertrag `0068bdaf`: private2136Byte-Anfrage,2144Byte-Pending-
+Datensatz und2144Byte-skrubbender Stackslot. Immer zuerst geschützte Metadaten,
+dann140Byte-Präfix; zusätzliche1920Byte nur bei aktivem Bulkauftrag. Eingaben
+bleiben kopiert, Empfangskapazität bleibt2060 auch bei zurückgegebenem v1.
+Keine Kernelparser, weiteren Syscallrechte oder Änderung am gemeinsamen Kern.
+
+V1: vier Gastfälle/32Tasks,78 Warteabschlüsse,112 Copyouts,58,708s.
+V2: vier Gastfälle/32Tasks,73 Warteabschlüsse,64 vollständige2060Byte-Copyouts
+über Seitengrenzen,60,949s. Besitzer-UD2, Peer-Release, CPU-Grenze und zweite
+Generationen sind in beiden Matrizen belegt; je32 Fences und100 Frame-Reaps.
+17 Kernobjekte sind zwischen sämtlichen Userfällen identisch. Host-O0/O2
+prüft zusätzlich gemischte FIFO-/Bulk-Priorität,0/128/2048Byte, isolierte Kopien,
+falsche Größen, Timeout/Reap und beschädigte Bulk-/Kapazitätssnapshots.
+
+Fehlbelege bleiben erhalten: fehlende v2-Bindung; zunächst um69Byte zu großes
+Fixture-Textsegment verletzte den alten Testvertrag mit Datenseite1; danach
+verbrauchte der Prüfer sein10s-Limit mit byteweisen Debuggerabfragen. Fixture
+komprimiert und dieselben vollständigen Nullprüfungen in drei Lesezugriffen
+gebündelt; weder Gastlimits noch geforderte Prüfungen abgeschwächt.
+Kein voller64-Bit-Systemabschluss. Nach akzeptiertem Commit folgt der nächste
+zusammenhängende native Schnitt aus sauberer Baseline.
+
 ## R8.3x: IPC-Pools, Syscalls und Wartelebensdauer gemeinsam
 
 Baseline `b90c2cab`; dreizehn Gates vor Umsetzung eingefroren. Der vorhandene

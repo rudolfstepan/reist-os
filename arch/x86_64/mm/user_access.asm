@@ -1,9 +1,25 @@
 BITS 64
 global reist_x64_user_access
+global reist_x64_user_access_bulk
 extern reist_x64_mapping_pointer64
 LIMIT equ 0x08000000
 section .text
 reist_x64_user_access:
+    mov r8d,140
+    jmp user_access_core
+; Explicit data-only entry. No extra authority or different table traversal.
+reist_x64_user_access_bulk:
+    cmp rcx,2
+    je .data
+    cmp rcx,4
+    jne .invalid
+.data:
+    mov r8d,2060
+    jmp user_access_core
+.invalid:
+    xor eax,eax
+    ret
+user_access_core:
     push rbp
     mov rbp,rsp
     push rbx
@@ -16,6 +32,7 @@ reist_x64_user_access:
     mov [rsp+32],rsi
     mov [rsp+40],rdx
     mov [rsp+48],rcx
+    mov [rsp+64],r8
     test r12,r12
     jz .corrupt
     test r12,7
@@ -139,7 +156,7 @@ reist_x64_user_access:
     mov rdx,[rsp+40]
     test rdx,rdx
     jz .invalid
-    cmp rdx,140
+    cmp rdx,[rsp+64]
     ja .invalid
     add rdx,rax
     jc .invalid

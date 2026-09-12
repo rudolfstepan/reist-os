@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "include/kernel/ipc.h"
 
-/* Private SysV AMD64 binding v1. The scheduler owns the pinned request,
+/* Private SysV AMD64 binding v2. The scheduler owns the pinned request,
  * validates/copies user memory and serializes IF0. No user pointer is ever
  * dereferenced by this module. Tick units are the existing10ms native clock.
  * Bind/reap identify the exact slot+generation; GETPID uses that generation.
@@ -16,10 +16,13 @@ typedef struct {
     uint64_t number, a0, a1, a2, a3;
     int64_t result;
     uint64_t deadline, ready;
-    ipc_message_t message;
+    union { ipc_message_t message; ipc_bulk_message_t bulk; };
     ipc_handle_t handle;
+    uint64_t copy_size; /* Admitted capacity, not the returned header size. */
 } native_ipc_request_t;
-_Static_assert(sizeof(native_ipc_request_t)==208,"native IPC binding v1");
+_Static_assert(sizeof(native_ipc_request_t)==2136 &&
+               offsetof(native_ipc_request_t,handle)==2124 &&
+               offsetof(native_ipc_request_t,copy_size)==2128,"native IPC binding v2");
 uint64_t reist_native_ipc(uint64_t operation, uint64_t slot,
                           uint64_t generation, uint64_t tick,
                           native_ipc_request_t *request);

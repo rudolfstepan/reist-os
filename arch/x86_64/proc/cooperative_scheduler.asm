@@ -25,6 +25,9 @@ extern reist_x64_profile_apply
 extern reist_x64_address_space_build
 extern reist_x64_task_frames_release
 extern reist_x64_user_access
+%ifdef REIST_NATIVE_IPC_BINDING
+extern reist_x64_user_access_bulk
+%endif
 global reist_x64_mapping_pointer64
 SHELL_CLOCK_LIMIT         equ 256
 SHELL_CHILD_CPU_BUDGET    equ 32
@@ -4204,6 +4207,13 @@ scheduler_validate_shell_range64:
     mov rax,cr3
     mov [rsp+24],rax
     mov rdi,rsp
+%ifdef REIST_NATIVE_IPC_BINDING
+    cmp rdx,2060
+    jne .small
+    call reist_x64_user_access_bulk
+    jmp .return
+.small:
+%endif
     call reist_x64_user_access
     jmp .return
 .corrupt:

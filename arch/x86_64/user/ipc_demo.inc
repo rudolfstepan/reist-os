@@ -1,6 +1,13 @@
 ; User-only IPC fixture: two independent pairs, no privileged role checks.
 ; Handle candidates are deliberately guessed to prove that a number alone
 ; grants nothing. Only successful explicit delegation makes one usable.
+%ifdef IPC_DEMO_BULK
+%define IPC_DEMO_MESSAGE rbx
+%define IPC_DEMO_DEPTH 1
+%else
+%define IPC_DEMO_MESSAGE r15
+%define IPC_DEMO_DEPTH 4
+%endif
 process_demo:
     mov r12, rdi
     FP_BEGIN edi
@@ -10,9 +17,12 @@ process_demo:
     xor eax, eax
     mov ecx, 32
     rep stosq
-    mov dword [r15], 1
-    mov dword [r15+4], 140
-    mov dword [r15+8], 4
+%ifdef IPC_DEMO_BULK
+    lea rbx, [rel bulk_demo_buffer]
+%endif
+    mov dword [IPC_DEMO_MESSAGE], 1
+    mov dword [IPC_DEMO_MESSAGE+4], 140
+    mov dword [IPC_DEMO_MESSAGE+8], 4
     xor edi, edi
     xor esi, esi
     xor edx, edx
@@ -28,6 +38,9 @@ process_demo:
     lea eax, [rax+rdx+1]
     cmp rax, rbp
     jne ipc_demo_bad
+%ifdef IPC_DEMO_BULK
+    call bulk_demo_negative
+%endif
     test r12b, 1
     jnz ipc_demo_peer
     ; Reject an unmapped64-bit output before consuming an endpoint.
@@ -57,13 +70,13 @@ process_demo:
     test rax, rax
     jnz ipc_demo_bad
     ; A writable receive buffer is required; executable text is not one.
-    lea rsi, [rel process_demo]
+    lea rsi, [rel ipc_demo_readonly_message]
     xor edx, edx
     mov eax, 54
     call ipc_demo_call
     cmp rax, -14
     jne ipc_demo_bad
-    mov rsi, r15
+    mov rsi, IPC_DEMO_MESSAGE
     mov eax, 51
     call ipc_demo_call
     test rax, rax
@@ -71,7 +84,7 @@ process_demo:
     mov eax, r12d
     and eax, 2
     add eax, 0xa5
-    cmp [r15+12], al
+    cmp [IPC_DEMO_MESSAGE+12], al
     jne ipc_demo_bad
     xor r14d, r14d
 .fill:
@@ -79,18 +92,18 @@ process_demo:
     and eax, 2
     shl eax, 4
     add eax, r14d
-    mov [r15+12], al
+    mov [IPC_DEMO_MESSAGE+12], al
     mov edi, r13d
-    mov rsi, r15
+    mov rsi, IPC_DEMO_MESSAGE
     xor edx, edx
     mov eax, 53
     call ipc_demo_call
     test rax, rax
     jnz ipc_demo_bad
     inc r14d
-    cmp r14d, 4
+    cmp r14d, IPC_DEMO_DEPTH
     jb .fill
-    inc byte [r15+12]
+    inc byte [IPC_DEMO_MESSAGE+12]
     mov eax, 53
     call ipc_demo_call
     cmp rax, -11
@@ -103,7 +116,7 @@ process_demo:
     call ipc_demo_call
     test rax, rax
     jnz ipc_demo_bad
-    cmp byte [r15+12], 0xee
+    cmp byte [IPC_DEMO_MESSAGE+12], 0xee
     jne ipc_demo_bad
     mov edx, 20
 %if X86_64_NATIVE_IPC_CASE == 2
@@ -156,10 +169,10 @@ ipc_demo_peer:
     mov eax, r12d
     and eax, 2
     add eax, 0xa5
-    mov [r15+12], al
+    mov [IPC_DEMO_MESSAGE+12], al
 .discover:
     mov edi, r13d
-    mov rsi, r15
+    mov rsi, IPC_DEMO_MESSAGE
     xor edx, edx
     mov eax, 53
     call ipc_demo_call
@@ -195,7 +208,7 @@ ipc_demo_peer:
     xor r14d, r14d
 .drain:
     mov edi, r13d
-    mov rsi, r15
+    mov rsi, IPC_DEMO_MESSAGE
     xor edx, edx
     mov eax, 51
     call ipc_demo_call
@@ -205,12 +218,12 @@ ipc_demo_peer:
     and eax, 2
     shl eax, 4
     add eax, r14d
-    cmp [r15+12], al
+    cmp [IPC_DEMO_MESSAGE+12], al
     jne ipc_demo_bad
     inc r14d
-    cmp r14d, 5
+    cmp r14d, IPC_DEMO_DEPTH+1
     jb .drain
-    mov byte [r15+12], 0xee
+    mov byte [IPC_DEMO_MESSAGE+12], 0xee
     mov eax, 50
     call ipc_demo_call
     test rax, rax
@@ -238,7 +251,7 @@ ipc_demo_peer:
     cmp rax, -32
     jne ipc_demo_bad
 .stale:
-    mov rsi, r15
+    mov rsi, IPC_DEMO_MESSAGE
     xor edx, edx
     mov eax, 54
     call ipc_demo_call
@@ -265,6 +278,9 @@ ipc_demo_bad:
     call ipc_demo_call
     ud2
 ipc_demo_call:
+%ifdef IPC_DEMO_BULK
+    call bulk_demo_prepare
+%endif
     inc dword [r15+160]
     xor r10d, r10d
     xor r8d, r8d
@@ -272,3 +288,8 @@ ipc_demo_call:
     syscall
     FP_CHECK
     ret
+align 4
+ipc_demo_readonly_message:
+    dd 1,140,0
+    ; The following text bytes complete the readable140-byte range; content
+    ; is irrelevant because the valid header must be denied write access.

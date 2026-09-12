@@ -12,6 +12,26 @@ Die alte140Byte-Adressprüfung bleibt bestehen; ein expliziter Dateneinstieg
 erlaubt2060Byte mit denselben Eigentums-/P/U/W/NX-Prüfungen. Alle Aussagen zu
 208/216Byte weiter unten beschreiben den akzeptierten historischen X-Stand.
 
+R8.3y umgesetzt auf `0068bdaf`: Private Anfrage2136Byte mit64Byte-Kontrollkopf,
+2060Byte-Nachrichtenunion, Handle bei2124 und ursprünglicher Kopiergröße bei2128.
+Pending ergänzt Generation/Zustand auf2144Byte.35 feste Integritätsobjekte je
+Slot schützen zwei Kontrollabschnitte, drei kleine Nachrichtenabschnitte und
+bei aktivem Bulkauftrag dreißig zusätzliche Abschnitte. Metadaten werden vor
+der Auswahl geprüft; ein inaktiver großer Schwanz wird nie konsumiert und
+bei neuer Anfrage durch die vollständige kopierte Eingabe ersetzt. Reap/Take
+nullen den gesamten Pendingdatensatz. Integritätsschatten werden nicht als
+forensisch gelöscht behauptet; gemeinsame Endpointgenerationen bleiben erhalten.
+
+Die v2-Empfangsoperation übernimmt die gemeinsame Zweikanalsemantik: zuerst
+bereits vorhandene v1-FIFO-Nachrichten, sonst der separate Bulkplatz. Keine
+globale FIFO-Reihenfolge über beide Kanäle. Erfolgreiche v1-Ausgabe an einen
+v2-Empfänger schreibt dennoch2060Byte mit genulltem Rest. Headerfehler ergeben
+vor voller Bereichsprüfung EINVAL, unzugängliche ausgewählte Bereiche EFAULT.
+Rechte, Längenfehler und Queueoperationen prüft unverändert der gemeinsame Kern.
+Die Gastvariante `-NativeProcesses -NativeIPC -NativeBulkIPC` testet beide
+Empfangsformen, überlaufende Seitengrenzen, Druck auf den Bulkplatz sowie alle
+vier bestehenden Fehler-/Generationsfälle; der Usercode allein wählt die Variante.
+
 R8.3x ist vor Umsetzung eingefroren: vorhandenes REIST-IPC-v1 mit den
 Syscallnummern49..55/58 und POSIX-errno-Bezeichnungen, keine POSIX-IPC-
 Kompatibilitätsbehauptung. Der optionale NativeIPC-Lauf delegiert diese Rechte

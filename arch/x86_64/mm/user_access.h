@@ -17,4 +17,8 @@ typedef struct {
 _Static_assert(sizeof(ReistX64UserAccess)==32,"user access binding");
 int64_t __attribute__((sysv_abi)) reist_x64_user_access(
     const ReistX64UserAccess *,uint64_t address,uint64_t length,uint64_t elf_access);
+/* Explicit bulk-data entry, maximum2060 bytes; PF_R/PF_W only. The original
+ * entry still caps data at140 and execution at one byte. */
+int64_t __attribute__((sysv_abi)) reist_x64_user_access_bulk(
+    const ReistX64UserAccess *,uint64_t address,uint64_t length,uint64_t elf_access);
 #endif

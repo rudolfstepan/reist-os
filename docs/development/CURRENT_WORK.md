@@ -2,6 +2,26 @@
 
 Stand: 12. September 2026
 
+## R8.3y: natives IPC-v2 einschließlich Bulk
+
+Auf Vertrag `0068bdaf` umgesetzt: dieselben50/51/53/54 nehmen jetzt v1/v2 an.
+Headerprüfung, echte Seitengrenzen und unveränderte Empfangskapazität verhindern
+verkürzte oder ungeprüfte Copyouts. Vier v1-Queueplätze und ein separater
+2048Byte-Bulkplatz bleiben die vorhandene gemeinsame Semantik. Keine neuen
+Syscallrechte; Common-IPC und Integritätskern unverändert.
+
+Beide Gastmatrizen bestehen:64 native Tasklebensläufe,151 Warteabschlüsse,
+176 geprüfte Copyouts und64 Fences vor Framefreigabe. Alle17 Kernobjekte sind
+über v1/v2 und alle nutzerseitigen Fehlerfälle bytegleich. Der neue Großpuffer
+wird vollständig nur bei aktivem Bulkauftrag integritätsgeprüft; kleine/idle
+Aufträge verarbeiten keinen unbenutzten großen Nachrichtenschwanz.
+Normale User-ELFs und gepinnte i386/VMware-Artefakte bleiben bytegleich.
+Das normale native Kernel-ELF ändert sich durch den expliziten zusätzlichen
+Adressprüfungs-Einstieg; dessen bisherige140Byte-Grenze bleibt erhalten.
+13 eingefrorene Abnahmegruppen; Belege unter `build/codex-agent/r83y-*`.
+Die64-Bit-Dienste, skalierbarer Speicher, allgemeiner ELF-Prozessstart und
+vollständige OS-/Plattformabnahme sind damit ausdrücklich noch nicht fertig.
+
 ## R8.3x: allgemeines natives IPC
 
 Fortsetzung nach `b90c2cab`, sauberem Arbeitsbaum und allen elf R8.3w-Gates.

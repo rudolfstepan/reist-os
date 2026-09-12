@@ -1,4 +1,5 @@
-; Private IPC binding v1,208-byte pinned request. C owns copied messages and
+; Private IPC binding v2,2136-byte request in a2144-byte scrubbed stack slot.
+; C owns copied messages and
 ; capabilities; this adapter alone admits user memory and scheduler effects.
 ; All calls are serialized IF0; no suspended C frame or second wait node.
 
@@ -36,7 +37,7 @@ process_ipc_zero64:
     push rdi
     mov rdi, r13
     xor eax, eax
-    mov ecx, 208/8
+    mov ecx, 2144/8
     rep stosq
     pop rdi
     pop rcx
@@ -46,7 +47,7 @@ process_ipc_zero64:
 ; EDI operation, ESI slot, RDX generation. No request input for lifecycle.
 process_ipc_service64:
     push r13
-    sub rsp, 208
+    sub rsp, 2144
     mov r13, rsp
     call process_ipc_zero64
     mov r8, r13
@@ -54,7 +55,7 @@ process_ipc_service64:
     call process_ipc_call64
     call process_ipc_ready64
     call process_ipc_zero64
-    add rsp, 208
+    add rsp, 2144
     pop r13
     ret
 
@@ -122,7 +123,7 @@ process_ipc_take64:
     push r12
     push r13
     mov r12, r11
-    sub rsp, 208
+    sub rsp, 2144
     mov r13, rsp
     call process_ipc_zero64
     mov edi, 3
@@ -138,7 +139,7 @@ process_ipc_take64:
     call process_ipc_copyout64
 .done:
     call process_ipc_zero64
-    add rsp, 208
+    add rsp, 2144
     pop r13
     pop r12
     pop r11
@@ -155,14 +156,14 @@ process_ipc_copyout64:
     jne .done
 .message:
     mov rax, [r13+16]
-    mov edx, 140
+    mov rdx, [r13+2128]
     mov ecx, PF_W
-    call scheduler_validate_shell_ipc_buffer64
+    call process_ipc_validate64
     test eax, eax
     jz scheduler_fail
     mov rdi, [r13+16]
     lea rsi, [r13+64]
-    mov ecx, 140
+    mov rcx, [r13+2128]
     rep movsb
 .message_written:
     ret
@@ -174,7 +175,7 @@ process_ipc_copyout64:
     test eax, eax
     jz scheduler_fail
     mov rdi, [r13+8]
-    mov eax, [r13+204]
+    mov eax, [r13+2124]
     mov [rdi], eax
 .done:
     ret
@@ -186,7 +187,7 @@ process_ipc_syscall64:
     or rax, [rel syscall_r8]
     or rax, [rel syscall_r9]
     jnz process_run_syscall64.invalid
-    sub rsp, 208
+    sub rsp, 2144
     mov r13, rsp
     call process_ipc_zero64
     mov rax, [rel syscall_rax]
@@ -206,9 +207,32 @@ process_ipc_syscall64:
     cmp qword [r13], 58
     je .call
     mov rax, [r13+16]
-    mov edx, 140
+    mov edx, 12
     mov ecx, PF_R
-    call scheduler_validate_shell_ipc_buffer64
+    call process_ipc_validate64
+    test eax, eax
+    jz .pointer
+    mov rsi, [r13+16]
+    lea rdi, [r13+64]
+    mov ecx, 12
+    rep movsb
+    cmp dword [r13+64], 1
+    je .v1
+    cmp dword [r13+64], 2
+    jne .invalid
+    cmp dword [r13+68], 2060
+    jne .invalid
+    mov edx, 2060
+    jmp .capacity
+.v1:
+    cmp dword [r13+68], 140
+    jne .invalid
+    mov edx, 140
+.capacity:
+    mov [r13+2128], rdx
+    mov rax, [r13+16]
+    mov ecx, PF_R
+    call process_ipc_validate64
     test eax, eax
     jz .pointer
     cmp qword [r13], 51
@@ -218,13 +242,13 @@ process_ipc_syscall64:
 .write:
     mov rax, [r13+16]
     mov ecx, PF_W
-    call scheduler_validate_shell_ipc_buffer64
+    call process_ipc_validate64
     test eax, eax
     jz .pointer
 .copy:
     mov rsi, [r13+16]
     lea rdi, [r13+64]
-    mov ecx, 140
+    mov rcx, [r13+2128]
     rep movsb
     jmp .call
 .create:
@@ -249,9 +273,12 @@ process_ipc_syscall64:
     jmp .return
 .pointer:
     mov rax, -14
+    jmp .return
+.invalid:
+    mov rax, -22
 .return:
     call process_ipc_zero64
-    add rsp, 208
+    add rsp, 2144
     jmp process_run_resume64
 .block:
     cmp qword [r13+56], 0
@@ -268,5 +295,25 @@ process_ipc_syscall64:
     test eax, eax
     jz scheduler_fail
     call process_ipc_zero64
-    add rsp, 208
+    add rsp, 2144
     jmp process_run_dispatch64
+
+; Only explicit fixed ABI capacities; generic helper retains all registers
+; except RAX and checks the executing generation/current CR3 on every page.
+process_ipc_validate64:
+    cmp rdx, 12
+    je .rights
+    cmp rdx, 140
+    je .rights
+    cmp rdx, 2060
+    jne .invalid
+.rights:
+    cmp ecx, PF_R
+    je .valid
+    cmp ecx, PF_W
+    jne .invalid
+.valid:
+    jmp scheduler_validate_shell_range64
+.invalid:
+    xor eax, eax
+    ret

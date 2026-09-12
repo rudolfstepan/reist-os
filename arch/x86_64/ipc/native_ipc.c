@@ -21,9 +21,11 @@ typedef struct {
     uint32_t generation,state; /*0 empty,1 deadline-wait,2 ready-for-copyout */
 } Pending;
 static Pending pending[4];
-static critical_object_t client_guards[4][2],pending_guards[4][4];
+/* Two controls, three v1-prefix chunks, thirty optional bulk-tail chunks.
+ * Always verify controls before selecting any capacity-dependent work. */
+static critical_object_t client_guards[4][2],pending_guards[4][35];
 static critical_object_t retired_guard;
-_Static_assert(sizeof(Process)<=128 && sizeof(Pending)<=256,"bounded IPC snapshots");
+_Static_assert(sizeof(Process)==108 && sizeof(Pending)==2144,"bounded IPC snapshots");
 
 void native_ipc_require(bool ok) { if(!ok) reist_native_ipc_fault(); }
 static void serialized(void) {
@@ -83,20 +85,36 @@ static void check_all(void) {
     verify(&retired_guard,retired,sizeof(retired));
     for(unsigned i=0;i<4;i++) {
         verify(client_guards[i],&clients[i],sizeof(clients[i]));
-        verify(pending_guards[i],&pending[i],sizeof(pending[i]));
+        verify(pending_guards[i],&pending[i],64);
+        verify(pending_guards[i]+1,&pending[i].request.handle,20);
+        verify(pending_guards[i]+2,&pending[i].request.message,140);
         native_ipc_require(pending[i].state<=2);
-        if(pending[i].state) native_ipc_require(clients[i].is_running &&
-                pending[i].generation==clients[i].generation);
+        if(pending[i].state) {
+            native_ipc_require(clients[i].is_running &&
+                pending[i].generation==clients[i].generation &&
+                (pending[i].request.copy_size==140 || pending[i].request.copy_size==2060));
+            if(pending[i].request.copy_size==2060)
+                verify(pending_guards[i]+5,(unsigned char*)&pending[i].request.bulk+140,1920);
+        }
     }
 }
 static void seal_all(bool init) {
     protect(&retired_guard,retired,sizeof(retired),init);
     for(unsigned i=0;i<4;i++) {
         protect(client_guards[i],&clients[i],sizeof(clients[i]),init);
-        protect(pending_guards[i],&pending[i],sizeof(pending[i]),init);
+        protect(pending_guards[i],&pending[i],64,init);
+        protect(pending_guards[i]+1,&pending[i].request.handle,20,init);
+        protect(pending_guards[i]+2,&pending[i].request.message,140,init);
+        if(init || (pending[i].state && pending[i].request.copy_size==2060))
+            protect(pending_guards[i]+5,(unsigned char*)&pending[i].request.bulk+140,1920,init);
     }
 }
 static int transfer(unsigned slot,native_ipc_request_t *r) {
+    if(r->copy_size==2060) {
+        if(r->number==50 || r->number==53)
+            return ipc_send_bulk_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->bulk,0);
+        return ipc_receive_bulk_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->bulk,0);
+    }
     if(r->number==50 || r->number==53)
         return ipc_send_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->message,0);
     return ipc_receive_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->message,0);
@@ -145,6 +163,9 @@ static int dispatch_request(unsigned slot,native_ipc_request_t *r) {
     uint64_t deadline=current_tick+(timeout+9)/10;
     if(deadline>=256) return -22; /* Admit before any queue effect. */
     /* The shared operations own message validation and errno precedence. */
+    if(r->message.version==1 && r->message.struct_size==140) r->copy_size=140;
+    else if(r->bulk.version==2 && r->bulk.struct_size==2060) r->copy_size=2060;
+    else return -22;
     int result=transfer(slot,r);
     if(result!=-11 || !timeout) return result;
     r->deadline=deadline;r->result=NATIVE_IPC_PENDING;

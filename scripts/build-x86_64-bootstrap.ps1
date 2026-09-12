@@ -19,6 +19,7 @@ param(
     [switch]$OwnerTerminal,
     [switch]$NativeProcesses,
     [switch]$NativeIPC,
+    [switch]$NativeBulkIPC,
     [ValidateRange(0, 3)] [int]$NativeIPCCase = 0,
     [ValidateRange(0, 8)] [int]$ProcessCase = 0,
     [switch]$CPayloadProbe,
@@ -26,6 +27,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeBulkIPC -and -not $NativeIPC) { throw 'NativeBulkIPC requires NativeIPC.' }
 if (($NativeIPC -and (-not $NativeProcesses -or $ProcessCase -ne 0 -or $CPayloadProbe -or $CIntegrityProbe)) -or ($NativeIPCCase -ne 0 -and -not $NativeIPC)) {
     throw 'NativeIPC requires NativeProcesses and excludes other native fixtures; NativeIPCCase requires NativeIPC.'
 }
@@ -264,6 +266,7 @@ try {
         "X86_64_OWNER_TERMINAL=$([int]$OwnerTerminal.IsPresent)" `
         "X86_64_NATIVE_PROCESSES=$([int]$NativeProcesses.IsPresent)" `
         "X86_64_NATIVE_IPC=$([int]$NativeIPC.IsPresent)" `
+        "X86_64_NATIVE_BULK_IPC=$([int]$NativeBulkIPC.IsPresent)" `
         "X86_64_NATIVE_IPC_CASE=$NativeIPCCase" `
         "X86_64_PROCESS_CASE=$ProcessCase" `
         "X86_64_C_PAYLOAD_PROBE=$([int]$CPayloadProbe.IsPresent)" `

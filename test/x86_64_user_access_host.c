@@ -9,6 +9,7 @@ static _Alignas(4096) uint64_t pages[4][512];
 static uint64_t task[32], frames[4];
 static ReistX64UserAccess binding;
 static int failed, calls, backend_bad;
+static int bulk;
 #define CHECK(x) do {if(!(x)){printf("FAIL line=%d\n",__LINE__);return 1;}} while(0)
 void *__attribute__((sysv_abi)) reist_x64_mapping_pointer64(uint64_t frame) {
     ++calls;
@@ -31,7 +32,8 @@ static void reset(void) {
 static int64_t access(uint64_t addr,uint64_t size,uint64_t rights) {
     uint64_t before[4][512],t[32],f[4];ReistX64UserAccess b=binding;
     memcpy(before,pages,sizeof(pages));memcpy(t,task,sizeof(t));memcpy(f,frames,sizeof(f));
-    int64_t result=reist_x64_user_access(&binding,addr,size,rights);
+    int64_t result=bulk?reist_x64_user_access_bulk(&binding,addr,size,rights):
+                        reist_x64_user_access(&binding,addr,size,rights);
     if(memcmp(before,pages,sizeof(pages))||memcmp(t,task,sizeof(t))||memcmp(f,frames,sizeof(f))||
        memcmp(&b,&binding,sizeof(b))||failed||calls>4)return -9999;
     calls=0;return result;
@@ -102,5 +104,21 @@ int main(void) {
     reset();pages[0][0]^=4096;CHECK(access(BASE,1,4)==BAD);
     reset();pages[3][0]=frames[1]|7|NX;CHECK(access(BASE,1,4)==BAD);
     reset();pages[3][8]^=4096;CHECK(access(BASE+8*4096,1,4)==BAD);
-    puts("USER_ACCESS_HOST_OK offsets=36864 directions=2 bound=140 levels=4 nonmutation=1");return 0;
+    bulk=1;reset();
+    for(unsigned page=0;page<9;page++)for(unsigned off=0;off<4096;off++) {
+        uint64_t address=BASE+4096*page+off;
+        int expected=address+2060<=BASE+9*4096;
+        CHECK(access(address,2060,4)==expected);CHECK(access(address,2060,2)==expected);
+    }
+    for(unsigned page=1;page<9;page++) {
+        reset();pages[3][page]=0;
+        CHECK(access(BASE+4096*page-1024,2060,4)==0);
+        reset();pages[3][page]&=~UINT64_C(2);
+        CHECK(access(BASE+4096*page-1024,2060,4)==1);
+        CHECK(access(BASE+4096*page-1024,2060,2)==0);
+    }
+    reset();CHECK(access(BASE,2061,4)==0);CHECK(access(BASE,UINT64_MAX,4)==0);
+    CHECK(access(BASE,1,1)==0);CHECK(access(UINT64_MAX-2048,2060,4)==0);
+    binding.generation++;CHECK(access(BASE,2060,4)==BAD);
+    puts("USER_ACCESS_HOST_OK offsets=36864 directions=2 bounds=140/2060 levels=4 nonmutation=1");return 0;
 }
