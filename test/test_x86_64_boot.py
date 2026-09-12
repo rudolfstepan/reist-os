@@ -48,13 +48,16 @@ class X8664BootstrapContractTests(unittest.TestCase):
 
     def test_page_tables_and_serial_polling_are_fixed(self):
         source = self.read("arch/x86_64/boot/entry.asm")
-        self.assertIn("mov ecx, (5 * 4096) / 4", source)
-        self.assertEqual(source.count("resb 4096"), 5)
+        self.assertIn("mov ecx, ((5 + 7 * X86_64_NATIVE_RAM) * 4096) / 4", source)
+        self.assertEqual(source.count("resb 4096"), 4)
+        self.assertIn("resb (1 + 7 * X86_64_NATIVE_RAM) * 4096", source)
+        self.assertIn("%define X86_64_NATIVE_RAM 0", self.read("arch/x86_64/mm/memory_profile.inc"))
         self.assertIn("resb 16384", source)
         self.assertIn("SERIAL_TX_POLLS     equ 65536", source)
         self.assertEqual(source.count("mov ecx, SERIAL_TX_POLLS"), 2)
         linker = self.read("config/x86_64_bootstrap.ld")
-        self.assertIn("_x86_64_bootstrap_end <= 0x00200000", linker)
+        self.assertIn("_x86_64_bootstrap_legacy_end <= 0x00200000", linker)
+        self.assertIn("SIZEOF(.memory_state) <= 8388608", linker)
         for boundary in ("text", "rodata", "data", "bss"):
             self.assertIn(f"_{boundary}_start", linker)
             self.assertIn(f"_{boundary}_end", linker)
@@ -114,10 +117,13 @@ class X8664BootstrapContractTests(unittest.TestCase):
 
     def test_physical_frames_and_direct_map_have_fixed_authority(self):
         source = self.read("arch/x86_64/mm/physical_memory.asm")
-        self.assertIn("MANAGED_LIMIT       equ 0x08000000", source)
+        self.assertIn("MANAGED_LIMIT       equ MEMORY_LIMIT_VALUE", source)
         self.assertIn("FRAME_SIZE          equ 4096", source)
-        self.assertIn("FRAME_COUNT         equ 32768", source)
-        self.assertIn("FRAME_BITMAP_BYTES  equ 4096", source)
+        self.assertIn("FRAME_COUNT         equ MEMORY_FRAME_CAPACITY", source)
+        self.assertIn("FRAME_BITMAP_BYTES  equ FRAME_COUNT / 8", source)
+        profile = self.read("arch/x86_64/mm/memory_profile.inc")
+        self.assertIn("%define MEMORY_LIMIT_VALUE 0x08000000", profile)
+        self.assertIn("%define MEMORY_FRAME_CAPACITY 32768", profile)
         self.assertIn("DIRECT_MAP_BASE     equ 0xFFFF800000000000", source)
         self.assertIn("DIRECT_PT_COUNT     equ 64", source)
         self.assertEqual(source.count("resb FRAME_BITMAP_BYTES"), 2)
@@ -142,6 +148,10 @@ class X8664BootstrapContractTests(unittest.TestCase):
 
     def test_physical_allocator_proves_bounded_memory_above_64m(self):
         source = self.read("arch/x86_64/mm/physical_memory.asm")
+        # This existing guard describes the unchanged128MiB allocator branch.
+        # NativeRAM's actual upper-frame path is exercised by its host/guest gate.
+        source = "physical_frame_alloc64:\n" + source.split("%else\nphysical_frame_alloc64:\n", 1)[1] + source.split("BITS 64", 1)[0]
+        complete = self.read("arch/x86_64/mm/physical_memory.asm")
         runner = self.read("scripts/run_qemu_x86_64_boot.py")
         self.assertIn("HIGH_MEMORY_BASE    equ 0x04000000", source)
         self.assertIn("HIGH_MEMORY_FRAME   equ HIGH_MEMORY_BASE / FRAME_SIZE", source)
@@ -154,8 +164,8 @@ class X8664BootstrapContractTests(unittest.TestCase):
         self.assertIn("mov r9d, FRAME_COUNT", source[high:shared])
         low = source.index("physical_frame_alloc64:")
         self.assertIn("mov r9d, FRAME_COUNT", source[low:high])
-        self.assertIn("call physical_frame_alloc_high_selftest64", source)
-        self.assertGreaterEqual(source.count("call physical_frame_free64"), 7)
+        self.assertIn("call physical_frame_alloc_high_selftest64", complete)
+        self.assertGreaterEqual(complete.count("call physical_frame_free64"), 7)
         self.assertIn("REIST_X86_64_PHYSICAL_MEMORY_128M_OK", source)
         self.assertIn("REIST_X86_64_PHYSICAL_MEMORY_128M_OK", runner)
 

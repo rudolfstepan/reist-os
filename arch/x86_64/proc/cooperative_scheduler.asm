@@ -2,6 +2,7 @@
 ; It is deliberately not linked into any production i386 kernel or image.
 
 BITS 64
+%include "arch/x86_64/mm/memory_profile.inc"
 %ifdef C_CORE_LAYOUT_PATH
 %include C_CORE_LAYOUT_PATH
 %if C_NATIVE_IPC_ENTRY
@@ -2330,7 +2331,7 @@ scheduler_owner_frames_valid64:
     jz .next
     test rdx, PAGE_SIZE - 1
     jnz .fail
-    cmp rdx, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rdx
     jae .fail
     cmp rdx, [rel scheduler_original_cr3]
     je .fail
@@ -6419,7 +6420,7 @@ reist_x64_mapping_pointer64:
     jz .bad
     test rdi, PAGE_SIZE - 1
     jnz .bad
-    cmp rdi, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rdi
     jae .bad
     mov rax, DIRECT_MAP_BASE
     add rax, rdi
@@ -6529,7 +6530,7 @@ scheduler_build_task64:
     jz .fail
     test rax, PAGE_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [r14 + rbp * 8], rax
     inc ebp
@@ -6556,7 +6557,7 @@ scheduler_build_task64:
     jz .fail
     test r14, PAGE_SIZE - 1
     jnz .fail
-    cmp r14, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT r14
     jae .fail
     cmp r15d, PF_R
     jb .fail
@@ -6569,7 +6570,7 @@ scheduler_build_task64:
     jz .fail
     test rax, PAGE_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [r12 + TASK_PRIVATE_FRAMES + rbp * 8], rax
 .next_page:
@@ -6581,7 +6582,7 @@ scheduler_build_task64:
     jz .fail
     test rax, PAGE_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [r12 + TASK_STACK_FRAME], rax
     call scheduler_map_task64

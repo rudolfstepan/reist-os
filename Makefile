@@ -242,6 +242,7 @@ X86_64_INSTRUCTION_CASE ?= 0
 X86_64_SHELL_EXIT_STATUS ?= -1
 X86_64_OWNER_TERMINAL ?= 0
 X86_64_NATIVE_PROCESSES ?= 0
+X86_64_NATIVE_RAM ?= 0
 X86_64_NATIVE_IPC ?= 0
 X86_64_NATIVE_BULK_IPC ?= 0
 X86_64_NATIVE_IPC_CASE ?= 0
@@ -458,21 +459,29 @@ x86_64-bootstrap:
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) \
+		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) \
 		-DX86_64_C_INTEGRITY_PROBE=$(X86_64_C_INTEGRITY_PROBE) \
 		arch/x86_64/kernel/bootstrap_core.c -o $(X86_64_C_CORE_OBJ)
 ifeq ($(X86_64_C_PAYLOAD_PROBE),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -c test/x86_64_c_payload_fixture.c -o $(X86_64_C_PAYLOAD_PROBE_OBJ)
 endif
 ifeq ($(X86_64_C_INTEGRITY_PROBE),1)
-	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/critical_object.o
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c test/x86_64_integrity_fixture.c -o $(X86_64_BOOTSTRAP_DIR)/integrity_probe.o
+ifneq ($(X86_64_NATIVE_RAM),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/critical_object.o
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -ffunction-sections -fdata-sections -c lib/libc/string.c -o $(X86_64_BOOTSTRAP_DIR)/compiler_memory_full.o
 	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy \
 		-o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory_full.o
 endif
+endif
 ifeq ($(X86_64_NATIVE_IPC),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c kernel/ipc/ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
+endif
+ifeq ($(X86_64_NATIVE_RAM),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_memory.c -o $(X86_64_BOOTSTRAP_DIR)/native_memory.o
+endif
+ifneq ($(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -ffunction-sections -fdata-sections -c lib/libc/string.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory_full.o
 	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy --undefined=memset \
@@ -482,24 +491,26 @@ endif
 		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
 		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
-		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o,) \
-		$(if $(filter 1,$(X86_64_C_INTEGRITY_PROBE)),$(X86_64_BOOTSTRAP_DIR)/critical_object.o $(X86_64_BOOTSTRAP_DIR)/integrity_probe.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o,)
+		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o,) \
+		$(if $(filter 1,$(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_memory.o,) \
+		$(if $(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o,) \
+		$(if $(filter 1,$(X86_64_C_INTEGRITY_PROBE)),$(X86_64_BOOTSTRAP_DIR)/integrity_probe.o $(if $(filter 1,$(X86_64_NATIVE_RAM)),,$(X86_64_BOOTSTRAP_DIR)/critical_object.o $(X86_64_BOOTSTRAP_DIR)/compiler_memory.o),)
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --output-directory $(X86_64_BOOTSTRAP_DIR)
 	@$(AS) -f elf32 -DC_CORE_TEXT_PATH=\"$(X86_64_C_CORE_TEXT)\" \
 		-DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
-		arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
+		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
-	@$(AS) -f elf32 arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
+	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
 	@$(AS) -f elf32 -DUSER_PROBE_PATH=\"$(X86_64_USER_PROBE_ELF)\" \
 		-DUSER_SHELL_PATH=\"$(X86_64_USER_SHELL_ELF)\" \
 		-DUSER_CHILD_PATH=\"$(X86_64_USER_CHILD_ELF)\" \
-		arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
-	@$(AS) -f elf32 arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
-	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
+		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
+	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)
@@ -510,12 +521,12 @@ endif
 	@$(AS) -f elf32 arch/x86_64/proc/ipc_admission.asm -o $(X86_64_IPC_ADMISSION_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/startup_stack.asm -o $(X86_64_STARTUP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/request_admission.asm -o $(X86_64_REQUEST_OBJ)
-	@$(AS) -f elf32 arch/x86_64/mm/frame_claim.asm -o $(X86_64_FRAME_CLAIM_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/frame_claim.asm -o $(X86_64_FRAME_CLAIM_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/syscall_profile.asm -o $(X86_64_PROFILE_OBJ)
-	@$(AS) -f elf32 arch/x86_64/exec/image_frames.asm -o $(X86_64_IMAGE_FRAMES_OBJ)
-	@$(AS) -f elf32 arch/x86_64/mm/address_space.asm -o $(X86_64_ADDRESS_SPACE_OBJ)
-	@$(AS) -f elf32 arch/x86_64/mm/task_frames.asm -o $(X86_64_TASK_FRAMES_OBJ)
-	@$(AS) -f elf32 arch/x86_64/mm/user_access.asm -o $(X86_64_USER_ACCESS_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/exec/image_frames.asm -o $(X86_64_IMAGE_FRAMES_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/address_space.asm -o $(X86_64_ADDRESS_SPACE_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/task_frames.asm -o $(X86_64_TASK_FRAMES_OBJ)
+	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/user_access.asm -o $(X86_64_USER_ACCESS_OBJ)
 	@$(LD) -m elf_i386 -nostdlib --build-id=none --fatal-warnings \
 		-T $(X86_64_BOOTSTRAP_LDSCRIPT) -o $(X86_64_BOOTSTRAP_ELF) \
 		$(X86_64_BOOTSTRAP_OBJ) $(X86_64_EXCEPTION_OBJ) $(X86_64_TIMER_INTERRUPT_OBJ) \

@@ -6,6 +6,7 @@ PHDRS {
   rodata PT_LOAD FLAGS(4);
   data PT_LOAD FLAGS(6);
   bss PT_LOAD FLAGS(6);
+  memory PT_LOAD FLAGS(6);
 }
 SECTIONS {
   .text 0xFFFFFFFF80185000 : {
@@ -21,6 +22,10 @@ SECTIONS {
     KEEP(*(.bss.boot_state))
     *(.bss .bss.*) *(COMMON)
   } :bss
+  .memory_state 0xFFFFFFFF80200000 (NOLOAD) : {
+    KEEP(*(.memory_state))
+  } :memory
+  ASSERT(SIZEOF(.memory_state) <= 5242880, "native memory metadata capacity")
   .init_array : { *(.init_array .init_array.* .ctors .ctors.*) } :NONE
   .fini_array : { *(.fini_array .fini_array.* .dtors .dtors.*) } :NONE
   .eh_frame : { *(.eh_frame .eh_frame.* .eh_frame_hdr) } :NONE

@@ -1,4 +1,5 @@
 BITS 64
+%include "arch/x86_64/mm/memory_profile.inc"
 global reist_x64_user_access
 global reist_x64_user_access_bulk
 extern reist_x64_mapping_pointer64
@@ -117,12 +118,12 @@ user_access_core:
     mov rdx,rax
     shr rdx,63
     or [rsp+56],rdx
-    mov rdx,0x8000000007fff027 ;address, NX, P/W/U/A only
+    mov rdx,0x8000000000000027 | MEMORY_PTE_FRAME_MASK ;address, NX, P/W/U/A only
     not rdx
     test rax,rdx
     jnz .corrupt
     and r15d,eax
-    and eax,0x07fff000
+    MEMORY_MASK_FRAME rax
     cmp rax,[r13+rbx*8+8]
     jne .corrupt
     inc ebx
@@ -174,7 +175,7 @@ user_access_core:
     mov rax,[rdx+rbx*8]
     test rax,rax
     jz .invalid
-    mov rdx,0x8000000007fff067 ;4KiB leaf, NX plus P/W/U/A/D
+    mov rdx,0x8000000000000067 | MEMORY_PTE_FRAME_MASK ;4KiB leaf, NX plus P/W/U/A/D
     not rdx
     test rax,rdx
     jnz .corrupt
@@ -187,7 +188,7 @@ user_access_core:
     and ecx,r14d
     cmp ecx,r14d
     jne .invalid
-    and eax,0x07fff000
+    MEMORY_MASK_FRAME rax
     call .frame
     xor ecx,ecx
 .leaf_alias:
@@ -234,6 +235,6 @@ user_access_core:
     jz .corrupt
     test rax,4095
     jnz .corrupt
-    cmp rax,LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .corrupt
     ret

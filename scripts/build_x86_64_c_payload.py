@@ -19,7 +19,11 @@ BINDINGS={'x86_64_c_core_entry':HIGH+0x185000,
           'x86_64_c_control_handoff':HIGH+0x1ff080}
 OUTPUTS=('bootstrap_core_text.bin','bootstrap_core_rodata.bin','bootstrap_core_data.bin',
          'bootstrap_core_layout.inc','bootstrap_core_layout.json')
-CALL_EXPORTS={'reist_native_ipc':'C_NATIVE_IPC_ENTRY'}
+CALL_EXPORTS={'reist_native_ipc':'C_NATIVE_IPC_ENTRY','reist_native_memory':'C_NATIVE_MEMORY_ENTRY'}
+# Private layout3 only; exact shared C/assembly arena, never generic extra ELF loads.
+MEMORY_STATE_BYTES=4531096
+MEMORY_LAYOUT=(HIGH+0x200000,5*1024*1024,3,8,6)
+MEMORY_ARENA_BYTES=((MEMORY_STATE_BYTES+4095)&~4095)+(1+16+512)*4096
 
 
 def require(ok,message):
@@ -59,7 +63,7 @@ def elf(data,bits):
     for i,(name,typ,flags,addr,off,size,link,info,align,entsize) in enumerate(raw[1:],1):
         name=string(names,name)
         require(name and name not in sections,'ELF duplicate/empty section')
-        require(size<=1048576 and (align==0 or align&(align-1)==0),'ELF section size/alignment')
+        require(size<=(8*1024*1024 if name=='.memory_state' and typ==8 else 1048576) and (align==0 or align&(align-1)==0),'ELF section size/alignment')
         require(addr+size<=1<<bits,'ELF section address overflow')
         content=b'' if typ==8 else span(off,size)
         if typ!=8 and size:occupied.append((off,off+size))
@@ -83,7 +87,7 @@ def elf(data,bits):
                 name=string(strings,n)
                 if name:
                     # Local labels may repeat; externally bound names may not.
-                    if name in BINDINGS or name in CALL_EXPORTS:require(name not in symbols,'ELF duplicate binding')
+                    if name in BINDINGS or name in CALL_EXPORTS or name=='native_memory_state':require(name not in symbols,'ELF duplicate binding')
                     symbols[name]=dict(value=value,size=length,index=index,type=t&15,binding=t>>4,visibility=other)
     require(symtabs==1,'ELF exact symbol table')
     occupied.sort()
@@ -107,10 +111,12 @@ def validate(data):
     parsed=elf(data,64);sections=parsed['sections'];symbols=parsed['symbols']
     require(parsed['entry']==BINDINGS['x86_64_c_core_entry'],'C entry binding')
     allocated={n for n,s in sections.items() if s['flags']&2}
-    require(allocated==set(LAYOUT),'C allocated section set')
-    require(len(parsed['programs'])==4,'C exact load segments')
+    layout=dict(LAYOUT)
+    if '.memory_state' in allocated:layout['.memory_state']=MEMORY_LAYOUT
+    require(allocated==set(layout),'C allocated section set')
+    require(len(parsed['programs'])==len(layout),'C exact load segments')
     occupied=[]
-    for name,(addr,cap,flags,typ,pflags) in LAYOUT.items():
+    for name,(addr,cap,flags,typ,pflags) in layout.items():
         s=sections[name]
         require(s['address']==addr and s['type']==typ and s['flags']==flags,'C section address/type/permissions')
         require((32 if name in ('.data','.bss') else 1)<=s['size']<=cap,'C section capacity')
@@ -138,17 +144,27 @@ def validate(data):
         require(s['binding']==1 and s['visibility']==0 and s['type']==2 and
                 s['index']==t['index'] and s['size']>0 and t['address']<=s['value'] and
                 s['value']+s['size']<=t['address']+t['size'],'C call export '+name)
+    native='.memory_state' in layout
+    require(native==('native_memory_state' in symbols)==('reist_native_memory' in symbols),
+            'C native memory paired exports')
+    if native:
+        state=symbols['native_memory_state'];section=sections['.memory_state']
+        require(section['size']==MEMORY_STATE_BYTES and section['align']==4096 and
+                (state['value'],state['size'],state['index'],state['type'],state['binding'],state['visibility'])==
+                (HIGH+0x200000,MEMORY_STATE_BYTES,section['index'],1,1,0),'C native memory state binding')
+    parsed['layout_version']=3 if native else VERSION
     return parsed
 
 
 def outputs(data):
-    p=validate(data);s=p['sections']
-    metadata=dict(version=VERSION,sha256=hashlib.sha256(data).hexdigest(),
-                  sections={n:{k:v for k,v in v.items() if k!='data'} for n,v in s.items() if n in LAYOUT},
+    p=validate(data);s=p['sections'];version=p['layout_version']
+    metadata=dict(version=version,sha256=hashlib.sha256(data).hexdigest(),
+                  sections={n:{k:v for k,v in v.items() if k!='data'} for n,v in s.items() if n in LAYOUT or n=='.memory_state'},
                   bindings=BINDINGS)
     result={f'bootstrap_core_{n[1:]}.bin':s[n]['data'] for n in ('.text','.rodata','.data')}
-    result['bootstrap_core_layout.inc']=(f'; Generated from validated ELF64, private layout v{VERSION}.\n'
-        f'%define C_CORE_LAYOUT_VERSION {VERSION}\n%define C_CORE_BSS_BYTES {s[".bss"]["size"]}\n'+
+    result['bootstrap_core_layout.inc']=(f'; Generated from validated ELF64, private layout v{version}.\n'
+        f'%define C_CORE_LAYOUT_VERSION {version}\n%define C_CORE_BSS_BYTES {s[".bss"]["size"]}\n'+
+        (f'%define C_NATIVE_MEMORY_STATE_BYTES {MEMORY_STATE_BYTES}\n' if version==3 else '')+
         ''.join(f'%define {define} {p["symbols"].get(name,{}).get("value",0):#x}\n'
                 for name,define in CALL_EXPORTS.items())).encode('ascii')
     result['bootstrap_core_layout.json']=(json.dumps(metadata,indent=2,sort_keys=True)+'\n').encode('ascii')
@@ -159,14 +175,27 @@ def verify_outer(inner,outer):
     p=validate(inner);o=elf(outer,32)
     allocated={n:s for n,s in o['sections'].items() if s['flags']&2}
     expected={'.multiboot','.text','.rodata','.data','.bss','.c_core_bridge','.c_core_handoff'}|{'.c_core_'+n[1:] for n in LAYOUT}
+    native=p['layout_version']==3
+    if native:expected.add('.memory_state')
     require(set(allocated)==expected,'outer allocated section set')
     require(o['entry']==o['symbols'].get('x86_64_bootstrap_start',{}).get('value') and
             allocated['.text']['address']<=o['entry']<allocated['.text']['address']+allocated['.text']['size'],'outer entry binding')
     segments=sorted(o['programs'],key=lambda p:p['address'])
-    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=0x200000 for p in segments),'outer load range')
+    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=(0xa00000 if native else 0x200000) for p in segments),'outer load range')
+    if native:
+        # lld merges equal-permission C data/BSS/arena into one PT_LOAD.
+        # Permit that exact file prefix + zero-fill extent, not arbitrary
+        # extended loads or relocation of any legacy section above2MiB.
+        require(all(p['address']+p['size']<=0x200000 or
+                    (p['address'],p['size'],p['flags'],p['filesz'])==
+                    (0x19d000,0x200000+MEMORY_ARENA_BYTES-0x19d000,6,
+                     o['sections']['.c_core_data']['size']) for p in segments),
+                'outer exact appended memory segment')
     require(all(a['address']+a['size']<=b['address'] for a,b in zip(segments,segments[1:])),'outer load overlap')
     for name,s in allocated.items():
         require(s['size']>0 and s['type'] in (1,8) and s['flags'] in (2,3,6),'outer allocated section contract')
+        if name!='.memory_state':
+            require(s['address']+s['size']<=0x200000,'outer legacy section envelope')
         matches=[p for p in segments if p['address']<=s['address'] and s['address']+s['size']<=p['address']+p['size']]
         require(len(matches)==1,'outer section load binding')
         segment=matches[0];delta=s['address']-segment['address']
@@ -175,6 +204,10 @@ def verify_outer(inner,outer):
         else:require(delta>=segment['filesz'],'outer BSS file alias')
     ordered=sorted(allocated.values(),key=lambda s:s['address'])
     require(all(a['address']+a['size']<=b['address'] for a,b in zip(ordered,ordered[1:])),'outer section overlap')
+    if native:
+        state=allocated['.memory_state']
+        require((state['address'],state['size'],state['flags'],state['type'],state['align'])==
+                (0x200000,MEMORY_ARENA_BYTES,3,8,4096),'outer native memory arena')
     bridge=allocated['.c_core_bridge']
     require(bridge['address']==0x184000 and 0x200<bridge['size']<=4096 and bridge['flags']==6 and bridge['type']==1,'outer bridge layout')
     for name in LAYOUT:
@@ -222,7 +255,7 @@ def main():
         data=read_bounded(args.elf)
         if args.verify_outer:verify_outer(data,read_bounded(args.verify_outer))
         else:publish(data,args.output_directory)
-        print('X86_64_C_PAYLOAD_LAYOUT_OK version=2');return 0
+        print('X86_64_C_PAYLOAD_LAYOUT_OK version='+str(validate(data)['layout_version']));return 0
     except (OSError,ValueError,struct.error) as exc:
         print('X86_64_C_PAYLOAD_LAYOUT_FAIL '+str(exc));return 1
 

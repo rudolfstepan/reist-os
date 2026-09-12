@@ -8,6 +8,17 @@ alle physischen64-Bit-Verbraucher. Private C-Metadaten erhalten dafür einen
 expliziten Aufbau3, nicht eine Lockerung des bisherigen Aufbaus2.
 Grenzen und Pflichtnachweise: [Speichervertrag](NATIVE_PHYSICAL_MEMORY_CONTRACT.md).
 
+R8.3z implementiert diesen Pfad auf Vertrag `48c47a09`. Aktivierung im
+Windows-Build mit `-NativeRAM`, im Make-Build mit `X86_64_NATIVE_RAM=1`.
+Die Abnahme kombiniert `-NativeProcesses -NativeIPC -NativeRAM` und dieselbe
+Kerneldatei für1/4/8GiB. Physische Kapazität16GiB; private Userblätter bleiben
+4KiB, Image-/Task-/IPC-Grenzen bleiben beim jeweiligen bisherigen Profil.
+4,531,096Byte C-Zustand und6,701,056Byte Gesamtareal ab physisch2MiB sind
+NOBITS/RW/NX. Nur vollständig nutzbare512-Frame-Bereiche erhalten2MiB-
+Direct-Map-Blätter; gemischte Bereiche benötigen eine von höchstens512 Tabellen.
+Die Gastmatrix prüft reale hohe Frames, Seitenrechte, genaue Freigaben und
+Fehlkarten innerhalb der ursprünglichen10s-Frist je Gast.
+
 R8.3y ist vor Umsetzung auf `89ab012f` eingefroren. Die bestehende REIST-ABI
 dispatcht beide Nachrichtenformate auf50/51/53/54; Bulk erfordert keine breiteren
 Syscallprofile. Private Bindung v2 erweitert die maximale Nachricht auf2060Byte

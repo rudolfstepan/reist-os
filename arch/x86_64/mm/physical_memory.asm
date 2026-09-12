@@ -2,6 +2,14 @@
 ; bootstrap. The 32-bit half captures and validates the handoff before paging;
 ; the 64-bit half provides a fixed single-CPU frame allocator and self-test.
 
+%include "arch/x86_64/mm/memory_profile.inc"
+%if X86_64_NATIVE_RAM
+%include C_CORE_LAYOUT_PATH
+%if C_CORE_LAYOUT_VERSION != 3 || C_NATIVE_MEMORY_ENTRY == 0
+%error "native memory requires validated layout3"
+%endif
+%endif
+
 MULTIBOOT_BOOT_MAGIC equ 0x2BADB002
 MULTIBOOT_MMAP_FLAG equ (1 << 6)
 MULTIBOOT_MODS_FLAG equ (1 << 3)
@@ -19,13 +27,17 @@ MAX_MODULES         equ 32
 MODULE_ENTRY_SIZE   equ 16
 
 FRAME_SIZE          equ 4096
-MANAGED_LIMIT       equ 0x08000000
-FRAME_COUNT         equ 32768
-FRAME_BITMAP_BYTES  equ 4096
+MANAGED_LIMIT       equ MEMORY_LIMIT_VALUE
+FRAME_COUNT         equ MEMORY_FRAME_CAPACITY
+FRAME_BITMAP_BYTES  equ FRAME_COUNT / 8
 HIGH_MEMORY_BASE    equ 0x04000000
 HIGH_MEMORY_FRAME   equ HIGH_MEMORY_BASE / FRAME_SIZE
 DIRECT_MAP_BASE     equ 0xFFFF800000000000
+%if X86_64_NATIVE_RAM
+DIRECT_PT_COUNT     equ 512
+%else
 DIRECT_PT_COUNT     equ 64
+%endif
 DIRECT_TABLE_COUNT  equ (2 + DIRECT_PT_COUNT)
 PAGE_PRESENT_WRITE equ 0x003
 PAGE_NX_HIGH        equ 0x80000000
@@ -76,6 +88,12 @@ x86_64_physical_memory_init32:
     mov dword [multiboot_mmap_length], eax
     mov dword [multiboot_mmap_end], edi
 
+%if X86_64_NATIVE_RAM
+    xor eax, eax
+    mov edi, native_memory_arena
+    mov ecx, (native_memory_arena_end - native_memory_arena) / 4
+    rep stosd
+%endif
     xor eax, eax
     mov edi, usable_bitmap
     mov ecx, (2 * FRAME_BITMAP_BYTES) / 4
@@ -152,6 +170,7 @@ x86_64_physical_memory_init32:
     mov dword [free_frame_count], edx
 
     call build_direct_map32
+    jc physical_memory_fail32
     mov eax, 1
     ret
 
@@ -237,6 +256,38 @@ apply_managed_range32:
     push esi
     push edi
     push ebp
+%if X86_64_NATIVE_RAM
+    ; Full byte addresses until clamped; frame indices fit32 bits at16GiB.
+    cmp edx, 4
+    jae .done
+    cmp ecx, 4
+    jae .native_clamp
+    jmp .native_end
+.native_clamp:
+    mov ecx, 4
+    xor ebx, ebx
+.native_end:
+    cmp edx, ecx
+    ja .done
+    jb .native_nonempty
+    cmp eax, ebx
+    jae .done
+.native_nonempty:
+    cmp byte [range_set_operation], 0
+    je .native_reserved
+    add eax, FRAME_SIZE - 1
+    adc edx, 0
+    jmp .native_indices
+.native_reserved:
+    add ebx, FRAME_SIZE - 1
+    adc ecx, 0
+.native_indices:
+    shrd eax, edx, 12
+    shrd ebx, ecx, 12
+    cmp eax, ebx
+    jae .done
+    jmp .frame_loop
+%else
     test edx, edx
     jnz .done
     cmp eax, MANAGED_LIMIT
@@ -271,6 +322,7 @@ apply_managed_range32:
     jae .done
     shr eax, 12
     shr ebx, 12
+%endif
 .frame_loop:
     cmp byte [range_set_operation], 0
     je .clear_frame
@@ -304,6 +356,86 @@ reserve_range32:
     ret
 
 build_direct_map32:
+%if X86_64_NATIVE_RAM
+    ; The arena was zeroed before capture. Publish PML4 only after all leaves.
+    mov ecx, 16
+    mov edi, direct_pdpt
+    mov eax, direct_page_directory
+.pdpt_loop:
+    mov edx, eax
+    or edx, PAGE_PRESENT_WRITE
+    mov [edi], edx
+    mov dword [edi + 4], PAGE_NX_HIGH
+    add eax, 4096
+    add edi, 8
+    loop .pdpt_loop
+    xor ebp, ebp
+    mov esi, direct_page_tables
+.region_loop:
+    mov edi, ebp
+    shl edi, 6
+    add edi, usable_bitmap
+    mov ecx, 16
+    mov eax, -1
+    xor ebx, ebx
+.bits:
+    and eax, [edi]
+    or ebx, [edi]
+    add edi, 4
+    loop .bits
+    test ebx, ebx
+    jz .next_region
+    cmp eax, -1
+    jne .mixed
+    mov eax, ebp
+    shl eax, 21
+    or eax, 0x083
+    mov edx, ebp
+    shr edx, 11
+    or edx, PAGE_NX_HIGH
+    jmp .publish_pde
+.mixed:
+    cmp esi, direct_page_tables + DIRECT_PT_COUNT * 4096
+    jae .capacity
+    xor ecx, ecx
+.leaf:
+    mov ebx, ebp
+    shl ebx, 9
+    add ebx, ecx
+    bt dword [usable_bitmap], ebx
+    jnc .next_leaf
+    mov eax, ebx
+    shl eax, 12
+    or eax, PAGE_PRESENT_WRITE
+    shr ebx, 20
+    or ebx, PAGE_NX_HIGH
+    mov [esi + ecx * 8], eax
+    mov [esi + ecx * 8 + 4], ebx
+.next_leaf:
+    inc ecx
+    cmp ecx, 512
+    jb .leaf
+    mov eax, esi
+    or eax, PAGE_PRESENT_WRITE
+    mov edx, PAGE_NX_HIGH
+    add esi, 4096
+.publish_pde:
+    mov [direct_page_directory + ebp * 8], eax
+    mov [direct_page_directory + ebp * 8 + 4], edx
+.next_region:
+    inc ebp
+    cmp ebp, 8192
+    jb .region_loop
+    mov eax, direct_pdpt
+    or eax, PAGE_PRESENT_WRITE
+    mov [pml4_table + 256 * 8], eax
+    mov dword [pml4_table + 256 * 8 + 4], PAGE_NX_HIGH
+    clc
+    ret
+.capacity:
+    stc
+    ret
+%else
     xor eax, eax
     mov edi, direct_pdpt
     mov ecx, (DIRECT_TABLE_COUNT * 4096) / 4
@@ -344,11 +476,20 @@ build_direct_map32:
     inc eax
     cmp eax, FRAME_COUNT
     jb .pte_loop
+    clc
     ret
+%endif
 
 BITS 64
 
 x86_64_physical_memory_selftest64:
+%if X86_64_NATIVE_RAM
+    xor edi, edi
+    xor esi, esi
+    call native_memory_call64
+    cmp eax, 1
+    jne .fail
+%endif
     mov eax, dword [rel free_frame_count]
     mov dword [rel selftest_initial_free], eax
 
@@ -357,7 +498,7 @@ x86_64_physical_memory_selftest64:
     jz .fail
     test rax, FRAME_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [rel selftest_frame0], rax
 
@@ -366,7 +507,7 @@ x86_64_physical_memory_selftest64:
     jz .fail
     test rax, FRAME_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [rel selftest_frame1], rax
     cmp rax, qword [rel selftest_frame0]
@@ -377,7 +518,7 @@ x86_64_physical_memory_selftest64:
     jz .fail
     test rax, FRAME_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [rel selftest_frame2], rax
     cmp rax, qword [rel selftest_frame0]
@@ -408,7 +549,7 @@ x86_64_physical_memory_selftest64:
     jz .fail
     cmp rax, HIGH_MEMORY_BASE
     jb .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [rel selftest_high_frame], rax
     mov rdi, rax
@@ -474,6 +615,84 @@ x86_64_physical_memory_selftest64:
     xor eax, eax
     ret
 
+%if X86_64_NATIVE_RAM
+; Private SysV call on the current trusted stack, IF0, no suspended C frame.
+; Preserve all legacy allocator input registers except the result.
+native_memory_call64:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    mov rax, C_NATIVE_MEMORY_ENTRY
+    call rax
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    mov rsp, rbp
+    pop rbp
+    ret
+
+physical_frame_alloc64:
+    mov esi, [rel allocation_test_floor]
+    shl rsi, 12
+    test rsi, rsi
+    jnz .explicit
+    ; Prefer upper RAM, preserving low memory without limiting capacity.
+    mov edi, 4
+    call native_memory_call64
+    mov rsi, rax
+    mov edi, 1
+    call native_memory_call64
+    test rax, rax
+    jnz .done
+    xor esi, esi
+.explicit:
+    mov edi, 1
+    call native_memory_call64
+.done:
+    ret
+
+physical_frame_test_high_window64:
+    cmp dword [rel allocation_test_floor], 0
+    jne .fail
+    mov edi, 4
+    xor esi, esi
+    call native_memory_call64
+    shr rax, 12
+    mov [rel allocation_test_floor], eax
+    mov eax, 1
+    ret
+.fail:
+    xor eax, eax
+    ret
+
+physical_frame_alloc_high_selftest64:
+    mov edi, 1
+    mov esi, HIGH_MEMORY_BASE
+    jmp native_memory_call64
+
+physical_frame_free64:
+    mov rsi, rdi
+    mov edi, 2
+    jmp native_memory_call64
+
+physical_free_frame_count64:
+    xor esi, esi
+    mov edi, 3
+    jmp native_memory_call64
+%else
 physical_frame_alloc64:
     cld
     mov ecx, dword [rel allocation_test_floor]
@@ -488,17 +707,6 @@ physical_frame_test_high_window64:
     ret
 .fail:
     xor eax, eax
-    ret
-
-physical_frame_test_window_clear64:
-    mov dword [rel allocation_test_floor], 0
-    mov eax, 1
-    ret
-
-physical_frame_test_window_is_clear64:
-    xor eax, eax
-    cmp dword [rel allocation_test_floor], 0
-    sete al
     ret
 
 physical_frame_alloc_high_selftest64:
@@ -565,6 +773,19 @@ physical_free_frame_count64:
     mov eax, dword [rel free_frame_count]
     ret
 
+%endif
+
+physical_frame_test_window_clear64:
+    mov dword [rel allocation_test_floor], 0
+    mov eax, 1
+    ret
+
+physical_frame_test_window_is_clear64:
+    xor eax, eax
+    cmp dword [rel allocation_test_floor], 0
+    sete al
+    ret
+
 verify_direct_frame64:
     mov rdx, DIRECT_MAP_BASE
     add rdx, rdi
@@ -599,10 +820,12 @@ multiboot_mmap_length:
     resd 1
 multiboot_mmap_end:
     resd 1
+%if !X86_64_NATIVE_RAM
 managed_frame_count:
     resd 1
 free_frame_count:
     resd 1
+%endif
 selftest_initial_free:
     resd 1
 parse_reserved_mode:
@@ -610,6 +833,7 @@ parse_reserved_mode:
 range_set_operation:
     resb 1
 
+%if !X86_64_NATIVE_RAM
 alignb 16
 usable_bitmap:
     resb FRAME_BITMAP_BYTES
@@ -623,6 +847,21 @@ direct_page_directory:
     resb 4096
 direct_page_tables:
     resb DIRECT_PT_COUNT * 4096
+%else
+section .memory_state nobits alloc noexec write align=4096
+native_memory_arena:
+    resb C_NATIVE_MEMORY_STATE_BYTES
+managed_frame_count equ native_memory_arena
+free_frame_count equ native_memory_arena + 4
+usable_bitmap equ native_memory_arena + 64
+allocation_bitmap equ usable_bitmap + FRAME_BITMAP_BYTES
+alignb 4096
+direct_pdpt: resb 4096
+direct_page_directory: resb 16 * 4096
+direct_page_tables: resb DIRECT_PT_COUNT * 4096
+native_memory_arena_end:
+section .bss
+%endif
 
 alignb 8
 selftest_frame0:

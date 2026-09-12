@@ -2,6 +2,7 @@
 ; This remains part of the isolated bootstrap and is not a production process.
 
 BITS 64
+%include "arch/x86_64/mm/memory_profile.inc"
 extern x86_64_fp_reset64
 
 USER_BASE                 equ 0x00400000
@@ -140,7 +141,7 @@ x86_64_user_execution_selftest64:
     jz user_execution_fail
     test rax, PAGE_SIZE - 1
     jnz user_execution_fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae user_execution_fail
     mov qword [rel user_stack_frame], rax
 
@@ -203,7 +204,7 @@ x86_64_user_shell64:
     jz user_execution_fail
     test rax, PAGE_SIZE - 1
     jnz user_execution_fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae user_execution_fail
     mov qword [rel user_stack_frame], rax
 
@@ -734,7 +735,7 @@ build_user_page_tables64:
     jz .fail
     test rax, PAGE_SIZE - 1
     jnz .fail
-    cmp rax, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .fail
     mov qword [r14 + rbx * 8], rax
     inc ebx
@@ -822,7 +823,7 @@ expected_elf_pte64:
     jz .invalid
     test r8, PAGE_SIZE - 1
     jnz .invalid
-    cmp r8, MANAGED_LIMIT
+    MEMORY_COMPARE_LIMIT r8
     jae .invalid
     test r9d, ~7
     jnz .invalid

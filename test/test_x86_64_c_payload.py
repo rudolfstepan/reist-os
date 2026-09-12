@@ -66,6 +66,72 @@ class CPayloadTests(unittest.TestCase):
         self.assertEqual(expected,p.outputs(self.inner))
         for name,data in expected.items():self.assertEqual((self.folder/name).read_bytes(),data)
 
+    def test_native_memory_layout3_exact_production_state(self):
+        for source,name in (('arch/x86_64/kernel/bootstrap_core.c','ram-core'),
+                            ('arch/x86_64/mm/native_memory.c','ram-state'),
+                            ('kernel/init/critical_object.c','ram-integrity'),
+                            ('lib/libc/string.c','ram-memory-full')):
+            r=self.run_command([self.zig,'cc',*self.flags,'-I.','-DX86_64_NATIVE_RAM=1',
+                 '-ffunction-sections','-fdata-sections','-c',source,'-o',self.folder/(name+'.o')],name)
+            self.assertEqual(r.returncode,0,r.stderr[-2000:])
+        r=self.run_command([self.zig,'ld.lld','-m','elf_x86_64','-r','--gc-sections',
+            '--undefined=memcpy','--undefined=memset','-o',self.folder/'ram-memory.o',
+            self.folder/'ram-memory-full.o'],'ram-memory-select')
+        self.assertEqual(r.returncode,0,r.stderr)
+        r=self.run_command([*self.link,'-T','config/x86_64_c_payload.ld','-o',self.folder/'ram.elf',
+            *[self.folder/(n+'.o') for n in ('ram-core','ram-state','ram-integrity','ram-memory')]],'ram-link')
+        self.assertEqual(r.returncode,0,r.stderr)
+        raw=p.read_bounded(self.folder/'ram.elf');parsed=p.validate(raw)
+        self.assertEqual(parsed['layout_version'],3)
+        state=parsed['sections']['.memory_state']
+        self.assertEqual(state['size'],4531096)
+        self.assertEqual((state['type'],state['flags'],state['address']),(8,3,p.HIGH+0x200000))
+        self.assertIn(b'C_CORE_LAYOUT_VERSION 3',p.outputs(raw)['bootstrap_core_layout.inc'])
+        sh=struct.unpack_from('<Q',raw,40)[0]+64*state['index']
+        mutations=[(sh+4,'I',1),(sh+8,'Q',7),(sh+16,'Q',state['address']+4096),
+                   (sh+32,'Q',state['size']-8),(sh+48,'Q',8192)]
+        table=parsed['sections']['.symtab'];strings=parsed['sections']['.strtab']['data']
+        for pos in range(table['offset'],table['offset']+table['size'],24):
+            n=struct.unpack_from('<I',raw,pos)[0]
+            name=strings[n:strings.find(b'\0',n)].decode('ascii')
+            if name in ('native_memory_state','reist_native_memory'):
+                mutations += [(pos+4,'B',0),(pos+5,'B',1),(pos+6,'H',0xfff1),
+                              (pos+8,'Q',0),(pos+16,'Q',0)]
+        self.assertEqual(len(mutations),15)
+        for off,fmt,value in mutations:
+            with self.subTest(offset=off):self.reject(self.changed(off,fmt,value,raw))
+        # Real ELF32 wrapper for layout3 and exact appended load envelope.
+        published=self.folder/'ram-publication';p.publish(raw,published)
+        asm=(self.folder/'outer.asm').read_text().replace(
+            self.folder.as_posix()+'/bootstrap_core_',published.as_posix()+'/bootstrap_core_')
+        asm=asm.replace('x86_64_c_bss_state: resb '+str(self.parsed['sections']['.bss']['size']),
+                        'x86_64_c_bss_state: resb '+str(parsed['sections']['.bss']['size']))
+        asm+='section .memory_state nobits alloc noexec write align=4096\nresb '+str(p.MEMORY_ARENA_BYTES)+'\n'
+        (self.folder/'ram-outer.asm').write_text(asm,encoding='ascii')
+        r=self.run_command([self.nasm,'-f','elf32',self.folder/'ram-outer.asm','-o',self.folder/'ram-outer.o'],'ram-outer-asm')
+        self.assertEqual(r.returncode,0,r.stderr)
+        r=self.run_command([self.zig,'ld.lld','-m','elf_i386','-T','config/x86_64_bootstrap.ld',
+            '-o',self.folder/'ram-outer.elf',self.folder/'ram-outer.o'],'ram-outer-link')
+        self.assertEqual(r.returncode,0,r.stderr)
+        outer=p.read_bounded(self.folder/'ram-outer.elf');p.verify_outer(raw,outer)
+        arena=p.elf(outer,32)['sections']['.memory_state']
+        header=struct.unpack_from('<I',outer,32)[0]+arena['index']*40
+        for off,value in ((4,1),(8,7),(12,0x201000),(20,arena['size']-4096),(32,8192)):
+            with self.subTest(outer=off):
+                with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(header+off,'I',value,outer))
+        ph=struct.unpack_from('<I',outer,28)[0];number=struct.unpack_from('<H',outer,44)[0]
+        extended=0
+        for i in range(number):
+            at=ph+i*32
+            address=struct.unpack_from('<I',outer,at+8)[0]
+            size=struct.unpack_from('<I',outer,at+20)[0]
+            if address+size>0x200000:
+                extended+=1
+                for off,value in ((20,size+4096),(16,4096),(8,address+4096)):
+                    with self.assertRaises(ValueError):
+                        p.verify_outer(raw,self.changed(at+off,'I',value,outer))
+        self.assertEqual(extended,1)
+
     def test_actual_old_envelope_failure(self):
         r=self.run_command([*self.link,
                '-e','x86_64_c_payload_probe','--section-start=.text=0xFFFFFFFF80185000',

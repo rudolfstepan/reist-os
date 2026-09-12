@@ -330,7 +330,12 @@ process_run_frames64:
 .present:
     test rax, PAGE_SIZE-1
     jnz .bad
+%ifdef REIST_NATIVE_MEMORY_PROFILE
+    MEMORY_COMPARE_LIMIT rax
+%else
+    ; Standalone legacy binding retains its caller-supplied128MiB constant.
     cmp rax, MANAGED_LIMIT
+%endif
     jae .bad
     cmp rax, [rel scheduler_original_cr3]
     je .bad

@@ -1,4 +1,5 @@
 bits 64
+%include "arch/x86_64/mm/memory_profile.inc"
 ; Private32-byte binding. At most4 record regions and13 physical frame records.
 ; Validate before all effects; caller fences execution and owns pinned storage.
 global reist_x64_task_frames_release
@@ -95,7 +96,7 @@ reist_x64_task_frames_release:
     jz .next_physical
     test r8, 4095
     jnz .bad
-    cmp r8, LIMIT
+    MEMORY_COMPARE_LIMIT r8
     jae .bad
     xor ecx, ecx
 .unique:
@@ -113,11 +114,11 @@ reist_x64_task_frames_release:
     cmp ebx, 13
     jb .physical
     call physical_free_frame_count64
-    cmp eax, LIMIT / 4096
+    cmp eax, MEMORY_FRAME_CAPACITY
     ja .bad
     mov r13d, eax
     add eax, r14d
-    cmp eax, LIMIT / 4096
+    cmp eax, MEMORY_FRAME_CAPACITY
     ja .bad
 .validated:
     xor ebx, ebx

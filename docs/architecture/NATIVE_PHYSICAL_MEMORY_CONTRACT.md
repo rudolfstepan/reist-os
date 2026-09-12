@@ -65,3 +65,28 @@ vollständiges Retirement beweisen, nicht nur einen größeren Zahlenwert melden
 Invalides Bootmaterial darf keinen Betrieb beginnen. Große Gast-RAM-Angaben
 erlauben keinen Test, der den Host-RAM vollständig belegt. Alte IPC-/Frame-
 Prüfungen, i386-/VMware-Referenzen und offene historische Gates bleiben bestehen.
+
+## Implementierter Besitzschnitt und Prüferkorrektur
+
+Auf Vertrag `48c47a09` implementiert. Eine Region umfasst256 Frames und
+einen geschützten64Byte-Snapshot aus verwendbaren/belegten Bits.256
+Verfügbarkeitswörter und vier Wurzelwörter begrenzen die Auswahl; zusätzliche
+Prüfung höchstens der ersten nur teilweise zugelassenen Region. Der Bootpfad
+zählt einmalig höchstens4194304 Frames. Der Integritätskern bleibt unverändert;
+ein korrigierbarer Schutzkopiefehler darf nach validiertem Lesen weiterlaufen,
+abweichende autoritative Rohdaten oder unkorrigierbarer Zustand führen zur
+Fatalgrenze vor Frameeffekten. SingleCPU/IF0 bleibt Voraussetzung.
+
+Die tatsächliche Struktur benötigt4531096Byte, einschließlich Direct-Map-
+Tabellen umfasst das Areal6701056Byte. Allocation und Free nullen4096Byte;
+ungültige oder doppelte Freigabe verändert keine Besitzdaten. Die alten
+Assembler-Einstiege binden denselben Zähler und denselben Pool ein.
+
+Die abschließende1/4/8GiB-Matrix mit24 Tasks und75 Retirements sowie drei
+negativen Bootkarten besteht in20,558s insgesamt. Je Gast gilt weiterhin10s.
+Eine zwischenzeitliche30s-Frist im NativeRAM-Prüfer verletzte den eingefrorenen
+Vertrag und wurde vor Abschluss entfernt; ihre früheren Protokolle bleiben
+als Historie erhalten. Der erneuerte Beleg lautet
+`build/codex-agent/r83z-memory/guests/attempt-7c6c36c2704340fcb31ee1cd9829690e`.
+Private virtuelle Heaps, Shared-Memory-Autorität und allgemeine Dienste bleiben
+nachfolgende Besitzgrenzen.

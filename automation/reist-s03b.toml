@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3z-x86_64-large-physical-memory"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3z-x86_64-large-physical-memory"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Scalable protected native physical frames and full-width consumers"
@@ -27,6 +27,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_native_memory.py --image build/
 acceptance = "All14 frozen groups and direct scope/ABI/resource/cleanup review, retained original evidence, queue transition and clean local commit. This completes the physical-address ownership slice, not virtual heaps, native services or full64bitOS."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need to change common integrity/public syscall/IPC semantics or introduce driver policy"]
 commit_message = "feat: support protected native physical memory above four GiB"
+evidence = ["python test/test_x86_64_native_memory.py -v", "python test/test_x86_64_c_payload.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_user_access.py -v", "python test/test_x86_64_task_frames.py -v", "python test/test_x86_64_native_ipc.py -v", "python test/test_x86_64_bulk_ipc.py -v", "python test/test_documentation.py -v", ".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83z-memory/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -NativeProcesses -NativeIPC -NativeRAM -OutputDirectory build/codex-agent/r83z-memory/native", "python scripts/run_qemu_x86_64_native_memory.py --image build/codex-agent/r83z-memory/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83z-memory/guests", "python scripts/run_qemu_x86_64_native_ipc.py --evidence build/codex-agent/r83z-memory/ipc", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83z-memory/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83z-memory/retirement", "python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All14 frozen groups pass on contract48c47a09; direct scope/ABI/resource/cleanup review complete. Existing candidate and original logs retained across interactive continuation. Actual protected allocator, Multiboot32 capture/paging and five production consumers above4GiB at O0/O2:4 groups23.322s (host-08); payload12/3.580s(payload-06), boot56/.052s(boot-03), access3/4.873s(access-01), task4/2.358s(task-01), IPC7/5.374s(ipc-host-02), bulk2/1.702s(bulk-host-01), docs7/2.249s including historicalD1 skip and109-file inventory dd2f484f8dba452bb559d9a892b1aa4e. Normal/native final builds retained normal-build-01/native-build-05; original durations not recorded. Native C text29570, rodata2480, exact4531096-byte protected state and6701056-byte total RW/NX arena. One kernel1/4/8GiB matrix20.558s, attempt7c6c36c2704340fcb31ee1cd9829690e:24 native tasks75 frame retirements; managed259964/1046396/2094972, huge506/2042/4090 plus two mixed tables each; actual high frames, exact zero/reap/fence/CR3/permissions; overflow/size/reserved boot maps rejected before Long Mode. Review found unauthorized30s NativeRAM capture deadline; restored original10s and renewed affected host and guest proofs, no oracle weakening. Old30s successes retained but superseded. IPC matrix42.688s attempt28d979675f904e5287b8ffe9a6420251 all four cases/second generations and17 equal kernel objects; old20-frame retirement1.968s attempt80f52f2474a84c74bcc00a3702d493d4, pinned reference1.21s(reference-01). Extra legacy process binding and NativeRAM+CIntegrityProbe build pass. Original scope expansion process_run.inc was explicitly accepted in48c47a09. No public ABI/common integrity changes, agents, visible VMs, push or reference rebaseline. Unknown prior implementation/wait time not estimated. Private virtual heaps/native services/fullOS remain open; R3.6b stays explicitly deferred and queued, R341-H1/H2 open. Next native package is inventoried after clean local commit."
 
 [[packages]]
 id = "R8.3y-x86_64-native-bulk-ipc"

@@ -7,7 +7,9 @@
  * CR3 independently bind the executing owner. No authority is granted here.
  * Intel64 SDM Vol3A: data access needs P/U at all levels, writes also W.
  * PF_X=1 checks one instruction byte with P/U and NX clear at every level.
- * Existing 4KiB/128MiB/8 image pages + stack profile, no huge pages or PKU.
+ * Existing4KiB user leaves/8 image pages + stack; no user huge pages or PKU.
+ * Physical bounds:128MiB default,16GiB with the explicit NativeRAM build.
+ * Kernel direct-map large leaves do not enlarge user authority.
  * Returns1 admitted,0 invalid user range/rights, -4096 corrupt trusted state.
  * No data dereference, allocation, copy, logging, or modification. */
 typedef struct {

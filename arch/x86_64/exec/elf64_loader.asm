@@ -12,6 +12,7 @@
 %endif
 
 BITS 64
+%include "arch/x86_64/mm/memory_profile.inc"
 
 ELF_MAGIC           equ 0x464C457F
 ELFCLASS64          equ 2
@@ -276,7 +277,7 @@ elf64_context_checksum64:
     jz .next
     test rax, PAGE_SIZE - 1
     jnz .bad
-    cmp rax, 0x08000000
+    MEMORY_COMPARE_LIMIT rax
     jae .bad
     mov rdx, DIRECT_MAP_BASE
     add rdx, rax

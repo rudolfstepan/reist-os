@@ -1,4 +1,5 @@
 bits 64
+%include "arch/x86_64/mm/memory_profile.inc"
 ; Private SysV AMD64 mechanism. RDI is a trusted aligned88-byte image record,
 ; never a user pointer. Caller has fenced all consumers and serialized ownership
 ; (current profile: one CPU, IF=0). No shared-RX refcount or loader policy here.
@@ -9,7 +10,7 @@ extern physical_free_frame_count64
 FLAGS equ 64
 ERROR equ 78
 ACTIVE equ 79
-LIMIT equ 0x08000000
+LIMIT equ MEMORY_LIMIT_VALUE
 
 section .text
 reist_x64_image_release:
@@ -53,7 +54,7 @@ reist_x64_image_release:
     jne .bad
     test rax, 4095
     jnz .bad
-    cmp rax, LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .bad
     xor edx, edx
 .unique:

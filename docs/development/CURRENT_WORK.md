@@ -11,6 +11,30 @@ NativeRAM wird an1/4/8GiB geprüft; der ursprüngliche128MiB-Default bleibt.
 [Verbindlicher Speichervertrag](../architecture/NATIVE_PHYSICAL_MEMORY_CONTRACT.md).
 Private Heaps und normale native Dienste werden hier noch nicht behauptet.
 
+Umsetzung auf Vertrag `48c47a09`: NativeRAM verwaltet physische Adressen bis
+16GiB mit einer geschützten hierarchischen Frameverwaltung. Der gemeinsame
+Integritätskern bleibt unverändert. Private C-Struktur4531096Byte, gesamtes
+RW/NX-Areal6701056Byte; Layout3 wird anhand der tatsächlichen ELF-Sektionen,
+Exporte und Ladebereiche geprüft. Alle aktuellen Frameverbraucher verwenden
+vollbreite Adressen, einschließlich Prozessprüfung, CR3 und Retirement.
+
+Die abschließende RAM-Matrix besteht mit dem ursprünglichen10s-Gastlimit:
+1/4/8GiB,24 native Tasklebensläufe und75 vollständige Frame-Retirements;
+ungültige Überlauf-, Größen- und Reservierungskarten scheitern vor Long Mode.
+Lauf20,558s: `build/codex-agent/r83z-memory/guests/attempt-7c6c36c2704340fcb31ee1cd9829690e`.
+Verwaltete Frames259964/1046396/2094972;506/2042/4090 große Direct-Map-Blätter
+und jeweils zwei gemischte Tabellen. Jede tatsächlich belegte Seite und ihre
+P/U/W/NX-Rechte werden gelesen; die4/8GiB-Gäste verwenden echte Frames über4GiB.
+
+Vorhandene Hostbelege O0/O2 prüfen die tatsächliche32-Bit-RAM-Aufnahme,
+Allokation/Nullung/Mangel, Reservierungen und Metadatenfehler sowie fünf
+vollbreite Produktionsverbraucher. Alte128MiB-IPC-/Frame- und i386-Referenzgates
+bleiben erhalten. Frühere Fehlbelege einschließlich der Prozessgrenze und
+ELF-Hüllprüfung bleiben unter `build/codex-agent/r83z-*`. Im Abschlussreview
+wurde die unzulässige30s-RAM-Prüferfrist auf10s zurückgesetzt; betroffene
+Host-/Gastnachweise wurden darauf erneuert. Vollständige OS-/Dienst-/Heap-
+Abnahme bleibt offen; R3.6b zurückgestellt, R341-H1/H2 offen.
+
 ## R8.3y: natives IPC-v2 einschließlich Bulk
 
 Auf Vertrag `0068bdaf` umgesetzt: dieselben50/51/53/54 nehmen jetzt v1/v2 an.

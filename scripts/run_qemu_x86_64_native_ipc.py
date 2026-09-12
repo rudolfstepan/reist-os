@@ -154,10 +154,11 @@ def validate_ipc_trace(trace,rows,case,bulk=False):
         if sum(int(g)==row['generation'] for _,g in copies)!=(5 if row['slot']&1 and not bulk else 2):raise ValueError('IPC independent pair routing')
 
 
-def capture(image,folder,code):
+def capture(image,folder,code,memory_mib=128):
+    if memory_mib not in (128,1024,4096,8192):raise ValueError('native memory test profile')
     script=folder/'observe.gdb'
     script.write_text('set confirm off\nset pagination off\nset architecture i386:x86-64\ntarget remote 127.0.0.1:12491\n'+code,encoding='ascii')
-    command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m','128M','-smp','1',
+    command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m',str(memory_mib)+'M','-smp','1',
              '-display','none','-monitor','none','-serial','stdio','-no-reboot','-no-shutdown','-kernel',str(image.resolve()),'-S','-gdb','tcp:127.0.0.1:12491']
     (folder/'command.json').write_text(json.dumps(command),encoding='utf-8')
     output=queue.Queue(maxsize=128);overflow=threading.Event();data=bytearray();debugger=None
@@ -173,7 +174,8 @@ def capture(image,folder,code):
             while chunk:=vm.stdout.read(256):
                 try:output.put_nowait(chunk)
                 except queue.Full:overflow.set();return
-        thread=threading.Thread(target=reader,daemon=True);thread.start();deadline=time.monotonic()+10
+        thread=threading.Thread(target=reader,daemon=True);thread.start()
+        deadline=time.monotonic()+10
         try:
             while time.monotonic()<deadline:
                 try:data.extend(output.get(timeout=.01))

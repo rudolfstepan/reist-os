@@ -1,4 +1,5 @@
 bits 64
+%include "arch/x86_64/mm/memory_profile.inc"
 ; Private192-byte physical plan; no global ELF selector, task roles or allocator.
 ; All ownership is held by the caller. Validate everything before writing pages.
 ; Loops: <=21 records/pairs, <=21 pointer pairs, <=13*512 zero-check qwords,
@@ -6,7 +7,7 @@ bits 64
 global reist_x64_address_space_build
 extern reist_x64_mapping_pointer64
 LIMIT equ 0x08000000
-FRAME_MASK equ 0x07fff000
+FRAME_MASK equ MEMORY_PTE_FRAME_MASK
 NX equ 0x8000000000000000
 
 section .text
@@ -76,7 +77,7 @@ reist_x64_address_space_build:
     and edx, 3
     cmp edx, 3
     jne .bad
-    and rax, FRAME_MASK
+    MEMORY_MASK_FRAME rax
     jz .bad
     inc ecx
     cmp ecx, 2
@@ -99,12 +100,12 @@ reist_x64_address_space_build:
 .nonzero:
     test rdi, 4095
     jnz .bad
-    cmp rdi, LIMIT
+    MEMORY_COMPARE_LIMIT rdi
     jae .bad
     xor ecx, ecx
 .not_kernel_frame:
     mov rax, [r12 + 176 + rcx*8]
-    and eax, FRAME_MASK
+    MEMORY_MASK_FRAME rax
     cmp rdi, rax
     je .bad
     inc ecx

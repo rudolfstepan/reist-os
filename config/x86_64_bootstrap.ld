@@ -77,7 +77,13 @@ SECTIONS
     _c_core_handoff_end = .;
   }
 
-  _x86_64_bootstrap_end = .;
+  _x86_64_bootstrap_legacy_end = .;
+  .memory_state 0x00200000 (NOLOAD) : {
+    KEEP(*(.memory_state))
+  }
+  _memory_state_start = 0x00200000;
+  _memory_state_end = 0x00200000 + SIZEOF(.memory_state);
+  _x86_64_bootstrap_end = SIZEOF(.memory_state) ? _memory_state_end : _x86_64_bootstrap_legacy_end;
 
   .init_array : { *(.init_array .init_array.*) }
   .fini_array : { *(.fini_array .fini_array.*) }
@@ -107,6 +113,7 @@ SECTIONS
   ASSERT(SIZEOF(.c_core_handoff) == 192,
          "x86_64 C handoff ABI changed")
 
-  ASSERT(_x86_64_bootstrap_end <= 0x00200000,
+  ASSERT(_x86_64_bootstrap_legacy_end <= 0x00200000,
          "x86_64 bootstrap exceeds its single 2 MiB identity map")
+  ASSERT(SIZEOF(.memory_state) <= 8388608, "native memory arena capacity")
 }

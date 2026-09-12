@@ -1,4 +1,5 @@
 bits 64
+%include "arch/x86_64/mm/memory_profile.inc"
 ; Private SysV AMD64 transaction, trusted aligned120-byte kernel record.
 ; No user pointers, heap, waits or new authority. All loops <=13 (pair checks <=169).
 ; Allocator/free are the production physical-frame mechanism, replaceable only
@@ -57,7 +58,7 @@ claim_dispatch:
     jz .bad
     test rax, 4095
     jnz .bad
-    cmp rax, LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .bad
     mov rdx, [r12 + CURSOR]
 .unique:
@@ -93,7 +94,7 @@ claim_dispatch:
     jz .oom
     test rax, 4095
     jnz .bad
-    cmp rax, LIMIT
+    MEMORY_COMPARE_LIMIT rax
     jae .bad
     xor ecx, ecx
 .new_unique:

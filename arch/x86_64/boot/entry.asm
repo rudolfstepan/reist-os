@@ -3,8 +3,9 @@
 ; references this file.
 
 BITS 32
+%include "arch/x86_64/mm/memory_profile.inc"
 %include C_CORE_LAYOUT_PATH
-%if C_CORE_LAYOUT_VERSION != 2
+%if C_CORE_LAYOUT_VERSION != (2 + X86_64_NATIVE_RAM)
 %error "unsupported native C layout"
 %endif
 
@@ -150,6 +151,10 @@ extern _c_core_bss_start
 extern _c_core_bss_end
 extern _c_core_handoff_start
 extern _c_core_handoff_end
+%if X86_64_NATIVE_RAM
+extern _memory_state_start
+extern _memory_state_end
+%endif
 
 x86_64_bootstrap_start:
     cli
@@ -167,7 +172,7 @@ x86_64_bootstrap_start:
     ; before publishing any hierarchy entry.
     xor eax, eax
     mov edi, pml4_table
-    mov ecx, (5 * 4096) / 4
+    mov ecx, ((5 + 7 * X86_64_NATIVE_RAM) * 4096) / 4
     rep stosd
 
     ; The C ABI requires a loader-independent BSS initialization proof.
@@ -204,6 +209,15 @@ x86_64_bootstrap_start:
     mov eax, high_page_table
     or eax, PAGE_PRESENT_WRITE
     mov dword [high_page_directory], eax
+%if X86_64_NATIVE_RAM
+    mov ecx, 1
+.more_high_tables:
+    add eax, 4096
+    mov dword [high_page_directory + ecx * 8], eax
+    inc ecx
+    cmp ecx, 8
+    jb .more_high_tables
+%endif
 
     ; The final alias maps only linked pages and never grants W+X.
     mov esi, _text_start
@@ -266,6 +280,13 @@ x86_64_bootstrap_start:
     mov ecx, PAGE_NX_HIGH
     call map_high_pages32
 
+%if X86_64_NATIVE_RAM
+    mov esi, _memory_state_start
+    mov edi, _memory_state_end
+    mov ebx, PAGE_PRESENT_WRITE
+    mov ecx, PAGE_NX_HIGH
+    call map_high_pages32
+%endif
     lgdt [gdt64_pointer]
 
     mov eax, cr4
@@ -304,7 +325,9 @@ map_high_pages32:
 .next:
     mov eax, esi
     shr eax, 12
+%if !X86_64_NATIVE_RAM
     and eax, 0x1FF
+%endif
     shl eax, 3
     add eax, high_page_table
     mov edx, esi
@@ -336,8 +359,18 @@ cpu_has_long_mode:
 
     mov eax, 0x80000000
     cpuid
+%if X86_64_NATIVE_RAM
+    cmp eax, 0x80000008
+    jb .missing
+    mov eax, 0x80000008
+    cpuid
+    and eax, 255
+    cmp eax, 34
+    jb .missing
+%else
     cmp eax, 0x80000001
     jb .missing
+%endif
     mov eax, 0x80000001
     cpuid
     test edx, CPUID_LONG_MODE_BIT
@@ -651,7 +684,8 @@ x86_64_c_core_handoff64:
     mov qword [r8 + C_H_PML4], rax
     mov rax, 0xFFFF800000000000
     mov qword [r8 + C_H_DIRECT_MAP], rax
-    mov qword [r8 + C_H_MANAGED_LIMIT], 0x08000000
+    mov rax, MEMORY_LIMIT_VALUE
+    mov qword [r8 + C_H_MANAGED_LIMIT], rax
     mov qword [r8 + C_H_ELF_BASE], 0x00400000
     mov qword [r8 + C_H_ELF_LIMIT], 0x00408000
     lea rax, [rel _text_start]
@@ -798,7 +832,9 @@ verify_c_pages64:
 verify_high_page64:
     mov eax, esi
     shr eax, 12
+%if !X86_64_NATIVE_RAM
     and eax, 0x1FF
+%endif
     lea rdi, [rel high_page_table]
     mov ebx, esi
     and ebx, 0xFFFFF000
@@ -1178,7 +1214,7 @@ high_page_directory:
     resb 4096
 alignb 4096
 high_page_table:
-    resb 4096
+    resb (1 + 7 * X86_64_NATIVE_RAM) * 4096
 alignb 4096
 bootstrap_stack_bottom:
     resb 16384

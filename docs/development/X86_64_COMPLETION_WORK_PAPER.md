@@ -17,6 +17,16 @@ und geschützte hierarchische Frameverwaltung; vollbreite Verbraucher; reale
 Keine per-RAM-Größe getrennten Pakete, keine ungeschützte Vergrößerung der
 Bitmaps, keine RAM-weite Bitsuche je Allocation und keine neuen Prozessrechte.
 
+Auf Vertrag `48c47a09` umgesetzt:16GiB physischer Adressraum mit geschützter
+hierarchischer Verfügbarkeit, versioniertem C-Areal und vollbreitem Besitz
+bis zum Reap. Reale1/4/8GiB-Gäste bestehen mit ursprünglichem10s-Limit je Gast,
+24 Tasklebensläufen,75 Frame-Retirements und drei abgewiesenen Bootkarten.
+Das30s-Limit im zwischenzeitlichen Prüfer wurde im Abschlussreview entfernt.
+Belege und Grenzen stehen im [aktuellen Arbeitsstand](CURRENT_WORK.md).
+Als nächster Speicherbesitzschnitt bleiben private virtuelle Heapbereiche,
+Mappingrechte, OOM-Rollback und deren vollständiger generationsgebundener Reap
+zu inventarisieren; physische Kapazität allein stellt diese Rechte nicht bereit.
+
 ## R8.3y: kompatible IPC-Nachrichtenformate vervollständigen
 
 Baseline `89ab012f`, dreizehn Gates vor Umsetzung eingefroren. Inventurkorrektur:
