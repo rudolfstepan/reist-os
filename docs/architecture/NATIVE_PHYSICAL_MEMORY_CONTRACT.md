@@ -3,6 +3,12 @@
 Stand:12. September2026, vor Umsetzung auf `3e80a1c7` eingefroren.
 Dies ist der physische Besitzschnitt, nicht die Freigabe großer virtueller Heaps.
 
+Freigegebene Ergänzung am12. September2026: `proc/process_run.inc` gehört
+zum selben physischen Besitzschnitt. Seine Gesamtprozessprüfung verwendet
+noch die alte128MiB-Grenze und weist dadurch gültige hohe Frames ab. Der Nutzer
+hat die gezielte Aufnahme nach dem Gastbefund ausdrücklich bestätigt.
+Alle14 Gates und Lebenszyklus-/Rechtebedingungen bleiben unverändert.
+
 ## Standards und Umfang
 
 [GNU Multiboot0.6.96](https://www.gnu.org/software/grub/manual/multiboot/html_node/Boot-information-format.html)
