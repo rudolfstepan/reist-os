@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3s-x86_64-quiescent-shell-exit"
+active_id = "R3.6b-vmware-pointer-pinned-mutex"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -32,7 +32,7 @@ evidence_note = "All12 frozen groups passed; original10 retained, approved boot 
 
 [[packages]]
 id = "R8.3s-x86_64-quiescent-shell-exit"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native quiescent parent termination independent of the two-child proof dialog"
@@ -45,8 +45,8 @@ runtime_tests = ["python scripts/run_qemu_x86_64_shell_exit.py --evidence build/
 acceptance = "All11 frozen groups after user-approved reference-guard amendment: original native gates unchanged, new guard regression and dedicated i386 byte-equality guard replace only the stale JS artifact gate. Pin accepted7bd4bef0 reference images/program inventory before native implementation; no automatic rebaseline, missing/changed files fail closed. Historical JS guard and evidence unchanged. Actual old early-exit failure retained, default user ELFs unchanged. Inspect exact scope/ABI/cleanup/oracles and queue transition, local commit only after gates; continue next clean native transaction."
 stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for live-child/group recovery or wider process/device authority"]
 commit_message = "fix: decouple native shell termination from proof dialog counts"
-evidence = []
-evidence_note = "Originally frozen on1e7645c8; resumed on accepted7bd4bef0 after R3.46. User-approved12September reference amendment: old JS guard fails on clean baseline with kernel drift: main-vmware (02-baseline-reference-guard.log), due to accepted boot preparation change. Dedicated guard protects latest i386 images/programs byte-for-byte and old framebuffer independently; old JS proof unchanged. No new destructive parent/group recovery policy."
+evidence = ["python test/test_x86_64_reference_artifacts.py -v","python test/test_x86_64_shell_exit.py -v","python test/test_x86_64_boot.py -v","python test/test_x86_64_task_frames.py -v","python test/test_documentation.py -v",".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83s-shell-exit/normal","python scripts/run_qemu_x86_64_shell_exit.py --evidence build/codex-agent/r83s-shell-exit/exits","python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83s-shell-exit/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83s-shell-exit/retirement","python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83s-shell-exit/fault","python scripts/run_qemu_x86_64_requests.py --evidence build/codex-agent/r83s-shell-exit/requests","python scripts/verify_x86_64_reference_artifacts.py"]
+evidence_note = "All11 amended gates passed on contracta345443c. Accepted i3867bd4bef0 main/VMware/historical framebuffer and96 programs pinned after user shut down VM, before native implementation; before1.147s/after2.035s byte equality. Reference negative5/0.190s; actual shell final-verifier O0/O2 plus retained old executable and strict oracle/loader negatives4/3.403s; boot56/0.077s; retirement host4/2.238s; docs7 with historical D1.1 skip. Native build3.771s, default shell/child/probe ELF hashes unchanged. New guest30dialogs/24.579s incl0/1/2children, INFO optional, uint32status0/42/80000000/ffffffff and6 locally denied invalid EXIT arguments per fixture; attemptac95f98da07848d0a4d0321ac77dd5eb. Existing read-only retirement20releases/3.679s, unchanged fault24cases48generations/73.119s and request3cases6generations/8.721s passed. Evidence build/codex-agent/r83s-shell-exit logs01-26 and unique attempts retained. Old earlyEXIT actually STAGE54/C_KERNEL_CONTROL_ERROR, legacy attempt58e0bb39542a45c6a896ddb3f2d467e3. Negative test added exact4 identity capacity; optimized C alias false positives fixed by volatile snapshot and comparison of assembly-owned arena, no weakening of byte-equality checks. Loader code authenticates old opcode hash after validating only5 size-dependent relocation addends and exact shell-size immediate; all25 other mechanism/probe/child objects byteidentical across fixtures. Failed host/oracle attempts retained. Public ABI/quotas/deadlines unchanged; live-child parent termination remains separate recovery debt, no full64bitOS claim. R3.6b and R341-H1/H2 remain deferred/open; no visible VM, agent, user process termination or push."
 
 [[packages]]
 id = "R8.3r-x86_64-instruction-context"
@@ -3073,7 +3073,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "queued"
+status = "active"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

@@ -14,6 +14,20 @@ Noch keine native Produktionsänderung. Vorbereitete eigene Hosttests unter
 `01-host-red.log`; nach R3.46-Abschluss wieder aktives Paket. Die Umsetzung
 wird als eigene Transaktion auf sauberem Commitstand neu aufgenommen.
 
+Umsetzungsstand nach Wiederaufnahme: Der geordnete Abschluss ist implementiert.
+Der vorherige Absatz beschreibt den archivierten Unterbrechungsstand. Frühes
+EXIT des alten Artefakts liefert reproduzierbar STAGE_54/C_KERNEL_CONTROL_ERROR;
+mit der Korrektur bestehen 30 Dialog-/Statusfälle. Volle uint32-Statuswerte
+und sechs ungültige Argumentkombinationen werden rein in Userspace geprüft,
+ohne zusätzliche Schreibquoten oder Testselektoren im Kernel. Der O0/O2-Test
+prüft die reale Abschluss-Assembly byteweise auf unveränderten Zustand;
+die festen vier Identitätsslots werden nun ebenfalls ausdrücklich geprüft.
+Default-Shell, Kind und Probe bleiben byteidentisch. Alle elf eingefrorenen
+Gruppen bestehen, einschließlich der unveränderten 24 Faultfälle mit
+48 Generationen, des Frame-Reap-Nachweises und der Request-/IPC-Regression.
+Die fehlgeschlagenen Zwischenläufe bleiben erhalten. Direkte Diff-/Scopeprüfung
+und lokaler Commit bilden die Transaktionsgrenze zum nächsten nativen Paket.
+
 Freigegebene Abnahmeergänzung12.September: Der historische JS-Prüfer meldet
 auf dem abgenommenen `7bd4bef0` bereits `kernel drift: main-vmware`, weil
 R3.46 die Bootvorbereitung absichtlich korrigiert hat. Ein eigener nativer

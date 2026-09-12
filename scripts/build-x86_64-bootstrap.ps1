@@ -14,10 +14,14 @@ param(
     [ValidateRange(0, 1)] [int]$OomCase = 0,
     [ValidateRange(0, 1)] [int]$ProfileCase = 0,
     [ValidateRange(0, 4)] [int]$MappingCase = 0,
-    [ValidateRange(0, 3)] [int]$InstructionCase = 0
+    [ValidateRange(0, 3)] [int]$InstructionCase = 0,
+    [ValidateRange(-1, 4294967295)] [long]$ShellExitStatus = -1
 )
 
 Set-StrictMode -Version Latest
+if ($ShellExitStatus -ge 0 -and ($InstructionCase -ne 0 -or $MappingCase -ne 0 -or $ProfileCase -ne 0 -or $OomCase -ne 0 -or $RequestCase -ne 0 -or $IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
+    throw 'ShellExitStatus is exclusive with other user fixtures.'
+}
 if ($InstructionCase -ne 0 -and ($MappingCase -ne 0 -or $ProfileCase -ne 0 -or $OomCase -ne 0 -or $RequestCase -ne 0 -or $IpcCase -ne 0 -or $ArgvCase -ne 0 -or $ExitStatus -ge 0 -or $ContextCase -ne 0 -or $BusyChild -or $InvalidBusyStack -or $FaultVector -ge 0 -or $FaultPhase -ne 0)) {
     throw 'InstructionCase is exclusive with other user fixtures.'
 }
@@ -237,6 +241,7 @@ try {
         "X86_64_PROFILE_CASE=$ProfileCase" `
         "X86_64_MAPPING_CASE=$MappingCase" `
         "X86_64_INSTRUCTION_CASE=$InstructionCase" `
+        "X86_64_SHELL_EXIT_STATUS=$ShellExitStatus" `
         "LD=$(To-MakePath $Zig) ld.lld"
     if ($LASTEXITCODE -ne 0) {
         throw "x86_64 bootstrap build failed with exit code $LASTEXITCODE."

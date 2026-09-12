@@ -2,6 +2,36 @@
 
 Stand: 11. September 2026
 
+Ergänzung12.September2026, R8.3s: Geordneter Shellabschluss verlangt keinen
+bestimmten Testdialog mehr. Null, ein oder zwei vollständig gereapte Kinder
+sind zulässig; 18 gelesene Bytes und acht Schreibaufrufe bleiben Obergrenzen.
+Vor der Zustandsänderung müssen Runqueue, Kind-/Waitbindung, Endpoints und
+übrige Taskslots quieszent sein. Der Abschlussprüfer leitet Ereignisfolge,
+Reapzahl und letzte Generation aus derselben validierten Kindzahl ab. Er
+prüft auch die feste Vier-Slot-Kapazität des privaten Identitätsrecords.
+Frame-, Profil-, FP-, Deadline- und Tombstone-Prüfungen bleiben vollständig.
+
+Referenz bleibt REIST-Syscall-v1: EXIT übernimmt einen uint32-Rohstatus;
+kein POSIX-Waitstatus und keine Reduktion auf acht Bits. Werte außerhalb von
+uint32 und nichtnullige reservierte Argumente liefern lokal EINVAL, bevor
+Retirement beginnt. Die vorhandene geordnete Freigabe erzeugt erst nach
+vollständigem Cleanup einen privaten seriellen Status-/Generationsbeleg.
+Nichtnulliger Programmstatus setzt zusätzlich den bisherigen SHELL_ERROR-
+Marker: alte Normalprüfer lehnen ihn weiterhin ab, obwohl der Kern sauber
+weiterläuft. Keine neue Syscallnummer oder erweiterte Prozessautorität.
+Elternende bei noch lebendem Kind/Endpoint bleibt ausdrücklich ein eigener
+offener Recovery-Schnitt; diese Abnahme behauptet dafür keine Isolation.
+
+Reine Userspace-Fixtures prüfen sechs ungültige Argumentkombinationen und
+vier Rohstatusfälle. In 30 endlichen QEMU-Dialogen mit/ohne INFO werden alle
+drei Kindzahlen geprüft. 25 Mechanismus-/Probe-/Kindobjekte bleiben identisch.
+Beim ELF-Embedding-Adapter werden zusätzlich sämtliche Instruktionsbytes
+gegen den alten Loader geprüft; ausschließlich fünf nachweislich von der
+Shellgröße abhängige R_386_PC32-Addenden und deren exakte Längen-Konstante
+werden auf die Referenz normalisiert. Kein Ignorieren beliebiger Unterschiede.
+Der tatsächliche Abschlussprüfer läuft im O0/O2-Hosttest; volatile Bytezugriffe
+bilden dort die in C nicht ausdrückliche Aliasbeziehung der Assemblylabels ab.
+
 Ergänzung12. September2026, R8.3r: Derselbe Task-Tabellenrecord erlaubt privat
 PF_X=1 für genau ein Instruktionsbyte. Intel64 P/U wird über alle Ebenen
 verknüpft, gesetztes NX auf einer beliebigen Ebene verweigert Ausführung;

@@ -10,8 +10,27 @@ wegen der abgenommenen Bootkorrektur (`02-baseline-reference-guard.log`).
 Nutzerfreigabe: eigener i386-Referenzprüfer mit fest gepinnten Artefakten und
 Negativtests; kein automatischer Basiswechsel und keine Änderung historischer
 JS-Nachweise. Elf eingefrorene Gruppen, übrige native Abnahme unverändert.
-Noch keine native Produktionsänderung; Referenzaufnahme nur ohne parallelen
-VM-/Build-Schreiber. Benutzerprozesse werden nicht beendet.
+Referenzwerte wurden nach dem vom Nutzer bestätigten VMware-Ende aufgenommen;
+Benutzerprozesse wurden nicht beendet. Historischer Fehlerbeleg und JS-Prüfer
+bleiben erhalten. 96 Programme und drei Imageartefakte sind fest gepinnt.
+
+Die native Shell beendet sich nun quieszent nach null/einem/zwei Kindern mit
+vollem uint32-Rohstatus. Ungültige EXIT-Argumente werden lokal abgelehnt;
+alle Ressourcen-/Generationsprüfungen bleiben erhalten. Frühes EXIT im alten
+Gast wurde tatsächlich als Fehler reproduziert, nicht nur aus Source gefolgert.
+30 neue Status-/Dialogfälle bestehen; nichtnulliger Programmstatus verhindert
+weiterhin einen Erfolg alter Normalorakel, ohne den Kernelabschluss zu zerstören.
+Details und Abnahmeprotokolle: `build/codex-agent/r83s-shell-exit/` und Queue.
+Lebende Kinder beim Elternende, allgemeine Dienste und größere RAM-Profile
+sind durch diesen begrenzten Bootstrapnachweis noch nicht abgedeckt.
+
+Alle elf Prüfgruppen bestanden: Referenztest5, native Abschlussprüfung4 mit
+O0/O2, Bootstrap56, Frame-Host4, Dokumentation7 (historischer D1.1-Skip), Build,
+30 neue Exit-Dialoge, 20 beobachtete Freigaben, 24 Faultfälle/48 Generationen,
+drei Requestfälle/sechs Generationen und abschließender i386-Hashschutz.
+Die vorhandenen Default-ELFs für Shell, Kind und Probe sind byteidentisch.
+Queue und Arbeitsstand sind für den lokalen Paketcommit nachgeführt;
+R3.6b bleibt trotz formaler Folgeaktivierung ausdrücklich zurückgestellt.
 
 ## R3.46: Anzeige-Checkboxen für Schatten und Verschiebeinhalt
 

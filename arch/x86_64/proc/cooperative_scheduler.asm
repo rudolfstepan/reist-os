@@ -4472,28 +4472,59 @@ scheduler_handle_shell_exit64:
     jne scheduler_fail
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
     jne scheduler_fail
-    cmp qword [rel syscall_rdi], SHELL_EXIT_STATUS
-    jne scheduler_fail
+    ; EXIT carries the existing uint32 raw status, not a proof-dialog token.
+    mov edi, 1
+    mov rsi, [rel syscall_rdi]
+    call reist_x64_terminal_status
+    cmp rax, REIST_EINVAL
+    je .invalid_arguments
     cmp qword [rel syscall_rsi], 0
-    jne scheduler_fail
+    jne .invalid_arguments
     cmp qword [rel syscall_rdx], 0
-    jne scheduler_fail
+    jne .invalid_arguments
     cmp dword [rel scheduler_shell_read_count], SHELL_EXPECTED_READS
-    jne scheduler_fail
+    ja scheduler_fail
     cmp dword [rel scheduler_shell_write_count], SHELL_EXPECTED_WRITES
+    ja scheduler_fail
+    cmp byte [rel scheduler_runqueue_head], 0
+    jne scheduler_fail
+    cmp byte [rel scheduler_runqueue_tail], 0
     jne scheduler_fail
     cmp byte [rel scheduler_runqueue_count], 0
     jne scheduler_fail
-    cmp byte [rel scheduler_runqueue_membership], 0
+    cmp dword [rel scheduler_runqueue_membership], 0
     jne scheduler_fail
-    cmp dword [rel scheduler_dynamic_spawn_count], 2
+    lea rsi, [rel scheduler_runqueue_entries]
+    mov ecx, RUNQUEUE_CAPACITY
+.queue_zero:
+    cmp qword [rsi], 0
     jne scheduler_fail
-    cmp dword [rel scheduler_dynamic_completed_count], 2
+    add rsi, 8
+    loop .queue_zero
+    mov eax, [rel scheduler_dynamic_completed_count]
+    cmp eax, 2
+    ja scheduler_fail
+    cmp [rel scheduler_dynamic_spawn_count], eax
     jne scheduler_fail
     cmp byte [rel scheduler_dynamic_child_active], 0
     jne scheduler_fail
     cmp dword [rel scheduler_dynamic_child_generation], 0
     jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_parent_generation], 0
+    jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_wait_generation], 0
+    jne scheduler_fail
+    cmp dword [rel scheduler_dynamic_wait_child_generation], 0
+    jne scheduler_fail
+    cmp qword [rel scheduler_dynamic_wait_status_direct], 0
+    jne scheduler_fail
+    lea rsi, [rel scheduler_tasks + TASK_RECORD_SIZE]
+    mov ecx, TASK_SLOT_CAPACITY - 1
+.peers_free:
+    cmp qword [rsi + TASK_STATE], TASK_FREE
+    jne scheduler_fail
+    add rsi, TASK_RECORD_SIZE
+    loop .peers_free
     call scheduler_verify_shell_ipc_zero64
     test eax, eax
     jz scheduler_fail
@@ -4501,6 +4532,8 @@ scheduler_handle_shell_exit64:
     test eax, eax
     jz scheduler_fail
 
+    mov eax, [rel syscall_rdi]
+    mov [rel scheduler_shell_exit_status], eax
     mov qword [r12 + TASK_STATE], TASK_EXITED
     mov al, EVENT_SHELL_EXITED
     call scheduler_append_event64
@@ -4524,12 +4557,52 @@ scheduler_handle_shell_exit64:
     mov byte [rel scheduler_shell_started], 0
     mov dword [rel scheduler_shell_read_count], 0
     mov dword [rel scheduler_shell_write_count], 0
+    ; Emit the exact terminal receipt only after ordinary retirement and
+    ; complete frame/MSR/TSS/timer cleanup, never from forced cleanup.
+    lea rsi, [rel scheduler_shell_reap_message]
+    call serial_write64
+    mov r10d, [rel scheduler_shell_exit_status]
+    mov r9d, 4
+.status_bytes:
+    rol r10d, 8
+    mov eax, r10d
+    call scheduler_hex8_local64
+    dec r9d
+    jnz .status_bytes
+    lea rsi, [rel scheduler_shell_children_message]
+    call serial_write64
+    mov eax, [rel scheduler_dynamic_completed_count]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_shell_reaps_message]
+    call serial_write64
+    mov eax, [rel scheduler_reap_count]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_child_fault_parent_message]
+    call serial_write64
+    mov eax, [rel scheduler_identity_retired]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_shell_last_message]
+    call serial_write64
+    mov eax, [rel scheduler_identity_pool + 20]
+    call scheduler_hex8_local64
+    lea rsi, [rel scheduler_newline]
+    call serial_write64
     lea rsi, [rel scheduler_shell_exit_ok_message]
     call serial_write64
+    cmp dword [rel scheduler_shell_exit_status], 0
+    je .status_reported
+    lea rsi, [rel scheduler_shell_status_error_message]
+    call serial_write64
+.status_reported:
+    mov dword [rel scheduler_shell_exit_status], 0
     lea rsi, [rel scheduler_shell_ok_message]
     call serial_write64
     mov byte [rel scheduler_final_result], 1
     jmp scheduler_return64
+
+.invalid_arguments:
+    mov rax, REIST_EINVAL
+    jmp scheduler_shell_resume64
 
 scheduler_handle_shell_child_exit64:
     mov edi, 1
@@ -6553,12 +6626,39 @@ scheduler_verify_final_events64:
     jb .dynamic_queue_zero
     jmp .task_records
 .shell_events:
-    cmp byte [rel scheduler_event_count], 6
+    mov eax, [rel scheduler_dynamic_completed_count]
+    cmp eax, 2
+    ja .fail
+    cmp [rel scheduler_dynamic_spawn_count], eax
     jne .fail
+    cmp dword [rel scheduler_shell_read_count], SHELL_EXPECTED_READS
+    ja .fail
+    cmp dword [rel scheduler_shell_write_count], SHELL_EXPECTED_WRITES
+    ja .fail
+    lea edx, [eax + 4]
+    cmp byte [rel scheduler_event_count], dl
+    jne .fail
+    inc eax
+    cmp [rel scheduler_reap_count], eax
+    jne .fail
+    dec eax
     lea rsi, [rel scheduler_events]
-    lea rdi, [rel scheduler_shell_events]
-    mov ecx, 6
-    repe cmpsb
+    cmp byte [rsi], EVENT_SHELL_READY
+    jne .fail
+    cmp byte [rsi + 1], EVENT_SHELL_RUNNING
+    jne .fail
+    add rsi, 2
+    mov ecx, eax
+    jecxz .shell_terminal_events
+.shell_child_events:
+    cmp byte [rsi], EVENT_SHELL_CHILD_FREE
+    jne .fail
+    inc rsi
+    loop .shell_child_events
+.shell_terminal_events:
+    cmp byte [rsi], EVENT_SHELL_EXITED
+    jne .fail
+    cmp byte [rsi + 1], EVENT_SHELL_FREE
     jne .fail
     cmp byte [rel scheduler_runqueue_head], 0
     jne .fail
@@ -6577,8 +6677,6 @@ scheduler_verify_final_events64:
     inc ebx
     cmp ebx, RUNQUEUE_CAPACITY
     jb .shell_queue_zero
-    cmp dword [rel scheduler_reap_count], 3
-    jne .fail
     cmp byte [rel scheduler_shell_started], 1
     jne .fail
     cmp byte [rel scheduler_dynamic_child_active], 0
@@ -6625,17 +6723,25 @@ scheduler_verify_final_events64:
 .task_records:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .terminal_receipt
+    cmp dword [rel scheduler_identity_pool + 16], TASK_SLOT_CAPACITY
+    jne .fail
     xor eax, eax
     xor edi, edi
     xor esi, esi
     call scheduler_identity_apply64
     test eax, eax
     jz .fail
-    cmp dword [rel scheduler_identity_pool + 20], TASK_SHELL_CHILD_GEN2
+    mov eax, [rel scheduler_dynamic_completed_count]
+    add eax, TASK_SHELL_GENERATION
+    cmp dword [rel scheduler_identity_pool + 20], eax
     jne .fail
     cmp dword [rel scheduler_identity_retired], TASK_SHELL_GENERATION
     jne .fail
-    cmp dword [rel scheduler_identity_retired + 4], TASK_SHELL_CHILD_GEN2
+    cmp dword [rel scheduler_dynamic_completed_count], 0
+    jne .shell_child_retired
+    xor eax, eax
+.shell_child_retired:
+    cmp dword [rel scheduler_identity_retired + 4], eax
     jne .fail
     cmp qword [rel scheduler_identity_retired + 8], 0
     jne .fail
@@ -7075,6 +7181,11 @@ scheduler_runqueue_ok_message db "REIST_X86_64_RUNQUEUE_LIFECYCLE_OK", 13, 10, 0
 scheduler_sleep_ok_message db "REIST_X86_64_DEADLINE_SLEEP_OK", 13, 10, 0
 scheduler_dynamic_ok_message db "REIST_X86_64_SPAWN_WAIT_OK", 13, 10, 0
 scheduler_shell_exit_ok_message db "REIST_X86_64_RING3_SHELL_EXIT_OK", 13, 10, 0
+scheduler_shell_reap_message db "REIST_X86_64_SHELL_REAP_OK status=", 0
+scheduler_shell_children_message db " children=", 0
+scheduler_shell_reaps_message db " reaps=", 0
+scheduler_shell_last_message db " last=", 0
+scheduler_shell_status_error_message db "REIST_X86_64_RING3_SHELL_ERROR", 13, 10, 0
 scheduler_shell_ok_message db "REIST_X86_64_SCHEDULED_SHELL_OK", 13, 10, 0
 scheduler_stage_message db "REIST_X86_64_PROCESS_SCHEDULER_STAGE_", 0
 scheduler_newline db 13, 10, 0
@@ -7188,6 +7299,8 @@ scheduler_shell_started:
 scheduler_shell_read_count:
     resd 1
 scheduler_shell_write_count:
+    resd 1
+scheduler_shell_exit_status:
     resd 1
 alignb 16
 scheduler_syscall_profiles:

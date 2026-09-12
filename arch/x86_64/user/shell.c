@@ -15,6 +15,9 @@ typedef unsigned char shell_u8;
 #define SHELL_PARENT_PID 300LL
 #define SHELL_CHILD_PID 301LL
 #define SHELL_CHILD_STATUS 77U
+#ifndef X86_64_SHELL_EXIT_STATUS
+#define X86_64_SHELL_EXIT_STATUS -1
+#endif
 #ifndef X86_64_INSTRUCTION_CASE
 #define X86_64_INSTRUCTION_CASE 0
 #endif
@@ -661,7 +664,21 @@ cpu_budget_wait:
                     shell_exit(14ULL);
                 }
             } else if (command_equals(command, "EXIT", 4U, command_length)) {
+#if X86_64_SHELL_EXIT_STATUS >= 0
+                /* User-only fixture: invalid requests must resume without
+                 * retirement. No additional WRITE quota or kernel selector. */
+                if (reist_x64_syscall3(REIST_X64_SYS_EXIT, 0x100000000ULL, 0, 0) != -22LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_EXIT, ~0ULL, 0, 0) != -22LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_EXIT, 0, 1, 0) != -22LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_EXIT, 0, 0, 1) != -22LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_EXIT, 42, 0x100000000ULL, 0) != -22LL ||
+                    reist_x64_syscall3(REIST_X64_SYS_EXIT, 42, 0, 0x100000000ULL) != -22LL) {
+                    shell_exit(0xBADULL);
+                }
+                shell_exit((shell_u32)X86_64_SHELL_EXIT_STATUS);
+#else
                 shell_exit(0ULL);
+#endif
             } else if (command_length != 0U) {
                 if (!shell_write_exact(unknown, sizeof(unknown) - 1U) ||
                     !shell_write_exact(prompt, sizeof(prompt) - 1U)) {
