@@ -1,7 +1,15 @@
 # Native prepared image import boundary
 
 R8.3ag, frozen on accepted7757c747, 12 September 2026. Thirteen mandatory
-gate groups in the queue; no runtime acceptance at contract freeze.
+gate groups in the original queue; no runtime acceptance at contract freeze.
+
+Renewed user instruction on12 September after the explicit scope question
+adds process_run.inc and process_run.h. Its central runtime admission must
+allow imported ID7 only in slot2 and ID8 only in slot3 under Lifecycle-v3;
+v1/v2 and root admission remain unchanged. Actual assembly regressions cover
+wrong slots and versions; the existing process-run host gate is added to all
+original13 groups (14 total). Resume the attributed candidate without changing
+quotas or the one-focused-repair stop rule.
 
 ## Inventory and cohesive purpose
 
@@ -69,6 +77,6 @@ actual guest execution.
 
 Stop on unattributed changes, required files outside frozen scope, quota or
 deadline widening, or a frozen gate failing after one focused in-scope repair.
-Only after all13 groups, direct ABI/ownership/rollback/scope review and clean
+Only after all14 groups, direct ABI/ownership/rollback/scope review and clean
 local commit may the next native package start. R3.6b remains deferred;
 R341-H1/H2 stay open. No full OS, general filesystem or supervisor claim.
