@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3r-x86_64-instruction-context"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3r-x86_64-instruction-context"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Task-bound native instruction admission across syscall and timer contexts"
+scope = "Close the separate execution-return authority boundary after R8.3q data access. Reuse the actual task-table binding for one-byte execute admission, enforce P/U and NX at every level before context publication. Replace selected-ELF RIP checks in running-task syscall/IRQ/legacy exception consumers, preserve unmapped/NX actual user-fault containment. No executable rights granted, no loader/role/endpoint/memory-capacity change."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/mm/user_access.asm", "arch/x86_64/mm/user_access.h", "arch/x86_64/user/child.asm", "arch/x86_64/user/shell.c", "config/x86_64_user_instruction.ld", "test/test_x86_64_user_access.py", "test/x86_64_user_access_host.c", "test/test_x86_64_instruction.py", "scripts/run_qemu_x86_64_instruction.py", "test/test_x86_64_boot.py"]
+invariants = ["Intel64 paging/IRETQ/SYSCALL semantics, unchanged public ABI and private32-byte binding. Existing data access unchanged; private PF_X=1 admits exactly one byte only when P/U holds and NX is clear across all levels. Running-task context validates actual generation/current CR3. No memory mutation or user dereference in admission, no dynamic allocation/logging/IO in IRQ. Invalid child return context uses existing raw258 terminal containment after EOI for IRQ; malformed trusted binding remains fatal. Existing real NX execution faults retain fault classification.", "Actual host execute matrix plus all R8.3q data cases, standalone old behavior retained. User-only fixtures: successful YIELD from second RX page, syscall-free second-RX-page spin to32sample retirement, SYSCALL at RX page end returning into absent page locally retired before resumption. Independent real instruction/ELF and generation/status/reap/parent witnesses. Normal user ELFs unchanged, kernel mechanisms identical across fixtures. Existing128MiB/1CPU/four slots/two children/256ticks/32samples/10s guest limits unchanged; no i386/driver/role policy changes or visible VMs/agents/push. R3.6b remains deferred."]
+targeted_tests = ["python test/test_x86_64_user_access.py -v", "python test/test_x86_64_instruction.py -v", "python test/test_x86_64_context.py -v", "python test/test_x86_64_user_context.py -v", "python test/test_x86_64_boot.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83r-instruction/normal"]
+runtime_tests = ["python scripts/run_qemu_x86_64_instruction.py --evidence build/codex-agent/r83r-instruction/instructions", "python scripts/run_qemu_x86_64_user_context.py --evidence build/codex-agent/r83r-instruction/context", "python scripts/run_qemu_x86_64_fault.py --evidence build/codex-agent/r83r-instruction/fault", "python scripts/run_qemu_x86_64_busy.py --evidence build/codex-agent/r83r-instruction/busy", "python scripts/run_qemu_x86_64_mappings.py --evidence build/codex-agent/r83r-instruction/mappings", "python scripts/run_qemu_x86_64_user_access.py --evidence build/codex-agent/r83r-instruction/buffers", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83r-instruction/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83r-instruction/retirement", "python scripts/verify_js_colors_artifacts.py"]
+acceptance = "All15 risk-derived groups: actual execute and unchanged data host coverage; all old context/fault/CPU/NX cases and normal task retirement. No weakened source or runtime oracle. Freeze scope, inspect diff, commit locally after all groups, then next clean native transaction."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Failed gate without focused in-scope correction", "Need for wider executable, exception, process or device authority"]
+commit_message = "fix: validate native instruction contexts against task mappings"
+evidence = []
 
 [[packages]]
 id = "R8.3q-x86_64-task-user-access"
@@ -3019,7 +3036,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
