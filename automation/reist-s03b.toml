@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3w-x86_64-shared-integrity"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3w-x86_64-shared-integrity"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native binding of the existing shared integrity primitive"
+scope = "Port the common x86 IRQ save/restore operand width so the unchanged shared critical_object C implementation can execute natively. IPC inventory reproduced twelve invalid push/pop32 instructions in a real freestanding x86_64 compile. Preserve the public uint32 interrupt-state token (architecturally defined RFLAGS status bits), use native-width stack operands internally, and prove i386 preprocessing/object equivalence. Add an optional CIntegrityProbe profile using the exact existing SECDED/CRC/publication implementation plus only required compiler memory primitives from the existing C runtime. Real native fault cases must exercise correction, independent-copy recovery, conflicting/corrupt-copy rejection and no output publication on rejection, with IRQ/stack preservation and subsequent normal guest progress. This closes the integrity/architecture dependency, not IPC pools or full64bitOS."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/X86_64_BOOTSTRAP.md", "arch/x86/include/interrupt.h", "Makefile", "arch/x86_64/kernel/bootstrap_core.c", "scripts/build-x86_64-bootstrap.ps1", "test/test_x86_64_integrity.py", "test/x86_64_integrity_fixture.c", "scripts/run_qemu_x86_64_integrity.py"]
+invariants = ["The shared kernel/init/critical_object.c and its public header, existing arithmetic/performance scope guards, SECDED/CRC tables and publication/selection/sequence semantics remain source-identical. No hosted-mode macro to bypass real CLI/restore. No new integrity algorithm or weakening of uncorrectable rejection. Tests use the real freestanding C implementation in QEMU, not only hosted stubs. Any optional compiler memcpy/memset dependency uses the existing lib/libc/string.c with only selected bounded memory functions retained, no hosted runtime or in-kernel parser import.", "Only common x86 IRQ helper internals change for __x86_64__; i386 preprocessed IRQ helpers and actual common integrity machine-code sections must remain identical to12f93954. Public uint32 saved interrupt-state API unchanged;64-bit pushfq/pop and zero-extended push/popfq operands internally, no truncation of pointers or stack slots. Native probe runs on the trusted boot C stack with masked PIC, preserves IF/stack/caller ownership, injects only its own fixed test objects and scrubs its state. This is boot integrity reuse, not new userspace/IRQ/fatal authority or an SMP/fail-operational claim. Existing bounded publication retry policy is unchanged and is not claimed as an accepted new userspace-facing native lock path.", "Normal user ELFs,128MiB/four-task limits, deadlines, W^X/NX/private layout v2, i386 images/96program manifest and the existing native independent-task and frame oracles remain unchanged. Real native single-bit corrections in both copies, multi-bit recovery from the independent valid copy, both-copy and conflicting-valid-copy rejection, sequence/capacity/semantic failures, busy publication failure and output/object cleanup are required. Read-only GDB witnesses actual native calls/results and IRQ/stack state; every capture bounded/hidden, no agents, visible dialogs, unrelated process termination or push. R3.6b remains explicitly deferred; R341-H1/H2 stay open."]
+targeted_tests = ["python test/test_x86_64_integrity.py -v", "python test/test_reist_critical_object.py -v", "python test/test_x86_64_boot.py -v", "python test/test_x86_64_c_payload.py -v", "python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83w-integrity/normal", ".\\scripts\\build-x86_64-bootstrap.ps1 -CIntegrityProbe -OutputDirectory build/codex-agent/r83w-integrity/probe"]
+runtime_tests = ["python scripts/run_qemu_x86_64_integrity.py --image build/codex-agent/r83w-integrity/probe/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83w-integrity/native", "python scripts/run_qemu_x86_64_process_run.py --evidence build/codex-agent/r83w-integrity/processes", "python scripts/run_qemu_x86_64_task_frames.py --image build/codex-agent/r83w-integrity/normal/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83w-integrity/retirement", "python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All11 frozen groups; unchanged shared integrity source and i386 preprocessor/object proof, actual native integrity fault/rejection/cleanup, preserved old guest and i386 gates, final direct scope/ABI/cleanup review then clean local commit. Retain initial native compiler failure in build/codex-agent/r83w-integrity-inventory/compile-before.log. Continue native IPC inventory only after this transaction."
+stop_conditions = ["Unattributed changes", "Required source outside frozen scope", "Shared integrity algorithm/publication changes required", "Failed gate without focused in-scope correction", "Need for new IPC/driver/SMP authority"]
+commit_message = "fix: bind shared integrity primitives to native x86_64 IRQ state"
 
 [[packages]]
 id = "R8.3v-x86_64-c-payload-layout"
@@ -3128,7 +3144,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"

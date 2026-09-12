@@ -4,6 +4,21 @@ Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3w: vorhandenen Integritätskern übernehmen
+
+Nach R8.3v `12f93954`: Die vorhandene IPC-Implementierung hängt am gemeinsamen
+SECDED-/CRC-Integritätskern. Dessen reale native Übersetzung scheitert derzeit
+an `push/pop %eax` im IRQ-Save/Restore; Beleg unter
+`build/codex-agent/r83w-integrity-inventory/compile-before.log`. Der gemeinsame
+x86-Header erhält native Stackbreite bei unverändertem32-Bit-Statustoken,
+während sein i386-Präprozessor-/Codepfad exakt erhalten bleibt. Die bestehenden
+Integritätsalgorithmen und Leistungsoptimierungen werden nicht neu geschrieben.
+Optionaler `-CIntegrityProbe`-Gast prüft den tatsächlichen gemeinsamen C-Kern
+mit Bitfehlern, unabhängiger Kopie, doppelter/semantischer Korruption, endlichem
+Busyfehler, IRQ-/Stackerhalt und vollständiger Bereinigung. Elf fixierte Gates;
+erst danach allgemeine IPC-Pools. Keine neue native Userspace-Lock- oder
+SMP-Abnahme durch einen Boot-Selbsttest behaupten.
+
 ## R8.3v: mehrseitiger nativer C-Payload
 
 Nächster zusammenhängender Schnitt nach `df6b82ac`: R8.3v beseitigt vor der

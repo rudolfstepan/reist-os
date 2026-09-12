@@ -2,6 +2,16 @@
 
 Stand: 12. September 2026
 
+R8.3w, vor Umsetzung eingefroren: Der bestehende gemeinsame Integritätskern
+bleibt quellgleich. Der x86-IRQ-Header verwendet in Long Mode64-Bit-Stack-
+operanden; das historische uint32-Statustoken enthält weiterhin die definierten
+RFLAGS-Statusbits, keine Adresse. Die i386-Präprozessor-/Maschinencodegleichheit
+wird gegen `12f93954` geprüft. Optionaler C-Bootgast `-CIntegrityProbe` verwendet
+reale IRQ-Save/Restore-Ausführung und die unveränderten SECDED-/CRC-/Copy-
+Publikationsregeln. Er injiziert nur eigene feste Testobjekte und muss alle
+normalen Folgeprüfungen erreichen. Dies übernimmt einen existierenden
+Integritätsmechanismus, erteilt aber weder IPC- noch Geräte-/SMP-Rechte.
+
 R8.3v, vor Implementierung eingefroren12.September: privates C-Payloadlayout v2.
 System-V-ELF64/EM_X86_64/ET_EXEC bleibt der native C-Linkvertrag, ELF32 nur der
 Multiboot-Transportcontainer. Physische feste Hüllbereiche: Bridge0x184000/4KiB,

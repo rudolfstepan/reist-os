@@ -2,6 +2,18 @@
 
 Stand: 12. September 2026
 
+## R8.3w: gemeinsamen Integritätsschutz nativ anbinden
+
+R8.3v ist mit `12f93954`, allen zehn Gates und sauberem Arbeitsbaum abgenommen.
+Die weitere IPC-Inventur reproduziert eine zweite Architekturabhängigkeit:
+Der unveränderte `critical_object`-Kern scheitert nativ an zwölf ungültigen
+32-Bit-Stackoperanden des gemeinsamen IRQ-Headers. R8.3w korrigiert nur diese
+Architekturbindung. SECDED-/CRC-Optimierung und Publikations-/Auswahlregeln
+bleiben quellgleich. Der native Gast muss denselben Integritätskern mit
+Fehlerinjektion ausführen; i386-Präprozessor-/Maschinencodegleichheit schützt
+den bisherigen Pfad. Elf Gates sind vor Umsetzung fixiert. Keine nativen
+IPC-Pools oder neuen Userrechte in diesem vorgeschalteten Integritätsschnitt.
+
 ## R8.3v: Platz und verifizierte Bindungen für nativen C-Kernelcode
 
 R8.3u ist mit `df6b82ac` und allen14 Gates abgeschlossen. Bei der nächsten
