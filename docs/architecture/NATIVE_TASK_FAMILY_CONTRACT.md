@@ -9,6 +9,13 @@ full verification of the same attributed candidate. Resolve and validate the
 directory inside build/codex-agent before building variants. Preserve failed
 evidence, all17 gate groups and the original one-focused-repair stop condition.
 
+A second renewed instruction after the explicit identity-test scope question
+admits test/test_x86_64_identity.py only. Its direct allocator expectation was
+already stale on cbe5b956. Assert reservation before the existing frame-claim
+adapter, its physical/claimed routes and unchanged rollback/reap ordering.
+Keep the actual O0/O2 identity behavior test and all17 gates. Retain the failed
+identity log and unaffected passing evidence; no kernel or authority shortcut.
+
 ## Standards and authority
 
 Use the existing SysV AMD64 transport and ELF64 prepared-image mechanism.
