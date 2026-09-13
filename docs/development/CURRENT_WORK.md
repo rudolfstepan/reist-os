@@ -2,6 +2,59 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: gemeinsame Fatal-Sperre und Diagnose freigegeben
+
+Die neue Zustimmung erlaubt die angefragte Erweiterung: `exceptions.asm`,
+`timer_interrupt.asm` und bestehender Runtime-Clock-Hosttest, insgesamt39
+Dateien. Zwei zusätzliche Prüfgruppen ergeben22 Gates. NativePIO-Fatalpfade
+sperren physisch vor Diagnose und dürfen keine beschädigten Metadaten bereinigen
+oder zur Laufzeit zurückkehren. Alte Timerzulassung und sämtliche Quoten bleiben.
+Gezielte Gastfehler nach echter Resetfreigabe müssen Ursache, OUT-Reihenfolge,
+unveränderte Metadaten und fehlende Fortsetzung zeigen. Historischer vector20
+bleibt ohne damalige Registerevidenz ausdrücklich nicht ursächlich bewiesen.
+Vertragscommit vor Umsetzung; normale scoped Reparaturen ohne erneute Nachfrage.
+
+## R8.3ah: Referenzen abgenommen, gemeinsame Fatal-Sperre fehlt
+
+Vertragscommit `92df3aa2`. Der isolierte QEMU/vga-Neubau besteht in140.311s;
+der bereits bestandene VMware/vga-Neubau bleibt unverändert. Die korrigierte
+Referenzmatrix besteht vollständig in146.810s:
+`reference-qualification-f6047a0a5c5d485db69225327f5e6704` unter
+`build/codex-agent/r83ah-pio/`.
+
+- VMware-Hauptabbild/APIC26.75s und VMware-Paketabbild/APIC26.20s: vollständiger
+  GTEST, Recovery, richtiger Timer und Shell-Rückkehr auf exklusiven Kopien.
+- QEMU-Neubau/APIC41.53s und PIT40.65s: dieselben vollständigen Anforderungen,
+  jeweils tatsächlicher Backendnachweis; keine VMware-PIT-Behauptung.
+- Beide VMware-Kopien laut Cleanup beendet. Vor-/Nachhashes aller geschützten
+  Originale und Neubauten gleich. SBOM, signierte Bootslots und alle96 PRGs
+  unabhängig gebunden. Originalabbilder und Host-Sicherheit unverändert.
+- Erst anschließend feste Referenzpins überprüft ersetzt. Historischer
+  Framebuffer unverändert; frühere Pins in Git und im Qualifikationsbericht.
+  `reference-host-pins-01.log`:16 Tests/0.125s PASS;
+  `pins-qualified-01.log`: Byteguard1.105s PASS, weiterhin kein Lernen zur Laufzeit.
+
+Die abschließende Quellprüfung findet eine separate Sicherheitslücke:
+`exception_fatal` in `arch/x86_64/cpu/exceptions.asm` protokolliert und hält an,
+ohne die neu eingeführte PIO-Domäne vorher physisch zu sperren. Der gemeinsame
+Timer-Abbruchadapter nimmt MODE_PROCESS nicht an und kehrt ebenfalls in diesen
+Fatalpfad zurück. `native_pio_fail64` sperrt nur Fehler, die über seinen eigenen
+Einstieg kommen; das deckt beliebige Kernel-/IRQ-Fatalpfade nicht ab.
+Dies beweist den fehlenden gemeinsamen Sperraufruf, **nicht** die Ursache des
+historischen Timer-Fatals aus `attempt-20b8dfe84c8e4be49c6a26f9f214604a`.
+Im damaligen letzten sichtbaren BIND wurde SRST bereits gesetzt; daraus folgt
+keine Aussage über alle möglichen späteren Fatalzeitpunkte.
+
+Für die vollständige Sperre vor Fataldiagnose ist `exceptions.asm` erforderlich,
+außerhalb der eingefrorenen36 Dateien. Deshalb Scope-Stopp ohne stille Erweiterung:
+Paket bleibt aktiv, Implementierung und neue Pins bleiben uncommittet; kein
+Folgepaket und keine OS-/Stabilitätsfreigabe. Benötigt wird die ausdrückliche
+Vertragserweiterung für gemeinsamen nativen Fatal-Fence und begrenzte
+Ursachendiagnose mit Host-/Gast-Fehlerinjektion, ohne Quoten-/Fristerweiterung,
+Metadatenreparatur, i386-Verhaltensänderung oder Löschen alter Fehlbelege.
+Bestandene native26 Fälle mit456 Lebenszyklen/898 Frame-Retirements bleiben
+Belege des geprüften Umfangs, nicht Ersatz für diesen Sicherheitsabschluss.
+
 ## R8.3ah: plattformgerechte Referenzmatrix freigegeben
 
 Neue Zustimmung: beide Originalabbilder auf isolierten unsichtbaren VMware-

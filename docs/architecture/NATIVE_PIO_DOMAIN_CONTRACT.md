@@ -328,3 +328,50 @@ All original16 groups, protected source hashes and failed evidence remain.
 No VMware PIT claim, original overwrite, user VM control or host Hyper-V/VBS
 change. Keep unaffected passed gates; rerun only the materially corrected
 qualification and affected hosts. Ordinary scoped repairs need no new handoff.
+
+Qualification on92df3aa2 passes all four matching guests in146.810s, evidence
+reference-qualification-f6047a0a5c5d485db69225327f5e6704. Both VMware copies are
+stopped; original and rebuilt hashes are unchanged. Both signed platform
+builds and identical96 program payloads pass independent binding. Reviewed
+guard constants are updated only afterward; historical framebuffer is unchanged,
+old pins retained. Reference host16/.125s and byte guard1.105s pass.
+
+## Final review stop: common fatal fencing outside scope
+
+The reference result is not package acceptance. The common exception_fatal
+path logs and halts without invoking the new physical PIO fence. The timer
+abort adapter rejects MODE_PROCESS and returns to this same exception path.
+The existing native_pio_fail64 entry fences its own failures, not every fatal
+kernel/IRQ entry. This read-only code finding does not establish the cause of
+the historical vector20 failure or imply its last BIND failed to assert reset.
+
+Completing a common physical fence before fatal diagnostics requires
+arch/x86_64/cpu/exceptions.asm, outside the frozen36 files. Stop without silent
+scope expansion or implementation commit. Require an explicit amendment for
+common fatal fencing and bounded timer cause evidence, with host and actual
+guest negative proofs, unchanged quotas/deadlines, no metadata repair and no
+i386 behavior change. Keep this package active and all failed evidence.
+
+## Authorized common fatal boundary and bounded diagnosis
+
+The renewed user approval permits this exact expansion and continued scoped
+repairs without routine handoffs. Add exceptions.asm, timer_interrupt.asm and
+the existing runtime-clock host consumer:39 files, one active PIO transaction.
+NativePIO exception and scheduler fatal entries must physically assert nIEN/SRST
+before diagnostics, independent of corrupt domain metadata. Do not run general
+cleanup, repair records or return to the caller after kernel-corrupt failure.
+Normal Ring3 retirement and all non-PIO/i386 behavior remain unchanged.
+
+Preserve the timer's exact acceptance and all quotas/deadlines. Add bounded
+failure-only cause witnesses, not a new clock policy. Keep the historical
+vector20 failure as unknown when its missing evidence cannot be reconstructed;
+a deliberately injected matching symptom proves a mechanism, not that history.
+The existing runtime-clock host gate and a new --fatal PIO guest gate make22
+groups. At most eight20s/one-CPU/4GiB generated-COW guests inject expired,
+backward or invalid lease, tick/EOI disagreement, invalid IRQ context, actual
+kernel exception and PIO metadata corruption after actual reset release.
+Require exact cause, physical OUT before diagnosis, unchanged damaged records,
+no subsequent reap/resume and unchanged generated media. Host negative tests
+precede implementation; preserve existing normal/fault/recovery matrices.
+Keep unaffected reference/build evidence; rerun only affected consumers after
+material changes. Freeze this amendment before code changes, never push.
