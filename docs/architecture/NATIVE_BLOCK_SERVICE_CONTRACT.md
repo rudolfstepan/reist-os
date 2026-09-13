@@ -113,3 +113,25 @@ No kernel mechanism or frozen quota has changed. Preserve all failed evidence;
 no commit/queue transition or further unchanged retry. A separately authorized
 bounded measurement/kernel-cost investigation is needed to determine the next
 correction without weakening assurance. CURRENT_WORK.md records exact evidence.
+
+## Deadline co-admission amendment
+
+Controlled same-image diagnostic controlled-9a466ef3a5b24260974cd63abaa5e8d0
+confirms budget sensitivity even with minimal instrumentation. Counters reject
+the earlier hypothesis that repeated publication/word probes alone explain it.
+The service currently crosses the full syscall/scheduler boundary twice per
+port operation: clock, then mediated I/O. The mediator already owns monotonic
+time and must check its integrity. Co-admit the same absolute deadline there,
+without omitting any ownership, state or quota validation.
+
+PIO request v2 retains64 bytes and all v1 offsets. Only read8/write8/read16
+operations may use v2; offset48 carries deadline_ms, offset56 remains zero.
+V1 reserved bytes and BIND/FENCE stay unchanged. After authority checks and
+before any quota/state/port/buffer effect, compare deadline to monotonic tick*10:
+expired/equal returns-110; more than1000ms ahead returns-22. Broken clocks still
+enter the unchanged fatal path. Service passes the same RPC deadline instead
+of a preceding clock syscall; ATA polls and final reply checks remain bounded.
+Only the scheduler object containing pio_domain.inc may differ from accepted
+AH; all other standalone mechanism hashes and all original gates remain.
+Add test_x86_64_pio_deadline.py actual assembly/SDK O0/O2 and expired-v2 runtime
+fixture coverage:17 gates,28 files. No silent acceptance from diagnostic runs.

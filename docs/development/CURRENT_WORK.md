@@ -62,6 +62,21 @@ Dateien im Scope, `git diff --check` bestanden. R3.6b bleibt zurückgestellt.
 
 ### Eingefrorener Umfang
 
+Nachtrag der freigegebenen Diagnose: `controlled-01.log`, identisches Abbild
+in vier Läufen (9.436/9.823/3.210/3.224s). Ohne Debugger normale Dienste15..20
+Samples; minimale Beobachtung27..31 und Root-Erschöpfung; vollständig32 bereits
+beim ersten Dienst. Zählprofil:43 Startproben inklusive Vor-Bootstrap,31 IPC-,
+vier GETPID-, drei OUT-, je eine Copy-/Scrubprobe. Die alte Erklärung durch
+Start-/Einzelwortproben allein reicht nicht. Keine quantitative Zeitgarantie.
+
+Vor Umsetzung wird PIO-v2-Deadline-Co-Admission eingefroren: dieselbe Frist im
+bereits erforderlichen Mediationssyscall statt separatem Uhrsyscall vor jedem
+Portzugriff. Alle Rechte-, Integritäts-, Whitelist- und Quotenprüfungen bleiben;
+abgelaufene Anfragen ohne Zustand-/Port-/Puffereffekt. Alte Version1 unverändert.
+28 Dateien,17 Gates einschließlich eigenem tatsächlichem ASM/SDK-Deadlinehost;
+nur der Scheduler darf gegenüber AH ändern, übrige Mechanismen bleiben gleich.
+Restliche Paketabnahme weiterhin offen, kein Implementierungscommit.
+
 R8.3ah ist als `7f452faf` lokal abgenommen,22 Gates bestanden und Worktree
 war danach sauber. Die neue native Inventur bündelt Client, versionierte Block-RPC,
 Ring3-Dienstschleife, explizite IPC-Grants, Datenvalidierung und Recovery.
