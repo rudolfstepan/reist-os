@@ -2,6 +2,55 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: gebündelte PIO-Umsetzung und Fatalgrenze geprüft
+
+Auf Vertragscommit `881a1917` sind CREATE-v4/volle192-Bit-Profile, Read-only-
+PIO-Mediation, Ring3-ATA, generationsgenaues Recovery und die gemeinsame
+Kernel-Fatal-Sperre umgesetzt. Der NativePIO-Fatalpfad führt genau einen
+unbedingten nIEN/SRST-Portzugriff vor Diagnose aus, unabhängig von beschädigtem
+Besitz. Kein Force-Cleanup, keine Metadatenreparatur, kein Laufzeit-Return.
+Normale Ring3-Fehler bleiben generationslokal; das Gerät wird vor Reap gesperrt.
+Timerzulassung/Fristen bleiben gleich; R9 liefert lediglich einen flüchtigen
+Fehlergrund1..6. Kein neues persistentes Format oder öffentliches ABI-Feld.
+
+Abschlussbelege unter `build/codex-agent/r83ah-pio/`:
+
+- `fatal-host-final.log`:9 PIO-/Fatal-/Injektionsprüfungen in4.290s PASS,
+  echte Assembly-/C-Adapter O0/O2. `fatal-clock-host-01.log`:5/4.638s PASS;
+  `fatal-boot-host-01.log`:6/1.714s PASS. Unveränderte übrige Hostbelege bleiben.
+- Alle vier nativen Builds bestanden. PIO10:111.471s,160 Lebenszyklen,
+  Root-CPU höchstens19/32, `guests/attempt-ae0281cfde834090b3f9c92067382d18`.
+- Import8:58.280s,148 Lebenszyklen, Root-CPU höchstens22/32,
+  `import-reference/attempt-02617cdab3cb49ba9860ac57a1ad2cc4`.
+  Startup8:52.978s,148 Lebenszyklen,
+  `startup-reference/attempt-a572dd59acb34d3cb43c1a29f3be9b05`.
+  Zusammen26 Fälle/456 Lebenszyklen/898 vollständige Frame-Retirements.
+- Fatal8:7.789s, `fatal-guests/attempt-32269b44c7a8491092f3ba66f8f68bc1`:
+  abgelaufene/rückläufige/ungültige Lease, Tick/EOI, IRQ-Kontext, echte Kernel-
+  UD2, beschädigte PIO-Metadaten und Scheduler-Fatal. Jeweils physischer OUT
+  vor Diagnose, unveränderte beschädigte Records und Eintritt in CLI/HLT.
+  Keine nachfolgende Laufzeitfortsetzung, Bereinigung oder Medienänderung.
+- Normaler Bootstrap PASS; finaler i386-Byteguard1.822s PASS. Die separate
+  vierteilige VMware/QEMU-Qualifikation146.810s und beide i386-Buildbelege
+  bleiben unverändert gültig. Keine Originalplatte oder Host-Sicherheit geändert.
+
+Neue Fehlbelege bleiben erhalten: `fatal-red-01.log` zeigt die beiden fehlenden
+Mechanismen. Der erste Gastversuch setzte fälschlich einen bereits über3e9
+liegenden TSC voraus; die gezielte Sample-Injektion deckt jetzt kurzen Boot ab.
+Versuche51f0a314/bf2fd145 zeigen vor Metadateninjektion einen PF auf RIP0x37f,
+RSP=Kernelstack-Top+8, mit direkt benachbarten RET-/Entry-Debugger-Haltepunkten.
+Die gleiche Injektion am getrennten tatsächlichen PIO-Mediatoreinstieg besteht;
+der erzeugte Beobachter und seine Injektionspunkte sind regressionsgetestet.
+Dies grenzt eine Beobachterinteraktion ein, beweist keine allgemeine QEMU-Ursache.
+
+Der ältere vector20 aus20b8dfe8 bleibt mangels damaliger Registerevidenz
+ursächlich offen. Gezielt reproduzierte Mechanismen und neue grüne Matrizen
+ersetzen keine rückwirkende Ursachenbehauptung oder System-Stabilitätsabnahme.
+Dieses Paket ist nur die geprüfte Read-only-Treibergrenze, kein fertiges64-Bit-OS.
+Dateisystem-/normale Dienst-/Shellintegration, Hardware und DMA bleiben offen.
+Nach Dokumentationsgate, Scopeprüfung und lokalem Commit folgt automatisch die
+nächste priorisierte native Transaktion; R3.6b bleibt ausdrücklich zurückgestellt.
+
 ## R8.3ah: gemeinsame Fatal-Sperre und Diagnose freigegeben
 
 Die neue Zustimmung erlaubt die angefragte Erweiterung: `exceptions.asm`,

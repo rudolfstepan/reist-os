@@ -262,12 +262,23 @@ def validate_rejection(serial,trace,kind):
     injections=re.findall(r'BOOT_PROGRAM_ALLOC_INJECT acquired=(\d+)',trace)
     if injections!=([str(kind)] if isinstance(kind,int) else []):raise ValueError('program exact allocation failure')
 
-def capture(image,folder,code,ram):
+def capture(image,folder,code,ram,media=None,*,halt_witness=False):
+    if media is None:return _capture(image,folder,code,ram,halt_witness=halt_witness)
+    from run_qemu_x86_64_pio import Fixture
+    if type(media) is not Fixture:raise ValueError('unsupported guest media')
+    arguments=media.arguments(folder)
+    media.verify('before')
+    try:return _capture(image,folder,code,ram,arguments,halt_witness=halt_witness)
+    finally:media.verify('after') # Includes failed launches/captures; retain media.
+
+
+def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False):
     script=folder/'observe.gdb'
     script.write_text('set confirm off\nset pagination off\nset architecture i386:x86-64\ntarget remote 127.0.0.1:12491\n'+code,encoding='ascii')
     command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m',str(ram)+'M','-smp','1',
              '-display','none','-monitor','none','-nic','none','-serial','stdio','-no-reboot','-no-shutdown',
              '-kernel',str(image),'-S','-gdb','tcp:127.0.0.1:12491']
+    command+=list(media_arguments)
     (folder/'command.json').write_text(json.dumps(command),encoding='utf-8')
     output=queue.Queue(maxsize=128);overflow=threading.Event();data=bytearray();debugger=None;thread=None
     with (folder/'stderr.log').open('wb') as errors,(folder/'observer.log').open('wb') as log:
@@ -286,7 +297,10 @@ def capture(image,folder,code,ram):
                 except queue.Empty:pass
                 if overflow.is_set() or len(data)>262144:raise ValueError('program serial capacity')
                 serial=data.decode('ascii',errors='replace')
-                if process.SUCCESS in serial or any(m in serial for m in FAILURES) or vm.poll() is not None or debugger.poll() not in (None,0):break
+                if halt_witness:
+                    # A fatal serial prefix alone does not prove physical halt.
+                    if vm.poll() is not None or debugger.poll() is not None:break
+                elif process.SUCCESS in serial or any(m in serial for m in FAILURES) or vm.poll() is not None or debugger.poll() not in (None,0):break
         finally:
             vm.stdin.close();terminate_bounded(vm)
             if debugger is not None:

@@ -841,6 +841,10 @@ process_run_syscall64:
     cmp qword [rel syscall_rax],132
     je family_syscall64
 %endif
+%ifdef REIST_NATIVE_PIO
+    cmp qword [rel syscall_rax],113
+    je native_pio_syscall64
+%endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     cmp qword [rel syscall_rax],4
     jb .not_heap

@@ -173,19 +173,24 @@ class Arm(gdb.Breakpoint):
         global armed,injection_owner,injected,injection_count
         owner=u64({s['family_records']})
         if owner!=injection_owner:injection_owner=owner;injected=False;injection_count=0
-        if not injected:armed=True
+        if not injected:
+            armed=True;allocation.enabled=True
         return False
 class Allocation(gdb.Breakpoint):
-    def __init__(self):super().__init__('*'+hex({s['physical_frame_alloc64']}),internal=True)
+    def __init__(self):
+        super().__init__('*'+hex({s['physical_frame_alloc64']}),internal=True)
+        self.enabled=False
     def stop(self):
         global injection_count,armed,injected
         if not armed or injected:return False
         if injection_count=={oom}:
             ret=u64(reg('rsp'));gdb.execute('set $rax=0');gdb.execute('set $rsp=$rsp+8');gdb.execute('set $rip='+hex(ret))
-            injected=True;armed=False;gdb.write('FAMILY_OOM acquired={oom}\\n')
+            injected=True;armed=False;self.enabled=False;gdb.write('FAMILY_OOM acquired={oom}\\n')
         else:injection_count+=1
         return False
-Arm();Allocation()
+# Do not trap unrelated allocations before/after the exact injection window.
+# Arm re-enables this same breakpoint only for a not-yet-injected owner.
+allocation=Allocation();Arm()
 end
 '''
     return code[:-len('continue\n')]+extra+'continue\n'

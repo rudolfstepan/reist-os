@@ -1,6 +1,25 @@
 # REIST x86_64 bootstrap contract
 
-Stand: 12. September 2026
+Stand: 13. September 2026
+
+R8.3ah ergänzt `-NativePIO` (setzt
+NativeImport) beziehungsweise Make `X86_64_NATIVE_PIO=1`. CREATE-v4 bleibt
+64Byte groß und übernimmt ein40-Byte-Profil mit allen192 Syscallbits;
+DEVICE_CONTROL113/Operation29 vermittelt ausschließlich begrenzte,
+generationsgebundene Read-only-PIO-Zugriffe. ATA-Protokoll und Wartepolitik
+bleiben im Ring3-Treiber. Bindung, Fencing und Retirement verwenden dieselbe
+Familiengrenze; ein noch ungebundenes Ersatzkind erhält keine Geräteautorität.
+Die QEMU-Fixture verwendet nur eine erzeugte64KiB-Basis mit read-only-Knoten
+und wegwerfbarem COW-Layer, mit Vor-/Nachprüfung unveränderter Bytes und leerer
+Overlay-Datenbelegung. Keine Nutzerplatte, DMA-, Schreib-, Hardware- oder
+vollständige OS-Freigabe. [PIO-Vertrag](NATIVE_PIO_DOMAIN_CONTRACT.md).
+
+Die separate i386-Referenzmatrix besteht auf passenden VMware-/QEMU-Profilen.
+Der erweiterte NativePIO-Exception-/Scheduler-Fatalpfad sperrt die Domäne vor
+Diagnose physisch und hält ohne Metadatenreparatur oder Force-Cleanup an.
+Acht echte Fatal-Injektionen sowie26 reguläre Gäste bestehen mit unveränderten
+Quoten. Der historische Timer-Fatal bleibt mangels damaliger Registerevidenz
+ursächlich offen; dies ist keine vollständige OS- oder Stabilitätsfreigabe.
 
 R8.3ag ergänzt `-NativeImport` (setzt NativeStartup) beziehungsweise Make
 `X86_64_NATIVE_IMPORT=1` mit denselben Abhängigkeiten. Ein freestanding

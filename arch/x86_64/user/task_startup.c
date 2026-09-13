@@ -14,6 +14,14 @@ static void message(volatile uint32_t m[35]) {
 }
 #endif
 #if PROGRAM_ID == 0
+/* Fixed fixture extents are multiples of eight. Volatile stores still mutate
+ * every source byte; alias/alignment attributes permit ordinary byte buffers. */
+static void overwrite_words(void *out,unsigned words,uint64_t value) {
+    typedef uint64_t word_t __attribute__((may_alias,aligned(1)));
+    volatile word_t *p=(volatile word_t*)out;
+    for(unsigned i=0;i<words;i++) p[i]=value;
+}
+_Static_assert(sizeof(reist_task_startup_v1_t)%8==0,"startup word extent");
 static __attribute__((noinline)) int64_t control(unsigned op,uint64_t handle,unsigned timeout) {
     reist_task_control_request_t q={1,64,op,0,handle,0,timeout,0,0,0};
     return reist_x64_task_control(&q);
@@ -31,13 +39,24 @@ static __attribute__((noinline)) int64_t create(reist_task_startup_v1_t *s) {
     }
     if(reist_x64_image_prepare(prepared,import_blob,sizeof(import_blob))) return -22;
     int64_t result=reist_x64_task_import(prepared,MASK,32,s);
-    for(unsigned i=0;i<36896;i++) ((volatile unsigned char*)prepared)[i]=0x5a;
+    overwrite_words(prepared,36896/8,0x5a5a5a5a5a5a5a5aULL);
     return result;
 #else
     return reist_x64_task_create(5,MASK,32,s);
 #endif
 }
 #elif PROGRAM_ID == 2
+/* Both acknowledgement and final send share one deadline, with finite retries.
+ * No timing assumption about when the parent first schedules or delegates. */
+static int64_t send_until(uint32_t endpoint,volatile uint32_t *m,uint64_t deadline) {
+    for(unsigned attempt=0;attempt<20;attempt++) {
+        int64_t sent=S3(IPC_SEND_TIMEOUT,endpoint,m,0);
+        if(sent!=-9 && sent!=-13) return sent;
+        if((uint64_t)S0(MONOTONIC_MS)>=deadline) return -110;
+        int64_t slept=S1(SLEEP_MS,10);if(slept) return slept;
+    }
+    return -110;
+}
 /* Two genuinely private RW pages exercise all ten CREATE acquisitions:
  * three image pages, four tables, two private pages and the stack. */
 static volatile uint32_t private_marker=0x12345678;
@@ -97,24 +116,34 @@ int main(int argc,char **argv,char **envp) {
     child=create(s);REQUIRE(child>0 && control(2,child,1000)==61,214);
 #endif
     uint32_t previous=0;
+    /* Root-owned channel survives sequential children, never their grants.
+     * Each reply is consumed once and checked against the new PID/sequence. */
+    uint32_t acknowledgement=0;REQUIRE(S1(IPC_CREATE,&acknowledgement)==0,255);
+    const uint32_t parent_pid=(uint32_t)S0(GETPID);
+    char parent[9],maximum[128],worker[16]="worker:";
+    number(parent,parent_pid);number(worker+7,acknowledgement);
+    for(unsigned i=0;i<127;i++) maximum[i]='Z';
+    maximum[127]=0;
     for(unsigned iteration=0;iteration<(STARTUP_CASE==1?5U:6U);iteration++) {
         unsigned mode=iteration==1?1:iteration==2?2:iteration==4?3:0;
         uint32_t endpoint=0;REQUIRE(S1(IPC_CREATE,&endpoint)==0 && endpoint!=previous,215);
-        char current[9],old[9],parent[9],sequence[9],kind[9],maximum[128];
-        number(current,endpoint);number(old,previous);number(parent,(uint32_t)S0(GETPID));
+        char current[9],old[9],sequence[9],kind[9];
+        number(current,endpoint);number(old,previous);
         number(sequence,iteration+1);number(kind,mode);
-        for(unsigned i=0;i<127;i++) maximum[i]='Z';
-        maximum[127]=0;
-        const char *args[8]={"worker",current,old,parent,sequence,kind,"",maximum};
+        const char *args[8]={worker,current,old,parent,sequence,kind,"",maximum};
         REQUIRE(reist_x64_startup_init(s,8,args)==0,216);
         child=create(s);REQUIRE(child>0,217);
         /* Parent source is mutable; the child must already own a full copy. */
-        for(unsigned i=0;i<sizeof(*s);i++) ((volatile unsigned char*)s)[i]='X';
-        S1(SLEEP_MS,20);
-        REQUIRE(S3(IPC_DELEGATE,endpoint,(uint64_t)child>>32,1)==0,218);
+        overwrite_words(s,sizeof(*s)/8,0x5858585858585858ULL);
+        REQUIRE(S3(IPC_DELEGATE,acknowledgement,(uint64_t)child>>32,1)==0,256);
         volatile uint32_t m[35];message(m);
+        REQUIRE(S3(IPC_RECEIVE_TIMEOUT,acknowledgement,m,1000)==0,257);
+        REQUIRE(m[2]==16 && m[3]==(uint32_t)((uint64_t)child>>32) &&
+                m[4]==parent_pid && m[5]==iteration+1 && m[6]==0,258);
+        REQUIRE(S3(IPC_DELEGATE,endpoint,(uint64_t)child>>32,1)==0,218);
+        message(m);
         REQUIRE(S3(IPC_RECEIVE_TIMEOUT,endpoint,m,1000)==0,219);
-        REQUIRE(m[2]==16 && m[3]==(uint32_t)((uint64_t)child>>32) && m[4]==(uint32_t)S0(GETPID) && m[6]==1,220);
+        REQUIRE(m[2]==16 && m[3]==(uint32_t)((uint64_t)child>>32) && m[4]==parent_pid && m[6]==1,220);
         if(mode==3) REQUIRE(m[5]!=iteration+1,221);
         else REQUIRE(m[5]==iteration+1,222);
         if(mode==2 || mode==3) {
@@ -125,6 +154,7 @@ int main(int argc,char **argv,char **envp) {
         REQUIRE(S3(IPC_DELEGATE,endpoint,(uint64_t)child>>32,1)==-3,227);
         REQUIRE(S1(IPC_CLOSE,endpoint)==0,228);previous=endpoint;
     }
+    REQUIRE(S1(IPC_CLOSE,acknowledgement)==0,259);
     REQUIRE(reist_x64_startup_init(s,0,0)==0 && create(s)==-11,229);
     return 70;
 #elif PROGRAM_ID == 1
@@ -149,16 +179,17 @@ int main(int argc,char **argv,char **envp) {
     uint32_t endpoint=number(argv[1]),old=number(argv[2]),parent=number(argv[3]);
     uint32_t sequence=number(argv[4]),mode=number(argv[5]);
     REQUIRE(endpoint && parent && sequence && mode<=3,235);
+    uint32_t acknowledgement=number(argv[0]+7);REQUIRE(acknowledgement,260);
     volatile uint32_t m[35];message(m);
     m[3]=(uint32_t)S0(GETPID);m[4]=parent;m[5]=mode==3?sequence+1:sequence;m[6]=1;
     if(old) REQUIRE(S3(IPC_SEND_TIMEOUT,old,m,0)==-9,236);
     uint64_t deadline=(uint64_t)S0(MONOTONIC_MS)+200;
     int64_t sent=S3(IPC_SEND_TIMEOUT,endpoint,m,0);
     REQUIRE(sent==-9 || sent==-13,237); /* Numeric handle alone is no authority. */
-    while(sent==-9 || sent==-13) {
-        REQUIRE((uint64_t)S0(MONOTONIC_MS)<deadline,238);
-        S1(SLEEP_MS,10);sent=S3(IPC_SEND_TIMEOUT,endpoint,m,0);
-    }
+    m[5]=sequence;m[6]=0;
+    REQUIRE(send_until(acknowledgement,m,deadline)==0,261);
+    m[5]=mode==3?sequence+1:sequence;m[6]=1;
+    sent=send_until(endpoint,m,deadline);
     REQUIRE(sent==0,239);
     if(mode==1) __asm__ volatile("ud2");
     if(mode==2 || mode==3) {

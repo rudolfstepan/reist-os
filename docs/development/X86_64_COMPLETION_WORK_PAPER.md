@@ -6,31 +6,30 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3ah: Treiberrechte, Lesen und Fehlergrenze zusammen
 
-Auf abgenommenem `abd9edb4` bündelt Vertrag `4b351bf3` das vollständige
-Syscallprofil mit PIO-Vermittlung, Ring3-ATA-Lesecode und Wiederanlaufnachweisen.
-Der eigene Kandidat besteht Host O0/O2 und NativePIO-Build, ist aber
-nicht abgenommen oder committet. QEMU11.1.0 verweigert Read-only-IDE-Backends
-vor Gaststart; drei pausierte Raw-Dateiversuche bestätigen das unverändert.
-Die inzwischen ausdrücklich freigegebene COW-Testschicht darf ausschließlich
-eine erzeugte, read-only geöffnete Basis verwenden; unveränderte logische Daten
-und fehlende Overlay-Datenbelegung bleiben nachzuweisen. Freigaben und Gates
-stehen im [Arbeitsstand](CURRENT_WORK.md) und
-[PIO-Vertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
+Auf abgenommenem `abd9edb4` bündelt R8.3ah CREATE-v4 mit vollständigem192-Bit-
+Profil, begrenzte Read-only-PIO-Mediation, Ring3-ATA-IDENTIFY/Sektortransfer,
+Generation-Recovery und gemeinsame Kernel-Fatal-Sperre. Alte ABI-Versionen,
+Quoten und Fristen bleiben erhalten. Kein Ring0-ATA-/Dateisystemparser.
 
-Die Fortsetzung ergänzt geprüfte Korruptionssperren und vollständige
-Profilbindung; sechs Hostgruppen, drei Builds und der normale Gast bestehen.
-Die alte IPC-Test-Race ist durch eine ausdrücklich freigegebene Bestätigung
-vor Rechtevergabe ersetzt. Vertrag `1a9a3f51` erlaubt zudem, den OOM-Beobachter
-nur während der exakten Fehlerinjektion auf Allokationen halten zu lassen.
-Die vollständige Importmatrix besteht danach wieder: acht Fälle mit148
-Lebenszyklen, unveränderte Kernelobjekte und höchstens26 von32 Root-CPU-Samples.
-Die Startupmatrix besteht sieben Fälle; der letzte OOM9-Fall scheitert an
-einer BLOCKED-only-Cancelprüfung bei einem zulässigen READY-Kind. Trotz
-vollständiger Endquittungen und Bereinigung keine Abnahme; die zusätzliche
-Beobachterdatei benötigt ausdrückliche Freigabe, siehe Arbeitsstand.
-Die separate i386-Referenzabnahme bleibt wegen zuvor bestätigter Abbild- und
-Programmdigeständerungen offen. Keine Referenzersetzung oder Paketfreigabe
-daraus ableiten; PIO/COW-Gastnachweis und Gesamtabnahme fehlen weiterhin.
+Die finale PIO-Matrix besteht zehn Fälle/160 Lebenszyklen in111.471s; Import
+und Startup jeweils acht Fälle/148 Lebenszyklen in58.280s beziehungsweise
+52.978s. Insgesamt456 Lebenszyklen und898 Frame-Retirements. Acht zusätzliche
+Fatalgäste in7.789s belegen physische Sperre vor Diagnose, unveränderte
+beschädigte Metadaten und Halt statt Force-Cleanup/Return. Host O0/O2 und
+negative Oracles ergänzen die realen Nachweise. Alle erzeugten COW-Medien
+bleiben bytegleich. [PIO-Vertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
+
+Die separate i386-Referenzabnahme besteht unter Vertrag `92df3aa2`: zwei
+exklusive VMware/APIC-Kopien und der eigene QEMU-Neubau mit APIC/PIT, vier
+volle GTEST-/Recoveryfälle in146.810s. Signierte Plattformkerne, alle96
+Programme und unveränderte Originalhashes sind unabhängig belegt. Feste Pins
+erst danach überprüft aktualisiert; der finale Byteguard besteht in1.822s.
+
+Fehlversuche und Gatebelege stehen im [Arbeitsstand](CURRENT_WORK.md).
+Der frühere vector20 ist mangels damaliger Registerdaten nicht ursächlich
+erklärt; die neue begrenzte Ursachenbeobachtung liefert keinen rückwirkenden
+Beweis. System-Timing/Stabilität und vollständige OS-Abnahme bleiben offen,
+ebenso normale Storage-/Datei-/Shellintegration und weitere Hardwareprofile.
 
 ## R8.3ag: Ring3-ELF64 bis zum nativen Abbildbesitz zusammen
 

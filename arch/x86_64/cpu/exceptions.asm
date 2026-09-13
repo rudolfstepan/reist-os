@@ -34,6 +34,9 @@ extern x86_64_nx_resume
 extern x86_64_user_exception64
 extern x86_64_scheduler_user_exception64
 extern x86_64_timer_interrupt64
+%ifdef REIST_NATIVE_PIO
+extern native_pio_emergency_fence64
+%endif
 
 x86_64_exception_init:
     cld
@@ -267,6 +270,10 @@ exception_resume:
     iretq
 
 exception_fatal:
+%ifdef REIST_NATIVE_PIO
+    ; No ownership lookup or metadata repair on an unknown kernel failure.
+    call native_pio_emergency_fence64
+%endif
     call serial_init64
     lea rsi, [rel exception_fatal_message]
     call serial_write64

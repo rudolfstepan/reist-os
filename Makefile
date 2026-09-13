@@ -251,6 +251,18 @@ X86_64_NATIVE_LIFECYCLE ?= 0
 X86_64_FAMILY_CASE ?= 0
 X86_64_NATIVE_STARTUP ?= 0
 X86_64_NATIVE_IMPORT ?= 0
+X86_64_NATIVE_PIO ?= 0
+X86_64_PIO_CASE ?= 0
+ifeq ($(X86_64_NATIVE_PIO),1)
+ifneq ($(X86_64_NATIVE_IMPORT),1)
+$(error NativePIO requires NativeImport)
+endif
+endif
+ifneq ($(X86_64_PIO_CASE),0)
+ifneq ($(X86_64_NATIVE_PIO),1)
+$(error PIOCase requires NativePIO)
+endif
+endif
 ifeq ($(X86_64_NATIVE_IMPORT),1)
 ifneq ($(X86_64_NATIVE_STARTUP),1)
 $(error NativeImport requires NativeStartup)
@@ -278,6 +290,7 @@ $(error FamilyCase requires NativeLifecycle)
 endif
 endif
 X86_64_PROGRAM_ASM = $(if $(filter 1,$(X86_64_NATIVE_PROGRAMS)),-DREIST_NATIVE_PROGRAMS=1,) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),-DREIST_NATIVE_LIFECYCLE=1,)
+X86_64_PROGRAM_ASM += $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,)
 X86_64_RUNTIME_ASM = $(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),-DREIST_NATIVE_RUNTIME=1,)
 ifeq ($(X86_64_NATIVE_RUNTIME),1)
 ifneq ($(filter x86_64-native-image,$(MAKECMDGOALS)),)
@@ -473,7 +486,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
@@ -574,7 +587,7 @@ endif
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
-	@$(AS) -f elf32 arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
+	@$(AS) -f elf32 $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,) arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
 	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
 	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
 	@$(AS) -f elf32 -DUSER_PROBE_PATH=\"$(X86_64_USER_PROBE_ELF)\" \

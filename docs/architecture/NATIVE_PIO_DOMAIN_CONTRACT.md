@@ -375,3 +375,27 @@ no subsequent reap/resume and unchanged generated media. Host negative tests
 precede implementation; preserve existing normal/fault/recovery matrices.
 Keep unaffected reference/build evidence; rerun only affected consumers after
 material changes. Freeze this amendment before code changes, never push.
+
+## Implementation and bounded acceptance evidence
+
+On881a1917 the common NativePIO exception and scheduler fatal paths invoke an
+unconditional physical nIEN/SRST fence before serial diagnostics and halt.
+The emergency operation does not read or repair ownership records; scheduler
+fatal no longer enters force-cleanup in this profile. Non-PIO/i386 paths remain.
+The pure clock function preserves exact acceptance and adds only caller-saved
+R9 reason0..6 (success, horizon, tick/EOI, malformed lease, expiry, backward time,
+overflow). This is not a public ABI or persistent diagnosis format.
+
+Actual host PIO/fatal9 and clock5 checks pass. Eight injected real guest failures
+after reset release prove physical OUT ordering, unchanged corrupted records,
+no subsequent runtime cleanup/resume, and entry into CLI/HLT:7.789s,
+fatal-guests/attempt-32269b44c7a8491092f3ba66f8f68bc1. A short-boot injector
+assumption and adjacent RET/entry debugger-trap failures are retained; the
+corrected exact mediator injection point is regression-tested, not a weakened
+product check. All ten normal PIO and both eight-case import/startup matrices
+pass again:456 native lifetimes and898 frame retirements, original quotas.
+All generated media and qualified i386 references remain unchanged.
+
+These scoped proofs do not recover the missing cause of historical vector20
+attempt20b8dfe8. Keep it open for system timing/stability qualification; do not
+infer release, full OS, hardware or fail-operational assurance from this package.

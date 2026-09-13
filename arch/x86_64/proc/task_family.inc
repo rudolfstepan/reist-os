@@ -6,6 +6,8 @@ family_request_admit64:
     cmp dword [rdi],2
     je .startup
     cmp dword [rdi],3
+    je .startup
+    cmp dword [rdi],4
     jne .invalid
 .startup:
     cmp dword [rdi+8],1
@@ -57,7 +59,7 @@ family_request_admit64:
     jnz .invalid
     mov rax,[rdi+24]
     cmp dword [rdi],3
-    jne .catalog
+    jb .catalog
     test rax,rax
     jz .invalid
     jmp .cpu
@@ -71,6 +73,12 @@ family_request_admit64:
     cmp rax,31
     ja .invalid
     mov rax,[rdi+40]
+    cmp dword [rdi],4
+    jne .mask
+    test rax,rax
+    jz .invalid
+    jmp .ok
+.mask:
     test rax,1<<9
     jz .denied
     mov rdx,~((1<<4)|(1<<5)|(1<<6)|(1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)|(0x7f<<49)|(1<<58))
@@ -84,6 +92,62 @@ family_request_admit64:
     ret
 .invalid:
     mov rax,-22
+    ret
+
+; Pinned profile-v1 and exact parent's live profile-v2. No output on failure.
+global family_profile_admit64
+family_profile_admit64:
+    cmp dword [rdi],1
+    jne .invalid
+    cmp dword [rdi+4],40
+    jne .invalid
+    cmp qword [rdi+32],0
+    jne .invalid
+    mov rax,[rdi+8]
+    test rax,1<<9
+    jz .denied
+    mov rdx,~((1<<4)|(1<<5)|(1<<6)|(1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)|(0x7f<<49)|(1<<58))
+    test rax,rdx
+    jnz .denied
+    mov rax,[rdi+16]
+%ifdef REIST_NATIVE_PIO
+    mov rdx,~(1<<49)
+    test rax,rdx
+%else
+    test rax,rax
+%endif
+    jnz .denied
+    cmp qword [rdi+24],0
+    jne .denied
+    mov eax,1
+    ret
+.invalid:
+    mov rax,-22
+    ret
+.denied:
+    mov rax,-13
+    ret
+
+; RDI profile-v1, RSI live profile-v2, RDX authoritative parent generation.
+global family_profile_attenuate64
+family_profile_attenuate64:
+    cmp [rsi],rdx
+    jne .denied
+    test rdx,rdx
+    jz .denied
+    xor ecx,ecx
+.word:
+    mov rax,[rsi+8+rcx*8]
+    not rax
+    test [rdi+8+rcx*8],rax
+    jnz .denied
+    inc ecx
+    cmp ecx,3
+    jb .word
+    mov eax,1
+    ret
+.denied:
+    mov rax,-13
     ret
 
 ; Fixed startup-v1 snapshot, read-only before argument/attempt publication.
@@ -202,9 +266,10 @@ family_profile_apply64:
     push r9
     push r10
     push r11
-    sub rsp,48
+    sub rsp,64
     and rsp,-16
     mov r9d,eax
+    mov [rsp+48],eax
     mov eax,edi
     shl eax,8
     lea r10,[rel scheduler_tasks]
@@ -217,7 +282,30 @@ family_profile_apply64:
     mov [rsp+8],r10
     mov [rsp+16],rsi
     mov [rsp+24],rdx
-    mov qword [rsp+32],0
+    mov eax,edi
+    shl eax,4
+    lea r10,[rel family_extended_masks]
+    cmp qword [r10+rax+8],0
+    jne .invalid_binding
+    mov rax,[r10+rax]
+    cmp edi,2
+    jae .child_extended
+    test rax,rax
+    jnz .invalid_binding
+.child_extended:
+%ifdef REIST_NATIVE_PIO
+    mov r10,~(1<<49)
+    test rax,r10
+    jnz .invalid_binding
+    test edi,edi
+    jnz .extended
+    bts rax,49
+.extended:
+%else
+    test rax,rax
+    jnz .invalid_binding
+%endif
+    mov [rsp+32],rax
     xor eax,eax
     cmp edi,2
     setb al
@@ -227,6 +315,16 @@ family_profile_apply64:
     mov esi,r9d
     mov rdi,rsp
     call reist_x64_profile_apply_v2
+    cmp eax,1
+    jne .restore
+    cmp dword [rsp+48],3
+    jne .restore
+    mov ecx,[rbp-32]
+    shl ecx,4
+    lea r10,[rel family_extended_masks]
+    mov qword [r10+rcx],0
+    mov qword [r10+rcx+8],0
+.restore:
     lea rsp,[rbp-64]
     pop r11
     pop r10
@@ -238,6 +336,9 @@ family_profile_apply64:
     pop rcx
     pop rbp
     ret
+.invalid_binding:
+    xor eax,eax
+    jmp .restore
 .bad:
     xor eax,eax
     ret
@@ -408,6 +509,12 @@ family_validate_runtime64:
     or rax,[r13+16]
     or rax,[r13+24]
     jnz .bad
+    mov eax,ebx
+    shl eax,4
+    lea rcx,[rel family_extended_masks]
+    mov rdx,[rcx+rax]
+    or rdx,[rcx+rax+8]
+    jnz .bad
     jmp .next
 .live:
     mov rax,[r12+TASK_STATE]
@@ -487,6 +594,25 @@ family_syscall64:
     call family_request_admit64
     cmp rax,1
     jne family_result64
+    cmp dword [rel family_request],4
+    jne .profile_ready
+    mov rax,[rel family_request+40]
+    mov edx,40
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    cmp eax,1
+    jne .pointer
+    mov rsi,[rel family_request+40]
+    lea rdi,[rel family_admitted_profile]
+    mov ecx,5
+    rep movsq
+    lea rdi,[rel family_admitted_profile]
+    call family_profile_admit64
+    cmp rax,1
+    jne family_result64
+    mov rax,[rel family_admitted_profile+8]
+    mov [rel family_request+40],rax
+.profile_ready:
     cmp dword [rel family_request],1
     je .admitted
     mov rax,[rel family_request+56]
@@ -504,7 +630,7 @@ family_syscall64:
     cmp rax,1
     jne family_result64
     cmp dword [rel family_request],3
-    jne .admitted
+    jb .admitted
     mov rax,[rel family_request+24]
     call family_import_range64
     test eax,eax
@@ -570,6 +696,10 @@ family_syscall64:
 
 family_result64:
     push rax
+    lea rdi,[rel family_admitted_profile]
+    xor eax,eax
+    mov ecx,5
+    rep stosq
     lea rdi,[rel family_request]
     xor eax,eax
     mov ecx,8
@@ -581,6 +711,7 @@ family_result64:
     mov ecx,4612
     rep stosq
     pop rax
+.scrubbed:
     jmp process_run_resume64
 
 family_create64:
@@ -603,7 +734,7 @@ family_create64:
 .found:
     mov [rel family_build_slot],edi
     cmp dword [rel family_request],3
-    jne .image_selected
+    jb .image_selected
     ; Internal image7/8 is owned by this exact dynamic slot, never a catalog ID.
     lea eax,[rdi+5]
     mov [rel family_request+24],rax
@@ -619,6 +750,21 @@ family_create64:
     mov rax,-13
     jmp family_result64
 .attenuated:
+    cmp dword [rel family_request],4
+    jne .full_attenuated
+    mov eax,[rel scheduler_current_slot]
+    shl eax,5
+    lea rsi,[rel family_profiles]
+    add rsi,rax
+    mov rdx,[r12+TASK_GENERATION]
+    lea rdi,[rel family_admitted_profile]
+    call family_profile_attenuate64
+    cmp rax,1
+    jne family_result64
+    ; The pure helper does not preserve caller-saved r10.
+    mov edi,[rel scheduler_current_slot]
+    call family_record64
+.full_attenuated:
     cmp dword [rel process_run_generation],0x7fffffff
     jae .capacity
     inc qword [r10+48]
@@ -682,6 +828,13 @@ family_create64:
     mov [r13+16],rax
     mov rax,[rel family_request+24]
     mov [r13+24],rax
+    mov eax,edi
+    shl eax,4
+    lea rcx,[rel family_extended_masks]
+    mov r8,[rel family_admitted_profile+16]
+    mov [rcx+rax],r8
+    mov r8,[rel family_admitted_profile+24]
+    mov [rcx+rax+8],r8
     mov eax,1
     call scheduler_profile_apply64
     cmp eax,1
@@ -819,6 +972,9 @@ family_wait_expired64:
 family_terminal64:
     cmp dword [rel process_run_plan],3
     jne .done
+%ifdef REIST_NATIVE_PIO
+    call native_pio_terminal64
+%endif
     push rax
     push rdi
     push r10
@@ -1045,6 +1201,9 @@ family_finish64:
     jne scheduler_fail
     cmp qword [rel family_records+192+40],0
     jne scheduler_fail
+%ifdef REIST_NATIVE_PIO
+    call native_pio_finish64
+%endif
     call family_initialize64
 .done:
     ret
@@ -1054,6 +1213,8 @@ alignb 8
 family_begin:
 family_records: resb 4*64
 family_profiles: resb 4*32
+family_extended_masks: resb 4*16
+family_admitted_profile: resb 40
 family_request: resb 64
 family_reasons: resd 4
 family_total: resd 1

@@ -189,6 +189,19 @@ typedef struct {
 } reist_task_create_v3_t;
 typedef char reist_task_import_size_check[sizeof(reist_task_create_v3_t)==64U ? 1 : -1];
 
+/* CREATE-v4 retains imported images and carries a full versioned profile. */
+#define REIST_TASK_PROFILE_CREATE_VERSION 4U
+typedef struct {
+    uint32_t version,struct_size;
+    uint64_t masks[3],reserved;
+} reist_task_profile_v1_t;
+typedef struct {
+    uint32_t version,struct_size,operation,flags;
+    uint64_t target,prepared,timeout_ms,profile,cpu_samples,startup;
+} reist_task_create_v4_t;
+typedef char reist_task_profile_size_check[sizeof(reist_task_profile_v1_t)==40U?1:-1];
+typedef char reist_task_profile_create_size_check[sizeof(reist_task_create_v4_t)==64U?1:-1];
+
 /* ECMA-48 base palette order; 8..15 are the REIST bright extension.
  * A typed, stateless span, not an escape-sequence/ANSI terminal protocol. */
 #define REIST_TERMINAL_COLOR_VERSION 1U

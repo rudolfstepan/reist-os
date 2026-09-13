@@ -72,6 +72,30 @@ class StartupTests(unittest.TestCase):
                             trace.replace('owner=4294967296','owner=4294967297',1)):
                     with self.assertRaises(ValueError):r.validate(serial,bad,oom)
 
+    def test_cancel_states_and_order(self):
+        import run_qemu_x86_64_task_startup as r
+        pattern=r'FAMILY_CANCEL slot=(\d+) gen=(\d+) state=(\d+) ipc=(\d+) heap=(\d+) reason=(\d+)'
+        for oom in (None,9):
+            serial,trace=self.sample(oom)
+            events=list(re.finditer(pattern,trace))
+            for mask in range(16):
+                mixed=trace
+                for i,event in enumerate(events):
+                    mixed=mixed.replace(event[0],event[0].replace('state=6','state='+str(1 if mask>>i&1 else 6)))
+                self.assertEqual(r.validate(serial,mixed,oom),20 if oom is None else 18)
+            first=events[0]
+            for state in (0,2,3,4,5,7,8,9,0xffffffff):
+                with self.assertRaises(ValueError):
+                    r.validate(serial,trace.replace(first[0],first[0].replace('state=6',f'state={state}')),oom)
+            for a,b in (('slot=2','slot=3'),('gen=7','gen=6'),('ipc=0','ipc=1'),('heap=0','heap=1'),('reason=2','reason=3')):
+                with self.assertRaises(ValueError):r.validate(serial,trace.replace(first[0],first[0].replace(a,b)),oom)
+            without=trace.replace(first[0]+'\n','')
+            fence='FAMILY_FENCE slot=2 gen=7 ipc=1 heap=1 profile=1'
+            for bad in (without,trace+first[0]+'\n',first[0]+'\n'+without,
+                        without.replace(fence,fence+'\n'+first[0]),
+                        trace.replace(first[0],events[1][0])):
+                with self.assertRaises(ValueError):r.validate(serial,bad,oom)
+
     def test_oom_window_and_fixture_extent(self):
         import run_qemu_x86_64_task_startup as r
         record=bytearray(36896);record[:8]=b'RNPGv1\0\0';record[24]=5
@@ -131,5 +155,86 @@ class StartupTests(unittest.TestCase):
                 '-Wall','-Wextra','-Werror','-Wno-unused-command-line-argument','-Iuserspace/sdk/include',
                 'test/x86_64_task_startup_host.c',obj,'-o',exe],opt+'-build')
             self.assertIn('TASK_STARTUP_HOST_OK',run([exe],opt+'-run'))
+
+    def test_bounded_fixture_overwrite(self):
+        import test_x86_64_task_frames as host
+        source=(ROOT/'arch/x86_64/user/task_startup.c').read_text()
+        helper=re.search(r'static void overwrite_words\(.*?^}',source,re.M|re.S)
+        self.assertIsNotNone(helper,'full source mutation needs a bounded word-store helper')
+        code='''#include <stdint.h>
+#include <stdio.h>
+'''+helper.group()+'''
+int main(void) {
+    unsigned char storage[36896+32];
+    const unsigned lengths[]={0,8,1040,36896};
+    for(unsigned offset=0;offset<16;offset++) for(unsigned n=0;n<4;n++)
+        for(unsigned value=0;value<2;value++) {
+            for(unsigned i=0;i<sizeof(storage);i++) storage[i]=0xa5;
+            unsigned begin=8+offset,end=begin+lengths[n];
+            unsigned char byte=value?0x58:0x5a;
+            overwrite_words(storage+begin,lengths[n]/8,(uint64_t)byte*0x0101010101010101ULL);
+            for(unsigned i=0;i<sizeof(storage);i++)
+                if(storage[i]!=(i>=begin && i<end?byte:0xa5))return 1;
+        }
+    puts("STARTUP_OVERWRITE_HOST_OK");return 0;
+}
+'''
+        host.TaskFrameTests().build('BITS 64\nsection .text\n',code,'STARTUP_OVERWRITE_HOST')
+        parent=source.split('#elif PROGRAM_ID == 1')[0].split('int main(',1)[1]
+        loop=parent.index('for(unsigned iteration=0;')
+        self.assertLess(parent.index('IPC_CREATE,&acknowledgement'),loop)
+        self.assertEqual(parent.count('IPC_CREATE,&acknowledgement'),1)
+        self.assertEqual(parent.count('IPC_CLOSE,acknowledgement'),1)
+        self.assertGreater(parent.index('IPC_CLOSE,acknowledgement'),parent.index('previous=endpoint;'))
+        self.assertEqual(parent.count('S0(GETPID)'),1)
+        self.assertIn('IPC_DELEGATE,acknowledgement,(uint64_t)child>>32,1',parent[loop:])
+        self.assertIn('m[4]==parent_pid && m[5]==iteration+1 && m[6]==0',parent)
+        self.assertIn('overwrite_words(prepared,36896/8,',source)
+        self.assertIn('overwrite_words(s,sizeof(*s)/8,',parent)
+
+    def test_actual_handshake_wait(self):
+        import test_x86_64_task_frames as host
+        source=(ROOT/'arch/x86_64/user/task_startup.c').read_text()
+        helper=re.search(r'static int64_t send_until\(.*?^}',source,re.M|re.S).group()
+        code='''#include <stdint.h>
+#include <stdio.h>
+static unsigned calls,sleeps,denied;
+static uint64_t clock_ms;
+static int64_t result,sleep_result;
+static int64_t send(uint32_t ep,volatile uint32_t *m,unsigned timeout) {
+    (void)m;if(ep!=7 || timeout)return -22;
+    return ++calls<=denied ? (calls&1?-9:-13) : result;
+}
+static int64_t sleep_ms(unsigned ms) {if(ms!=10)return -22;sleeps++;clock_ms+=ms;return sleep_result;}
+#define S3(n,a,b,c) send(a,b,c)
+#define S0(n) clock_ms
+#define S1(n,a) sleep_ms(a)
+'''+helper+'''
+#define CHECK(x) do {if(!(x)){printf("FAIL %d\\n",__LINE__);return 1;}}while(0)
+int main(void) {
+    volatile uint32_t m[35]={0};
+    for(unsigned n=0;n<=20;n++) {
+        calls=sleeps=0;clock_ms=0;denied=n;result=0;sleep_result=0;
+        CHECK(send_until(7,m,200)==(n==20?-110:0));
+        CHECK(calls==(n==20?20:n+1) && sleeps==n);
+    }
+    calls=sleeps=0;clock_ms=200;denied=20;
+    CHECK(send_until(7,m,200)==-110 && calls==1 && !sleeps);
+    calls=sleeps=0;clock_ms=0;denied=1;sleep_result=-84;
+    CHECK(send_until(7,m,200)==-84 && calls==1 && sleeps==1);
+    calls=sleeps=0;denied=0;result=-5;sleep_result=0;
+    CHECK(send_until(7,m,200)==-5 && calls==1 && !sleeps);
+    puts("STARTUP_HANDSHAKE_HOST_OK");return 0;
+}
+'''
+        host.TaskFrameTests().build('BITS 64\nsection .text\n',code,'STARTUP_HANDSHAKE_HOST')
+        # The parent must receive/validate the acknowledgement before granting
+        # the tested endpoint. Guest matrices execute both sides independently.
+        parent=source.split('#elif PROGRAM_ID == 1')[0].split('int main(',1)[1]
+        ack=parent.index('IPC_RECEIVE_TIMEOUT,acknowledgement')
+        grant=parent.index('IPC_DELEGATE,endpoint')
+        self.assertLess(ack,grant)
+        self.assertNotIn('S1(SLEEP_MS,20)',parent)
+        self.assertIn('REQUIRE(sent==-9 || sent==-13,237)',source)
 
 if __name__=='__main__':unittest.main()

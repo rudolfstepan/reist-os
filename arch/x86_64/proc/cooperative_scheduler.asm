@@ -7878,6 +7878,10 @@ scheduler_force_cleanup64:
     ret
 
 scheduler_fail:
+%ifdef REIST_NATIVE_PIO
+    ; Unknown kernel state must not be repaired or returned to its caller.
+    jmp native_pio_fail64
+%endif
     mov byte [rel scheduler_active], 0
     call scheduler_force_cleanup64
     lea rsi, [rel scheduler_stage_message]
@@ -7911,6 +7915,9 @@ scheduler_hex_nibble64:
 %include "arch/x86_64/proc/process_run.inc"
 %ifdef REIST_NATIVE_LIFECYCLE
 %include "arch/x86_64/proc/task_family.inc"
+%ifdef REIST_NATIVE_PIO
+%include "arch/x86_64/devices/pio_domain.inc"
+%endif
 %endif
 %ifdef REIST_NATIVE_HEAP_BINDING
 %include "arch/x86_64/proc/process_heap.inc"

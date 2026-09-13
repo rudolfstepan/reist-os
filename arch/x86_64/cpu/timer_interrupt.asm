@@ -680,23 +680,33 @@ x86_64_timer_runtime_peek64:
     ret
 
 ; Same pure SysV progress lease as bootstrap, with full-width runtime horizon.
+; R9 is a caller-saved, non-persistent diagnostic reason: 0 success, 1 horizon,
+; 2 tick/EOI, 3 malformed lease, 4 expired, 5 backward, 6 addition overflow.
+; No timer state is changed and acceptance boundaries remain identical.
 timer_runtime_progress64:
+    mov r9d,1
     mov rax,(1<<60)-1
     cmp rdx,rax
     jae .fail
+    mov r9d,2
     cmp rdx,rcx
     jne .fail
+    mov r9d,3
     mov eax,TSC_DEADLINE_CYCLES
     cmp rsi,rax
     jb .fail
+    mov r9d,4
     cmp rdi,rsi
     ja .fail
+    mov r9d,5
     mov r8,rsi
     sub r8,rax
     cmp rdi,r8
     jb .fail
+    mov r9d,6
     add rax,rdi
     jc .fail
+    xor r9d,r9d
     ret
 .fail:
     xor eax,eax

@@ -6,6 +6,49 @@ sys.path[:0]=[str(ROOT/'test'),str(ROOT/'scripts')]
 import test_x86_64_task_frames as host
 
 class FamilyTests(unittest.TestCase):
+    def test_oom_breakpoint_window(self):
+        source=(ROOT/'scripts/run_qemu_x86_64_task_family.py').read_text()
+        block=re.search(r"extra\+=f'''python\n(injection_count=.*?)end\n'''",source,re.S).group(1)
+        for oom in (0,1,2,3,6,9):
+            breakpoints=[];commands=[];messages=[];owner=0
+            class Breakpoint:
+                def __init__(self,*args,**kwargs):
+                    self.enabled=True;breakpoints.append(self)
+            class Debugger:
+                def execute(self,command):commands.append(command)
+                def write(self,message):messages.append(message)
+            debugger=Debugger();debugger.Breakpoint=Breakpoint
+            def u64(address):
+                self.assertIn(address,(0x1000,0x8000))
+                return owner if address==0x1000 else 0x8888
+            def reg(name):
+                self.assertEqual(name,'rsp');return 0x8000
+            symbols={'family_records':0x1000,'family_create64.found':0x2000,'physical_frame_alloc64':0x3000}
+            generated=eval("f'''"+block+"'''",{'s':symbols,'oom':oom})
+            env=dict(gdb=debugger,u64=u64,reg=reg)
+            exec(generated,env)
+            arm=next(b for b in breakpoints if type(b).__name__=='Arm')
+            allocation=next(b for b in breakpoints if type(b).__name__=='Allocation')
+            self.assertFalse(allocation.enabled,'allocator breakpoint must start disabled')
+            self.assertFalse(allocation.stop());self.assertFalse(commands)
+            for run,owner in enumerate((1<<32,10<<32),1):
+                self.assertFalse(arm.stop());self.assertTrue(allocation.enabled)
+                self.assertTrue(env['armed']);self.assertFalse(env['injected'])
+                for acquired in range(oom):
+                    self.assertFalse(allocation.stop())
+                    self.assertEqual(env['injection_count'],acquired+1)
+                    self.assertTrue(allocation.enabled)
+                    self.assertEqual(len(commands),(run-1)*3)
+                self.assertFalse(allocation.stop())
+                self.assertFalse(allocation.enabled);self.assertFalse(env['armed'])
+                self.assertTrue(env['injected']);self.assertEqual(env['injection_count'],oom)
+                self.assertEqual(commands[-3:],['set $rax=0','set $rsp=$rsp+8','set $rip=0x8888'])
+                self.assertEqual(messages,[f'FAMILY_OOM acquired={oom}\n']*run)
+                for unused in range(20):
+                    self.assertFalse(arm.stop());self.assertFalse(allocation.enabled)
+                    self.assertFalse(allocation.stop()) # Defensive no-op, even if invoked directly.
+                self.assertEqual(len(commands),run*3);self.assertEqual(len(messages),run)
+
     @staticmethod
     def sample(case,oom=None):
         import run_qemu_x86_64_task_family as r

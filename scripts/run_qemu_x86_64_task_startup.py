@@ -169,8 +169,16 @@ def validate(serial,trace,oom=None,imported=False):
         run,zero,free,initial,reaps,gen,ticks=map(int,z.groups())
         if (run,zero,reaps,gen)!=(n,1,count,n*count) or not 0<free==initial<=4194304 or not 0<ticks<1<<60:raise ValueError('startup final balance')
         if after[16+n*count].end()>z.start() or n==1 and z.end()>before[17+count].start():raise ValueError('startup zero order')
-    cancel=[tuple(map(int,m)) for m in re.findall(r'FAMILY_CANCEL slot=(\d+) gen=(\d+) state=(\d+) ipc=(\d+) heap=(\d+) reason=(\d+)',trace)]
-    if len(cancel)!=4 or set(cancel)!={(2,r*count+n,6,0,0,2) for r in range(2) for n in (7,9)}:raise ValueError('startup cancellation')
+    cancel=list(re.finditer(r'FAMILY_CANCEL slot=(\d+) gen=(\d+) state=(\d+) ipc=(\d+) heap=(\d+) reason=(\d+)',trace))
+    values=[tuple(map(int,m.groups())) for m in cancel]
+    # A sleep may expire before CANCEL runs. Both supported queue states must
+    # still retire the exact child, with cancellation preceding its fence.
+    if ([v[:2]+v[3:] for v in values]!=[(2,r*count+n,0,0,2) for r in range(2) for n in (7,9)] or
+            any(v[2] not in (1,6) for v in values)):raise ValueError('startup cancellation')
+    for event,value in zip(cancel,values):
+        start=next(m for m in starts if int(m[2])==value[1])
+        fence=next(m for m in fences if int(m[2])==value[1])
+        if not start.end()<event.start()<event.end()<fence.start():raise ValueError('startup cancel order')
     if re.findall(r'FAMILY_OOM acquired=(\d+)',trace)!=([str(oom)]*2 if oom is not None else []):raise ValueError('startup exact OOM')
     boundaries=list(re.finditer(r'STARTUP_OOM_BOUNDARY owner=(\d+) acquired=(\d+) result=-12',trace))
     wanted=[((r*count+1)<<32,oom) for r in range(2)] if oom is not None else []

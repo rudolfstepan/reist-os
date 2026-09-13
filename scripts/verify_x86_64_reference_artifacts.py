@@ -12,19 +12,21 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_COMMIT = '7bd4bef0'
+BASELINE_COMMIT = '92df3aa2'  # Qualification authority, not an OS release commit.
+BASELINE_EVIDENCE = 'build/codex-agent/r83ah-pio/reference-qualification-f6047a0a5c5d485db69225327f5e6704/summary.json'
 MAX_FILE_BYTES = 1024 * 1024 * 1024
 IMAGES = {
-    # Captured after the user shut down VMware, before native implementation.
+    # Reviewed after signed rebuild binding and four platform-matched guests.
+    # Historical pins remain in BASELINE_EVIDENCE and Git; no runtime learning.
     'build/reist-os.img':
-        'e497673dec8b2b687604413e6b1fb1f8fa0edaca53b7eff1e817c95a0a9e8fa5',
+        'd6e77ebe48762d9b1e41bae29c26e5e1240afee70f1bd77ca03a9d135384713c',
     'build/vmware/reist-os/reist-os-flat.vmdk':
-        'a43b6e2ff14e3a572622a50e3532c7b3d68a41e13e766648cb3c9e44b4c6f48a',
+        '793b1955d41aa6d468bc6cb6f289c01c1febda588009734406e1582f93122a3b',
     'build/codex-agent/r345-js-colors/framebuffer/reist-os.img':
         'ac4b127e871c6aa46d36c92cd4929bf9225a25ddbcf571c8b91b2ad232984f42',
 }
 PROGRAM_COUNT = 96
-PROGRAMS_SHA256 = 'e8204a38f486f5a83c482eb51b56c5a8b4fb0f1420d59e95b40bf1d49514481f'
+PROGRAMS_SHA256 = '6e7d0301097d05be5c7595211372f1087a9fa7d106c5a0e5ca131664c2303556'
 
 
 def digest(path):
@@ -84,7 +86,8 @@ def verify(root, images, program_count, programs_sha256):
 
 def main():
     start = time.monotonic()
-    report = {'passed': False, 'baseline_commit': BASELINE_COMMIT}
+    report = {'passed': False, 'baseline_commit': BASELINE_COMMIT,
+              'baseline_evidence': BASELINE_EVIDENCE}
     try:
         report.update(verify(ROOT, IMAGES, PROGRAM_COUNT, PROGRAMS_SHA256))
         report['passed'] = True

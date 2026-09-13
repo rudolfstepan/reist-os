@@ -26,6 +26,8 @@ param(
     [switch]$NativeLifecycle,
     [switch]$NativeStartup,
     [switch]$NativeImport,
+    [switch]$NativePIO,
+    [ValidateRange(0,3)] [int]$PIOCase = 0,
     [ValidateRange(0,1)] [int]$StartupCase = 0,
     [ValidateRange(0,5)] [int]$FamilyCase = 0,
     [ValidateRange(0, 2)] [int]$ProgramCase = 0,
@@ -38,6 +40,8 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativePIO) { $NativeImport = [switch]$true }
+if ($PIOCase -ne 0 -and -not $NativePIO) { throw 'PIOCase requires NativePIO.' }
 if ($NativeImport) { $NativeStartup = [switch]$true }
 if ($StartupCase -ne 0 -and -not $NativeStartup) { throw 'StartupCase requires NativeStartup.' }
 if ($NativeStartup) {
@@ -318,6 +322,8 @@ try {
         "X86_64_NATIVE_LIFECYCLE=$([int]$NativeLifecycle.IsPresent)" `
         "X86_64_NATIVE_STARTUP=$([int]$NativeStartup.IsPresent)" `
         "X86_64_NATIVE_IMPORT=$([int]$NativeImport.IsPresent)" `
+        "X86_64_NATIVE_PIO=$([int]$NativePIO.IsPresent)" `
+        "X86_64_PIO_CASE=$PIOCase" `
         "X86_64_STARTUP_CASE=$StartupCase" `
         "X86_64_FAMILY_CASE=$FamilyCase" `
         "X86_64_PROGRAM_CASE=$ProgramCase" `
