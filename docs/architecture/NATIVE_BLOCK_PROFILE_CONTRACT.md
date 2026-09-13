@@ -1,8 +1,95 @@
 # Native bounded block-service profiles — R8.3ak
 
 Frozen after accepted91401365 under continuous interactive completion authority.
-25 allowed files,22 mandatory queue groups after renewed user authority below;
+27 allowed files,24 mandatory queue groups after renewed user authority below;
 this contract is not acceptance.
+
+## Authorized bounded event capture, renewed explicit user approval
+
+Resume the attributed24-path candidate matching verification-status-cost.json.
+Freeze this amendment in a contract-only local commit before implementation.
+The new explicit user approval covers the bounded non-authoritative diagnostic
+buffer and its overflow/tamper/cleanup proof, not larger execution budgets.
+
+Enable REIST_NATIVE_PIO_TRACE only in NativeBlockProfile via Make's existing
+scheduler assembly command. Old normal/Wide/PIO/Block profiles remain without
+trace code or data. No new public syscall, user mapping, policy, driver, parser
+or DMA. The private diagnostic layout-v1 is192 bytes/record,64 records (12288
+bytes), plus16-byte sequence/error control. Both live only in bounded kernel
+BSS. No change to fixed C bridge, Wide catalog/scratch, boot mapping or linker
+bounds is authorized. No heap, wait, logging or device operation in capture.
+
+Record every actual OUT after the physical instruction and every completed
+PIO data chunk after the existing IN/store loop, before any buffer reuse.
+Capture kind/sequence, exact64-byte PIO state, OUT port/value/current slot/
+generation/parent ownership, or the exact64-byte pinned request plus actual
+data (up to32 bytes) and actual word count. Pad unused bytes with zeros; publish
+sequence only after full copy. Preserve all caller registers/flags. All ranges
+are fixed or already admitted by the existing PIO core; unknown slot/owner,
+count or pointer must never create another unchecked diagnostic dereference.
+Emergency OUT fencing happens before capture and cannot depend on trace health.
+
+The64-slot ring has no consumer-written kernel cursor or authority. Keep a
+monotonic counter capped at4096/run with sticky diagnostic error on exhaustion
+or invalid capture inputs. Invalid/error counters never index memory unchecked;
+no wrapping of the counter and no repair of authoritative kernel state.
+Overwrite is permitted only as bounded diagnostic storage; a verifier lag of
+more than64 events, missing/duplicate/out-of-order records, malformed metadata,
+data tampering or sticky error FAILS acceptance. Capture failure cannot widen
+PIO authority or change scheduling. Drain at existing RPC/lifecycle boundaries;
+decode all events with the previous exact state/owner/deadline/byte checks.
+No loss of checks from removing the per-port/per-chunk debugger stops.
+
+Normal native_pio_finish64 clears the complete12304-byte trace after physical
+fencing/retirement. Observe the final drain before clear and exact full zero
+after clear in BOTH runs; idempotent clear. Fatal instances are fenced and
+halted without normal cleanup/repair, preserving bounded diagnostics.
+
+Add test/test_x86_64_pio_trace.py and test/x86_64_pio_trace_host.c to the prior
+25 files. Add actual O0/O2 trace-host gate and existing profile runner's new
+--trace-faults gate:27 files/24 groups. Actual assembly tests cover64/65 and4096
+boundaries, every ring slot, saturated/corrupt metadata, malformed data input,
+all register/flag preservation, sentinel-protected writes, exact request/data
+copies and repeatable complete clear. Host consumer mutations reject sequence,
+kind, padding, state, ownership, bytes, capacity and cleanup defects.
+
+Keep original11 full profile guests and all old gates. Supplemental fault gate
+runs exactly three4GiB guests (20s each, <=60s aggregate): overwrite-gap, actual
+captured data tamper and post-clear residual byte. Each must produce the exact
+expected verifier rejection, detach without repairing injected diagnostics,
+then normal task receipts/caller continuation with unchanged media. These are
+controlled non-authoritative diagnostic injections, not accepted profile runs
+or recovery of corrupt kernel authority. No additional baseline/after
+diagnostic guests (the four previously authorized guests remain exhausted).
+Renew affected builds/hosts/guests; retain byte-bound unaffected evidence.
+Same concrete failure after two focused corrections still stops the package.
+No agents, push, original-media write, quota/clock change or full OS claim.
+
+## Current outcome of the authorized cost investigation
+
+On907359a9 the candidate's invocation-local filter passes actual O0/O2
+differential/nonmutation/collision tests (40202 Wide vectors per optimization
+level); all276-position/pair cases agree with61efea3d. Exact comparisons:
+sequential276 frames37950 to0, captured live guest frames820 to0; adversarial
+collisions retain the full original scan. Legacy bytes remain unchanged.
+Selected-layout process-run host passes all5 original tests; old adapter
+assembly failure is retained. Updated Wide13 passes all104 lifetimes.
+
+All four authorized diagnostic guests completed (no additional retries):
+baseline12.084s, after12.056s, each detached/one-snapshot. Actual child receipts
+show normal80 exits with1..2 CPU samples, roots78 and independent peers77.
+The full new gate runtime-04.log still FAILS4.920s in first4GiB case, now
+during read5 after four correct replies, CPU32/status256/RIP0x4104fc.
+Physical fence/reap is retained; nine reads/replacement remain unproved.
+Instrumentation materially contributes; specific debugger/virtual-timer cost
+attribution is not established. No speculative second kernel correction.
+
+Stop for a required new evidence-capture boundary, not because host passes
+finish the OS. A bounded non-authoritative event journal with exact metadata/
+physical bytes and overflow/tamper/cleanup proof is one possible follow-up,
+but additional kernel state is NOT authorized by this local-filter amendment.
+No such journal, clock-policy change, skipped check or quota increase was made.
+Candidate remains active/uncommitted; all failed history remains preserved.
 
 ## Authorized frame-validation cost amendment, 13 September2026
 

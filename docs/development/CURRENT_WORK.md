@@ -2,6 +2,77 @@
 
 Stand: 13. September 2026
 
+## R8.3ak: Diagnosepuffer ausdrücklich freigegeben
+
+Die erneute Nutzerfreigabe umfasst den begrenzten, nicht autoritativen
+PIO-Diagnosepuffer samt Überlauf-, Manipulations- und Cleanupprüfungen.
+Der24-Pfad-Kandidat ist unverändert zu `verification-status-cost.json`.
+Eingefroren werden27 Dateien/24 Gates:64 feste192-Byte-Einträge plus16 Byte
+Kontrolle, nur im neuen Blockprofil. Exakte bisherige Ereignisprüfungen bleiben;
+zusätzlich drei begrenzte Gastinjektionen und tatsächliche O0/O2-Puffertests.
+Keine Quoten-, Timer-, C-Brücken-, Katalog- oder Kernelautoritätsänderung.
+Historische Stopbelege bleiben erhalten; der neue Vertrag erlaubt jetzt die
+gezielte Erfassungsänderung ohne Routineübergabe.
+
+## R8.3ak: Framekosten reduziert, Vollbeobachter bleibt Abnahmeblocker
+
+Auf Vertragscommits `8c0115dc` und `907359a9` ist eine lokale Wide-Frame-
+Negativmaske als Kandidat umgesetzt. Alle ursprünglichen Besitzprüfungen
+bleiben auf jedem Eintritt aktiv; Kollisionen verwenden weiter den vollständigen
+64-Bit-Vergleich.64 zusätzliche Stackbytes, keine persistente Autorität,
+keine CPU-/PIO-/IPC-/Restart- oder Gastfriständerung. Noch kein
+Implementierungscommit, keine neue Profil-/Systemabnahme.
+
+Erneuerte Belege unter `build/codex-agent/r83ak-block-profile/`:
+
+- `frame-cost-host-04.log` PASS2/2.472s: tatsächlicher ASM-Vergleich O0/O2
+  gegen `61efea3d`, je40.202 Wide- und1.753 Legacy-Vektoren. Alle276 Positionen/
+  Paare, ungültige/fehlende Frames, High-Bit-/Cross-Slot-Aliase, Eingaben ohne
+  Mutation und wiederholte Aufrufe. Beim Kollisionsadversär werden unverändert
+  alle früheren Frames verglichen. Sequenzielle276 Frames:37950 zu0 exakte
+  Vergleiche; tatsächlicher Gast-Snapshot:820 zu0. Dies sind Arbeitszähler,
+  keine Garantie über Hostzeit oder den gesamten Syscallaufwand.
+  Der tatsächliche Baseline-Snapshot ist gehasht im Test gepinnt, damit
+  Hostprüfungen nicht vom Vorhandensein ignorierter Gastartefakte abhängen.
+- `process-run-host-02.log` PASS5/1.740s: vollständige bisherige Admission-/
+  Ownership- und Oraclefälle. Der rote Erstlauf extrahierte beide Layout-
+  Zweige gleichzeitig. Jetzt wählt tatsächliche NASM-Präprozessierung den
+  unveränderten Standardzweig; keine Verhaltensprüfung wurde entfernt.
+- `cost-diagnostic-baseline-01.log` PASS/12.084s und
+  `cost-diagnostic-after-01.log` PASS/12.056s: insgesamt genau vier begrenzte
+  Gäste, je ein abgekoppelter und ein einmalig beobachteter Gast vorher/nachher.
+  Beide Dienstlebensläufe enden regulär80, Root78 und Peer77; Dienste benötigen
+  nur1..2 CPU-Samples. Exakte Abbild-/C-/Kataloghashes und Frame-Snapshots unter
+  `diagnostic/baseline/` und `diagnostic/after/`. Das sind Diagnosen ohne die
+  Vollbeobachter-Nachweise, ausdrücklich kein Ersatz für die eingefrorene Matrix.
+- NativeBlockProfile-/NativeWide-/Normal-Builds bestehen erneut.
+  `default-object-review-03.log`: alle27 Standardobjekte und vollständiges
+  normales Bootabbild bytegleich zu AJ; bisheriger Normalbootbeleg bleibt gültig.
+  Legacy-PIO/Block ändern sich durch die rein bedingte Wide-Optimierung nicht.
+- `wide-runtime-02.log`:alle13 bisherigen Wide-Fälle/104 Lebensläufe PASS,
+  113.970s inklusive Builds/76.749s Gastzeit,
+  `wide-guests/attempt-cb89ef2f2e474f83929981eb1e5111a7`.
+
+`runtime-04.log` FAIL/4.920s, erster4GiB-Fall,
+`guests/attempt-945c7552c68247818b43b7ac6766e66f`: vier vollständige korrekte
+Leseantworten, dann beim fünften Auftrag erneut32 Samples/Status256/RIP0x4104fc.
+IDENTIFY512 und2592 Datenbytes, physisches Fence/Reap, unveröffentlichte
+Fehlerdaten und unabhängiger Peer bleiben beobachtet. Null neue Fälle
+abgenommen. Keine unveränderte Wiederholung oder zweite spekulative
+Kerneloptimierung: Die minimal beobachteten Kontrollläufe zeigen, dass die
+Vollinstrumentierung wesentlich zum Budgetabbruch beiträgt. Welcher Anteil
+aus Debuggertransport und virtueller Timerzustellung stammt, ist nicht bewiesen.
+
+Die weitere Lösung benötigt eine neu eingefrorene Erfassungsgrenze, etwa
+einen begrenzten, nicht autoritativen Diagnosepuffer an den tatsächlichen
+PIO-Ereignissen mit identischen vollständigen Zustands-/Byte-/Fencingprüfungen,
+Überlauf-/Manipulations-/Cleanupnachweisen und allen bisherigen Gastfällen.
+Das wäre zusätzlicher Kernelzustand, nicht die freigegebene rein lokale
+Frameoptimierung. Kein solches Journal, kein geänderter QEMU-Takt und keine
+abgeschwächte Abnahme wurden implementiert. Paket bleibt aktiv; Kandidat und
+alle roten Belege bleiben sichtbar. Exakte22 Kommandos/Loghashes und der
+unvollständige Abnahmestand folgen in `verification-status-cost.json`.
+
 ## R8.3ak: Kostenkorrektur ausdrücklich freigegeben
 
 Vertragsergänzung: Der zusätzlich eingefrorene Process-Run-Hosttest scheitert

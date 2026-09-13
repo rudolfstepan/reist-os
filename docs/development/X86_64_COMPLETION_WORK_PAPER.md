@@ -6,6 +6,21 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
 
+Neu ausdrücklich freigegeben: begrenzte nicht autoritative PIO-Ereigniserfassung
+mit unveränderten Vollprüfungen und zusätzlichen Überlauf-/Manipulations-/
+Cleanupnachweisen.27 Dateien/24 Gates; gleicher aktiver Blockdienstkandidat,
+kein Folgepaket und keine vorgezogene Systemabnahme.
+
+Aktuell auf `907359a9`: lokale Framekostenkorrektur besteht tatsächliche
+O0/O2-Differenz-/Kollisionsprüfungen; der aktualisierte Ownership-Test und
+Wide13 bestehen. Die neue Blockprofilmatrix bricht unter Vollbeobachtung
+weiterhin am32-Sample-Budget ab, jetzt im fünften Leseauftrag. Vier kontrollierte
+Minimal-/Snapshotgäste vor/nach der Änderung enden dagegen regulär mit nur1..2
+Dienstsamples. Keine Profilabnahme aus dieser Diagnose. Eine andere vollständig
+geprüfte Erfassungstechnik braucht einen ausdrücklich erweiterten Vertrag;
+keine weitere Prüfungsreduktion, Quoten- oder Timeränderung.25 Dateien/22 Gates,
+sichtbarer Kandidat uncommitted; [Detailstand](CURRENT_WORK.md).
+
 Die erneute ausdrückliche Nutzerfreigabe setzt R8.3ak mit einer begrenzten
 Frameprüfungs-Kostenanalyse fort:24 Dateien/22 Gates, unveränderte vollständige
 Besitzprüfungen und Quoten. Historische Stopbelege bleiben erhalten; dies ist
