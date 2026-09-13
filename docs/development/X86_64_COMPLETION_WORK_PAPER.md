@@ -6,6 +6,14 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
 
+Auf sauberem Abschluss `91401365` folgt R8.3ak: Der vorhandene EXT2-Parser
+benötigt schon für15 Dateibytes neun unterschiedliche Sektoren, das alte
+Blockprofil erlaubt acht Anfragen. Ein eigenes begrenztes Dienstprofil und
+die noch fehlende Wide-PIO-Taskanbindung bilden die nächste gemeinsame
+Blockdienstgrenze; bestehende API-/Kernelquoten bleiben unverändert.
+20 Dateien/20 Gates; [Profilvertrag](../architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md).
+Die eigentliche Dateisystemintegration folgt erst nach dieser Abnahme.
+
 Vertrag `60c65385` erweitert versioniert RNPGv2/CREATE-v5 auf64 Image-Slots
 und einen privaten32KiB-NX-Stack mit Guardpage. Wiederverwendete Mechanismen
 decken alle neuen Slots, vollständige Rollbacks und frische Bytes nach Reap

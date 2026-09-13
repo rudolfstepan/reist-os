@@ -2,6 +2,22 @@
 
 Stand: 13. September 2026
 
+## R8.3ak: Blockdienstprofil und Wide-PIO-Besitz eingefroren
+
+R8.3aj ist mit `91401365` lokal abgeschlossen; Arbeitsbaum danach sauber.
+Die anschließende tatsächliche EXT2-Inventur O0/O2 benötigt für15 Dateibytes
+zehn Sektoraufrufe/neun unterschiedliche Sektoren. Das bestehende Blockprofil
+erlaubt acht Anfragen je Generation; auch ein idealer Cache reicht nicht.
+PIO verwendet außerdem noch zwei256-Byte-Taskstrides und feste Slot2/3-Offets.
+
+Der nächste zusammenhängende Blockdienst-Schnitt friert ein ausdrücklich
+gewähltes lokales Profil1..16 Anfragen mit fester Generation/Frist und die
+Wide-Task-Anbindung ein. Alte APIs/Profile bleiben unverändert; keine CPU-,
+IPC-, PIO- oder Restartquoten werden erhöht.20 Dateien/20 Gates einschließlich
+elfteiliger neuer Gastmatrix, alter Block-/Wide-/Fatalfälle und i386-Pins.
+[Vertrag](../architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md). Noch keine
+Implementierungsabnahme oder Dateisystemintegration; R3.6b bleibt deferred.
+
 ## R8.3aj: begrenzter Programmspeicher und geschützter Mehrseitenstack umgesetzt
 
 Vertrag `60c65385` auf abgenommenem `a1f17276`:48 erlaubte Dateien,
