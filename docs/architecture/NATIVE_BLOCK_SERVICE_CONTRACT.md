@@ -213,3 +213,16 @@ All ten block guests and old PIO10/fatal8 remain required at original limits.
 Retain prior gates only when inputs are demonstrably unaffected; rerun changed
 consumers after correction. Contract commit before production changes, no
 candidate commit until all gates pass. All previous failure evidence remains.
+
+Derived-link clarification before guest execution: rebuilding native_ipc moves
+the validated C export reist_native_memory. physical_memory.o embeds that
+address in exactly one MOV RAX,sign-extended-imm32 instruction; no other byte
+differs (7472 bytes, two changed immediate bytes in the measured candidate).
+Allow only that derived relocation, not another mechanism change. The oracle
+must independently validate both inner/outer C payloads, derive the respective
+export addresses, require one exact MOV occurrence at the same object offset,
+normalize only its four immediate bytes and compare the entire object to AH.
+Reject missing, duplicate, wrong opcode, unexpected address or any other byte
+change. Add host negatives to the existing blockhost gate;31 files/20 groups
+unchanged. Thus25 objects remain byte-identical plus this one exactly checked
+derived link; the two explicitly amended implementations still match PIO/block.
