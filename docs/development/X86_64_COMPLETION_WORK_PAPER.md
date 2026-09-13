@@ -6,6 +6,27 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
 
+Neu ausdrücklich freigegeben: begrenzte QEMU/GDB-Transportdiagnose mit
+sechs Vergleichsgästen und höchstens zwei gezielten Folgekontrollen,
+je20s/insgesamt160s.30 Dateien/25 Gates, gleicher zugeschriebener Kandidat,
+keine Gasttakt-, Quoten- oder Oracleänderung. Ein nachgewiesener Transportfix
+darf innerhalb dieser Grenze unmittelbar umgesetzt werden; Diagnose allein
+ersetzt keine vollständige Profil-/Systemabnahme. Details: [Arbeitsstand](CURRENT_WORK.md).
+
+Aktuell auf Vertrag `d461a797`: Das nicht autoritative PIO-Journal ist als
+Kandidat umgesetzt; tatsächliche O0/O2-Pufferhosts, Consumer-Negativtests
+und der Profilbuild bestehen. Der Vollbeobachter erreicht trotz zwei gezielter
+Korrekturen weiterhin32 CPU-Samples, zuletzt im fünften Auftrag nach vier
+korrekten Antworten. Physisches Fence/Reap und komplette Journal-Löschung
+im ersten Lauf bestehen; keine Ersatz-/Zweitlauf- oder Neun-Anfragen-Abnahme.
+Die drei Diagnosefehler-Gäste sind noch nicht ausgeführt, übrige betroffene
+Gates/Legacy-Bytebindung offen. Stop-Bedingung erreicht, kein
+Implementierungscommit/Queuewechsel. Weitere begrenzte QEMU/GDB-
+Ursachendiagnose braucht neue ausdrückliche Freigabe.27 Dateien/24 Gates;
+[aktueller Stand und historische Belege](CURRENT_WORK.md).
+
+Historie der Freigaben und Vorbefunde:
+
 Neu ausdrücklich freigegeben: begrenzte nicht autoritative PIO-Ereigniserfassung
 mit unveränderten Vollprüfungen und zusätzlichen Überlauf-/Manipulations-/
 Cleanupnachweisen.27 Dateien/24 Gates; gleicher aktiver Blockdienstkandidat,

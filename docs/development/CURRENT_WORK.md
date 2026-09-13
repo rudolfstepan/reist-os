@@ -2,6 +2,78 @@
 
 Stand: 13. September 2026
 
+## R8.3ak: begrenzte QEMU/GDB-Ursachendiagnose freigegeben
+
+Die erneute ausdrückliche Zustimmung setzt den unverändert zugeschriebenen
+Kandidaten aus `verification-status-trace.json` fort:26 geänderte Pfade,
+alle27 Hashes stimmen. Neuer Vertragsumfang30 Dateien/25 Gates: gemeinsamer
+Capture-Adapter, eigener Transportdiagnose-Runner und zugehörige Hosttests.
+Sechs vergleichende4GiB-Gäste, höchstens zwei gemessene Folgekontrollen,
+je20s/insgesamt160s; feste Evidenzverzeichnisse verhindern Wiederholung.
+Abgekoppelt/Finish/RPC-ohne-Prüfung/RPC-Metadaten/Vollbeobachter/Hardware-
+Haltepunkte unterscheiden ausschließlich die Beobachtung. Gastabbild,
+Zeitpolitik, Quoten und sämtliche Abnahmeoracles bleiben unverändert.
+Diagnoseergebnisse sind keine Profilabnahme. Die alten vier Kontrollgäste
+bleiben ausgeschöpft; vorherige Stopbelege sind erhaltene Historie.
+[Eingefrorener Diagnosevertrag](../architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md).
+
+## R8.3ak: Diagnosepuffer umgesetzt, CPU-Abbruch weiterhin offen
+
+Auf Vertragscommit `d461a797` ist der private, nicht autoritative PIO-Puffer
+als sichtbarer Kandidat umgesetzt:64 mal192 Byte plus16 Byte Kontrolle,
+nur im Blockprofil. Physische OUTs und abgeschlossene READ16-Chunks werden
+mit Zustand, Generation beziehungsweise Request und tatsächlichen Daten
+gesichert; alle Register/Flags bleiben erhalten. Begrenztes Überschreiben,
+4096-Ereignisgrenze, sticky Diagnosefehler und vollständige normale Löschung.
+Keine neuen Rechte, Quoten, Timerpolitik, C-Brücken- oder Kataloggrenzen.
+
+Neue Belege unter `build/codex-agent/r83ak-block-profile/`:
+
+- `python test/test_x86_64_pio_trace.py -v`: PASS5/1.120s,
+  `trace-host-06.log`. Tatsächlicher ASM O0/O2, alle Ringplätze,64/65/4096,
+  ungültige Eingaben und Metadaten, alle GPR/Flags einschließlich RSP,
+  Sentinels, exakte Bytes und wiederholte vollständige12304-Byte-Löschung.
+  Consumer-Mutationen, sämtliche Datenbytes, Reihenfolge/Duplikate/fehlende
+  Einträge und jeder mögliche Restbyte-Ort werden verworfen. Die gebündelte
+  Aufnahme bewahrt alle frischen Seiten- und Datenprüfungen; kein Mapping-
+  Cache über die Gastfortsetzung hinweg. Rote Testaufbauversuche bleiben
+  erhalten (O2-Arrayausrichtung, Einrückung, erwartete Zahl gelesener PTEs).
+- `python test/test_x86_64_block_profile_runtime.py -v`: PASS3/1.073s,
+  `runtime-host-07.log`, bisherige vollständige Oracles plus exakte
+  Diagnoseablehnung/Callerfortsetzung und Drain-/Cleanup-Reihenfolge.
+- `build-x86_64-bootstrap.ps1 -NativeBlockProfile`: PASS/5.112s,
+  `build-04.log`, Boot-ELF1355804 Byte/C-ELF63392 Byte. Dies ist ein Buildpass,
+  keine Gastabnahme oder erneute Bytegleichheitsprüfung der alten Profile.
+- Vollständige Matrix, erster4GiB-Fall: `runtime-05.log`, `runtime-06.log`
+  und `runtime-07.log` FAIL, je rund5.1s. Nach dem Journal wurden genau zwei
+  gezielte Beobachterkorrekturen geprüft: frische gebündelte Ring-/Seitenreads
+  und GDB `always-inserted on` (alle Haltepunkte/Prüfungen bleiben bestehen).
+  Derselbe32-Sample-Abbruch bleibt; keine weitere unveränderte Wiederholung.
+
+Letzter Versuch `guests/attempt-3a6012b29d9f4e46a1b7dc7ccd78f7d8`:
+vier korrekte512-Byte-Antworten; der fünfte Auftrag endet ohne Veröffentlichung
+mit EPIPE. Dienst3: Status256/Samples32/RIP0x4105de; Root221, Peer77.
+IDENTIFY512 und3072 reale Datenbytes einschließlich Selbsttest sind geprüft,
+153 Ereignisse vollständig ausgelesen. Physisches Fence/Reap und die gesamte
+Pufferlöschung im ersten Lauf bestehen. Ersatzgeneration, zweiter Lauf und
+neun erfolgreiche Anfragen fehlen. Null neue Gastfälle abgenommen.
+
+Stop-Bedingung erreicht. Die drei ergänzenden Diagnosefehler-Gäste wurden
+noch nicht gestartet; ebenfalls offen sind die erneute Legacy-Bytebindung
+und die restlichen betroffenen Gates. Frühere21 PASS/1 FAIL sind historische
+Evidenz, keine24-Gate-Abnahme dieses geänderten Kandidaten. Exakte neue
+Datei-/Artefakthashes und Gatezustände: `verification-status-trace.json`.
+Kein Implementierungscommit, kein Queuewechsel, kein Push. Der aktuelle
+lokale Commit ist die Vertragsfreigabe `d461a797`.
+
+Der Journalmechanismus allein löst die beobachtete Ausführungskostendifferenz
+nicht. Die genaue Ursache bleibt unbewiesen; keine Behauptung eines bestimmten
+QEMU-/Timerfehlers. Eine weitere Untersuchung des gemeinsamen QEMU/GDB-
+Transports benötigt eine neue begrenzte Diagnosefreigabe mit zusätzlichen
+Kontrollgästen und gegebenenfalls dessen Quelldatei. Die alten vier
+Framekosten-Diagnosegäste bleiben ausgeschöpft. Keine stillschweigende
+Scope-, Quoten- oder Gateänderung; Kandidat und alle Belege bleiben erhalten.
+
 ## R8.3ak: Diagnosepuffer ausdrücklich freigegeben
 
 Die erneute Nutzerfreigabe umfasst den begrenzten, nicht autoritativen

@@ -1,8 +1,88 @@
 # Native bounded block-service profiles — R8.3ak
 
 Frozen after accepted91401365 under continuous interactive completion authority.
-27 allowed files,24 mandatory queue groups after renewed user authority below;
+30 allowed files,25 mandatory queue groups after renewed user authority below;
 this contract is not acceptance.
+
+## Renewed authority: bounded QEMU/GDB transport diagnosis
+
+The user's explicit yes resumes the26 attributed changed paths/27 exact
+hashes in verification-status-trace.json on d461a797. Freeze this amendment
+with a contract-only local commit before diagnosis implementation. Preserve
+the entire candidate and red history. Add only the existing shared transport
+scripts/run_qemu_x86_64_boot_programs.py, the separate diagnostic adapter
+scripts/diagnose_x86_64_block_transport.py and its host test
+test/test_x86_64_block_transport.py:30 allowed files,25 acceptance groups.
+The old four frame-cost diagnostic guests remain exhausted and separate.
+
+Inventory: QEMU11.1.0 e470268ff4, GDB17.2; current transport launches one TCG
+CPU/4GiB, hidden, ordinary virtual time, GDB TCP12491,20s deadline and bounded
+logs. Full-observer callbacks still consume the budget with the journal; exact
+cause is unproved. Query documented debugger facilities, do not assume that
+changing breakpoint kind or insertion mode solves it. QEMU documents GDB
+hardware-assisted breakpoints and read-only single-step mask queries:
+https://www.qemu.org/docs/master/system/gdb.html . Never modify the step mask,
+IRQ/timer policy, guest counters, quotas, frames or executable bytes to pass.
+
+Authorize at most eight new diagnostic guests total,4GiB/20s each and <=160s
+aggregate, serial and same pinned current image/C payload/catalog. Fixed new
+transport-diagnostic directories refuse reuse. Six initial comparisons:
+detached, finish-only, RPC no-op, RPC metadata, full observer with measured
+callbacks, and the same full observer using documented hardware-breakpoint
+requests. Only breakpoint transport/observation differs. Up to two follow-up
+controls may isolate one measured debugger transport factor; record their
+selected factor before launch, no unchanged retries. All diagnostic-only;
+normal receipts/caller continuation and a known fail-closed CPU32 outcome are
+different recorded outcomes, neither substitutes for the full acceptance
+matrix. Unexpected corruption, media drift, log/callback/deadline exhaustion
+or unclassified failure stops the diagnosis. Retain every failed invocation.
+
+Read-only metrics may include bounded per-callback host time, memory-read
+count/bytes, register reads, current guest tick/sample counters, documented
+read-only remote queries and the launched QEMU process's host CPU times.
+No persistent debugger setting, host-wide change, new device, network service,
+external code execution, target clock option or media write. The shared capture
+adapter may append opt-in diagnostics only; its default call behavior, fixed
+limits, media-before/finally verification and process cleanup remain intact.
+Host mocks must cover default preservation, opt-in metrics, failed launch/
+debugger/guest completion, bounded reads and cleanup. Diagnostic adapters
+require negative tests for malformed/missing/duplicate metrics and receipts.
+
+If controls establish a transport correction within these files, apply it
+without a routine handoff, keeping every full observer assertion and gate.
+Renew all affected gates and explicit old-profile byte bindings. Add the
+transport host gate to the existing24; new profile11, fault3, old block10,
+Wide13, fatal9, normalboot and original i386 pins remain mandatory. Source or
+authority changes outside the frozen boundary still stop; do not infer a
+kernel C, timer/scheduler or quota rewrite from diagnostic permission. Same
+concrete failure after two evidence-directed corrections again stops. Local
+implementation commit only after complete scope review/all25 gates; no push.
+
+## Current candidate outcome on d461a797 — not accepted
+
+Private journal implemented within the frozen27 paths; actual O0/O2 host
+PASS5/1.120s (trace-host-06), runtime-oracle host PASS3/1.073s
+(runtime-host-07), profile build PASS5.112s (build-04). Full profile runtime
+05/06/07 still fails its first4GiB case at the unchanged32-sample CPU cap.
+After journal introduction, exactly two focused observer corrections were
+tested: bounded fresh ring/page-read batching, and keeping the same GDB
+breakpoints inserted across stops. Neither establishes a specific cause.
+All original state/ownership/deadline/byte/fence/retirement checks remain.
+
+Final attempt3a6012b29d9f4e46a1b7dc7ccd78f7d8: four exact replies, then
+request5 EPIPE with unchanged client output; child256/32/RIP4105de, root221,
+peer77. IDENTIFY512/data3072,153 exact captured events, fence/reap and full
+12304-byte normal trace clear in run1. Missing replacement, run2, nine-read
+proof: zero new accepted guests. The three supplemental trace-fault guests
+are NOT RUN; legacy byte binding/remaining affected gates are not renewed.
+Earlier logs and failed harness versions are retained, not promoted.
+
+Stop condition reached; no further correction, implementation commit, queue
+transition or push. verification-status-trace.json records exact current
+sources/artifacts and historical versus fresh evidence. Additional bounded
+QEMU/GDB transport investigation/control guests require newly frozen explicit
+authority; the four old frame-cost diagnostic guests remain exhausted. No
+inferred clock/budget relaxation or claim that journal host tests finish OS.
 
 ## Authorized bounded event capture, renewed explicit user approval
 
