@@ -2,6 +2,22 @@
 
 Stand: 13. September 2026
 
+## R8.3am: dateibasierten ELF64-Start gemeinsam einfrieren
+
+R8.3al ist lokal als `1835ee97` mit21/21 Gates abgeschlossen; Worktree sauber.
+Nächster zusammenhängender Schnitt: vorhandenen Ring3-Dateizugriff und ELF64-
+Import verbinden, einschließlich aller fünf Medien, frischer Dienstgruppen,
+Programm-Crash/Hang/Cancel, fehlerhaften Dateien/Antworten und Import-OOM.
+Die acht bestehenden RPCs erlauben stat, sechs256-Byte-Reads und EOF: maximal
+1536 echte Dateibytes, keine heimliche Quoten-/Cacheerweiterung. Programm und
+Dateidienste laufen wegen der vier festen Slots nacheinander; normale parallele
+Shell-/Dienstintegration benötigt danach eine eigene Kernel-Erweiterung.
+Der wiederverwendbare SDK-Adapter publiziert nur vollständig gelesene/geprüfte
+Abbilde. Keine neue Shellfunktion, kein komplexer Kernelpfad und kein OS-Claim.
+[Dateistartvertrag](../architecture/NATIVE_FILE_LAUNCH_CONTRACT.md):20 Gruppen,
+18 neue Gäste,18 alte Dateisystemgäste, explizite Selektoren und Bytebindung
+aller alten Profile. Noch keine Implementierung oder Abnahme dieses Pakets.
+
 ## R8.3al: Dateisystem und alte Referenzmatrix umgesetzt
 
 Vertrag `3d608fb9`,24 erlaubte Dateien/21 Prüfgruppen. Die neue18-Gast-

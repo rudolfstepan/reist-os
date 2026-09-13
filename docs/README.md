@@ -19,6 +19,7 @@ Nativer Blockdienst: [Block-RPC-Vertrag](architecture/NATIVE_BLOCK_SERVICE_CONTR
 Native Programm-/Stackkapazität: [Speichervertrag](architecture/NATIVE_PROGRAM_MEMORY_CONTRACT.md).
 Native Blockdienstprofile: [Profilvertrag](architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md).
 Native Read-only-Dateisystemdienste: [Dateisystemvertrag](architecture/NATIVE_FILESYSTEM_CONTRACT.md).
+Nativer dateibasierter Programmstart: [Dateistartvertrag](architecture/NATIVE_FILE_LAUNCH_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

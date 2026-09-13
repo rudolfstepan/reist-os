@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3am-x86_64-file-launch"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3am-x86_64-file-launch"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native immutable-file ELF64 preparation, explicit execution and bounded recovery"
+scope = "On clean accepted1835ee97, connect existing Ring3 FS and image adapters from actual file bytes to an independently admitted native program. All FAT12/FAT32/EXT2 layouts and one read/prepare/import/retire failure boundary together. Fixed1536-byte staging fits unchanged8-RPC/16-sector profile; fence/reap driver and FS before reusing slot2 for the program. Fresh dependency/application replacement, no normal concurrent OS or shell claim."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/NATIVE_FILE_LAUNCH_CONTRACT.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","userspace/sdk/include/reist/x86_64/file_image.h","userspace/sdk/lib/x86_64/file_image.c","arch/x86_64/user/filesystem.c","arch/x86_64/user/file_launch.c","arch/x86_64/user/file_program.c","config/x86_64_file_program.ld","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","Makefile","scripts/build_x86_64_fs_media.py","scripts/run_qemu_x86_64_pio.py","scripts/run_qemu_x86_64_file_launch.py","test/test_x86_64_file_image.py","test/x86_64_file_image_host.c","test/test_x86_64_file_launch.py","test/test_x86_64_fs_media.py"]
+invariants = ["Follow NATIVE_FILE_LAUNCH_CONTRACT.md. No kernel source, new syscall, quota/CPU/CREATE/PIO/IPC widening, writable media or normal shell command.","Fresh immutable FS client generation, fixed1536 bytes, at most8 RPCs and one <=3000ms deadline. Complete capture/EOF and existing ELF admission before unchanged-on-error prepared output; no invisible restart or cache eviction.","Explicit supervisor-owned attenuated CREATE grants no PIO/TASK_CONTROL; source bytes/name grant no rights. Pair fenced/reaped before application, exact identity/argv/frame/IPC/heap/FP cleanup and independent peer survival.","All20 frozen groups plus direct scope/ABI/cleanup and normal/FS byte review before local commit. All accepted and failed evidence retained, old profiles unchanged, R3.6b deferred; main agent only, no push."]
+targeted_tests = ["python test/test_x86_64_file_image.py -v","python test/test_x86_64_file_launch.py -v","python test/test_x86_64_filesystem.py -v","python test/test_ext2_read_ranges.py -v","python test/test_x86_64_fs_media.py -v","python test/test_x86_64_filesystem_runtime.py -v","python test/test_x86_64_image_import.py -v","python test/test_x86_64_task_startup.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_x86_64_pio.py -v","python test/test_x86_64_native_ipc.py -v","python test/test_syscall_abi_source.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83am-file-launch/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeFilesystem -OutputDirectory build/codex-agent/r83am-file-launch/filesystem",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeFileLaunch -OutputDirectory build/codex-agent/r83am-file-launch/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_file_launch.py --image build/codex-agent/r83am-file-launch/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83am-file-launch/guests","python scripts/run_qemu_x86_64_filesystem.py --image build/codex-agent/r83am-file-launch/filesystem/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83am-file-launch/filesystem-guests","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83am-file-launch/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83am-file-launch/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+stop_conditions = ["Unrelated changes, source required outside allowed_files or pre-existing source failure.","Need quota/authority/persistence expansion, ordinary concurrent shell integration or user/physical media.","Same concrete frozen failure remains after two focused corrections; no unchanged retry or diagnostic-only acceptance."]
+commit_message = "feat: load and execute bounded native ELF64 files through Ring3 services"
+inventory = "Clean1835ee97, all21 AL gates and source-bound manifest accepted. Actual existing8-RPC/256-byte FS adapter yields one stat plus6 reads plus EOF within1536 bytes; ELF parser already supports standard FILEHDR-compatible congruent PT_LOAD without requiring4KiB file padding. Runtime/task admission remains4 slots, CPU1..32,8 CREATE attempts/root and two imported image contexts. Native file preparation/execution is missing; no second parser or kernel format path needed. Four-slot concurrent shell expansion is separate, not silently implemented here."
 
 [[packages]]
 id = "R8.3al-x86_64-filesystem"

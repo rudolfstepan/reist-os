@@ -4,6 +4,18 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3am: Datei, ELF64-Import und Programmlebensdauer
+
+Nach sauberem Abschluss `1835ee97` verbindet der nächste Schnitt die vorhandenen
+Ring3-Adapter von stat/read bis zum tatsächlich gestarteten nativen ELF64.
+Alle fünf Medien und dieselbe begrenzte Fehler-/Wiederanlaufgrenze zusammen;
+keine Quoten-/Kernel-Erweiterung oder normale parallele Shell-Zusage.
+Die feste1536-Byte-Dateigrenze folgt aus dem bestehenden Acht-Anfragen-Profil,
+nicht aus einem geänderten ELF-Format. Standard-GNU-Linklayout und echter C-
+Verbraucher,20 Gates einschließlich neuer18- und alter18-Gast-Matrix.
+[Vertrag](../architecture/NATIVE_FILE_LAUNCH_CONTRACT.md),
+[Arbeitsstand](CURRENT_WORK.md). Noch keine Implementierungsabnahme.
+
 ## R8.3al: Read-only-Dateisystemprofil und Referenznachweise
 
 Der gemeinsame FAT12/FAT32/EXT2-Dienst mit getrenntem PIO-Treiber ist im
