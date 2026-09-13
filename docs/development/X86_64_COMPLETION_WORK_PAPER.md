@@ -4,6 +4,19 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3ai: Blockdienst noch nicht abgenommen
+
+Kandidat auf Vertrag `17954988`, keine neue Implementierungsabnahme. Client,
+Dispatcher, ATA-Service und opt-in NativeBlock bauen; drei Hosttests einschließlich
+tatsächlichem C O0/O2 bestehen. Die vollständige Gastprüfung scheitert bereits
+bei der zweiten gültigen RPC am unveränderten32-Sample-Budget. Eine frühere
+Gegenprobe ohne laufenden Debugger besteht, ersetzt aber keine eingefrorenen
+Gates. Auch reduzierte Beobachtung hat das Problem nicht ausreichend eingegrenzt.
+Mess-/Kernelkosten müssen in einem ausdrücklich erweiterten Diagnoseumfang
+untersucht werden; keine stille Erhöhung von Quoten oder Absenkung der Beweise.
+Details, Kandidatenunterschiede und erhaltene Fehlbelege im
+[Arbeitsstand](CURRENT_WORK.md). Paket bleibt aktiv, Restgates und Commit offen.
+
 ## R8.3ah: Treiberrechte, Lesen und Fehlergrenze zusammen
 
 Auf abgenommenem `abd9edb4` bündelt R8.3ah CREATE-v4 mit vollständigem192-Bit-

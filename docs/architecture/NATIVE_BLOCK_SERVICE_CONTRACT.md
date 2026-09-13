@@ -88,3 +88,28 @@ All16 groups and direct review precede local commit; no agents or push.
 Keep historical vector20/observer failures and R341-H1/H2 visible. R3.6b stays
 deferred. No full native OS, physical hardware, DMA, writable recovery or system
 timing/stability acceptance is implied by this service package.
+
+## Candidate evidence boundary, 13 September2026
+
+Renewed user authority permits continuous bounded measurement/kernel-cost
+diagnosis and corrections. First compare the same exact image and catalog in
+at most four20s diagnostic COW guests: detached, minimally connected, full
+instrumentation and one targeted counter profile. Diagnostic outcomes never
+replace the16 frozen gates. Add diagnose_x86_64_block_costs.py and the shared
+capture module to scope,24 files. Do not change CPU/PIO/deadline limits, QEMU
+clock rate, kernel state or mechanism objects. Read-only kernel path analysis
+is permitted; a demonstrated necessary mechanism correction must first receive
+an explicit failure-boundary contract and regression gates. Keep all historical
+failures and correct only attributable causes, without routine handoffs.
+
+Implementation is uncommitted on17954988. Actual C O0/O2 and the NativeBlock
+build pass, but the first fully observed4GiB guest reaches its32-sample budget
+during the second valid RPC. No new guest case is accepted. A prior detached
+debugger diagnostic completed the intended service lifecycles; this is not a
+substitute gate and used a different candidate than subsequent journal probes.
+The candidate fixed Ring3 PIO-return journal, physical reset-OUT return probes
+and generation-gated startup observer are still unaccepted instrumentation.
+No kernel mechanism or frozen quota has changed. Preserve all failed evidence;
+no commit/queue transition or further unchanged retry. A separately authorized
+bounded measurement/kernel-cost investigation is needed to determine the next
+correction without weakening assurance. CURRENT_WORK.md records exact evidence.

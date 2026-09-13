@@ -2,10 +2,68 @@
 
 Stand: 13. September 2026
 
-## R8.3ai: nativer lesender Blockdienst als nächster Gesamtschnitt
+## R8.3ai: Diagnose wieder freigegeben, Abnahme weiter offen
+
+Erneute Nutzerfreigabe: begrenzte Mess-/Kernelkosten-Diagnose und anschließende
+Korrekturen ohne Routinefragen. Vier begrenzte Diagnoseläufe dürfen nur dasselbe
+Abbild vergleichen; frühere unterschiedliche Kandidaten werden nicht als A/B-
+Nachweis verwendet.24 erlaubte Dateien, weiterhin16 Gates und unveränderte
+Quoten/Kernelmechanismen. Vertragscommit vor Fortsetzung. Die folgenden
+Fehlbelege bleiben unverändert historische Evidenz, nicht heutige Abnahme.
+
+Auf Vertragscommit `17954988` liegt der eigene, noch nicht abgenommene Kandidat
+im sichtbaren Worktree: Block-RPC-v1-Client/Dispatcher, Ring3-ATA-Dienstadapter,
+IPC-Dienstschleife, NativeBlock-Build und neue Gastprüfung. Kein Quotenwechsel,
+kein Kernelquelleneingriff, kein Commit des Kandidaten und kein Queuefortschritt.
+
+Aktuelle Belege unter `build/codex-agent/r83ai-block/`:
+
+- `python test/test_x86_64_block_service.py -v`:3 Tests PASS/1.670s,
+  `host-05.log`; tatsächliches C O0/O2, feste sektorabhängige Medien und negative
+  RPC-Evidenzprüfung. Zwei frühere echte Deadlinefehler wurden zuerst als
+  Regression gezeigt und behoben (späte letzte Selftest-I/O, bereits vor SEND
+  abgelaufene Anfrage). Die neuere Gast-Journal-/Beobachterlogik hat noch keine
+  vollständige eigene Hostabnahme;3 Tests sind nicht alle16 Paketgates.
+- `build-x86_64-bootstrap.ps1 -NativeBlock .../native`:PASS,
+  `build-08.log`; vier gültige private C-Layoutprüfungen. Builds01..08 und
+  sämtliche Zwischenkataloge bleiben erhalten; kein i386-Original überschrieben.
+- Letzte vollständige Matrixanforderung `run_qemu_x86_64_block_service.py`
+  stoppt im ersten4GiB-Fall nach2.935s: `guest-09.log`,
+  `guests/attempt-37dfa2305e5f4e889e60bf76756c6092`. Noch **kein** neuer
+  Gastfall abgenommen. Vier ungültige Requests liefern erwartete Fehler ohne
+  weitere I/O; READ LBA1 liefert exakt512 Bytes über IPC bis zum Client.
+  Bei READ LBA127 erreicht der Dienst32 CPU-Samples, wird status256 beendet;
+  Client bekommt EPIPE statt Erfolg, deshalb bewusst negativer Oracle-Ausgang.
+- Diagnose `unobserved-01.log` mit früherem Kandidaten und abgetrenntem
+  Debugger: beide Durchläufe mit erwarteten Dienst-/Root-Ergebnissen, normale
+  Dienstgenerationen13..16 Samples. **Kein Ersatz** für die gefrorene Abnahme.
+  `connected-01.log` mit späterem Journal-Kandidaten und nur Abschlussprobe:
+  normale Generationen23..30 Samples, schließlich Root-Budgeterschöpfung.
+  Diese verschiedenen Kandidaten liefern keine kontrollierte quantitative
+  Ursache oder allgemeine Kernel-/QEMU-Fehlerbehauptung.
+
+Die ersten Observerfehler (fehlendes Symbol im absichtlich gestrippten ELF,
+GDB-Leseanforderung mit Länge0) sind korrigiert; Linkmaps bleiben Buildbelege.
+Weitere Versuche reduzierten bereits geprüfte Prozessstart-Haltepunkte und
+ersetzten Einzelwort-Stopps durch ein festes Ring3-Journal tatsächlich
+zurückgegebener PIO-Requests/Daten. Physische Reset/Fence-OUTs bleiben separat
+beobachtet; alle28 unabhängigen Kernelmechanismus-Objekte entsprechen der
+abgenommenen AH-Referenz. Dennoch besteht die vollständige Messung nicht.
+Das Journal und die abgeleiteten CALL-Rückkehrproben sind **Kandidat**, keine
+abgenommene Änderung am Nachweisvertrag. Alle Fehlversuche bleiben erhalten.
+
+Stopbedingung: Nach diesen begrenzten Korrekturen ist keine belegte weitere
+Korrektur innerhalb der eingefrorenen unveränderten Kernelmechanismen und
+Messgrenzen bestimmt. Benötigt wird eine ausdrücklich abgegrenzte Erweiterung
+für Mess-/Kernelkosten-Diagnose; nicht einfach mehr CPU-Budget oder ein
+abgeschwächter Test. Restliche Host-, Referenz-, Fatal-, OOM-/Medien-/Ownerloss-
+Gates, vollständige Review und Implementierungscommit bleiben offen. Nur eigene
+Dateien im Scope, `git diff --check` bestanden. R3.6b bleibt zurückgestellt.
+
+### Eingefrorener Umfang
 
 R8.3ah ist als `7f452faf` lokal abgenommen,22 Gates bestanden und Worktree
-sauber. Die neue native Inventur bündelt Client, versionierte Block-RPC,
+war danach sauber. Die neue native Inventur bündelt Client, versionierte Block-RPC,
 Ring3-Dienstschleife, explizite IPC-Grants, Datenvalidierung und Recovery.
 Vorhandenes Storage-BLOCK_READ1/512-Byte-LBA und IPC-v1/v2 werden übernommen;
 keine Portierung des i386-Storage-Requestpools oder neuer Ring0-Dateisystemcode.
