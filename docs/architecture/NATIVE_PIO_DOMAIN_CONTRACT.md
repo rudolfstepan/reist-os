@@ -82,7 +82,8 @@ normal shell/file integration remain later cohesive boundaries.
 ## Frozen proof and integration
 
 NativePIO presets NativeImport and its dependencies but selects a distinct
-Ring3 driver fixture. Old import/startup fixtures and C layout4 remain unchanged.
+Ring3 driver fixture. Old import/startup outcomes, capacities and C layout4
+remain unchanged; their approved synchronization/oracle corrections are below.
 The root may use the already accepted two-RX-page import layout; all image,
 task, heap, CPU and startup capacities remain exact.
 
@@ -105,7 +106,8 @@ i386 pins are mandatory; no unrelated full hardware matrix.
 
 Stop on unattributed changes, required files outside allowed_files, widened
 quotas/deadlines, external hardware authority, or a failed gate after one
-focused in-scope repair. Only after all14 groups, direct authority/failure/
+focused in-scope repair unless resumed under the explicit continuous repair
+authority below. Only after all16 groups, direct authority/failure/
 cleanup/scope review and a clean local commit may another package start.
 R3.6b stays deferred, R341-H1/H2 open; no full64-bit OS completion claim.
 
@@ -228,3 +230,51 @@ quotas, microkernel boundary, clean acceptance commit and one-package rule stay.
 Unrelated/user changes, unresolved external reference acceptance, new hardware
 or write authority and architectural scope expansion remain genuine blockers.
 No i386 repinning or reference overwrite is granted.
+
+## Candidate implementation notes
+
+The COW adapter creates exclusive generated.raw/disposable.qcow2 files only
+under a unique ignored attempt directory, rejects aliases/hardlinks and wrong
+guest folders, and uses an explicit read-only backing-node graph. Before and
+after each capture (including failure), verify the exact64KiB base bytes/hash,
+backing format/path, complete depth1 extent map and logical qcow2/raw equality.
+The CLI uses the canonical module class for strict media admission.
+
+Runtime observations read actual completed16-word input transfers and completed
+OUT8 instructions, independently compare the known512-byte sector and identify
+capacity, and require fencing plus full profile/IPC/heap/queue/frame retirement.
+Only the completed family scrub is observed, not every unrelated syscall.
+The Ring3 fixture prepares one private immutable ELF record then copies it to
+the independently mutated import transport. Its single root-owned IPC endpoint
+is explicitly delegated again to each new generation; retirement revokes grants.
+All eight creation attempts and32 CPU samples remain unchanged.
+
+Actual O0/O2 adapter regressions close an unbound-replacement terminal bug:
+a newer task can terminate while the domain retains an older, already-fenced
+owner. Leave that valid old state untouched; unfenced or future-owner mismatch
+still physically fences and fails fatally without repairing metadata. Repeated
+valid fencing now causes no extra port write. First fencing and new-generation
+reset still execute physically, before retirement or release.
+
+These implementation notes are not runtime or package acceptance. Failed
+captures, including the observed timer fatal, remain evidence in CURRENT_WORK.
+
+## Authorized reference qualification, 13 September2026
+
+The renewed user instruction authorizes the requested separately verified i386
+reference update, not blind learning of changed bytes. The same PIO transaction
+adds three scoped reference-checker/test files and three frozen host, isolated
+rebuild and qualification groups (19 total). All original16 groups remain.
+Freeze this amendment before implementing the reference consumer.
+
+Rebuild VMware/vga under `build/codex-agent/r83ah-pio/reference-rebuild`, never
+in the original build directory. Bind both original disks to the existing SBOM,
+signed boot manifests and all96 independently rebuilt programs/kernel. The main
+disk contains later runtime data; its differing bytes are not a pristine release
+claim. Four QEMU snapshot guests (both disks, APIC/PIT,60s each, one CPU) must
+pass existing crash/hang/invalid-reply and normal runtime assertions. Hash all
+references before and afterward, including failure paths. Preserve historical
+framebuffer and old pins as evidence; replace reviewed constants only after
+all qualification gates pass. The guard must never learn pins at runtime.
+No original overwrite, user VM control, hardware acceptance, larger native
+quota/deadline or unrelated implementation. Native timer failure remains open.

@@ -2,6 +2,75 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: separate Referenzprüfung autorisiert
+
+Die erneute Nutzerfreigabe erlaubt die angefragte, unabhängig geprüfte
+i386-Referenzaktualisierung. Vorprüfung: das Build-SBOM vom12. September21:18UTC
+bindet den unveränderten VMware-Flat-Datenträger sowie Kernel und alle96 PRGs.
+Das Hauptabbild unterscheidet sich nach späteren VMware-Läufen in536 Sektoren
+der Datenpartition; beide Bootmanifeste/Kernel sind gleich und formal gültig.
+Keine laufende VM. Das ist Herkunftsevidenz, noch keine neue Referenzabnahme.
+
+Vor Umsetzung werden drei zusätzliche Prüfgruppen eingefroren: Referenzhosts,
+isolierter VMware/vga-Neubau, eigenständige Inhalts-/Signaturprüfung und vier
+begrenzte QEMU-Snapshotgäste. Alle16 ursprünglichen Gates bleiben bestehen.
+Originalabbilder, Programme und historische Belege werden nicht überschrieben;
+Prüfsummen erst nach vollständigem Erfolg anpassen. Timerursache weiterhin offen.
+
+## R8.3ah: PIO-Gastmatrix vollständig, Gesamtfreigabe weiterhin offen
+
+Auf Vertragscommit `72730b29` ist die gebündelte PIO-Umsetzung mit isolierter
+COW-Fixture und echter Gastdatenprüfung vorhanden. Alle zehn PIO-Fälle bestehen:
+4/8GiB, OOM0/1/2/3/6/9, fehlendes Gerät und Elternausfall. Beleg
+`guests/attempt-6a6af15086f04dfb9745b03e8b01d065`,129.010s:160 Lebenszyklen,
+330 Frame-Retirements, höchstens21/32 Root-Samples. Alle neun erzeugten Medien
+bleiben vor/nach dem Gast bytegleich; vollständige depth1-Belegung, keine
+Overlay-Datenallokation und identische logische Daten. Keine Nutzerplatte.
+
+Die erneuerte Importmatrix besteht acht Fälle/148 Lebenszyklen in69.315s:
+`import-reference/attempt-b292aebe4fa64b1f96f29f66dbdff6d5`. Die Startupmatrix
+besteht auch nach dem abschließenden Neuaufbau: acht Fälle/148 Lebenszyklen
+in62.649s (`startup-reference/attempt-c4ca9fed814e4810aecd0a8d6dc5088a`).
+Zusammen26 Gastfälle/456 Lebenszyklen/898 Frame-Retirements; auch der normale
+Bootstrap erreicht erneut `REIST_X86_64_RING3_SHELL_OK`.
+Normal-, Import- und Startup-Builds bestehen
+in2.405/4.491/4.256s; NativePIO-Build zuletzt5.089s. Keine private Layoutänderung.
+
+Behobene Ursachen, jeweils mit erhaltenen Fehlbelegen:
+
+- CLI-Medientyp: kanonische Modulklasse statt zweiter `__main__`-Klasse.
+- Vor Bindung gestorbenes Ersatzkind: ältere, bereits gesperrte Domäne bleibt
+  unangetastet; ungesperrte/zukünftige Generationen bleiben fatal. Tatsächlicher
+  Assembler reproduziert den Fehler vor der Korrektur (`unbound-terminal-red-01`).
+- Wiederholtes Fencing: keine erneuten Portschreibzugriffe nach erfolgter Sperre;
+  erste Sperre und neue Bindung bleiben physisch (`idempotent-fence-red-01`).
+- Testaufwand: ein privat vorbereitetes ELF mit vollständiger Transportkopie
+  und anschließender Überschreibung, Root-eigener Kanal mit neuer Delegation
+  je Generation, Scrub-Beobachtung direkt nach tatsächlicher Bereinigung.
+- Cancelprüfung: exakt READY/BLOCKED, richtige vier Generationen/Gründe und
+  Reihenfolge vor Fencing; alle anderen Zustände und fehlende Belege abgelehnt.
+- Elternausfall-Scrub: Mindestzahl aus tatsächlichen Aufrufen abgeleitet
+  (40/38/10/8 je Fallklasse), nicht pauschal zehn. Fehlendes Paar bleibt Fehler.
+
+PIO-Host4/2.786s umfasst tatsächliche Kerne O0/O2, Transportkopien, echte
+COW-Werkzeuge, Fehlstart-Nachprüfung und negative Gastorakel; Startup-Host7/3.619s,
+abschließend Family-Host4/1.024s und Import-Host2/3.683s.
+Ein früherer Versuch `guests/attempt-20b8dfe84c8e4be49c6a26f9f214604a` endete
+nach7.300s mit Timer-Fatalvector20. Seine Ursache ist nicht abschließend
+bestimmt; zusätzliche reine Fehlerdiagnostik ist aktiv, ohne Timer-/CPU-
+Grenzänderung. Spätere vollständige Matrix erfolgreich, aber keine allgemeine
+Timing-/Hardwarestabilitätsbehauptung. Alle gescheiterten Versuche bleiben.
+
+Paket bleibt aktiv und uncommittet: die zuvor bestätigten Änderungen an
+i386-Raw-/VMware-Abbild und96-PRG-Digest dürfen nicht ungeprüft neu gepinnt
+oder überschrieben werden. Der abschließende eingefrorene Referenzschutz
+bestätigt den Blocker in0.373s: `reference drift: build/reist-os.img`
+(`pins-final.log`). Keine Referenzänderung und kein weiterer Paketstart.
+Diese separate Abnahmegrenze und der ungeklärte
+historische Timerabbruch verbieten eine vollständige OS-/Stabilitätsfreigabe.
+Keine Paketvermischung, keine neue Kernel-Treiberpolitik, keine DMA-/Schreib-
+oder Hardwarefreigabe. Die folgenden Stopnotizen sind historische Belege.
+
 ## R8.3ah: selbstständige Reparaturfortsetzung freigegeben
 
 Die neue Nutzeranweisung erlaubt die genaue READY/BLOCKED-Cancelkorrektur
