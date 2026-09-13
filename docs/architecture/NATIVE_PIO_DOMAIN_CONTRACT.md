@@ -278,3 +278,31 @@ framebuffer and old pins as evidence; replace reviewed constants only after
 all qualification gates pass. The guard must never learn pins at runtime.
 No original overwrite, user VM control, hardware acceptance, larger native
 quota/deadline or unrelated implementation. Native timer failure remains open.
+
+Qualification result: the frozen QEMU-on-VMware-image plan is invalid as a
+platform acceptance route. Both disks and independently rebuilt programs/kernel
+pass content/signature binding, but the first cross-profile guest fails at font
+I/O (-110, UNICODE_RASTER). Existing R3.7 evidence already requires a matching
+target build; ATA polling differs between VMware and QEMU. The consumer now
+rejects this mismatch before launch. The four frozen guest requirements are
+not silently replaced or declared passed. Corrected platform-matched acceptance
+authority is required; old pins and failed evidence remain, no package commit.
+
+## Authorized invisible Workstation correction
+
+The renewed user instruction explicitly permits starting/stopping isolated
+invisible VMware copies, never existing user VMs. Correct the four cross-profile
+cases to actual Workstation `nogui`: both byte-exact disk copies with APIC and
+CPUID-masked APIC/PIT, one CPU/1GiB/60s runtime. Require the actual backend marker,
+full GTEST and recovery assertions; a mask alone proves nothing. Same36 source
+files and19 groups; keep unaffected native/build evidence and historical failures.
+
+Create each VM exclusively below a fresh ignored evidence folder. Generate an
+allowlisted VMX and local flat descriptor; copy/hash the disk, never use an
+original extent. No network adapter, physical floppy, audio, USB passthrough or
+shared folders. Only an ephemeral loopback RFB endpoint injects the fixed GTEST
+command using the existing RFB3.8 contract. Never use a visible GUI fallback.
+Bound start/list/stop, refuse existing VMX processes, and finally stop only the
+owned test VM and prove it gone even after ambiguous start. Missing headless
+support or incomplete cleanup stops acceptance. Original hashes and all signed
+rebuild/content requirements remain. No pin update until actual qualification.

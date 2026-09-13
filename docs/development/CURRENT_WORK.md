@@ -2,6 +2,49 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: unsichtbare VMware-Testkopien freigegeben
+
+Die neue Zustimmung erlaubt ausschließlich neu angelegte, isolierte VMware-
+Testkopien mit anschließendem kontrolliertem Ende. Vorhandene VMs/Originale
+bleiben unberührt. Workstation/vmrun vorhanden, keine VM aktiv. Der bestehende
+Containment-Runner hat einen sichtbaren Ausweichstart und wird nicht verwendet.
+Der gleiche Referenzprüfer erhält einen allowlist-basierten `nogui`-Pfad mit
+lokalen Kopien, begrenzter RFB-Eingabe und geprüftem Cleanup. Die vier Fälle
+bleiben beide Abbilder/APIC/PIT; vollständige GTEST-/Recoverybedingungen und
+60s Gastbudget bleiben. Vertragscommit vor Anpassung, keine Kerneländerung.
+
+## R8.3ah: Referenzinhalt verifiziert, Laufzeitprofil blockiert
+
+Vertragscommit `6ccb590d`. Der isolierte VMware/vga-Neubau besteht in157.472s
+(`reference-build-01.log`). Die unabhängige Prüfung bestätigt das vorhandene
+SBOM, beide signierten Bootslots, Stage1/Stage2, den Kernel und alle96 PRGs
+in beiden Originalabbildern sowie im Neubau bytegleich. Das Hauptabbild bleibt
+ein nach VMware-Nutzung veränderter Datenstand, keine pristine Releasekopie.
+
+Der erste neue Referenzgast scheitert in35.053s insgesamt vor vollständiger
+GTEST-Abnahme: `DESKTOP_FONT_IO phase=read-end offset=0 status=-110`, danach
+`TEST_FAIL UNICODE_RASTER`. Beleg:
+`build/codex-agent/r83ah-pio/reference-qualification-bba3f105b39c4de9ba18a11c329e8964/`.
+Die Abschlussprüfung bestätigt unveränderte Originalhashes auch im Fehlerfall.
+Keine Prüfsumme wurde ersetzt und kein Originalabbild überschrieben.
+
+Fehler im neu eingefrorenen Abnahmeplan: Beide Originale sind VMware-Builds,
+die geplanten vier Gäste verwenden jedoch QEMU. `Makefile` und `ata.c` wählen
+dafür unterschiedliche ATA-Pollintervalle (10ms bzw.1ms). Bereits die R3.7-
+Historie und `test_desktop_startup_source.py` verlangen einen zum Hypervisor
+passenden Referenzbuild. Der beobachtete Font-Timeout allein beweist deshalb
+keinen neuen i386-Produktfehler; der plattformfremde Lauf ist keine Abnahme.
+Keine zusätzliche Wiederholung oder Zeit-/GTEST-Abschwächung.
+
+Der neue Prüfer lehnt VMware/real_hw/fehlende Profile vor QEMU-Start ab;
+Hostregressionen9/0.129s bestehen (`reference-host-02.log`, vorher8/0.244s).
+Er bleibt bewusst nicht abnahmefähig für die derzeitigen VMware-Referenzen.
+Erforderlich ist eine korrigierte, eingefrorene plattformgleiche Abnahme,
+gegebenenfalls mit ausdrücklich erlaubten isolierten VMware-Testkopien.
+Keine Kontrolle einer vorhandenen Nutzer-VM. Paket bleibt aktiv, sämtliche
+Implementierungen und Fehlbelege bleiben uncommittet erhalten. Der native
+Timer-Fatalabbruch ist weiterhin nicht abschließend erklärt; kein OS-Abschluss.
+
 ## R8.3ah: separate Referenzprüfung autorisiert
 
 Die erneute Nutzerfreigabe erlaubt die angefragte, unabhängig geprüfte
