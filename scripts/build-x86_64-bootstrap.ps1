@@ -29,6 +29,8 @@ param(
     [switch]$NativePIO,
     [switch]$NativeBlock,
     [switch]$NativeWide,
+    [switch]$NativeBlockProfile,
+    [ValidateRange(0,7)] [int]$BlockProfileCase = 0,
     [ValidateRange(0,6)] [int]$MemoryCase = 0,
     [ValidateRange(0,3)] [int]$PIOCase = 0,
     [ValidateRange(0,1)] [int]$StartupCase = 0,
@@ -43,8 +45,14 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeBlockProfile) {
+    if ($MemoryCase -ne 0 -or $PIOCase -ne 0 -or $StartupCase -ne 0) { throw 'NativeBlockProfile excludes other memory/PIO/startup fixtures.' }
+    $NativeWide = [switch]$true
+    $NativeBlock = [switch]$true
+}
+if ($BlockProfileCase -ne 0 -and -not $NativeBlockProfile) { throw 'BlockProfileCase requires NativeBlockProfile.' }
 if ($NativeWide) {
-    if ($NativePIO -or $NativeBlock -or $PIOCase -ne 0 -or $StartupCase -ne 0) { throw 'NativeWide excludes PIO/block/startup fault fixtures.' }
+    if (-not $NativeBlockProfile -and ($NativePIO -or $NativeBlock -or $PIOCase -ne 0 -or $StartupCase -ne 0)) { throw 'NativeWide excludes PIO/block/startup fault fixtures.' }
     $NativeImport = [switch]$true
 }
 if ($MemoryCase -ne 0 -and -not $NativeWide) { throw 'MemoryCase requires NativeWide.' }
@@ -334,6 +342,8 @@ try {
         "X86_64_NATIVE_PIO=$([int]$NativePIO.IsPresent)" `
         "X86_64_NATIVE_BLOCK=$([int]$NativeBlock.IsPresent)" `
         "X86_64_NATIVE_WIDE=$([int]$NativeWide.IsPresent)" `
+        "X86_64_NATIVE_BLOCK_PROFILE=$([int]$NativeBlockProfile.IsPresent)" `
+        "X86_64_BLOCK_PROFILE_CASE=$BlockProfileCase" `
         "X86_64_MEMORY_CASE=$MemoryCase" `
         "X86_64_PIO_CASE=$PIOCase" `
         "X86_64_STARTUP_CASE=$StartupCase" `

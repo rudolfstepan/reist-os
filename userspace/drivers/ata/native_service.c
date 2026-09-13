@@ -32,13 +32,17 @@ static int service_read(void *v,uint32_t lba,unsigned char *out,uint64_t deadlin
     int result=reist_pio_read(&p,s->owner,s->server.capacity,lba,out);
     s->deadline=0;return result;
 }
-int reist_native_service_init(reist_native_service *s,uint64_t owner,const reist_pio_ops *upstream){
+static int service_init(reist_native_service *s,uint64_t owner,const reist_pio_ops *upstream,uint64_t session_end){
     if(!s)return -22;
     *s=(reist_native_service){0};
     if(!upstream || !upstream->call || !upstream->clock || !upstream->sleep)return -22;
     s->upstream=*upstream;s->owner=owner;s->last_clock=service_clock(s);
     if(s->last_clock>UINT64_MAX-1000)return -22;
     s->deadline=s->last_clock+1000;
+    if(session_end){
+        if(s->last_clock>=session_end)return -110;
+        if(s->deadline>session_end)s->deadline=session_end;
+    }
     reist_pio_ops p={s,service_port,service_clock,service_sleep};
     uint32_t capacity=0;unsigned char sector[512];
     int result=reist_pio_identify(&p,owner,&capacity);
@@ -49,9 +53,30 @@ int reist_native_service_init(reist_native_service *s,uint64_t owner,const reist
     if(result)return result;
     return reist_block_server_init(&s->server,owner,capacity,now);
 }
+int reist_native_service_init(reist_native_service *s,uint64_t owner,const reist_pio_ops *upstream){
+    return service_init(s,owner,upstream,0);
+}
 int reist_native_service_dispatch(reist_native_service *s,const x86os_ipc_message_t *q,
                                   x86os_ipc_bulk_message_t *reply){
     if(!s)return -22;
     reist_block_backend b={s,service_clock,service_pace,service_read};
     return reist_block_dispatch(&s->server,&b,q,reply);
+}
+int reist_native_service_init_profile(reist_native_profile_service *s,uint64_t owner,
+    const reist_pio_ops *upstream,const reist_block_profile_v1 *profile){
+    if(!s || !upstream || !upstream->clock || !upstream->sleep || !upstream->call ||
+       (uint32_t)owner<2 || (uint32_t)owner>3 || !(owner>>32) || owner>>32>0x7fffffff ||
+       (owner>>32)<=(s->service.owner>>32) || !profile)return -22;
+    reist_pio_ops upstream_snapshot=*upstream;
+    reist_block_profile_v1 snapshot=*profile;
+    int status=reist_block_profile_admit(&snapshot,upstream_snapshot.clock(upstream_snapshot.context));
+    if(status)return status;
+    s->profile=snapshot;
+    return service_init(&s->service,owner,&upstream_snapshot,snapshot.deadline_ms);
+}
+int reist_native_service_dispatch_profile(reist_native_profile_service *s,
+    const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+    if(!s)return -22;
+    reist_block_backend b={&s->service,service_clock,service_pace,service_read};
+    return reist_block_dispatch_profile(&s->service.server,&s->profile,&b,q,reply);
 }

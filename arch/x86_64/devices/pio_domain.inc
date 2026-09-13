@@ -278,6 +278,9 @@ native_pio_apply64:
     cmp ebp,[r13+32]
     jb .word
 .transfer_done:
+%ifdef REIST_NATIVE_PIO_TRACE
+    call native_pio_trace_data64
+%endif
     jmp .ok
 .bind:
     test r14d,r14d
@@ -364,6 +367,9 @@ native_pio_out8:
     mov eax,esi
     out dx,al
 .done:
+%ifdef REIST_NATIVE_PIO_TRACE
+    call native_pio_trace_out64
+%endif
     ret
 
 native_pio_syscall64:
@@ -414,7 +420,7 @@ native_pio_syscall64:
     cmp ecx,1
     ja native_pio_fail64
     add ecx,2
-    shl ecx,8
+    shl ecx,NATIVE_TASK_SHIFT
     lea rdi,[rel scheduler_tasks]
     add rdi,rcx
     shr rax,32
@@ -427,7 +433,7 @@ native_pio_syscall64:
 .target:
     mov rax,[rel native_pio_request+16]
     mov ecx,eax
-    shl ecx,8
+    shl ecx,NATIVE_TASK_SHIFT
     lea rdi,[rel scheduler_tasks]
     add rdi,rcx
     shr rax,32
@@ -526,16 +532,23 @@ native_pio_finish64:
     jne native_pio_fail64
     cmp qword [rel native_pio_state+16],1
     jne native_pio_fail64
-    cmp qword [rel scheduler_tasks+512+TASK_STATE],TASK_FREE
+    cmp qword [rel scheduler_tasks+2*NATIVE_TASK_BYTES+TASK_STATE],TASK_FREE
     jne native_pio_fail64
-    cmp qword [rel scheduler_tasks+768+TASK_STATE],TASK_FREE
+    cmp qword [rel scheduler_tasks+3*NATIVE_TASK_BYTES+TASK_STATE],TASK_FREE
     jne native_pio_fail64
+%ifdef REIST_NATIVE_PIO_TRACE
+.trace_before_clear:
+%endif
     lea rdi,[rel native_pio_state]
     xor eax,eax
     mov ecx,8
     rep stosq
     mov qword [rel native_pio_state+8],-1
     mov qword [rel native_pio_state+16],1
+%ifdef REIST_NATIVE_PIO_TRACE
+    call native_pio_trace_clear64
+.trace_after_clear:
+%endif
     ret
 
 ; Emergency fencing is independent of all possibly corrupt domain metadata.
@@ -559,6 +572,164 @@ native_pio_fail64:
     call serial_write64
     jmp halt64
 
+%ifdef REIST_NATIVE_PIO_TRACE
+; BEGIN_PIO_TRACE
+; Private diagnostic v1: sequence/error QWords, 64 x 192-byte records.
+; No consumer cursor or authority. Physical OUT / IN+store precede capture.
+; Every address copied is fixed or from the just-completed admitted READ16.
+%macro pio_trace_save 0
+    pushfq
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+%endmacro
+native_pio_trace_out64:
+    pio_trace_save
+    mov r10d,1
+    jmp native_pio_trace_capture64
+native_pio_trace_data64:
+    pio_trace_save
+    mov r10d,2
+native_pio_trace_capture64:
+    cld
+    cmp qword [rel native_pio_trace+8],0
+    jne .done
+    mov r9,[rel native_pio_trace]
+    cmp r9,4096
+    jae .error
+    ; Bounds BEFORE either diagnostic task/family indexing, including fatal OUT.
+    mov ecx,[rel scheduler_current_slot]
+    cmp ecx,3
+    ja .error
+    shl ecx,NATIVE_TASK_SHIFT
+    lea rdi,[rel scheduler_tasks]
+    mov rax,[rdi+rcx+8]
+    dec rax
+    cmp rax,0x7ffffffe
+    ja .error
+    mov eax,[rel native_pio_state]
+    sub eax,2
+    cmp eax,1
+    ja .error
+    cmp r10d,2
+    jne .reserve
+    lea rax,[rel native_pio_state]
+    cmp r12,rax
+    jne .error
+    lea rax,[rel native_pio_request]
+    cmp r13,rax
+    jne .error
+    cmp dword [r13],2
+    jne .error
+    cmp dword [r13+4],64
+    jne .error
+    cmp dword [r13+8],4
+    jne .error
+    lea rax,[rbp-1]
+    cmp rax,15
+    ja .error
+    cmp ebp,[r13+32]
+    jne .error
+    ; RDX is the base of the stores that just completed, not a new user pointer.
+    mov rax,[r13+40]
+    cmp rax,rdx
+    jne .error
+    test rax,rax
+    jz .error
+    test al,1
+    jnz .error
+    add rax,32
+    jc .error
+.reserve:
+    mov eax,r9d
+    and eax,63
+    imul eax,192
+    lea r8,[rel native_pio_trace+16]
+    add r8,rax
+    mov rdi,r8
+    xor eax,eax
+    mov ecx,24
+    rep stosq
+    mov [r8],r10
+    lea rdi,[r8+16]
+    lea rsi,[rel native_pio_state]
+    mov ecx,8
+    rep movsq
+    cmp r10d,2
+    je .data
+    mov rax,[rsp+40]             ; original RDX (physical port)
+    movzx eax,ax
+    mov [r8+80],rax
+    mov rax,[rsp+64]             ; original RAX (physical value)
+    movzx eax,al
+    mov [r8+88],rax
+    mov eax,[rel scheduler_current_slot]
+    mov [r8+96],rax
+    shl eax,NATIVE_TASK_SHIFT
+    lea rdi,[rel scheduler_tasks]
+    mov rax,[rdi+rax+8]
+    mov [r8+104],rax
+    mov eax,[rel native_pio_state]
+    shl eax,6
+    lea rdi,[rel family_records]
+    mov rax,[rdi+rax+8]
+    mov [r8+112],rax
+    jmp .publish
+.data:
+    lea rdi,[r8+80]
+    mov rsi,r13
+    mov ecx,8
+    rep movsq
+    mov rsi,[r13+40]
+    mov rcx,rbp
+    rep movsw
+    mov [r8+176],rbp
+.publish:
+    inc r9
+    mov [r8+8],r9
+    mov [rel native_pio_trace],r9 ; final store; never wraps or repairs metadata
+    jmp .done
+.error:
+    mov qword [rel native_pio_trace+8],1
+.done:
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    popfq
+    ret
+%unmacro pio_trace_save 0
+
+; Invoked only after normal fence/retirement. Fatal instances retain evidence.
+native_pio_trace_clear64:
+    pushfq
+    push rax
+    push rcx
+    push rdi
+    cld
+    lea rdi,[rel native_pio_trace]
+    xor eax,eax
+    mov ecx,1538
+    rep stosq
+    pop rdi
+    pop rcx
+    pop rax
+    popfq
+    ret
+; END_PIO_TRACE
+%endif
+
 section .data
 native_pio_fatal_message: db "REIST_X86_64_EXCEPTION_FATAL pio=1",13,10,0
 align 8
@@ -566,4 +737,7 @@ native_pio_state: dq 0,-1,1,0,0,0,0,0
 section .bss
 alignb 8
 native_pio_request: resb 64
+%ifdef REIST_NATIVE_PIO_TRACE
+native_pio_trace: resb 12304
+%endif
 section .text

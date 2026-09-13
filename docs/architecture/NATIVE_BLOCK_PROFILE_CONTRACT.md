@@ -4,7 +4,83 @@ Frozen after accepted91401365 under continuous interactive completion authority.
 30 allowed files,25 mandatory queue groups after renewed user authority below;
 this contract is not acceptance.
 
+## Current verification after transport correction
+
+Full profile gate runtime-09 PASS11/138.014s, guest89.197s, attempt
+e3010f7dc3f74fb480dd855a06446fd7. Same image/C/catalog and quotas; the second
+directed correction scopes CREATE hooks on the family-validation page in
+addition to the first release/fatal correction. All normal/OOM nine-read and
+replacement proofs, both runs, fault containment and full cleanup remain.
+All207 pinned prior artifacts unchanged; normal27 objects and boot image
+byte-identical to accepted AJ. All host/build groups renewed. Trace faults3
+PASS21.325s, old block10 PASS127.610s, Wide13/104 lifetimes PASS120.102s,
+fatal9 PASS10.126s, normal boot PASS0.456s, i386 guard PASS1.241s. Full scope
+is25 groups including documentation. Final exact source/artifact/gate binding:
+build/codex-agent/r83ak-block-profile/verification-status-transport.json.
+No filesystem, platform-wide or complete OS acceptance claim; R3.6b deferred.
+
+First trace-fault gate: gap accepted, data correctly rejected but its valid
+bind prefix appeared between inject/reject, violating the unchanged exact
+event oracle. Retain attempt2051781e134e4718836cb5244b1387b0. Correction is
+only in the diagnostic data-injection branch: consume/hash the valid prefix
+before altering the still-unseen selected record. Never accept/repair that
+record; next drain must reject immediately. Host executes actual functions,
+exact one-byte mutation, sequence/hash accounting and detach/continuation.
+Normal trace_fault=None returns at the unchanged entry guard; full11 evidence
+is unaffected: all11 executed observer ASTs are identical except trace_inject,
+whose no-fault immediate-return guard is identical (normal-oracle-binding-01).
+No loosened validator, expected event or diagnostic capacity. The corrected
+three-fault gate passes attempt1c4760d11671494a9bc3a6eb1f74f5fb; exact immediate
+rejections plus eight normal receipts/caller return after unrepaired detach.
+
 ## Renewed authority: bounded QEMU/GDB transport diagnosis
+
+All eight controls spent: rpc-pio-page is normal (6.5s guest, first children
+18/9 samples); full-lifecycle still CPU32 (5.114s command). PIO-page traps alone
+are not a sufficient cause. No further diagnostic guests. The six original
+controls and both selected followups retain the exact original full observer.
+
+First evidence-directed transport correction: scheduler_fail and the dormant
+frame-release trap share virtual page8010c000 with process_run_validate64.
+The latter is called throughout PIO execution. Keep the full PIO observer;
+only arm the original release trap at process_run_complete_retire64's exact
+CALL, then disable it at original entry. Its original real return address,
+pre-release ledger, every frame-free and post-release proof remain unchanged.
+Move fatal observation across scheduler_fail's unconditional JMP to existing
+native_pio_fail64, before any side effect. Actual E8/E9 target bytes checked
+before arming; host executes the actual arm/disarm and malformed-branch cases.
+This source-backed inference isolates the second shared page, not a claimed
+build-specific cause yet. No kernel edits/clock change/extra control guests;
+the unchanged full acceptance gate decides whether it is sufficient.
+
+Correction1 full gate runtime-08 FAIL4.735s: seven exact replies then CPU32
+during request8 (attempt3bb705aa2bef43869d151cf996798245). All original release
+and trace-clean checks pass for the three observed lifetimes, but no replacement
+or second run: not accepted. Correction2 scopes the three CREATE observers on
+page8010e000, shared with actual family_validate_runtime64 at8010e492. Arm at
+root's proven first publication, enable copy/end inside the exact CREATE,
+disable on completion, retain retry after the existing injected ENOMEM; rearm
+for replacement after first child's fully proved release (never owner-loss).
+No expected publication/copy/allocation/rollback check removed. Host executes
+the actual hook lifecycle for all cases/two runs/retry and invalid transitions.
+Keep correction1 and all other full hooks. This is the second directed
+correction; the same CPU32 failure stops without another guest/control retry.
+
+Follow-up selection before launch (two remaining controls): initial six
+completed in34.524s. Detached/finish/RPC-noop/RPC-metadata yield normal eight
+receipts; full software/hardware observers both yield CPU32. RPC-only first
+services use14..19 samples; full use32 during request5. Actual symbol inventory
+places native_pio_apply64/syscall64, family_cancel_one64 and both trace-clear
+hooks on virtual page8010f000. Upstream QEMU accel/tcg/cpu-exec.c function
+check_for_breakpoints_slow uses one-instruction blocks on pages containing
+breakpoints. The exact installed commit source was unavailable: a mechanism
+hypothesis, not yet a build-specific causal claim. Control7 rpc-pio-page:
+RPC metadata plus one otherwise dormant trace-before-clear breakpoint on that
+page. Control8 full-lifecycle: all full assertions, enabling trace-clear hooks
+after the last observed release and disabling after clear; arming cancel at
+the observed first-generation error/root-fault boundary. No expected lifecycle
+observation omitted; missing/extra events still reject the full oracle. Same
+pinned image and unchanged clocks/quotas. Both controls recorded before launch.
 
 The user's explicit yes resumes the26 attributed changed paths/27 exact
 hashes in verification-status-trace.json on d461a797. Freeze this amendment

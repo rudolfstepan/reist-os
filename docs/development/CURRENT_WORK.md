@@ -2,7 +2,53 @@
 
 Stand: 13. September 2026
 
-## R8.3ak: begrenzte QEMU/GDB-Ursachendiagnose freigegeben
+## R8.3ak: Blockprofile und vollständige Laufzeitabnahme umgesetzt
+
+Auf Vertragscommit `59a3f6e6` besteht `runtime-09.log` mit allen elf Gästen
+in138.014s (Gastzeit89.197s), Versuch `e3010f7dc3f74fb480dd855a06446fd7`.
+Normal4/8GiB, UD2, Schlaf/Abbruch, CPU-Limit, falsche Antwort, fehlendes
+Medium, Besitzerverlust und OOM0/11/22: neun reale Leseanfragen und
+generationsgebundener Ersatz im Normal-/OOM-Fall; jeweils alle vorgeschriebenen
+Frame-, Byte-, Rechte-, IPC-/Heap-/FP-, Fencing- und Löschprüfungen.
+
+Acht Diagnosegäste sind endgültig ausgeschöpft. Abgekoppelte und RPC-
+Kontrollen laufen normal; vollständige Software-/Hardwarebeobachtung erreicht
+zunächst CPU32. Seltene Haltepunkte teilen Code-Seiten mit Prozess- und
+Family-Validierung. Zwei gezielte Korrekturen begrenzen unverändert vollständige
+Release-/CREATE-Prüfungen auf ihren wirklichen Lifecycle. Der Fehlerfang folgt
+dem geprüften unmittelbaren Sprungziel, ohne Kernzustandsänderung. Erst die
+zweite Korrektur besteht die ganze Matrix. Keine Änderung an Quoten, Takt,
+Schrittmaske, Gastabbild oder Kernel in dieser Transportkorrektur.
+
+Neun weitere Hostgruppen und fünf Builds erneut PASS; die drei betroffenen
+Transport-/Trace-/Runtimehosts ebenfalls PASS. Alle207 früher gebundenen
+Artefakte unverändert,27 Standardobjekte und Standard-Bootabbild exakt
+bytegleich zum akzeptierten AJ. `default-object-review-04.log`.
+
+Der erste ergänzende Manipulationstestlauf erkennt Datenfehler korrekt,
+verfehlt aber die strenge unmittelbare Injektions-/Ablehnungsfolge wegen eines
+noch nicht beobachteten gültigen Bind-Vorgängers. Nur die Dateninjektion liest
+jetzt ihre gültigen Vorgänger vollständig vor der Mutation aus; das manipulierte
+Record bleibt ungeprüft, bis der unveränderte Detektor es verwirft. Tatsächlicher
+Hosttest und die vollständige strenge Negativprüfung bestehen. Rote Belege
+bleiben erhalten. Erneute Zusatzmatrix PASS3/21.325s, Versuch
+`1c4760d11671494a9bc3a6eb1f74f5fb`; jeweils exakte Ablehnung, danach alle acht
+normalen Receipts und Callerfortsetzung ohne Reparatur der Manipulation.
+
+Auch die übrigen Laufzeitgates sind vollständig grün: alter Blockdienst10
+(127.610s), Wide13/104 Lebensläufe (120.102s), Fatal9 (10.126s), normaler Boot
+(0.456s), ursprünglicher i386-Artefaktwächter (1.241s). Sämtliche Fachhosts und
+alle fünf Builds bestehen. Abnahmeumfang25 Gruppen einschließlich Dokumentation;
+kompakte Befehle/Ergebnisse/Hashes und erhaltene Fehlhistorie:
+`build/codex-agent/r83ak-block-profile/verification-status-transport.json`.
+Die unveränderte Normalmatrix ist zusätzlich gegen alle elf tatsächlich
+ausgeführten Beobachter gebunden; nur der deaktivierte Injektionszweig änderte
+sich nach ihrem Pass (`normal-oracle-binding-01.log`). Keine Wiederholung
+unveränderter Diagnosegäste, keine vorgezogene Dateisystem- oder OS-Abnahme.
+Der nächste Schnitt bleibt die normale Ring3-Storageintegration; R3.6b bleibt
+ausdrücklich zurückgestellt. Kein Push.
+
+## Historische Diagnosefreigabe auf `59a3f6e6`
 
 Die erneute ausdrückliche Zustimmung setzt den unverändert zugeschriebenen
 Kandidaten aus `verification-status-trace.json` fort:26 geänderte Pfade,

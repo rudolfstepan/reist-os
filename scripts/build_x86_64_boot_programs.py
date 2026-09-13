@@ -41,8 +41,10 @@ def prepare(raw,args,wide=False):
         return b'RNPGv2\0\0'+struct.pack('<IIQ',2,266336,entry)+rights+bytes(8)+pages+source
     return b'RNPGv1\0\0'+struct.pack('<IIQ',1,SIZE,entry)+rights+pages+source
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0):
-    if wide and (not import_image or pio or block or startup_case):raise ValueError("wide requires plain import")
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0):
+    if block_profile and (not (wide and import_image and pio and block) or memory_case or pio_case or startup_case):raise ValueError('block profile requires plain wide PIO block')
+    if block_profile_case not in range(8) or (block_profile_case and not block_profile):raise ValueError('block profile case')
+    if wide and not block_profile and (not import_image or pio or block or startup_case):raise ValueError("wide requires plain import")
     if memory_case not in range(7) or (memory_case and not wide):raise ValueError("memory case")
     if block and not pio:raise ValueError('block service requires PIO')
     if pio and (not import_image or startup_case):raise ValueError('PIO requires normal import')
@@ -87,7 +89,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
              '-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include',
              f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',f'-DFAMILY_CASE={family_case}',f'-DSTARTUP_CASE={startup_case}',
-             f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',*extra,'-c','arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',f'-DBLOCK_PROFILE_CASE={block_profile_case}',*extra,'-c','arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
@@ -111,10 +113,12 @@ if __name__=='__main__':
     p.add_argument('--pio',action='store_true')
     p.add_argument('--block',action='store_true')
     p.add_argument('--wide',action='store_true')
+    p.add_argument('--block-profile',action='store_true')
+    p.add_argument('--block-profile-case',type=int,choices=range(8),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
     p.add_argument('--startup-case',type=int,choices=range(2),default=0)
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case)

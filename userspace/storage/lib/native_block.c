@@ -56,14 +56,28 @@ int reist_block_server_init(reist_block_server *s,uint64_t owner,uint32_t sector
     if(!owner || owner>INT64_MAX || !sectors || sectors>0x10000000U)return -22;
     s->owner=owner;s->capacity=sectors;s->next_sequence=1;s->last_read_ms=now;s->ready=1;return 0;
 }
-int reist_block_dispatch(reist_block_server *s,const reist_block_backend *b,
-                        const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+static int profile_fields(const reist_block_profile_v1 *p){
+    return p && p->version==1 && p->size==24 && p->request_limit &&
+        p->request_limit<=16 && !p->reserved && p->deadline_ms;
+}
+int reist_block_profile_admit(const reist_block_profile_v1 *p,uint64_t now){
+    return profile_fields(p) && p->deadline_ms>now && p->deadline_ms-now<=3000?0:-22;
+}
+static int block_dispatch(reist_block_server *s,const reist_block_backend *b,
+    const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply,unsigned limit,uint64_t session_end){
     if(!s || !b || !b->clock || !b->sleep || !b->read || !q || !reply)return -22;
     block_zero(reply,sizeof(*reply));reply->version=2;reply->struct_size=sizeof(*reply);reply->length=64;
     reist_block_header h,r;block_copy(&h,q->payload,64);
     r=(reist_block_header){1,64,1,1,s->owner,h.sequence,h.lba,h.deadline_ms,0,-22,0};
     int status=-22;uint64_t now=b->clock(b->context);
-    if(!s->ready || s->requests>=8){status=-11;goto result;}
+    uint64_t deadline=h.deadline_ms;
+    if(session_end){
+        if(now<s->last_read_ms){status=-84;goto result;}
+        if(now>=session_end){status=-110;goto result;}
+        if(session_end-now>3000)goto result;
+        if(deadline>session_end)deadline=session_end;
+    }
+    if(!s->ready || s->requests>=limit){status=-11;goto result;}
     s->requests++;
     if(q->version!=1 || q->struct_size!=sizeof(*q) || q->length!=64 ||
        !block_empty(q->payload+64,64) || h.version!=1 || h.size!=64 || h.operation!=1 ||
@@ -77,19 +91,28 @@ int reist_block_dispatch(reist_block_server *s,const reist_block_backend *b,
     s->next_sequence++;
     if(now-s->last_read_ms<100){
         unsigned delay=100-(unsigned)(now-s->last_read_ms);
-        if(h.deadline_ms-now<=delay){status=-110;goto result;}
+        if(deadline-now<=delay){status=-110;goto result;}
         status=b->sleep(b->context,delay);if(status)goto result;
         uint64_t next=b->clock(b->context);
         if(next<now){status=-84;goto result;}
-        if(next-now<delay || next>=h.deadline_ms){status=-110;goto result;}
+        if(next-now<delay || next>=deadline){status=-110;goto result;}
         now=next;
     }
-    status=b->read(b->context,(uint32_t)h.lba,reply->payload+64,h.deadline_ms);
+    status=b->read(b->context,(uint32_t)h.lba,reply->payload+64,deadline);
     s->last_read_ms=b->clock(b->context);
     if(s->last_read_ms<now)status=-84;
-    else if(s->last_read_ms>=h.deadline_ms)status=-110;
+    else if(s->last_read_ms>=deadline)status=-110;
 result:
     if(status){if(!block_error(status))status=-5;block_zero(reply->payload+64,1984);}
     else {r.length=512;reply->length=576;}
     r.status=status;block_copy(reply->payload,&r,64);return status;
+}
+int reist_block_dispatch(reist_block_server *s,const reist_block_backend *b,
+    const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+    return block_dispatch(s,b,q,reply,8,0);
+}
+int reist_block_dispatch_profile(reist_block_server *s,const reist_block_profile_v1 *p,
+    const reist_block_backend *b,const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+    if(!profile_fields(p))return -22;
+    return block_dispatch(s,b,q,reply,p->request_limit,p->deadline_ms);
 }

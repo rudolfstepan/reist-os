@@ -2,6 +2,30 @@
 
 Stand: 13. September 2026
 
+R8.3ak: `-NativeBlockProfile` beziehungsweise
+`X86_64_NATIVE_BLOCK_PROFILE=1` verbindet ausdrücklich NativeWide/Import/PIO/
+Block. Alte Flags behalten ihre Bedeutung. `reist_block_profile_v1` ist ein
+lokales24-Byte-Dienstprofil mit Version1, Limit1..16 und unveränderlicher
+absoluter Frist bis3000ms; kein neues Wireformat oder Kernelrecht.
+Neue `reist_native_service_init_profile`-/`dispatch_profile`-Entrypoints
+verwenden denselben alten Serverzähler. Das alte Acht-Anfragen-Profil bleibt
+erhalten. BlockProfileCase0..7 sind ausschließlich Abnahmefixtures.
+Die vollständige neue Elf-Gast-Matrix besteht auf Vertragscommit `59a3f6e6`.
+Release-/CREATE-Haltepunkte sind auf die wirklichen Transaktionen begrenzt;
+alle Prüfungen und CPU-/PIO-/IPC-Budgets bleiben erhalten. Eine lokale512-Bit-
+Negativmaske spart ausschließlich nachweislich unnötige Framevergleiche,
+Kollisionen prüfen weiterhin die vollständigen64-Bit-Adressen. Der private
+nicht autoritative PIO-Ring (64 mal192 plus16 Byte, maximal4096 Ereignisse)
+erfasst tatsächliche OUTs/READ16-Daten und wird nach Fence/Reap vollständig
+gelöscht. Keine neuen Rechte, Nutzerabbildungen oder Timeränderungen.
+Historische Fehlbelege und alle acht Diagnosekontrollen bleiben erhalten;
+Standardobjekte und Standard-Bootabbild sind bytegleich zum akzeptierten AJ.
+Auch Manipulation3, alter Blockdienst10, Wide13, Fatal9, Standardboot und
+der ursprüngliche i386-Artefaktwächter bestehen. Abnahmeumfang25 Gates;
+keine normale Dienst-/Dateisystemintegration oder komplette OS-Abnahme.
+[Profilvertrag](NATIVE_BLOCK_PROFILE_CONTRACT.md),
+[aktueller Paketstand](../development/CURRENT_WORK.md).
+
 R8.3aj ergänzt opt-in `-NativeWide` beziehungsweise `X86_64_NATIVE_WIDE=1`
 (setzt NativeImport, schließt PIO/Block aus): RNPGv2 mit64 Image-Slots,
 CREATE-v5 und32KiB privatem NX-Stack einschließlich unterer Guardpage.

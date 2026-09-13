@@ -4,7 +4,20 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
+## R8.3ak: begrenzte Blockprofile und vollständige Gastnachweise
+
+Elf vollständige Blockprofil-Gäste bestehen nach begrenzten Release-/CREATE-
+Haltepunkten auf unverändertem Gastabbild und bei unveränderten Quoten.
+Neun reale Reads, Fehlercontainment, Ersatz und vollständige Löschung sind
+in den vorgesehenen Fällen nachgewiesen. Alle acht Diagnosekontrollen sind
+verbraucht. Auch Manipulation3, alter Blockdienst10, Wide13/104 Lebensläufe,
+Fatal9, Standardboot, ursprüngliche i386-Artefakte, Fachhosts und fünf Builds
+bestehen. Paketumfang25 Gates inklusive Dokumentation; konkrete Abschluss-
+belege im Arbeitsstand. Normale Ring3-Dateisystemintegration bleibt der nächste
+Schritt, nicht Bestandteil dieser Abnahme. Keine fertige64-Bit-OS-Version.
+[Aktueller Stand und Belege](CURRENT_WORK.md).
+
+## Historie R8.3aj/R8.3ak: Kapazität, Blockprofile und Diagnose
 
 Neu ausdrücklich freigegeben: begrenzte QEMU/GDB-Transportdiagnose mit
 sechs Vergleichsgästen und höchstens zwei gezielten Folgekontrollen,

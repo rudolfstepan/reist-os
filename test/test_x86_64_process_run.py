@@ -1,6 +1,6 @@
 """Execute the actual native run admission/ownership code, not a model."""
 from pathlib import Path
-import re, struct, sys, tempfile, unittest
+import re, struct, sys, tempfile, unittest, subprocess
 from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'test'), str(ROOT/'scripts')]
@@ -91,8 +91,16 @@ process_run_admit64:
         host_builder.TaskFrameTests().build(asm, ROOT/'test/x86_64_process_run_host.c', 'PROCESS_RUN_HOST')
 
     def test_actual_ownership(self):
-        source=(ROOT/'arch/x86_64/proc/cooperative_scheduler.asm').read_text()
-        inc=(ROOT/'arch/x86_64/proc/process_run.inc').read_text()
+        # Select the real standalone legacy NASM branch before extraction.
+        # Raw regex collection used to concatenate mutually exclusive layouts.
+        result=subprocess.run(['C:/tools/nasm-3.02/nasm.exe','-E','-f','win64',
+            'arch/x86_64/proc/cooperative_scheduler.asm'],cwd=ROOT,
+            capture_output=True,text=True,timeout=90,
+            creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        self.assertEqual(result.returncode,0,result.stderr[-2500:])
+        source=result.stdout;inc=source
+        for name,value in (('TASK_RECORD_SIZE','256'),('TASK_RIP','96'),('TASK_R11','248')):
+            self.assertEqual(re.findall(r'^'+name+r'\s+equ\s+([^\n]+)',source,re.M),[value])
         def function(text,name):
             return re.search(r'^'+name+r':\n.*?(?=^[A-Za-z_][\w]*:|^global |\Z)',text,re.M|re.S).group()
         constants='\n'.join(re.findall(r'^\w+\s+equ\s+[^\n]+',source,re.M))

@@ -208,7 +208,8 @@ def mechanisms(image):
     return result
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--image',type=Path,required=True);parser.add_argument('--evidence',type=Path,required=True);a=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--image',type=Path,required=True);parser.add_argument('--evidence',type=Path,required=True)
+    parser.add_argument('--pio-reference',type=Path,default=ROOT/'build/codex-agent/r83ai-block/pio-reference/x86_64/reist-x86_64-bootstrap.elf');a=parser.parse_args()
     folder=startup.family.evidence_directory(a.evidence)/('attempt-'+uuid.uuid4().hex);folder.mkdir(parents=True)
     summary=dict(passed=False,cases=[]);started=time.monotonic()
     try:
@@ -218,7 +219,9 @@ def main():
         amended_names=('cooperative_scheduler','native_ipc')
         for name in amended_names:reference.pop(name)
         amended=None
-        pio_reference=mechanisms(ROOT/'build/codex-agent/r83ai-block/pio-reference/x86_64/reist-x86_64-bootstrap.elf')
+        pio_image=a.pio_reference.resolve()
+        if not pio_image.is_relative_to(ROOT/'build') or pio_image==image:raise ValueError('independent block PIO reference scope')
+        pio_reference=mechanisms(pio_image)
         pio_amended={name:pio_reference.pop(name) for name in amended_names}
         if pio_reference!=reference:raise ValueError('block PIO reference mechanism drift')
         for case in range(4):

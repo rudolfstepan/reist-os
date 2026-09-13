@@ -430,6 +430,17 @@ process_run_validate64:
 ; Read-only uniqueness across ALL private resources, including retired slots.
 process_run_frames64:
     sub rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
+%ifdef REIST_NATIVE_WIDE
+    ; Invocation-local negative filter, never cached authority. Collisions
+    ; still execute the exact full-width scan below; every frame is recorded.
+    sub rsp,64
+    xor eax,eax
+%assign frame_filter_word 0
+%rep 8
+    mov [rsp+TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8+frame_filter_word*8],rax
+%assign frame_filter_word frame_filter_word+1
+%endrep
+%endif
     xor r8d, r8d
     xor ebx, ebx
 .slot:
@@ -483,6 +494,19 @@ process_run_frames64:
     cmp [r12+TASK_CR3], rax
     jne .bad
 .distinct:
+%ifdef REIST_NATIVE_WIDE
+    mov r9,rax
+    shr r9,12
+    mov r10,r9
+    shr r10,9
+    xor r9,r10
+    mov r10,rax
+    shr r10,30
+    xor r9,r10
+    and r9d,511
+    bts qword [rsp+TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8],r9
+    jnc .record
+%endif
     xor edx, edx
 .compare:
     cmp edx, r8d
@@ -506,6 +530,9 @@ process_run_frames64:
 .bad:
     xor eax, eax
 .return:
+%ifdef REIST_NATIVE_WIDE
+    add rsp,64
+%endif
     add rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
     ret
 

@@ -10,4 +10,14 @@ typedef struct {
 } reist_native_service;
 int reist_native_service_init(reist_native_service *,uint64_t,const reist_pio_ops *);
 int reist_native_service_dispatch(reist_native_service *,const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
+/* Zero once; each attempted initialization consumes its owner generation.
+ * The embedded legacy server is the sole request/sequence authority. */
+typedef struct {
+    reist_native_service service;
+    reist_block_profile_v1 profile;
+} reist_native_profile_service;
+int reist_native_service_init_profile(reist_native_profile_service *,uint64_t,
+    const reist_pio_ops *,const reist_block_profile_v1 *);
+int reist_native_service_dispatch_profile(reist_native_profile_service *,
+    const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
 #endif

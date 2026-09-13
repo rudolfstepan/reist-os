@@ -262,17 +262,49 @@ def validate_rejection(serial,trace,kind):
     injections=re.findall(r'BOOT_PROGRAM_ALLOC_INJECT acquired=(\d+)',trace)
     if injections!=([str(kind)] if isinstance(kind,int) else []):raise ValueError('program exact allocation failure')
 
-def capture(image,folder,code,ram,media=None,*,halt_witness=False):
-    if media is None:return _capture(image,folder,code,ram,halt_witness=halt_witness)
+def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False):
+    options=dict(halt_witness=halt_witness)
+    if diagnostic_metrics:options['diagnostic_metrics']=True
+    if media is None:return _capture(image,folder,code,ram,**options)
     from run_qemu_x86_64_pio import Fixture
     if type(media) is not Fixture:raise ValueError('unsupported guest media')
     arguments=media.arguments(folder)
     media.verify('before')
-    try:return _capture(image,folder,code,ram,arguments,halt_witness=halt_witness)
+    try:return _capture(image,folder,code,ram,arguments,**options)
     finally:media.verify('after') # Includes failed launches/captures; retain media.
 
 
-def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False):
+def process_cpu_ns(pid):
+    """Read only the child process's documented Windows CPU counters."""
+    import ctypes,os
+    from ctypes import wintypes
+    if os.name!='nt' or type(pid)!=int or not 0<pid<1<<32:raise OSError('diagnostic process counter platform/pid')
+    api=ctypes.WinDLL('kernel32',use_last_error=True)
+    api.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD];api.OpenProcess.restype=wintypes.HANDLE
+    api.GetProcessTimes.argtypes=[wintypes.HANDLE]+[ctypes.POINTER(wintypes.FILETIME)]*4;api.GetProcessTimes.restype=wintypes.BOOL
+    api.CloseHandle.argtypes=[wintypes.HANDLE];api.CloseHandle.restype=wintypes.BOOL
+    handle=api.OpenProcess(0x1000,False,pid) # PROCESS_QUERY_LIMITED_INFORMATION
+    if not handle:raise OSError('diagnostic OpenProcess '+str(ctypes.get_last_error()))
+    try:
+        values=[wintypes.FILETIME() for _ in range(4)]
+        if not api.GetProcessTimes(handle,*(ctypes.byref(v) for v in values)):raise OSError('diagnostic GetProcessTimes '+str(ctypes.get_last_error()))
+        ns=lambda v:((v.dwHighDateTime<<32)|v.dwLowDateTime)*100
+        return dict(kernel_ns=ns(values[2]),user_ns=ns(values[3]))
+    finally:api.CloseHandle(handle)
+
+
+def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False):
+    if not diagnostic_metrics:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness)
+    started=time.monotonic();metrics=dict(version=1,spawned=False,pid=0,cpu=None,failed=False)
+    try:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness,metrics=metrics)
+    except BaseException as error:
+        metrics.update(failed=True,error=str(error)[:1024]);raise
+    finally:
+        metrics['elapsed_seconds']=round(time.monotonic()-started,6)
+        (folder/'capture-metrics.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
+
+
+def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None):
     script=folder/'observe.gdb'
     script.write_text('set confirm off\nset pagination off\nset architecture i386:x86-64\ntarget remote 127.0.0.1:12491\n'+code,encoding='ascii')
     command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m',str(ram)+'M','-smp','1',
@@ -284,6 +316,7 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False):
     with (folder/'stderr.log').open('wb') as errors,(folder/'observer.log').open('wb') as log:
         vm=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=errors,bufsize=0,
                             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if metrics is not None:metrics.update(spawned=True,pid=vm.pid)
         try:
             debugger=subprocess.Popen([shutil.which('gdb') or 'gdb','-q','-nx','-batch','-x',str(script)],
                                       stdout=log,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -302,6 +335,9 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False):
                     if vm.poll() is not None or debugger.poll() is not None:break
                 elif process.SUCCESS in serial or any(m in serial for m in FAILURES) or vm.poll() is not None or debugger.poll() not in (None,0):break
         finally:
+            if metrics is not None:
+                try:metrics['cpu']=process_cpu_ns(vm.pid)
+                except OSError as error:metrics['cpu_error']=str(error)[:256]
             vm.stdin.close();terminate_bounded(vm)
             if debugger is not None:
                 try:debugger.wait(timeout=2)
@@ -309,6 +345,7 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False):
             if thread is not None:thread.join(timeout=1)
             while not output.empty():data.extend(output.get_nowait())
             vm.stdout.close();(folder/'guest.log').write_bytes(data)
+            if metrics is not None:metrics.update(serial_bytes=len(data),debugger_exit=debugger.returncode if debugger else None)
     if overflow.is_set() or len(data)>262144 or debugger.returncode:raise ValueError('program capture/detach failure')
     for name in ('observer.log','frame-trace.log'):
         if (folder/name).stat().st_size>65536:raise ValueError('program observer capacity')
