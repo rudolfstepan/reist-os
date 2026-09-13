@@ -2,6 +2,24 @@
 
 Stand: 13. September 2026
 
+R8.3al-Kandidat: `-NativeFilesystem` beziehungsweise
+`X86_64_NATIVE_FILESYSTEM=1` wählt den nativen Read-only-Dateisystemverbraucher
+mit getrennten Ring3-Prozessen für FAT12/FAT32/EXT2 und den bestehenden
+PIO-Blocktreiber. Windows impliziert NativeBlockProfile; Make verlangt dessen
+vollständige explizite Abhängigkeitsflags. FilesystemCase0..8 und Layout0..4
+(FAT12/FAT32/EXT2-1/2/4KiB, Standard2) sind ausschließlich Abnahmefixtures.
+Der native RPC-v1-Header trägt64 Byte, der alte VFS-Payload512 Byte;
+keine STORAGE_SUBMIT-Kompatibilitätsbehauptung oder neue Systemaufrufnummer.
+Fest16 Cache-Sektoren, acht Dateianfragen und bestehende Treiber-/CPU-Budgets;
+je eine getrennte Dienstgeneration und höchstens ein frischer Abhängigkeits-
+ersatz. EXT2 liest nur die vom regulären Dateibereich berührten Daten-Sektoren,
+bei unveränderter vollständiger Block-/Volumenprüfung. Alle18 neuen Gäste
+bestehen; die Pflichtwiederholung des alten bytegleichen Blockprofils endet
+an CPU32. Dessen Beobachter liegt außerhalb des eingefrorenen Scopes:
+Kandidat uncommitted, kein Paket-/normaler64-Bit-OS-/Shell-Abnahmeclaim.
+[Dateisystemvertrag](NATIVE_FILESYSTEM_CONTRACT.md),
+[aktuelle Verifikation](../development/CURRENT_WORK.md).
+
 R8.3ak: `-NativeBlockProfile` beziehungsweise
 `X86_64_NATIVE_BLOCK_PROFILE=1` verbindet ausdrücklich NativeWide/Import/PIO/
 Block. Alte Flags behalten ihre Bedeutung. `reist_block_profile_v1` ist ein

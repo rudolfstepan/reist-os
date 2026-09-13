@@ -2,7 +2,18 @@
 
 Stand: 13. September 2026
 
-## R8.3al: nativer Read-only-Dateisystemdienst eingefroren
+## R8.3al: freigegebene Beobachterkorrektur wird fortgesetzt
+
+Der Nutzer hat die Erweiterung um den alten Blockprofil-Beobachter und dessen
+Runtime-Regression ausdrücklich freigegeben. Alle22 bisherigen Quell-/Dokument-
+Hashes entsprechen dem gesicherten Kandidaten. Dieselbe Pakettransaktion wird
+mit24 erlaubten Dateien und21 Gates fortgesetzt: alle19 bisherigen Gruppen,
+zusätzlich alter Beobachterhost und die bestehenden drei Trace-Manipulations-
+gäste. Kein neuer Diagnosegast-Spielraum, keine Änderung an Kernel, Abbild,
+Quoten oder Ablehnungsregeln. Der vorige Stop samt Fehlbelegen bleibt unten
+erhalten. Erst vollständige Abnahme, dann lokaler Commit und nächstes Paket.
+
+## R8.3al: neue Dateisystemmatrix bestanden, alte Referenz blockiert
 
 R8.3ak ist mit `3cd8fe87`, allen25 Gates und sauberem Worktree abgeschlossen.
 Der nächste gemeinsame Schnitt umfasst FAT12/FAT32 und EXT2 mit1/2/4KiB,
@@ -12,7 +23,65 @@ Engpass (21 Sektoren für15 Bytes bei16 Anfragen) wird durch echtes
 Bereichslesen geschlossen, nicht durch höhere Quoten. Eigene Treiber-Endpunkte
 vermeiden die unzulässige Delegation an zwei Peers.22 Dateien/19 Gates,
 einschließlich18 neuer Gäste und alter vollständiger Blockprofilmatrix.
-Noch keine Implementierungs- oder normale OS-/Shell-Abnahme.
+Der Kandidat implementiert den RPC-v1-Adapter mit unverändertem512-Byte-
+VFS-Payload,16-Sektor-Cache, acht Dateianfragen und frischem Root-Selftest.
+Tatsächliche O0/O2-Tests aller fünf Medien bestehen, ebenso Bereichslesen,
+Cachegrenzen, Transportfehler und ungültige Antworten. EXT2 benötigt beim
+kurzen Dateizugriff jetzt8/10/14 statt9/13/21 verschiedene Sektoren; vollständige
+Block-/Volumenprüfung und ältere Objekt-/Guard-/Symlink-Verbraucher bleiben
+erhalten. Alle drei eingefrorenen Builds bestehen. Noch keine Paketabnahme.
+
+Fehlerbelege bleiben unter `build/codex-agent/r83al-filesystem/`. Die ersten
+Gäste decken einen zu frühen fehlenden IPC-Grant (EBADF statt EACCES), eine
+zu enge Beobachterbindung der letzten Antwort an den bereits beendeten Server
+und Kosten reiner Diagnose-Systemaufrufe auf. Begrenzter Startup-Handshake,
+Bindung an den noch lebenden Aufrufer und ein fester Antwort-Snapshot schließen
+diese Fehler ohne neue Rechte oder Quoten. `runtime-05.log` besteht FAT12/32;
+`runtime-06.log` zusätzlich EXT2-1KiB, endet aber bei EXT2-2KiB an Treiber-CPU32.
+
+Zwei gezielte Korrekturen begrenzen die übrigen seltenen PIO-/Fehler-/Freigabe-
+Haltepunkte auf tatsächlich erreichbare Lebensdauergrenzen. Geprüfte Maschinen-
+code-Routen verbinden den unveränderten Fehlerpfad mit der Beobachtung vor
+der Ausgabe, nach dem obligatorischen Notfall-Fence; Korruption wird immer
+abgelehnt. Die erste Heap-basierte Freigabebeobachtung beendet FAT12 korrekt,
+verfehlt aber mit20.180s die20s-Grenze (`runtime-07.log`). Die Folgekorrektur
+armiert Freigaben am bestehenden IPC-Reap statt bei jeder Heap-Operation.
+Die vollständige Matrix dieser Fassung besteht; keine unveränderte Wiederholung,
+keine Anhebung von Takt, CPU-, PIO-, IPC- oder Zeitbudgets.
+
+`runtime-08.log`: alle18 Gäste in413.936s, davon278.136s Gastzeit,
+maximal16.372s pro Gast; Versuch `65caa3691e6b4ad8b55217215142218d`.
+Fünf normale Medien,8GiB-Referenz, sechs Fehlerszenarien, FS-CREATE-OOM
+0/24/48 und drei beschädigte Medien, jeweils beide vollständigen PROCESS_RUN-
+Lebensläufe. Beim EXT2-4KiB-Normalgast benötigt der Treiber6..11 und der
+Dateisystemprozess13..17 CPU-Samples bei unverändertem Limit32. Die zehn
+Runtime-/Beobachter-/Build-Selektortests bestehen in8.711s
+(`fs-runtime-host-11.log`). Ergänzte Make-Tests brauchen die bereits vom
+Windows-Caller explizit gesetzten PIO-/Startup-Nullflags; lokalisierte
+PowerShell-Fehler werden byteweise statt fälschlich als CP1252 ausgewertet.
+Beide fehlgeschlagenen Testfassungen bleiben als09/10 erhalten.
+
+Pflicht-Gate `old-profile-runtime-01.log` scheitert dagegen nach5.201s im
+ersten alten Blockprofilgast (Versuch `89a757a76f92465bb55dbcac045e8c07`):
+Treiber Generation3 erreicht CPU32 vor der neunten Antwort, Root endet221;
+vollständiger Ersatz und zweiter Durchlauf fehlen. Der alte Beobachter sowie
+das alte Gastabbild sind exakt bytegleich zum akzeptierten `3cd8fe87`
+(Gast-SHA256 `56e357a3eb80a16f5a788e2e9134584d8e073dddaa060bb84216fcbd30e31318`).
+Alle207 gebundenen früheren Artefakte sowie27 Standardobjekte und das Standard-
+Bootabbild sind unverändert. Das ist kein bestandener Wiederholungsgate und
+kein Nachweis einer vollständigen Ursachenanalyse des alten Beobachters.
+
+Vertragsstopp: `scripts/run_qemu_x86_64_block_profile.py` und dessen Runtime-
+Regression liegen außerhalb der22 freigegebenen Dateien. Keine stille
+Erweiterung, kein unveränderter Gastretry, kein Implementierungscommit und
+keine Queue-Weitergabe.15/19 Gruppen bestehen; altes Blockprofil FAIL;
+Dokumentationsgate, Standardboot und ursprünglicher i386-Artefaktwächter
+bleiben nach dem ersten Pflichtfehler offen. Der zugeordnete Kandidat und
+sämtliche Belege bleiben erhalten. Die gezielte Übertragung/Prüfung der neuen
+Beobachterbegrenzung benötigt eine ausdrückliche Scope-Freigabe einschließlich
+`test/test_x86_64_block_profile_runtime.py` und unveränderter Gast-/Quotengates.
+
+Keine normale OS-/Shell-Abnahme und keine fertige64-Bit-Version.
 [Eingefrorener Dateisystemvertrag](../architecture/NATIVE_FILESYSTEM_CONTRACT.md).
 
 ## R8.3ak: Blockprofile und vollständige Laufzeitabnahme umgesetzt

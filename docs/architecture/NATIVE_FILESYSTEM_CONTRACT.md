@@ -3,8 +3,19 @@
 R8.3al, frozen on clean accepted `3cd8fe87`. This is an explicitly selected
 native service qualification profile, not an accepted normal OS, shell command,
 writable filesystem, hardware target or POSIX binary-compatibility claim.
-The interactive main agent executes the queue's nineteen frozen groups,
+The interactive main agent executes the queue's twenty-one frozen groups,
 reviews scope and commits locally only after every gate passes. No agents/push.
+
+On2026-09-13 the user explicitly authorizes resuming the hash-bound candidate
+and extending only `scripts/run_qemu_x86_64_block_profile.py` and
+`test/test_x86_64_block_profile_runtime.py`. The original19 groups remain;
+add the actual observer host regression and existing three trace-rejection
+guests (`--trace-faults`,20s each/60s total). This is24 allowed files/21 groups,
+not a new package or diagnostic-only guest budget. The old byte-identical
+reference reached CPU32 before reply9; transfer/share the proven bounded
+cold-page observation without deleting assertions or changing guest images,
+clocks or quotas. Source-bound unchanged passes remain evidence; affected
+observer hosts and complete runtime groups must pass on the final candidate.
 
 ## One immutable-media failure domain
 
@@ -73,7 +84,7 @@ PIO read,64 operations/100ms,8 CREATE attempts/root and existing IRQ/clock rules
 No quota increases or busy waits. Capacity exhaustion is an explicit failure,
 not permission to restart invisibly until an operation succeeds.
 
-Existing EXT2 regular-file reads currently fetch whole data blocks: actual
+At the frozen baseline, EXT2 regular-file reads fetch whole data blocks: actual
 short-file inventory costs9/13/21 distinct sectors for1/2/4KiB. Read only the
 sectors intersecting the requested regular-file range, after retaining complete
 inode/block/volume admission. Keep metadata/directory parsing unchanged, EOF,
@@ -91,11 +102,12 @@ embeds their immutable raw inputs. Preserve producer admission, stack layout,
 linker capacity and both Windows/Make selection/negative validation. Do not
 introduce a command reachable only from the kernel rescue shell.
 
-Twelve targeted groups cover actual O0/O2 adapter behavior and parser ranges,
+Thirteen targeted groups cover actual O0/O2 adapter behavior and parser ranges,
 generated-media geometry and COW safety, runtime-oracle negatives, old FAT/EXT2,
 block profile/PIO/producer/native IPC, syscall ABI and documentation. Three
-builds: default, old BlockProfile and new Filesystem. Four runtime groups:
-new matrix, old full BlockProfile11, default boot, original i386 artifact guard.
+builds: default, old BlockProfile and new Filesystem. Five runtime groups:
+new matrix, old full BlockProfile11, default boot, original i386 artifact guard
+and the three existing old-profile trace manipulation/rejection guests.
 Keep failed attempts and exact source/artifact/gate bindings under ignored
 `build/codex-agent/r83al-filesystem/`; no historical source-only pass is runtime
 evidence. Direct final scope/ABI/cleanup/default-object review is mandatory.
@@ -128,7 +140,7 @@ backing identity, virtual size, full depth1 map, zero allocated overlay data and
 logical equality before and in finally after every guest, including failures.
 Preserve old64KiB media profile defaults and all original evidence/pins.
 
-Stop on a required file outside the frozen22-file allowlist, new authority or
+Stop on a required file outside the frozen24-file allowlist, new authority or
 persistence boundary, unrelated changes, pre-existing source failure, or the
 same concrete frozen failure after two focused corrections. No unchanged
 runtime retry or diagnostic-only acceptance. Deferred R3.6b stays deferred.

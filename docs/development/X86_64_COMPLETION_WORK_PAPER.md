@@ -4,13 +4,34 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3ak: begrenzte Blockprofile und vollständige Gastnachweise
+## R8.3al: Read-only-Dateisystemintegration in Verifikation
 
-Nächster eingefrorener Schnitt auf sauberem `3cd8fe87`: R8.3al bündelt den
+Aktuell ist die Nacharbeit am alten Blockprofil-Beobachter samt Runtime-Test
+ausdrücklich freigegeben: derselbe zugeordnete Kandidat,24 Dateien/21 Gates.
+Die folgenden Stopbelege bleiben historisch erhalten; die gemeinsamen
+Beobachtungsgrenzen werden bei unveränderten Bildern und Quoten konsolidiert.
+
+Eingefroren auf sauberem `3cd8fe87`: R8.3al bündelt den
 nativen Read-only-IPC-/Cacheadapter, FAT12/FAT32 und sämtliche unterstützten
 EXT2-Blockgrößen mit getrenntem Treiber, frischen Selftests und begrenztem
 Abhängigkeitsersatz.22 Dateien/19 Gates; keine Quoten-, Kernel- oder
 Schreibrechtserweiterung. [Dateisystemvertrag](../architecture/NATIVE_FILESYSTEM_CONTRACT.md).
+
+Der Kandidat und die drei Builds sind vorhanden. Tatsächliche O0/O2-Tests
+prüfen alle fünf Medien, unveränderte Ausgabe bei Fehlern, Protokoll-/Cache-
+Grenzen und EXT2-Bereichslesen einschließlich alter Guard-/Objektverbraucher.
+Der kurze EXT2-Dateizugriff braucht8/10/14 statt9/13/21 verschiedene Sektoren.
+Die gemeinsame18-Gast-Dateisystemmatrix einschließlich aller Fehler-/OOM-
+Fälle besteht (`runtime-08.log`,278.136s Gastzeit). Die Pflichtwiederholung
+des alten Blockprofils scheitert aber trotz bytegleichem Gast und Beobachter
+an CPU32 vor Antwort9.15/19 Gruppen PASS, ein FAIL, drei offen. Der alte
+Beobachter und sein Runtime-Test liegen außerhalb der22 freigegebenen Dateien:
+Vertragsstopp, Kandidat uncommitted, keine Queue-Weitergabe. Weitere gezielte
+Beobachterarbeit erfordert ausdrückliche Scope-Freigabe. Keine Quoten-/Kernel-
+änderung oder Gesamt-OS-Zusage; alle bisherigen207 Artefakte unverändert.
+[Aktueller Stand und Belege](CURRENT_WORK.md).
+
+## R8.3ak: begrenzte Blockprofile und vollständige Gastnachweise
 
 Elf vollständige Blockprofil-Gäste bestehen nach begrenzten Release-/CREATE-
 Haltepunkten auf unverändertem Gastabbild und bei unveränderten Quoten.
