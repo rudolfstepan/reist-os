@@ -2,6 +2,18 @@
 
 Stand: 13. September 2026
 
+## R8.3ai: nativer lesender Blockdienst als nächster Gesamtschnitt
+
+R8.3ah ist als `7f452faf` lokal abgenommen,22 Gates bestanden und Worktree
+sauber. Die neue native Inventur bündelt Client, versionierte Block-RPC,
+Ring3-Dienstschleife, explizite IPC-Grants, Datenvalidierung und Recovery.
+Vorhandenes Storage-BLOCK_READ1/512-Byte-LBA und IPC-v1/v2 werden übernommen;
+keine Portierung des i386-Storage-Requestpools oder neuer Ring0-Dateisystemcode.
+Umfang/16 Gates: [Blockdienstvertrag](../architecture/NATIVE_BLOCK_SERVICE_CONTRACT.md).
+Kernelmechanismen, PIO-/CPU-/Zeitquoten und i386-Pins bleiben unverändert.
+R3.6b wieder queued und ausdrücklich zurückgestellt. Vertrag vor Implementierung;
+keine allgemeine OS-, Dateisystem-, Langlauf- oder Hardware-Fertigmeldung.
+
 ## R8.3ah: gebündelte PIO-Umsetzung und Fatalgrenze geprüft
 
 Auf Vertragscommit `881a1917` sind CREATE-v4/volle192-Bit-Profile, Read-only-

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R3.6b-vmware-pointer-pinned-mutex"
+active_id = "R8.3ai-x86_64-block-service"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,24 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ai-x86_64-block-service"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Native Ring3 read-only block RPC and generation-scoped service lifecycle"
+scope = "On accepted7f452faf, bundle a reusable bounded block request/reply client, service admission/dispatch, actual Ring3 ATA consumer, explicit IPC handoff and fault/restart proof. Reuse the accepted PIO and IPC v1/v2 mechanisms unchanged; no new kernel syscall, filesystem parser, write/DMA/physical media authority or normal shell command. One read-only service failure domain, fixed sessions and original task/CPU/image limits."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","docs/architecture/NATIVE_BLOCK_SERVICE_CONTRACT.md","userspace/sdk/include/reist/x86_64/block.h","userspace/storage/lib/native_block.c","userspace/drivers/ata/native_service.c","userspace/drivers/ata/native_service.h","arch/x86_64/user/block_service.c","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","scripts/run_qemu_x86_64_block_service.py","scripts/run_qemu_x86_64_pio.py","Makefile","config/x86_64_boot_program.ld","config/x86_64_import_program.ld","test/test_x86_64_block_service.py","test/x86_64_block_service_host.c","test/test_x86_64_pio.py","test/test_x86_64_boot_programs.py"]
+invariants = ["Follow NATIVE_BLOCK_SERVICE_CONTRACT.md. Existing STORAGE_BLOCK_READ1,512-byte sectors/LBA28 and negative errno semantics; explicit REIST native block RPC v1, not an alias for kernel STORAGE_SUBMIT or POSIX compatibility.","Request/reply versions, exact sizes, owner generation, monotonic request sequence, deadline, LBA/range, status and reserved fields validated before device I/O or client output. Fixed storage, one in-flight client request, at most8 requests per service session, no replay or partial output publication.","Real IPC endpoints with exact per-generation send/receive grants and no implicit rights from numeric handles. Retire/revoke/fence before replacement; automatic and explicit recovery share existing family state machine and eight-attempt budget.","Existing four task slots,32 CPU samples,8 image pages,4KiB user stack,64 PIO operations/100ms and200ms ATA wait remain. Rate-limit Ring3 reads by monotonic sleep to remain within mediation quota; no kernel timing/authority change.","Only generated64KiB read-only COW media, including a fixed per-LBA pattern. Ten new4/8GiB/OOM/missing/owner-loss guests within20s each; real full-block data and invalid/stale/fault/restart/cleanup proof. Kernel mechanism objects identical to accepted PIO, old PIO/fatal guests and i386 pins mandatory."]
+targeted_tests = ["python test/test_x86_64_block_service.py -v","python test/test_x86_64_pio.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_x86_64_task_startup.py -v","python test/test_x86_64_image_import.py -v","python test/test_syscall_abi_source.py -v","python test/test_documentation.py -v","python test/test_x86_64_reference_artifacts.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83ai-block/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativePIO -OutputDirectory build/codex-agent/r83ai-block/pio-reference",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeBlock -OutputDirectory build/codex-agent/r83ai-block/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_block_service.py --image build/codex-agent/r83ai-block/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ai-block/guests","python scripts/run_qemu_x86_64_pio.py --image build/codex-agent/r83ai-block/pio-reference/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ai-block/pio-guests","python scripts/run_qemu_x86_64_pio.py --image build/codex-agent/r83ai-block/pio-reference/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ai-block/fatal-guests --fatal","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83ai-block/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83ai-block/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+acceptance = "All16 frozen groups, direct authority/protocol/deadline/recovery/scope review and clean local commit. No full OS, filesystem, normal shell integration, historical timer cause, DMA or hardware acceptance."
+stop_conditions = ["Unattributed or overlapping user change","Required production file outside frozen scope","Need to change kernel mechanisms public syscall semantics or frozen quotas/deadlines","Physical media write DMA or destructive recovery authority required","Failed gate without a concrete bounded in-scope correction"]
+continuation = "User requests continuous interactive completion without routine questions. Preserve every failed attempt; focused same-scope corrections may continue after recording cause, never unchanged retries or gate weakening. One package at a time, no agents or push. R3.6b stays explicitly deferred and queued despite formal preceding transition."
+commit_message = "feat: serve native read-only blocks over IPC"
+evidence = []
 
 [[packages]]
 id = "R8.3ah-x86_64-pio-domain"
@@ -3408,7 +3426,7 @@ evidence = []
 
 [[packages]]
 id = "R3.6b-vmware-pointer-pinned-mutex"
-status = "active"
+status = "queued"
 browser_priority = "2026-09-05: User explicitly approves deferring this incomplete VMware acceptance with all requirements unchanged and prioritizing the new browser without repeated routine handoffs. The resumed host suites passed (141/144, three optional skips), reference build passed, but real RFB hover still failed to acknowledge Start. Preserve these open runtime gates; do not claim acceptance or return to this package ahead of the browser migration."
 deferral = "User switches explicitly to browser improvements after committing 7b365f3b. Keep this incomplete acceptance queued with its original gates; do not mark it done."
 phase = "post-s0"
