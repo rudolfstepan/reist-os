@@ -226,3 +226,79 @@ Reject missing, duplicate, wrong opcode, unexpected address or any other byte
 change. Add host negatives to the existing blockhost gate;31 files/20 groups
 unchanged. Thus25 objects remain byte-identical plus this one exactly checked
 derived link; the two explicitly amended implementations still match PIO/block.
+
+Focused same-scope correction after attempt024ef0035bee4ff292465e2c22bb9997:
+normal4/8GiB and OOM0/1 pass; OOM2 still exhausts one root. Common IPC inventory
+shows successful/non-integrity-error SEND/RECEIVE never mutate Process local
+capabilities. Only CREATE49, CLOSE52, DELEGATE55 and RELEASE58 can publish those
+views; REAP also clears peer grants. Restrict REQUEST client sealing to these
+four capability operations. Transfer integrity errors still enter fatal before
+any adapter publication; no quarantine failure is turned into normal success.
+The new red client-publication regression observes eight needless writes after
+receive. Actual baseline/candidate transcripts, all-slot byte-corruption and
+single-copy correction tests remain required; no new files, limits or gates.
+
+The following focused cost regression distinguishes DELEGATE's actual target:
+only the matching live target's two client guards may be published, not all
+eight client guards. Common delegation either changes that target alone or
+returns a non-integrity error without changing local clients; quarantine paths
+return EINTEGRITY and cannot reach publication. CREATE/CLOSE/RELEASE and REAP
+retain conservative all-client publication. The all-slot differential and
+post-operation check_all proof must cover this narrower publication too.
+Attempt6d055431707d4bcd9a8ab2f724b6fcca remains failed:4GiB passes, first8GiB
+root exhausts after the eighth child; no accepted full matrix or unchanged retry.
+
+Fixture terminal-cleanup correction: attempt3f17cbafa1db4a1d8b4d08ba4c13d091
+passes all eight normal/OOM cases, then case2 exposes unused client variables;
+all four producer variants now compile under unchanged Werror and are host
+checked. Attempt144884d3ec0b4b818ccfa7558ac9793d still fails at root RIP40068c,
+independently disassembled immediately after the first terminal IPC_CLOSE52;
+all eight children were already retired. For normal/OOM roots, leave the three
+owned endpoints to the already required automatic process-reap cleanup instead
+of three redundant explicit close calls followed by the same cleanup scan.
+Observe three exact live root-owned full-rights capabilities at the existing
+final CREATE-exhaustion scrub boundary, then require the unchanged exact
+IPC/profile/heap fence before root frame release. No extra syscall or breakpoint,
+quota change, skipped exhaustion proof, or cleanup exemption. Missing-media
+still exercises explicit close; owner-loss still exercises automatic cleanup
+with an active child. The old PIO and actual IPC tests retain explicit-close
+behavior. Negative host oracles reject absent/duplicate/misordered owner-release
+evidence and stale/malformed capability views. This is the same lifecycle,
+not permission to defer cleanup beyond retirement or change kernel code.
+
+## Latest candidate stop after IPC cost correction
+
+Attempt630ff21c1121492d83ee836861c2c4d3 fails15.313s in the first4GiB case.
+Root1 exhausts32 samples at actual ELF RIP4008d3, immediately after syscall54
+RECEIVE_TIMEOUT for the final LBA127 reply. Child10 is subsequently canceled
+by owner loss (reason3, status0/state3,13 samples), not a normal80 result.
+Root11 completes78 at30 samples and witnesses three live owned endpoints
+before exact automatic fencing/frame cleanup. Both runs must pass; this attempt
+accepts no case. Earlier eight-case progress is partial evidence only.
+
+Actual IPC O0/O2 counts,215-step state equivalence and all-slot corruption
+checks pass, as do nine blockhost tests and all four Werror program builds.
+These do not prove reliable guest completion under the unchanged budget.
+No further concrete bounded in-scope correction is demonstrated; stop before
+another unchanged guest retry. The earlier four controlled diagnostics are
+exhausted. Additional guest cost attribution requires a separately frozen
+finite diagnostic budget, not skipped integrity checks, larger quotas, another
+kernel mechanism change or acceptance from a partial/detached run. Keep the
+package active and all candidate changes/evidence uncommitted and preserved.
+
+## Renewed bounded syscall/scheduler attribution
+
+The user approves the specifically proposed further four-guest diagnosis.
+Freeze one additional batch, each guest at the existing20s ceiling on identical
+validated image/catalog/C hashes: detached control, IRQ sample attribution,
+IPC operation census, full observer with IRQ attribution. Count actual native
+CPU samples by generation and interrupted RIP; correlate saved syscall number
+only when the RIP equals that syscall's saved return address. Count IPC entries
+by operation and slot separately; debugger wall time is not kernel CPU time.
+Use at most4096 callbacks and256 aggregate keys per guest and the existing
+observer/serial capacity limits. No extra guest writes or kernel modifications,
+clock/CPU/PIO change, acceptance from diagnostics or repeat-until-pass policy.
+Reuse the current diagnostic and blockhost files;31 files/20 gates unchanged.
+Contract commit precedes diagnostic implementation. Concrete bounded corrections
+inside the existing source/authority boundary may continue without routine
+questions; any necessary new production failure boundary must be frozen first.

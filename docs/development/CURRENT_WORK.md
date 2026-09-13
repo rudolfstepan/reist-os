@@ -2,7 +2,68 @@
 
 Stand: 13. September 2026
 
-## R8.3ai: IPC-Kostenkorrektur ausdrücklich freigegeben
+## R8.3ai: zusätzliche begrenzte Kostenattribution freigegeben
+
+Die erneute Nutzeranweisung beantwortet die konkrete Vier-Gast-Frage mit
+Freigabe zur Fortsetzung. Ein zusätzlicher, vor Ausführung eingefrorener Satz
+aus vier Diagnosegästen ordnet IRQ-Samples nach Generation/RIP und getrennt
+IPC-Aufrufe nach Operation/Slot zu. Identische Artefakthashes,20s je Gast,
+4096 Callbacks/256 Zählschlüssel, unveränderte Schutzprüfungen und Quoten.
+Keine Kernel-Umfangserweiterung oder Abnahme aus Diagnoseergebnissen.
+Der folgende Stopstand bleibt als historischer Befund erhalten.
+
+## R8.3ai: IPC-Kosten reduziert, Gastabnahme weiterhin blockiert
+
+Kandidat auf Vertragscommit `337eb009`, weiterhin **nicht abgenommen**.
+Die Verträge `844538ae` und `337eb009` erlauben31 Dateien/20 Gategruppen,
+einschließlich nativer IPC-Publikationskosten und exakt validierter abgeleiteter
+Memory-Exportrelokation. Keine Implementierungscommits oder Queuefortschreibung.
+
+Neue Belege unter `build/codex-agent/r83ai-block/`:
+
+- `ipc-cost-host-04.log`: tatsächlicher Adapter und gemeinsame IPC-/Critical-
+  Object-Implementierung O0/O2, PASS/7.540s.215 Operationen haben denselben
+  Zustandsdigest `488f56b706fc97e7` wie `7f452faf`. Vollständige Eintrittsprüfung
+  unverändert; Bytekorruption aller vier Slots und redundante Kopien geprüft.
+  Idle/End publizieren nichts, BIND nur zwei Clientguards, DELEGATE nur die
+  zwei Zielguards, SEND/RECEIVE keine unveränderten Clientguards. Pending-
+  Änderungen werden mit lokalem Vierbit-Maskenwert vollständig versiegelt.
+- Native-IPC-Host7/5.638s und Bulk-IPC-Host2/1.684s PASS (`*-host-03.log`).
+  Blockhost9/3.086s PASS (`block-host-17.log`): echte C-Helfer, Fehlerpfade,
+  Relokationsnegativen, RPC-Reihenfolge und automatische Endpointbereinigung.
+  Bootprogrammhost7 Tests PASS (`bootprogram-host-03.log`), einschließlich
+  tatsächlicher Werror-Builds aller vier Blockvarianten und ELF/Katalogvergleich.
+- NativePIO-Build PASS/5.109s (`ipc-pio-build-03.log`), NativeBlock-Build
+  PASS/5.642s (`ipc-block-build-05.log`). Keine Original-i386-Medien neu gebaut.
+- Mit dem geänderten IPC-Adapter: alte PIO-Matrix10 PASS/128.363s
+  (`ipc-pio-guests-01.log`, Versuch `ea3b2dee8b5f4cc6a6d4f049f55d7b87`)
+  und Fatalmatrix8 PASS/8.680s (`ipc-fatal-guests-01.log`, Versuch
+  `f1cb822609aa420b913e3a44d5620be8`). Keine Ersatzabnahme der Blockmatrix.
+- `ipc-block-guests-04.log` erreichte acht bestandene Normal-/OOM-Fälle,
+  scheiterte dann am Build der Missing-Media-Fixture. Die unbenutzten Variablen
+  sind korrigiert; dieser Teilerfolg ist **keine** vollständige Matrixabnahme.
+- Letzte Matrix `ipc-block-guests-06.log`: FAIL/15.313s, Versuch
+  `guests/attempt-630ff21c1121492d83ee836861c2c4d3`. Bereits im ersten4GiB-Fall
+  erreicht Rootgeneration1 wieder32 Samples/status256. Der letzte LBA127-Reply
+  ist am Dienst beobachtet, aber noch nicht vollständig beim Client bestätigt.
+  RIP `0x4008d3` ist laut tatsächlichem ELF unmittelbar nach RECEIVE_TIMEOUT54.
+  Das letzte Kind10 wird deshalb mit Grund3, status0/state3 bei13 Samples
+  mit abgeräumt; das ist Folge des Rootabbruchs, kein normaler Diensterfolg.
+  Der zweite Root11 endet korrekt mit78 bei30 Samples, drei eigene Endpoints
+  vor Ende und vollständigem Fencing vor Framefreigabe. Gesamter Gateausgang
+  bleibt FAIL, null akzeptierte Fälle dieses letzten Versuchs.
+
+Die IPC-Kostenkorrektur und das Entfernen redundanter terminaler Fixture-CLOSEs
+schließen die Erschöpfung nicht zuverlässig. Kein unveränderter Wiederholungs-
+versuch, keine Schutzprüfung ausgelassen, keine Quote/Frist erhöht. Die vier
+früher autorisierten kontrollierten Diagnosegäste sind ausgeschöpft. Eine
+weitere konkret belegte Korrektur im eingefrorenen Umfang ist derzeit nicht
+bestimmt: Paket-Stoppbedingung greift. Für weitere Gastmessungen muss zuerst
+ein neues begrenztes Diagnosebudget mit genauer Kostenattribution eingefroren
+werden; keine pauschale Freigabe für Common-IPC-/Critical-Object-/Scheduler-
+Änderungen. Alle eigenen Änderungen und Fehlbelege bleiben erhalten.
+
+### Historische Freigabe der IPC-Kostenkorrektur
 
 Erneute Nutzerfreigabe nach der konkreten Umfangsfrage: native IPC-Kostenanalyse
 und daraus belegte Optimierungen ohne Routinefragen. Vor Produktionseingriff
