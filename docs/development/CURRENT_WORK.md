@@ -1,6 +1,54 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 12. September 2026
+Stand: 13. September 2026
+
+## R8.3ah: zwei Testanpassungen ausdrücklich freigegeben
+
+`ja mach das` gibt die wegwerfbare QEMU-COW-Testschicht und die begrenzte
+IPC-Synchronisation in `task_startup.c` frei. Nur die erzeugte64KiB-Basis,
+keine Nutzerplatte; Basisknoten read-only, Gast-Schreib-/DMA-Verbot und
+unveränderte logische Daten/leere Overlaybelegung bleiben nachzuweisen.
+Der Vertrag ergänzt zwei Startup-Referenzgruppen zu den ursprünglichen14.
+Die folgenden Stopnotizen bleiben historisch erhalten. Veränderte i386-
+Referenzen werden nicht allein aufgrund dieser Zustimmung neu gepinnt;
+Herkunft und Abnahme bleiben zu klären. Kein Implementierungsabschluss.
+
+## R8.3ah: Korruptionsprüfung gehärtet, Referenzabnahme gestoppt
+
+Fortsetzung auf demselben eigenen Kandidaten, ohne neue Schreib-/Dateifreigabe.
+Zwei neue Regressionen führen die tatsächlichen Adapter aus und zeigen zuerst
+Fehler: Terminal/Cleanup überschrieb beschädigte Domänenmetadaten; zusätzliche
+Profilfelder wurden teilweise ignoriert. Gemeinsame schreibfreie Zulassung
+vor Syscall, Terminal und Cleanup sowie vollständige Maskenprüfung beheben
+beides. Der fatale Pfad sperrt physisch nIEN/SRST, ohne Metadaten zu reparieren.
+PIO-Host O0/O2 besteht (1/1.095s); alle192 Syscallpositionen,128 Zusatzmaskenbits,
+Pointerfehler vor Portzugriff und16 beschädigte Terminal-/Cleanupfälle werden
+mit Produktionsassembler geprüft. Rote Belege bleiben erhalten.
+
+Weitere bestehende Hosts bestehen: Import2/4.615s, Family3/1.105s,
+Startup4/1.800s, Bootprogramme6/1.934s, ABI5/.188s. Builds normal2.666s,
+Import6.119s und NativePIO4.771s sowie normaler Gast.551s bestehen.
+Das ist weiterhin **keine Paketabnahme und kein Implementierungscommit**.
+
+Zwei zusätzliche Stopper bei den eingefrorenen Referenzen:
+
+- Importgast `attempt-5f747db53c0f43538d959063f5d5057d` scheitert nach13.177s:
+ 12 statt20 Retirements, Kindstatus237 und Root225 in beiden Durchläufen.
+ `task_startup.c` delegiert nach festen20ms, das Kind erwartet beim ersten
+ Senden noch fehlende Rechte. Die Root hat dessen Nachricht schon empfangen,
+ bevor WAIT scheitert: eine zeitabhängige Testannahme, kein Nachweis unerlaubter
+ Rechtevergabe. Eine begrenzte Synchronisation braucht die derzeit nicht
+ freigegebene Datei `arch/x86_64/user/task_startup.c`; nicht geändert.
+- Der i386-Pinguard scheitert nach.445s an `build/reist-os.img`:
+ SHA256 `d6e77ebe48762d9b1e41bae29c26e5e1240afee70f1bd77ca03a9d135384713c`
+ statt `e497673dec8b2b687604413e6b1fb1f8fa0edaca53b7eff1e817c95a0a9e8fa5`.
+ Zeitstempel06:53:57UTC liegt vor den aktuellen nativen Builds ab06:54.
+ VMware PID29120 läuft seit06:51:55UTC. Referenzen und VM bleiben unberührt;
+ kein stiller Hashwechsel, Restore, Neubau oder Prozessabbruch.
+
+Belege liegen unter `build/codex-agent/r83ah-pio/`. Die unten beschriebene
+QEMU-COW-Freigabe steht ebenfalls aus. Scope-/Referenzklärung ist jetzt nötig;
+kein Folgepaket, keine erneuten Gastversuche und kein Commit bis dahin.
 
 ## R8.3ah: native Read-only-Gerätegrenze gemeinsam angehen
 
@@ -10,8 +58,33 @@ Treiber-Syscallautorität. Vollständiges Profil, begrenzte PIO-Vermittlung,
 Ring3-IDENTIFY/Lesetreiber und Fence/Restart-Nachweis werden gemeinsam
 eingefroren: [PIO-Domänenvertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
 Nur QEMU und neu erzeugtes Read-only-Testmedium; keine reale Platte,
-Schreibrechte, DMA oder neue komplexe Kernel-Treiber. Noch keine Umsetzung
-oder Abnahme; Dateisystem-/Dienst-/Plattformintegration bleibt offen.
+Schreibrechte, DMA oder neue komplexe Kernel-Treiber. Dateisystem-/Dienst-/
+Plattformintegration bleibt offen.
+
+Auf Vertrag `4b351bf3` liegt ein eigener, **nicht abgenommener und nicht
+committeter Kandidat**: CREATE-v4/192-Bit-Profil, PIO-Portprüfung und
+generationsgebundene Vermittlung, Ring3-IDENTIFY/512-Byte-Lesecode,
+Lebenszyklus-Hooks, SDK/Build und Ring3-Fehlerfixture. Tatsächlicher
+Assembler/C-Hosttest O0/O2 besteht (1 Test,5.829s), NativePIO-Build besteht
+(6.158s,C-Aufbau4). Die erste Hostkompilierung scheiterte an einer von Zig
+eingefügten unbenutzten Option; die gezielte Korrektur übernimmt ausschließlich
+die vorhandene Hostharness-Warnungsbehandlung. Keine Gastabnahme daraus ableiten.
+
+**Profilblocker:** QEMU11.1.0 lehnt eine IDE-Festplatte mit Read-only-Backend
+bereits vor CPU-Start ab: `Block node is read-only`. Drei pausierte Varianten
+mit einer neu erzeugten65536-Byte-Raw-Datei bestätigen dies (je Exit1;
+.137/.142/.126s), einschließlich explizitem `ide-hd`, abgeschaltetem
+Schreibcache und `-blockdev`. Die Datei bleibt SHA256-identisch. Belege:
+`build/codex-agent/r83ah-pio/readonly-probe-8251731b8f954f3e8b1d4b95d8de679d/`.
+Keine Nutzerplatte, kein Schreibmedium und keine Overlaydatei angeschlossen.
+
+Die14 Gates und der eingefrorene Read-only-Medienvertrag bleiben unverändert.
+Gast-Runner/Oracle, vollständige Laufzeit-/Korruptionsprüfung und die übrigen
+Referenzgates sind noch offen. Zur Fortsetzung ist eine ausdrückliche
+Vertragsfreigabe für eine wegwerfbare QEMU-COW-Testschicht über einer
+schreibgeschützten, generierten Basis nötig; Gast-Schreibbefehle bleiben
+verboten, Basishash und unveränderte Overlaybelegung wären zu prüfen.
+Kein Folgepaket und kein Implementierungscommit vor vollständiger Abnahme.
 
 ## R8.3ag: Ring3-ELF-Aufbereitung und nativer Abbildimport
 

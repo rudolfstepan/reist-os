@@ -1,8 +1,26 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-Stand: 12. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
+Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
+
+## R8.3ah: Treiberrechte, Lesen und Fehlergrenze zusammen
+
+Auf abgenommenem `abd9edb4` bündelt Vertrag `4b351bf3` das vollständige
+Syscallprofil mit PIO-Vermittlung, Ring3-ATA-Lesecode und Wiederanlaufnachweisen.
+Der eigene Kandidat besteht bisher Host O0/O2 und NativePIO-Build, ist aber
+nicht abgenommen oder committet. QEMU11.1.0 verweigert Read-only-IDE-Backends
+vor Gaststart; drei pausierte Raw-Dateiversuche bestätigen das unverändert.
+Der Medienvertrag darf nicht stillschweigend auf ein beschreibbares Overlay
+umgestellt werden. Die notwendige Freigabe, Belege und verbleibenden Gates
+stehen im [Arbeitsstand](CURRENT_WORK.md) und
+[PIO-Vertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
+
+Die Fortsetzung ergänzt geprüfte Korruptionssperren und vollständige
+Profilbindung; sechs Hostgruppen, drei Builds und der normale Gast bestehen.
+Die Abnahme stoppt zusätzlich an einer alten IPC-Test-Race außerhalb der
+Dateifreigabe und einem geänderten i386-Referenzabbild bei laufender VMware.
+Keine Testlockerung, Referenzersetzung oder Paketfreigabe daraus ableiten.
 
 ## R8.3ag: Ring3-ELF64 bis zum nativen Abbildbesitz zusammen
 

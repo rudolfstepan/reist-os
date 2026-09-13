@@ -1,7 +1,8 @@
 # Native read-only PIO domain contract
 
 R8.3ah, frozen on acceptedabd9edb4, 12 September2026. This contract is not
-runtime acceptance. All14 queue groups remain mandatory.
+runtime acceptance. Original14 groups plus the two approved Startup reference
+groups remain mandatory (16 total).
 
 ## Inventory and common boundary
 
@@ -27,7 +28,8 @@ references and terminology in ATA_PIO_TRANSFER_CONTRACT.md. Preserve512-byte
 sectors,256 sixteen-bit data words, sector count and LBA28 units. Ring3 owns
 IDENTIFY interpretation and all protocol waits, each with an absolute monotonic
 deadline and SLEEP, never busy polling. Report unsupported/absent device
-fail-closed. The disk is always attached read-only and verified unchanged.
+fail-closed. The generated base is always attached read-only and verified
+unchanged; the approved host-only COW exception below does not grant guest writes.
 
 ## Public profile and mediation
 
@@ -106,3 +108,56 @@ quotas/deadlines, external hardware authority, or a failed gate after one
 focused in-scope repair. Only after all14 groups, direct authority/failure/
 cleanup/scope review and a clean local commit may another package start.
 R3.6b stays deferred, R341-H1/H2 open; no full64-bit OS completion claim.
+
+## Implementation stop, not a contract amendment
+
+12 September2026: the attributed candidate on4b351bf3 builds and its initial
+actual mediator/profile/transfer host test passes O0/O2. It is not accepted.
+QEMU11.1.0 rejects an IDE hard disk backed by a read-only raw node before
+unpausing the CPU (`Block node is read-only`). A generated64KiB fixture,
+three bounded paused attachment variants and unchanged SHA256 confirm this
+under build/codex-agent/r83ah-pio/readonly-probe-8251731b8f954f3e8b1d4b95d8de679d.
+Neither disabling write cache nor explicit blockdev/ide-hd attachment admits it.
+
+The read-only-medium invariant and all14 gates above are still frozen.
+No writable backend, overlay or real/user disk has been used. A disposable
+COW test layer over a read-only generated base would change this acceptance
+boundary and requires explicit user authorization before implementation.
+Guest write/DMA denial would remain mandatory, with independent base hash
+and no changed overlay-sector proof; this is a proposal, not current authority.
+The PIO guest runner/oracle and final runtime/integrity review remain unfinished.
+
+13 September2026 continuation: actual terminal/finish and full-profile adapter
+regressions now prove shared integrity admission, physical fail fencing without
+metadata repair, all192 syscall positions and rejection of ignored extended
+mask corruption. Host O0/O2 and all three build variants pass; no acceptance.
+The frozen old import guest fails at child237/root225: its fixed20ms delegation
+delay races the child's first unauthorized-send assertion. A bounded handshake
+requires task_startup.c outside frozen allowed_files; no such edit authorized.
+Separately the frozen i386 image hash differs, with a running VMware instance;
+neither reference rebasing/restoration nor VM termination is authorized.
+All gates, media rules and scope remain frozen; see CURRENT_WORK for evidence.
+
+## Approved test-boundary amendment, 13 September2026
+
+The user's explicit `ja mach das` authorizes the two requested adjustments.
+Only a newly generated64KiB raw base and a disposable qcow2 layer may be used,
+in a unique ignored build/codex-agent attempt directory. QEMU opens the backing
+file node explicitly read-only. The overlay satisfies IDE backend admission;
+the native mediator still denies all guest write/DMA commands. Verify the base
+SHA256, logical bytes and absence of overlay data allocation before and after
+each guest, including failures. Retain diagnostic files rather than deleting
+them. No real/user disk, unrestricted QEMU arguments, physical hardware or
+persistent-format claim is authorized. Historical read-only rejection above
+remains evidence; this is the sole exception to host fixture writability.
+
+Add task_startup.c to allowed_files for a finite explicit IPC acknowledgement
+before granting the tested endpoint. Preserve the denied-first-send proof,
+all startup argument/attempt/CPU/image bounds, old outcomes and cleanup.
+Increasing a fixed delay or accepting a prematurely successful first send is
+not the repair. Keep the original14 gates and add NativeStartup build plus
+its old eight-case matrix;16 total. Contract commit precedes source edits.
+
+The confirmed i386 artifact changes still require provenance/acceptance
+clarification. Existing pins and the guard remain unchanged; no blind rebase,
+reference overwrite or VMware process control is authorized by this amendment.
