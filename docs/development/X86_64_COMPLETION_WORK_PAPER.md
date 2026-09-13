@@ -4,16 +4,30 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3ai: Block-RPC, Dienst und geschützte Komplettierung zusammen
+## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
 
-Nachfolgender R8.3aj-Kandidat auf Vertrag `822e8f1b` erweitert versioniert
-Image und Stack, ist aber noch nicht abgenommen. Der erste Gesamtlink zeigt
-eine separate Grenze der bisherigen Boot-Speicheraufteilung: größerer
-Katalog und Scratch passen nicht vor die feste C-Brücke. Ein eigenes korrekt
-reserviertes R/NX-/RW-NX-Bootareal ist durch erneute Nutzerfreigabe jetzt
-im selben Paket eingefroren:48 Dateien/18 Gruppen samt Seitenschutz- und
-Reservierungsnachweis; keine Quoten oder bisherigen Linkerprüfungen gelockert.
-Teilnachweise und Erstfehler: [Arbeitsstand](CURRENT_WORK.md).
+Vertrag `60c65385` erweitert versioniert RNPGv2/CREATE-v5 auf64 Image-Slots
+und einen privaten32KiB-NX-Stack mit Guardpage. Wiederverwendete Mechanismen
+decken alle neuen Slots, vollständige Rollbacks und frische Bytes nach Reap
+ab; Standardprofile und alte ABI-Versionen bleiben erhalten. Ein separat
+reserviertes R/NX-Katalog-/RW-NX-Scratchareal erhält die feste C-Brücke,
+C-Grenzen und bisherige16MiB-Bootabbildung. Keine CPU-/IPC-Quotenänderung.
+
+13 neue Gastfälle/104 Lebensläufe bestehen einschließlich4/8GiB, Guard-/NX-/
+RX-Fault, CPU-Ausfall, Cancel, Ersatzgeneration und sechs OOM-Punkten.
+Reale12KiB-C-Stackbytes, alle327 Bootseiten und vollständige Framebilanz sind
+beobachtet; tatsächliche O0/O2-Hostmechanismen und negative Oracles ergänzen
+den Nachweis. Acht alte Importfälle, Normalboot und originale i386-Pins
+bestehen.48 Dateien/18 Gategruppen; Detailbelege und erhaltene Erstfehler:
+[Arbeitsstand](CURRENT_WORK.md), [Vertrag](../architecture/NATIVE_PROGRAM_MEMORY_CONTRACT.md).
+
+Dies beseitigt die belegte Kapazitätsabhängigkeit der bestehenden Ring3-
+Dateisystemparser, integriert diese aber noch nicht. Nach sauberem Paketcommit
+folgt die nächste kohärente native Diensttransaktion ohne Routineübergabe.
+Dateizugriff/-laden, normales Userland sowie volle System-/Hardwareabnahme
+bleiben offen; R3.6b bleibt ausdrücklich zurückgestellt.
+
+## R8.3ai: Block-RPC, Dienst und geschützte Komplettierung zusammen
 
 Auf Vertrag `873d82fa` ist der gemeinsame Read-only-Blockdienst umgesetzt:
 wiederverwendbarer Client/Dispatcher, Ring3-ATA-Service, echte IPC-Übergabe,

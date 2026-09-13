@@ -132,6 +132,56 @@ class CPayloadTests(unittest.TestCase):
                         p.verify_outer(raw,self.changed(at+off,'I',value,outer))
         self.assertEqual(extended,1)
 
+        # Exact opt-in initialized catalog / NOLOAD scratch, real ELF32 link.
+        wide_asm=asm+'section .native_catalog progbits alloc noexec nowrite align=4096\n' \
+            +'catalog: times 1065344 db 0x5a\nglobal native_catalog_used\nnative_catalog_used equ $-catalog\nalign 4096, db 0\n' \
+            +'section .native_scratch nobits alloc noexec write align=4096\nscratch: resb 266336\n' \
+            +'global native_scratch_used\nnative_scratch_used equ $-scratch\nalignb 4096\n'
+        def link_wide(text,name):
+            (self.folder/(name+'.asm')).write_text(text,encoding='ascii')
+            r=self.run_command([self.nasm,'-f','elf32',self.folder/(name+'.asm'),
+                                '-o',self.folder/(name+'.o')],name+'-asm')
+            self.assertEqual(r.returncode,0,r.stderr)
+            return self.run_command([self.zig,'ld.lld','-m','elf_i386','-T','config/x86_64_bootstrap.ld',
+                     '-o',self.folder/(name+'.elf'),self.folder/(name+'.o')],name+'-link')
+        r=link_wide(wide_asm,'wide');self.assertEqual(r.returncode,0,r.stderr)
+        wide=p.read_bounded(self.folder/'wide.elf',bits=32);p.verify_outer(raw,wide)
+        o=p.elf(wide,32)
+        self.assertGreater(len(wide),1048576)
+        self.assertEqual(o['symbols']['_x86_64_bootstrap_end']['value'],0xb47000)
+        with self.assertRaises(ValueError):p.read_bounded(self.folder/'wide.elf')
+        with self.assertRaises(ValueError):p.elf(wide,64)
+        for name,addr,size,flags,typ in (('.native_catalog',0xa00000,1069056,2,1),
+                                        ('.native_scratch',0xb05000,270336,3,8)):
+            s=o['sections'][name];at=struct.unpack_from('<I',wide,32)[0]+s['index']*40
+            self.assertEqual((s['address'],s['size'],s['flags'],s['type']),(addr,size,flags,typ))
+            for off,value in ((4,8 if typ==1 else 1),(8,flags^1),(8,flags|4),(12,addr+4096),
+                              (16,0),(20,size-4096),(20,size+4096),(32,8192)):
+                with self.subTest(wide_section=name,offset=off,value=value):
+                    with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(at+off,'I',value,wide))
+        padding=o['sections']['.native_catalog']['offset']+1065344
+        with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(padding,'B',1,wide))
+        ph=struct.unpack_from('<I',wide,28)[0]
+        for i in range(struct.unpack_from('<H',wide,44)[0]):
+            at=ph+32*i;addr=struct.unpack_from('<I',wide,at+8)[0]
+            if addr<0xa00000:continue
+            for off,value in ((8,addr+4096),(12,addr+4096),(16,1),(20,0x200000),(24,7)):
+                with self.subTest(wide_segment=addr,offset=off):
+                    with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(at+off,'I',value,wide))
+        table=o['sections']['.symtab'];strings=o['sections']['.strtab']['data'];count=0
+        for at in range(table['offset'],table['offset']+table['size'],16):
+            n=struct.unpack_from('<I',wide,at)[0];name=strings[n:strings.find(b'\0',n)].decode('ascii')
+            if name.startswith('_native_') or name=='_x86_64_bootstrap_end':
+                count+=1
+                with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(at+4,'I',0x200000,wide))
+        self.assertEqual(count,7)
+        for i,(before,after) in enumerate((('1065344','1065343'),('1065344','1065345'),
+                                          ('266336','266335'),('266336','266337'),
+                                          ('resb 266336','resb 0'),('times 1065344 db 0x5a',''))):
+            r=link_wide(wide_asm.replace(before,after),'wide-reject-'+str(i))
+            self.assertNotEqual(r.returncode,0)
+            self.assertIn('native boot area exact pair/capacity',r.stderr)
+
     def test_actual_old_envelope_failure(self):
         r=self.run_command([*self.link,
                '-e','x86_64_c_payload_probe','--section-start=.text=0xFFFFFFFF80185000',

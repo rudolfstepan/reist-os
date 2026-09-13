@@ -1,3 +1,4 @@
+%include "arch/x86_64/mm/native_layout.inc"
 ; Private physical-address profile shared by all current native consumers.
 %ifndef REIST_NATIVE_MEMORY_PROFILE
 %define REIST_NATIVE_MEMORY_PROFILE 1

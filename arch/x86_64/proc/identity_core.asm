@@ -1,5 +1,6 @@
 ; Private serialized SysV AMD64 task-identity lifecycle. No role/profile policy.
 BITS 64
+%include "arch/x86_64/mm/native_layout.inc"
 section .text
 global reist_x64_identity_apply
 reist_x64_identity_apply:
@@ -23,7 +24,7 @@ reist_x64_identity_apply:
     cmp r14, r10
     jae .fail
     mov rbx, r14
-    shl rbx, 8
+    shl rbx, NATIVE_TASK_SHIFT
     add rbx, r8
     cmp r13, 1
     je .reserve
@@ -54,12 +55,12 @@ reist_x64_identity_apply:
     cmp qword [rbx + rcx*8], 0
     jne .fail
     inc ecx
-    cmp ecx, 12
+    cmp ecx, 4+NATIVE_IMAGE_PAGES
     jb .resource_zero
     mov [r9 + r14*4], r15d
     mov rdi, rbx
     xor eax, eax
-    mov ecx, 32
+    mov ecx, NATIVE_TASK_BYTES/8
     cld
     rep stosq
     jmp .success
@@ -97,9 +98,9 @@ reist_x64_identity_apply:
     jz .fail
     test rax, 4095
     jnz .fail
-    cmp qword [rbx + 96], 0 ; adapter validated executable entry
+    cmp qword [rbx + 96+NATIVE_REG_DELTA], 0 ; adapter validated executable entry
     je .fail
-    cmp qword [rbx + 104], 0
+    cmp qword [rbx + 104+NATIVE_REG_DELTA], 0
     je .fail
     mov qword [rbx], 1
 .success:
@@ -143,7 +144,7 @@ identity_validate:
     cmp rdi, r11
     ja .fail
     mov edx, ecx
-    shl rdx, 8
+    shl rdx, NATIVE_TASK_SHIFT
     add rdx, r8
     mov rsi, [rdx]
     test rsi, rsi
@@ -165,7 +166,7 @@ identity_validate:
     cmp qword [rdx + rbp*8], 0
     jne .fail
     inc ebp
-    cmp ebp, 32
+    cmp ebp, NATIVE_TASK_BYTES/8
     jb .zero
 .next:
     xor ebp, ebp
@@ -173,7 +174,7 @@ identity_validate:
     cmp ebp, ecx
     jae .advance
     mov ebx, ebp
-    shl rbx, 8
+    shl rbx, NATIVE_TASK_SHIFT
     test rax, rax
     jz .retired_unique
     cmp [r8 + rbx + 8], rax

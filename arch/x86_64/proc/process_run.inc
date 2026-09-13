@@ -1,3 +1,4 @@
+%include "arch/x86_64/mm/native_layout.inc"
 ; Role-independent private adapter. Included in the existing scheduler object;
 ; all allocation, queue, context, generation, profile and FP cores are shared.
 ; The caller admits a finite independent set; no task is another task's owner.
@@ -173,7 +174,7 @@ process_run_validate64:
     xor r14d, r14d ; running task count
 .task:
     mov eax, ebx
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov eax, ebx
@@ -428,24 +429,24 @@ process_run_validate64:
 
 ; Read-only uniqueness across ALL private resources, including retired slots.
 process_run_frames64:
-    sub rsp, 52*8
+    sub rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
     xor r8d, r8d
     xor ebx, ebx
 .slot:
     mov eax, ebx
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
-    shr eax, 3
+    shr eax, NATIVE_TASK_SHIFT-5
     lea r13, [rel scheduler_table_frames]
     add r13, rax
     xor ecx, ecx
 .frame:
-    cmp ecx, 8
+    cmp ecx, NATIVE_IMAGE_PAGES
     jb .private
     je .stack
     mov edx, ecx
-    sub edx, 9
+    sub edx, NATIVE_IMAGE_PAGES+1
     mov rax, [r13+rdx*8]
     jmp .check
 .stack:
@@ -462,7 +463,7 @@ process_run_frames64:
 .live:
     test rax, rax
     jnz .present
-    cmp ecx, 8
+    cmp ecx, NATIVE_IMAGE_PAGES
     jae .bad
     jmp .next
 .present:
@@ -477,7 +478,7 @@ process_run_frames64:
     jae .bad
     cmp rax, [rel scheduler_original_cr3]
     je .bad
-    cmp ecx, 9
+    cmp ecx, NATIVE_IMAGE_PAGES+1
     jne .distinct
     cmp [r12+TASK_CR3], rax
     jne .bad
@@ -495,7 +496,7 @@ process_run_frames64:
     inc r8d
 .next:
     inc ecx
-    cmp ecx, 13
+    cmp ecx, NATIVE_CLAIM_FRAMES
     jb .frame
     inc ebx
     cmp ebx, TASK_SLOT_CAPACITY
@@ -505,7 +506,7 @@ process_run_frames64:
 .bad:
     xor eax, eax
 .return:
-    add rsp, 52*8
+    add rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
     ret
 
 ; Trusted caller pointer is pinned to C rodata by the bridge. No user pointer.
@@ -608,8 +609,12 @@ x86_64_process_run64:
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rel process_run_plan],2
     jb .stack_ready
+%ifdef REIST_NATIVE_WIDE
+    call scheduler_stack_page64
+%else
     mov rdi,DIRECT_MAP_BASE
     add rdi,[r12+TASK_STACK_FRAME]
+%endif
     call x86_64_boot_program_stack64
     test rax,rax
     jle scheduler_fail
@@ -815,7 +820,7 @@ process_run_syscall64:
     mov rax, [rel scheduler_syscall_context+8]
     cmp rax, USER_STACK_BASE
     jb .context
-    cmp rax, USER_STACK_TOP
+    NATIVE_STACK_CMP_RAX
     ja .context
     mov r8d, SHELL_CONTEXT_STATUS
     test qword [rel syscall_r11], 0x4000
@@ -959,7 +964,7 @@ process_run_exception64:
     mov eax, [rel scheduler_current_slot]
     cmp eax, TASK_SLOT_CAPACITY
     jae .bad
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12+TASK_STATE], TASK_RUNNING
@@ -992,7 +997,7 @@ process_run_irq_validate64:
     mov eax, [rel scheduler_current_slot]
     cmp eax, TASK_SLOT_CAPACITY
     jae .bad
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12+TASK_STATE], TASK_RUNNING
@@ -1012,7 +1017,7 @@ process_run_irq_validate64:
     mov rax, [rdi+EXCEPTION_FRAME_RSP]
     cmp rax, USER_STACK_BASE
     jb .stack
-    cmp rax, USER_STACK_TOP
+    NATIVE_STACK_CMP_RAX
     ja .stack
     mov rax, [rdi+EXCEPTION_FRAME_RIP]
     call scheduler_validate_task_instruction64
@@ -1144,7 +1149,7 @@ process_run_irq_tail64:
     cmp edx, 3
     je .retire
     mov eax, [rel scheduler_current_slot]
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     call scheduler_fp_save64
@@ -1233,7 +1238,7 @@ process_run_wake64:
     test eax, eax
     jz .bad
     mov eax, edi
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov qword [r12+TASK_STATE], TASK_READY
@@ -1259,7 +1264,7 @@ process_run_retire64:
     jz scheduler_fail
     mov edi, [rel scheduler_current_slot]
     mov eax, edi
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12+TASK_STATE], TASK_RUNNING

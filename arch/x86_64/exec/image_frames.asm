@@ -1,15 +1,15 @@
 bits 64
 %include "arch/x86_64/mm/memory_profile.inc"
-; Private SysV AMD64 mechanism. RDI is a trusted aligned88-byte image record,
+; Private SysV AMD64 mechanism. RDI is a trusted aligned layout-derived record,
 ; never a user pointer. Caller has fenced all consumers and serialized ownership
 ; (current profile: one CPU, IF=0). No shared-RX refcount or loader policy here.
-; Validate all8 records before effects, then account only this release's delta.
+; Validate all8/default or64/wide slots before effects; account this release only.
 global reist_x64_image_release
 extern physical_frame_free64
 extern physical_free_frame_count64
-FLAGS equ 64
-ERROR equ 78
-ACTIVE equ 79
+FLAGS equ NATIVE_IMAGE_FLAGS
+ERROR equ NATIVE_IMAGE_DIAG+6
+ACTIVE equ NATIVE_IMAGE_DIAG+7
 LIMIT equ MEMORY_LIMIT_VALUE
 
 section .text
@@ -26,13 +26,13 @@ reist_x64_image_release:
     test r12, 7
     jnz .bad
     mov rax, r12
-    add rax, 87
+    add rax, NATIVE_IMAGE_RECORD-1
     jc .bad
     cmp byte [r12 + ACTIVE], 1
     ja .bad
     cmp byte [r12 + ERROR], 1
     ja .bad
-    cmp byte [r12 + 77], 1
+    cmp byte [r12 + NATIVE_IMAGE_DIAG+5], 1
     ja .bad
     xor ecx, ecx
 .validate:
@@ -66,7 +66,7 @@ reist_x64_image_release:
     jmp .unique
 .next:
     inc ecx
-    cmp ecx, 8
+    cmp ecx, NATIVE_IMAGE_PAGES
     jb .validate
     call physical_free_frame_count64
     cmp eax, LIMIT / 4096
@@ -93,7 +93,7 @@ reist_x64_image_release:
     mov byte [r12 + ERROR], 1
 .advance:
     inc ebx
-    cmp ebx, 8
+    cmp ebx, NATIVE_IMAGE_PAGES
     jb .release
     call physical_free_frame_count64
     add r13d, r14d
@@ -104,9 +104,9 @@ reist_x64_image_release:
     cmp byte [r12 + ERROR], 0
     jne .bad
     mov byte [r12 + ACTIVE], 0
-    mov byte [r12 + 76], 0
-    mov byte [r12 + 77], 0
-    mov qword [r12 + 80], 0
+    mov byte [r12 + NATIVE_IMAGE_DIAG+4], 0
+    mov byte [r12 + NATIVE_IMAGE_DIAG+5], 0
+    mov qword [r12 + NATIVE_IMAGE_DIAG+8], 0
     mov eax, 1
     jmp .return
 .accounting_failed:

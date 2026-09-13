@@ -1,3 +1,4 @@
+%include "arch/x86_64/mm/native_layout.inc"
 ; Private IPC binding v2,2136-byte request in a2144-byte scrubbed stack slot.
 ; C owns copied messages and
 ; capabilities; this adapter alone admits user memory and scheduler effects.
@@ -243,7 +244,7 @@ process_ipc_ready64:
     bt r15, rbx
     jnc .skip
     mov eax, ebx
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12+TASK_STATE], TASK_BLOCKED

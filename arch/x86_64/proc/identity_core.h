@@ -1,6 +1,7 @@
 #ifndef REIST_X64_IDENTITY_CORE_H
 #define REIST_X64_IDENTITY_CORE_H
 #include <stdint.h>
+#include "../mm/native_layout.h"
 #include <stddef.h>
 /* Private kernel namespace; caller serializes and owns disjoint backing arrays.
  * No allocator, profile or mapping authority is conferred by this interface.
@@ -8,7 +9,7 @@
  * Reserve returns generation32:slot32; other success=1, failure=0 unchanged.
  */
 struct reist_x64_identity_pool {
-    uint64_t (*tasks)[32];
+    uint64_t (*tasks)[NATIVE_TASK_WORDS];
     uint32_t *retired;
     uint32_t capacity, last_generation;
 };

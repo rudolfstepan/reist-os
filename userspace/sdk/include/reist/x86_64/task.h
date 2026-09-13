@@ -55,4 +55,13 @@ static inline int64_t reist_x64_task_import_profile(const void *prepared,
     reist_task_create_v4_t q={4,64,1,0,0,(uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup};
     return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
 }
+/* Append-only CREATE-v5: identical full-profile transport, RNPGv2 only.
+ * NativeWide supplies the bounded larger mapping/stack; old kernels reject it. */
+static inline int64_t reist_x64_task_import_wide(const void *prepared,
+    const reist_task_profile_v1_t *profile,uint64_t cpu_samples,
+    const reist_task_startup_v1_t *startup)
+{
+    reist_task_create_v4_t q={5,64,1,0,0,(uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup};
+    return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
+}
 #endif

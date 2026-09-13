@@ -52,12 +52,19 @@ KERNEL_CODE_SELECTOR      equ 0x08
 TASK_COUNT                 equ 2
 TASK_SLOT_CAPACITY         equ 4
 RUNQUEUE_CAPACITY          equ 4
+%ifndef REIST_NATIVE_WIDE
 TASK_RECORD_SIZE           equ 256
+%else
+TASK_RECORD_SIZE           equ NATIVE_TASK_BYTES
+%endif
 TASK_STATE                 equ 0
 TASK_GENERATION            equ 8
 TASK_CR3                   equ 16
 TASK_STACK_FRAME           equ 24
 TASK_PRIVATE_FRAMES        equ 32
+; Keep the established default layout explicit for its independently extracted
+; mechanism tests. Only the opt-in layout adds the shared private displacement.
+%ifndef REIST_NATIVE_WIDE
 TASK_RIP                   equ 96
 TASK_RSP                   equ 104
 TASK_RFLAGS                equ 112
@@ -78,6 +85,28 @@ TASK_ID                    equ 224
 TASK_RAX                   equ 232
 TASK_RCX                   equ 240
 TASK_R11                   equ 248
+%else
+TASK_RIP                   equ 96+NATIVE_REG_DELTA
+TASK_RSP                   equ 104+NATIVE_REG_DELTA
+TASK_RFLAGS                equ 112+NATIVE_REG_DELTA
+TASK_RBX                   equ 120+NATIVE_REG_DELTA
+TASK_RDX                   equ 128+NATIVE_REG_DELTA
+TASK_RBP                   equ 136+NATIVE_REG_DELTA
+TASK_RSI                   equ 144+NATIVE_REG_DELTA
+TASK_RDI                   equ 152+NATIVE_REG_DELTA
+TASK_R8                    equ 160+NATIVE_REG_DELTA
+TASK_R9                    equ 168+NATIVE_REG_DELTA
+TASK_R10                   equ 176+NATIVE_REG_DELTA
+TASK_R12                   equ 184+NATIVE_REG_DELTA
+TASK_R13                   equ 192+NATIVE_REG_DELTA
+TASK_R14                   equ 200+NATIVE_REG_DELTA
+TASK_R15                   equ 208+NATIVE_REG_DELTA
+TASK_YIELDS                equ 216+NATIVE_REG_DELTA
+TASK_ID                    equ 224+NATIVE_REG_DELTA
+TASK_RAX                   equ 232+NATIVE_REG_DELTA
+TASK_RCX                   equ 240+NATIVE_REG_DELTA
+TASK_R11                   equ 248+NATIVE_REG_DELTA
+%endif
 TASK_TABLE_LEVELS          equ 4
 TASK_TABLE_BYTES           equ TASK_TABLE_LEVELS * 8
 TASK_TABLE_PML4            equ 0
@@ -188,7 +217,7 @@ DEADLINE_TICK_LIMIT        equ 8
 CHILD_PATH_CAPACITY        equ 16
 
 USER_BASE                  equ 0x00400000
-USER_PAGE_COUNT            equ 8
+USER_PAGE_COUNT            equ NATIVE_IMAGE_PAGES
 USER_STACK_BASE            equ 0x00408000
 USER_STACK_TOP             equ 0x00409000
 PROBE_DATA_PAGE_INDEX      equ 1
@@ -645,7 +674,7 @@ x86_64_process_deadline_sleep_selftest64:
     xor ebx, ebx
 .publish_loop:
     mov eax, ebx
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov eax, TASK_SLEEP_GEN_BASE
@@ -700,7 +729,7 @@ x86_64_process_deadline_sleep_selftest64:
     xor ebx, ebx
 .enable_irq_loop:
     mov eax, ebx
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     or qword [r12 + TASK_RFLAGS], 0x200
@@ -910,7 +939,7 @@ x86_64_process_runqueue_selftest64:
     xor ebx, ebx
 .publish_loop:
     mov eax, ebx
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov eax, TASK_RUNQUEUE_GEN_BASE
@@ -1062,7 +1091,7 @@ scheduler_runqueue_enqueue64:
     test esi, esi
     jz .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_GENERATION], rsi
@@ -1120,7 +1149,7 @@ scheduler_runqueue_dequeue64:
     test r9d, r9d
     jz .fail
     mov eax, r8d
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r13, [rel scheduler_tasks]
     add r13, rax
     cmp qword [r13 + TASK_GENERATION], r9
@@ -1151,7 +1180,7 @@ scheduler_runqueue_dispatch64:
     jae scheduler_fail
     mov edi, eax
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_GENERATION], rdx
@@ -1211,7 +1240,7 @@ scheduler_deadline_insert64:
     cmp edi, TASK_SLOT_CAPACITY
     jae .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_GENERATION], rsi
@@ -1329,7 +1358,7 @@ scheduler_validate_shell_send_deadline64:
     cmp byte [r10 + 12], dil
     jne .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r11, [rel scheduler_tasks]
     add r11, rax
     cmp qword [r11 + TASK_GENERATION], r14
@@ -1404,7 +1433,7 @@ x86_64_scheduler_deadline_tick64:
     cmp edi, TASK_SLOT_CAPACITY
     jae .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_GENERATION], rsi
@@ -1590,7 +1619,7 @@ scheduler_verify_runqueue_isolation64:
     xor ebx, ebx
 .outer:
     mov eax, ebx
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_CR3], 0
@@ -1610,7 +1639,7 @@ scheduler_verify_runqueue_isolation64:
     cmp ebp, TASK_SLOT_CAPACITY
     jae .next_outer
     mov eax, ebp
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r13, [rel scheduler_tasks]
     add r13, rax
     mov rax, qword [r12 + TASK_CR3]
@@ -1671,7 +1700,7 @@ scheduler_enter_task64:
 .slot_valid:
     mov dword [rel scheduler_current_slot], edi
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r11, [rel scheduler_tasks]
     add r11, rax
     cmp qword [r11 + TASK_STATE], TASK_READY
@@ -1873,7 +1902,7 @@ scheduler_syscall_entry64:
     jae scheduler_fail
 .syscall_slot_valid:
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
@@ -2338,11 +2367,11 @@ scheduler_owner_zero64:
 ; Read-only cross-task frame ownership proof before either task is fenced.
 ; Sparse image pages allowed; live stack/table records required; no aliases.
 scheduler_owner_frames_valid64:
-    sub rsp, 208 ; two fixed13-frame lists, no allocation
+    sub rsp, 2*NATIVE_CLAIM_FRAMES*8 ; two fixed13-frame lists, no allocation
     xor r8d, r8d
 .slot:
     mov eax, r8d
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r10, [rel scheduler_tasks]
     add r10, rax
     mov eax, r8d
@@ -2354,11 +2383,11 @@ scheduler_owner_frames_valid64:
     jne .fail
     xor r9d, r9d
 .frame:
-    cmp r9d, 8
+    cmp r9d, NATIVE_IMAGE_PAGES
     jb .private
     je .stack
     mov eax, r9d
-    sub eax, 9
+    sub eax, NATIVE_IMAGE_PAGES+1
     mov rdx, [r11 + rax * 8]
     jmp .required
 .stack:
@@ -2372,7 +2401,7 @@ scheduler_owner_frames_valid64:
 .private:
     mov rdx, [r10 + TASK_PRIVATE_FRAMES + r9 * 8]
 .check:
-    imul eax, r8d, 13
+    imul eax, r8d, NATIVE_CLAIM_FRAMES
     add eax, r9d
     mov [rsp + rax * 8], rdx
     test rdx, rdx
@@ -2393,7 +2422,7 @@ scheduler_owner_frames_valid64:
     jmp .unique
 .next:
     inc r9d
-    cmp r9d, 13
+    cmp r9d, NATIVE_CLAIM_FRAMES
     jb .frame
     inc r8d
     cmp r8d, 2
@@ -2403,7 +2432,7 @@ scheduler_owner_frames_valid64:
 .fail:
     xor eax, eax
 .return:
-    add rsp, 208
+    add rsp, 2*NATIVE_CLAIM_FRAMES*8
     ret
 
 ; Shell entry separates user-controllable data from trusted lifecycle state.
@@ -2466,7 +2495,14 @@ scheduler_context_apply64:
     mov rax, cr3
     mov [rsp + 16], rax
     mov qword [rsp + 24], USER_STACK_BASE
+%ifdef REIST_NATIVE_WIDE
+    call scheduler_stack_top64
+    test rax,rax
+    jz scheduler_fail
+    mov [rsp+32],rax
+%else
     mov qword [rsp + 32], USER_STACK_TOP
+%endif
     mov [rsp + 40], rsi
     mov rsi, rdi
     mov edx, r9d
@@ -2546,7 +2582,7 @@ x86_64_scheduler_shell_timer_validate64:
     mov eax, [rel scheduler_current_slot]
     cmp eax, 1
     ja .fail
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov rax, cr3
@@ -2664,7 +2700,7 @@ x86_64_scheduler_shell_timer_tail64:
     cmp qword [rdi + EXCEPTION_FRAME_CS], KERNEL_CODE_SELECTOR
     je .idle
     mov eax, [rel scheduler_current_slot]
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     call scheduler_fp_save64
@@ -2779,7 +2815,7 @@ scheduler_profile_apply64:
     and rsp, -16
     mov r9d, eax
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r10, [rel scheduler_tasks]
     add r10, rax
     mov [rsp], r10
@@ -2790,10 +2826,18 @@ scheduler_profile_apply64:
     mov [rsp + 8], r10
     mov [rsp + 16], rsi
     mov [rsp + 24], rdx
+%ifdef REIST_NATIVE_WIDE
+    mov rdi,rsp
+    mov eax,1
+    call scheduler_profile_ranges64
+    test eax,eax
+    jz .profile_return
+%endif
     mov rdx, r8
     mov esi, r9d
     mov rdi, rsp
     call reist_x64_profile_apply
+.profile_return:
     lea rsp, [rbp - 64]
     pop r11
     pop r10
@@ -2819,7 +2863,7 @@ scheduler_validate_shell_syscall_profile64:
     cmp edi, 1
     ja .invalid
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea rdx, [rel scheduler_tasks]
     add rdx, rax
     cmp r12, rdx
@@ -3654,7 +3698,7 @@ scheduler_handle_shell_ipc_receive_timeout64:
     xor edi, edi
 .sender_slot:
     mov eax, edi
-    shl eax, 8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     mov qword [r12 + TASK_RAX], 0
@@ -4248,7 +4292,7 @@ scheduler_validate_shell_range64:
     cmp eax,TASK_SLOT_CAPACITY
     jae .corrupt
     mov r10,rax
-    shl r10,8
+    shl r10, NATIVE_TASK_SHIFT
     lea r11,[rel scheduler_tasks]
     add r10,r11
     cmp r12,r10
@@ -4289,6 +4333,17 @@ scheduler_validate_shell_range64:
     xor eax,eax
     jmp .return
 .ordinary_range:
+%endif
+%ifdef REIST_NATIVE_WIDE
+    ; Startup-v1 is a1040-byte ordinary stack object. Reuse the existing
+    ; data-only bounded bulk admission, with identical ownership/PTE checks.
+    cmp rdx,140
+    jbe .wide_small
+    cmp rdx,2060
+    ja .wide_small
+    call reist_x64_user_access_bulk
+    jmp .return
+.wide_small:
 %endif
 %ifdef REIST_NATIVE_IPC_BINDING
     cmp rdx,2060
@@ -6229,7 +6284,7 @@ x86_64_scheduler_quantum_switch64:
     cmp eax, esi
     jne .invalid
     mov eax, dword [rel scheduler_current_slot]
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
@@ -6305,7 +6360,7 @@ x86_64_scheduler_quantum_validate64:
     cmp eax, TASK_COUNT
     jae .invalid
     mov edx, eax
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_RUNNING
@@ -6545,12 +6600,12 @@ reist_x64_mapping_pointer64:
 scheduler_map_task64:
     push rbp
     mov rbp, rsp
-    sub rsp, 192
+    sub rsp, NATIVE_PLAN_BYTES
     and rsp, -16
     cld
     mov rdi, rsp
     xor eax, eax
-    mov ecx, 24
+    mov ecx, NATIVE_PLAN_BYTES/8
     rep stosq
     mov eax, ebx
     shl eax, 5
@@ -6560,24 +6615,24 @@ scheduler_map_task64:
     mov ecx, TASK_TABLE_LEVELS
     rep movsq
     lea rsi, [r12 + TASK_PRIVATE_FRAMES]
-    lea rdi, [rsp + 104]
+    lea rdi, [rsp + NATIVE_PLAN_PRIVATE]
     mov ecx, USER_PAGE_COUNT
     rep movsq
     xor ecx, ecx
 .image:
     call x86_64_elf64_page_flags64
-    mov [rsp + 96 + rcx], al
+    mov [rsp + NATIVE_PLAN_FLAGS + rcx], al
     call x86_64_elf64_page_frame64
     mov [rsp + 32 + rcx*8], rax
     inc ecx
     cmp ecx, USER_PAGE_COUNT
     jb .image
     mov rax, [r12 + TASK_STACK_FRAME]
-    mov [rsp + 168], rax
+    mov [rsp + NATIVE_PLAN_STACK], rax
     mov rax, [rel pml4_table + 256*8]
-    mov [rsp + 176], rax
+    mov [rsp + NATIVE_PLAN_KERNEL], rax
     mov rax, [rel pml4_table + 511*8]
-    mov [rsp + 184], rax
+    mov [rsp + NATIVE_PLAN_KERNEL+8], rax
     mov rdi, rsp
     call reist_x64_address_space_build
     mov rsp, rbp
@@ -6605,7 +6660,7 @@ scheduler_build_task64:
 .slot_valid:
     mov ebx, edi
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_STATE], TASK_FREE
@@ -7079,7 +7134,7 @@ scheduler_verify_runqueue_magic64:
     cmp edi, TASK_SLOT_CAPACITY
     jae .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
 %ifdef REIST_NATIVE_RUNTIME
@@ -7105,7 +7160,7 @@ scheduler_verify_sleep_magic64:
     cmp edi, TASK_SLOT_CAPACITY
     jae .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
 %ifdef REIST_NATIVE_RUNTIME
@@ -7131,7 +7186,7 @@ scheduler_verify_dynamic_magic64:
     cmp edi, 1
     ja .fail
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
 %ifdef REIST_NATIVE_RUNTIME
@@ -7169,7 +7224,7 @@ scheduler_reap_terminal64:
 .slot_valid:
     mov r15b, cl
     mov eax, edi
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     cmp qword [r12 + TASK_GENERATION], rsi
@@ -7243,7 +7298,7 @@ scheduler_release_task_frames64:
     sub rdx, rax
     test rdx, TASK_RECORD_SIZE - 1
     jnz .fail
-    shr rdx, 3 ;256-byte task stride ->32-byte table-record stride
+    shr rdx, NATIVE_TASK_SHIFT-5 ;task stride ->32-byte table record
     lea rax, [rel scheduler_table_frames]
     add rdx, rax
     mov rax, cr3
@@ -7264,7 +7319,11 @@ scheduler_release_task_frames64:
     lea rdx, [rel scheduler_tasks]
     mov rax, r12
     sub rax, rdx
-    shl rax, 1 ;256-byte GPR stride ->512-byte FP stride
+    %if NATIVE_TASK_SHIFT < 9
+    shl rax, 9-NATIVE_TASK_SHIFT
+%else
+    shr rax, NATIVE_TASK_SHIFT-9
+%endif
     lea rdi, [rel scheduler_fp_states]
     add rdi, rax
     call x86_64_fp_clear64
@@ -7860,7 +7919,7 @@ scheduler_force_cleanup64:
     xor ebx, ebx
 .task_loop:
     mov eax, ebx
-    shl rax, 8
+    shl rax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
     add r12, rax
     call scheduler_release_task_frames64
@@ -7911,6 +7970,176 @@ scheduler_hex_nibble64:
 .digit:
     add al, '0'
     jmp serial_putc64
+
+%ifdef REIST_NATIVE_WIDE
+; BEGIN_PURE_NATIVE_MEMORY_ADAPTERS
+; Trusted full task record; return exact top or0. No effects or user dereference.
+native_stack_top64:
+    test rdi,rdi
+    jz .bad
+    test rdi,7
+    jnz .bad
+    mov rax,rdi
+    add rax,NATIVE_TASK_BYTES
+    jc .bad
+    mov r8,[rdi+24]
+    test r8,r8
+    jz .bad
+    test r8,4095
+    jnz .bad
+    MEMORY_COMPARE_LIMIT r8
+    jae .bad
+    cmp qword [rdi+32+8*8],0
+    jne .bad
+    xor r9d,r9d
+    mov ecx,9
+.extension:
+    mov rax,[rdi+32+rcx*8]
+    test rax,rax
+    jz .next
+    test rax,4095
+    jnz .bad
+    MEMORY_COMPARE_LIMIT rax
+    jae .bad
+    cmp rax,r8
+    je .bad
+    mov edx,9
+.unique:
+    cmp edx,ecx
+    jae .count
+    cmp rax,[rdi+32+rdx*8]
+    je .bad
+    inc edx
+    jmp .unique
+.count:
+    inc r9d
+.next:
+    inc ecx
+    cmp ecx,16
+    jb .extension
+    mov eax,0x409000
+    test r9d,r9d
+    jz .return
+    cmp r9d,7
+    jne .bad
+    cmp qword [rdi+32+7*8],0
+    jne .bad
+    mov eax,0x410000
+.return:
+    ret
+.bad:
+    xor eax,eax
+    ret
+
+; Old profile cores consume the unchanged prefix; this adapter first proves
+; disjointness against the ENTIRE enlarged task. ESI1=v1 binding,2=v2 binding.
+native_profile_ranges64:
+    cmp esi,1
+    je .sizes
+    cmp esi,2
+    jne .bad
+.sizes:
+    mov ecx,esi
+    shl ecx,4
+    lea edx,[rcx+16]
+    test rdi,rdi
+    jz .bad
+    test rdi,7
+    jnz .bad
+    mov r8,rdi
+    add r8,rdx
+    jc .bad
+    mov r9,[rdi]
+    mov r10,[rdi+8]
+    test r9,r9
+    jz .bad
+    test r10,r10
+    jz .bad
+    mov rax,r9
+    or rax,r10
+    test rax,7
+    jnz .bad
+    mov r11,r9
+    add r11,NATIVE_TASK_BYTES
+    jc .bad
+    add rcx,r10
+    jc .bad
+    cmp r9,r8
+    jae .task_ok
+    cmp r11,rdi
+    ja .bad
+.task_ok:
+    cmp r10,r8
+    jae .profile_ok
+    cmp rcx,rdi
+    ja .bad
+.profile_ok:
+    cmp r9,rcx
+    jae .ok
+    cmp r11,r10
+    ja .bad
+.ok:
+    mov eax,1
+    ret
+.bad:
+    xor eax,eax
+    ret
+; END_PURE_NATIVE_MEMORY_ADAPTERS
+
+; Preserve the caller's context/frame pointers and operation while querying.
+scheduler_stack_top64:
+    push rdi
+    push rcx
+    push rdx
+    push r8
+    push r9
+    push r10
+    push r11
+    mov rdi,r12
+    call native_stack_top64
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdx
+    pop rcx
+    pop rdi
+    ret
+scheduler_stack_page64:
+    sub rsp,8
+    call scheduler_stack_top64
+    add rsp,8
+    test rax,rax
+    jz scheduler_fail
+    mov rdi,[r12+TASK_STACK_FRAME]
+    cmp eax,0x410000
+    jne .direct
+    mov rdi,[r12+TASK_PRIVATE_FRAMES+15*8]
+.direct:
+    push rdx
+    mov rdx,DIRECT_MAP_BASE
+    add rdi,rdx
+    pop rdx
+    ret
+scheduler_profile_ranges64:
+    push rsi
+    push rdx
+    push rcx
+    push r8
+    push r9
+    push r10
+    push r11
+    mov esi,eax
+    call native_profile_ranges64
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    ret
+%endif
 
 %include "arch/x86_64/proc/process_run.inc"
 %ifdef REIST_NATIVE_LIFECYCLE
@@ -8042,7 +8271,7 @@ scheduler_identity_pool:
     resb 24
 alignb 8
 scheduler_frame_claim:
-    resb 120
+    resb NATIVE_CLAIM_BYTES
 scheduler_spawn_initial_free:
     resd 1
 scheduler_spawn_initial_generation:

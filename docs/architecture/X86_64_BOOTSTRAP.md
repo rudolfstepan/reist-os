@@ -2,6 +2,20 @@
 
 Stand: 13. September 2026
 
+R8.3aj ergänzt opt-in `-NativeWide` beziehungsweise `X86_64_NATIVE_WIDE=1`
+(setzt NativeImport, schließt PIO/Block aus): RNPGv2 mit64 Image-Slots,
+CREATE-v5 und32KiB privatem NX-Stack einschließlich unterer Guardpage.
+System-V-ELF64 bleibt ein Ring3-/Host-Adapter; keine Parser im Kernel.
+Bestehende RNPGv1-/CREATE1..4-Semantik und Quoten bleiben erhalten.
+Katalog und Importscratch liegen getrennt bei0xa00000..0xb47000, vollständig
+reserviert und ohne Direct-Map-Alias; die C-Brücke bleibt bei0x184000.
+Ein neues CREATE-v5 ersetzt nach dem Reaping auch die alten Staging-Bytes;
+R/NX-Daten und RX-Code sind im neuen Programmlinker getrennte PT_LOADs.
+Die MemoryCase-Fixtures0..6 sind keine normalen Shellbefehle oder Dienste.
+Kapazität, Gates und aktueller Abnahmestand:
+[Programm-/Stackvertrag](NATIVE_PROGRAM_MEMORY_CONTRACT.md),
+[Arbeitsstand](../development/CURRENT_WORK.md).
+
 R8.3ai ergänzt `-NativeBlock` beziehungsweise
 `X86_64_NATIVE_BLOCK=1` setzt NativePIO und bündelt Ring3-Block-RPC-v1 über
 bestehende IPC-v1/v2-Envelopes. PIO-Request-v2 trägt eine absolute Deadline;

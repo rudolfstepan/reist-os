@@ -155,6 +155,13 @@ extern _c_core_handoff_end
 extern _memory_state_start
 extern _memory_state_end
 %endif
+%ifdef REIST_NATIVE_WIDE
+%if !X86_64_NATIVE_RAM
+%error "wide boot areas require the native16MiB higher-half window"
+%endif
+extern _native_catalog_start, _native_catalog_end
+extern _native_scratch_start, _native_scratch_end
+%endif
 
 x86_64_bootstrap_start:
     cli
@@ -183,6 +190,14 @@ x86_64_bootstrap_start:
     mov ecx, C_HANDOFF_SIZE + C_CONTROL_SIZE
     rep stosb
     mov byte [c_control_active], 0
+
+%ifdef REIST_NATIVE_WIDE
+    ; Loader-independent zeroing includes the complete bounded page padding.
+    mov edi, _native_scratch_start
+    mov ecx, _native_scratch_end
+    sub ecx, edi
+    rep stosb
+%endif
 
     mov eax, dword [boot_magic_value]
     mov ebx, dword [boot_info_value]
@@ -283,6 +298,18 @@ x86_64_bootstrap_start:
 %if X86_64_NATIVE_RAM
     mov esi, _memory_state_start
     mov edi, _memory_state_end
+    mov ebx, PAGE_PRESENT_WRITE
+    mov ecx, PAGE_NX_HIGH
+    call map_high_pages32
+%endif
+%ifdef REIST_NATIVE_WIDE
+    mov esi, _native_catalog_start
+    mov edi, _native_catalog_end
+    mov ebx, PAGE_PRESENT
+    mov ecx, PAGE_NX_HIGH
+    call map_high_pages32
+    mov esi, _native_scratch_start
+    mov edi, _native_scratch_end
     mov ebx, PAGE_PRESENT_WRITE
     mov ecx, PAGE_NX_HIGH
     call map_high_pages32
@@ -636,6 +663,19 @@ x86_64_c_core_handoff64:
     cmp rax, rdx
     jne .fail
 
+%ifdef REIST_NATIVE_WIDE
+    mov esi, _native_catalog_start
+    mov edi, _native_catalog_end
+    mov edx, PAGE_PRESENT
+    mov ecx, PAGE_NX_HIGH
+    call verify_native_pages64
+    mov esi, _native_scratch_start
+    mov edi, _native_scratch_end
+    mov edx, PAGE_PRESENT_WRITE
+    mov ecx, PAGE_NX_HIGH
+    call verify_native_pages64
+%endif
+
     mov esi, _c_core_bridge_start
     mov edi, _c_core_bridge_end
     mov edx, PAGE_PRESENT
@@ -828,6 +868,29 @@ verify_c_pages64:
     cmp esi, r9d
     jb .next
     ret
+
+%ifdef REIST_NATIVE_WIDE
+; Separate full-width bound; never broaden the established C ABI envelope.
+verify_native_pages64:
+    cmp rsi, 0x00A00000
+    jb higher_half_state_error
+    cmp rdi, 0x00B47000
+    ja higher_half_state_error
+    cmp rsi, rdi
+    jae higher_half_state_error
+    mov rax, rsi
+    or rax, rdi
+    test eax, 4095
+    jnz higher_half_state_error
+    mov r9d, edi
+.next:
+    call verify_high_page64
+    add esi, 4096
+    cmp esi, r9d
+    jb .next
+    ret
+; END_NATIVE_PAGE_VERIFY
+%endif
 
 verify_high_page64:
     mov eax, esi

@@ -28,20 +28,26 @@ MEMORY_ARENA_BYTES=((MEMORY_STATE_BYTES+4095)&~4095)+(1+16+512)*4096
 HEAP_STATE_BYTES=397704
 HEAP_LAYOUT=(HIGH+0x653000,HEAP_STATE_BYTES,3,8,6)
 HEAP_ARENA_BYTES=7102464
+WIDE_LAYOUT={'.native_catalog':(0xa00000,1069056,2,1,4,1065344),
+             '.native_scratch':(0xb05000,270336,3,8,6,266336)}
+WIDE_END=0xb47000
 
 
 def require(ok,message):
     if not ok:raise ValueError(message)
 
 
-def read_bounded(path):
-    with Path(path).open('rb') as stream:data=stream.read(1048577)
-    require(64<=len(data)<=1048576,'ELF file capacity')
+def read_bounded(path,bits=64):
+    require(bits in (32,64),'ELF bit width')
+    capacity=2097152 if bits==32 else 1048576
+    with Path(path).open('rb') as stream:data=stream.read(capacity+1)
+    require(64<=len(data)<=capacity,'ELF file capacity')
     return data
 
 
 def elf(data,bits):
-    require(64<=len(data)<=1048576,'ELF file capacity')
+    require(bits in (32,64),'ELF bit width')
+    require(64<=len(data)<=(2097152 if bits==32 else 1048576),'ELF file capacity')
     require(data[:7]==b'\x7fELF'+bytes((2 if bits==64 else 1,1,1)),'ELF identification')
     require(data[7] in (0,3) and not any(data[8:16]),'ELF ABI/padding')
     fmt='<HHIQQQIHHHHHH' if bits==64 else '<HHIIIIIHHHHHH'
@@ -67,7 +73,9 @@ def elf(data,bits):
     for i,(name,typ,flags,addr,off,size,link,info,align,entsize) in enumerate(raw[1:],1):
         name=string(names,name)
         require(name and name not in sections,'ELF duplicate/empty section')
-        require(size<=(8*1024*1024 if name=='.memory_state' and typ==8 else 1048576) and (align==0 or align&(align-1)==0),'ELF section size/alignment')
+        capacity=(8*1024*1024 if name=='.memory_state' and typ==8 else
+                  1069056 if bits==32 and name=='.native_catalog' and typ==1 else 1048576)
+        require(size<=capacity and (align==0 or align&(align-1)==0),'ELF section size/alignment')
         require(addr+size<=1<<bits,'ELF section address overflow')
         content=b'' if typ==8 else span(off,size)
         if typ!=8 and size:occupied.append((off,off+size))
@@ -193,11 +201,16 @@ def verify_outer(inner,outer):
     native=p['layout_version']>=3
     arena_bytes=HEAP_ARENA_BYTES if p['layout_version']==4 else MEMORY_ARENA_BYTES
     if native:expected.add('.memory_state')
+    wide=bool(set(allocated)&set(WIDE_LAYOUT))
+    require(wide or len(outer)<=1048576,'outer legacy file capacity')
+    if wide:
+        require(native,'outer wide requires native memory')
+        expected.update(WIDE_LAYOUT)
     require(set(allocated)==expected,'outer allocated section set')
     require(o['entry']==o['symbols'].get('x86_64_bootstrap_start',{}).get('value') and
             allocated['.text']['address']<=o['entry']<allocated['.text']['address']+allocated['.text']['size'],'outer entry binding')
     segments=sorted(o['programs'],key=lambda p:p['address'])
-    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=(0xa00000 if native else 0x200000) for p in segments),'outer load range')
+    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=(WIDE_END if wide else 0xa00000 if native else 0x200000) for p in segments),'outer load range')
     if native:
         # lld merges equal-permission C data/BSS/arena into one PT_LOAD.
         # Permit that exact file prefix + zero-fill extent, not arbitrary
@@ -205,12 +218,15 @@ def verify_outer(inner,outer):
         require(all(p['address']+p['size']<=0x200000 or
                     (p['address'],p['size'],p['flags'],p['filesz'])==
                     (0x19d000,0x200000+arena_bytes-0x19d000,6,
-                     o['sections']['.c_core_data']['size']) for p in segments),
+                     o['sections']['.c_core_data']['size']) or
+                    (wide and (p['address'],p['size'],p['flags'],p['filesz']) in
+                     {(a,s,pf,s if t==1 else 0) for a,s,_,t,pf,_ in WIDE_LAYOUT.values()})
+                    for p in segments),
                 'outer exact appended memory segment')
     require(all(a['address']+a['size']<=b['address'] for a,b in zip(segments,segments[1:])),'outer load overlap')
     for name,s in allocated.items():
         require(s['size']>0 and s['type'] in (1,8) and s['flags'] in (2,3,6),'outer allocated section contract')
-        if name!='.memory_state':
+        if name!='.memory_state' and name not in WIDE_LAYOUT:
             require(s['address']+s['size']<=0x200000,'outer legacy section envelope')
         matches=[p for p in segments if p['address']<=s['address'] and s['address']+s['size']<=p['address']+p['size']]
         require(len(matches)==1,'outer section load binding')
@@ -224,6 +240,20 @@ def verify_outer(inner,outer):
         state=allocated['.memory_state']
         require((state['address'],state['size'],state['flags'],state['type'],state['align'])==
                 (0x200000,arena_bytes,3,8,4096),'outer native memory arena')
+    if wide:
+        for name,(addr,size,flags,typ,pflags,used) in WIDE_LAYOUT.items():
+            s=allocated[name]
+            require((s['address'],s['size'],s['flags'],s['type'],s['align'])==
+                    (addr,size,flags,typ,4096),'outer wide section layout')
+            loads=[segment for segment in segments if segment['address']==addr]
+            require(len(loads)==1 and s['offset']==loads[0]['offset'],'outer wide exact file offset')
+            if typ==1:require(not any(s['data'][used:]),'outer wide zero padding')
+            for suffix,value in (('_start',addr),('_payload_end',addr+used),('_end',addr+size)):
+                symbol=o['symbols'].get(name.replace('.','_')+suffix,{})
+                require(symbol.get('value')==value and symbol.get('index')==0xfff1 and
+                        symbol.get('binding')==1 and symbol.get('visibility')==0,'outer wide symbol extent')
+    end=WIDE_END if wide else 0x200000+arena_bytes if native else 0x1ff0c0
+    require(o['symbols'].get('_x86_64_bootstrap_end',{}).get('value')==end,'outer bootstrap reservation end')
     bridge=allocated['.c_core_bridge']
     require(bridge['address']==0x184000 and 0x200<bridge['size']<=4096 and bridge['flags']==6 and bridge['type']==1,'outer bridge layout')
     for name in LAYOUT:
@@ -269,7 +299,7 @@ def main():
     args=a.parse_args()
     try:
         data=read_bounded(args.elf)
-        if args.verify_outer:verify_outer(data,read_bounded(args.verify_outer))
+        if args.verify_outer:verify_outer(data,read_bounded(args.verify_outer,bits=32))
         else:publish(data,args.output_directory)
         print('X86_64_C_PAYLOAD_LAYOUT_OK version='+str(validate(data)['layout_version']));return 0
     except (OSError,ValueError,struct.error) as exc:

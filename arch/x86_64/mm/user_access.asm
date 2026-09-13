@@ -103,7 +103,7 @@ user_access_core:
     inc ebx
     cmp ebx,4
     jb .pointers
-    ; Resolve the existing single PT topology for [0x400000,0x409000).
+    ; Resolve the single PT topology: legacy36KiB or opt-in wide256KiB.
     mov r15d,7
     mov qword [rsp+56],0
     xor ebx,ebx
@@ -161,7 +161,11 @@ user_access_core:
     ja .invalid
     add rdx,rax
     jc .invalid
+%ifdef REIST_NATIVE_WIDE
+    cmp rdx,0x440000
+%else
     cmp rdx,0x409000
+%endif
     ja .invalid
     dec rdx
     sub rax,0x400000
@@ -197,6 +201,17 @@ user_access_core:
     inc ecx
     cmp ecx,4
     jb .leaf_alias
+%ifdef REIST_NATIVE_WIDE
+    cmp ebx,9
+    jb .base_stack
+    cmp ebx,15
+    ja .next_leaf
+    mov rdx,[r12]
+    cmp rax,[rdx+32+rbx*8]
+    jne .corrupt
+    jmp .next_leaf
+.base_stack:
+%endif
     cmp ebx,8
     jne .next_leaf
     mov rdx,[r12]

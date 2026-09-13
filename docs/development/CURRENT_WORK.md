@@ -2,7 +2,54 @@
 
 Stand: 13. September 2026
 
-## R8.3aj: Programm-/Stack-Kandidat mit freigegebener Bootlayout-Ergänzung
+## R8.3aj: begrenzter Programmspeicher und geschützter Mehrseitenstack umgesetzt
+
+Vertrag `60c65385` auf abgenommenem `a1f17276`:48 erlaubte Dateien,
+18 verpflichtende Gategruppen. NativeWide ergänzt RNPGv2/CREATE-v5 mit
+64 Image-Slots und privatem32KiB-NX-Stack samt unterer Guardpage. Dieselben
+Frame-, Mapping-, Kontext-, Identitäts- und Retirementmechanismen bleiben
+im Standardprofil bei ihren bisherigen Größen. Keine CPU-/IPC-Quotenänderung.
+
+Finale Belege unter `build/codex-agent/r83aj-memory/`:
+
+- `wide-runtime-11.log`:13 Fälle/104 Lebensläufe PASS,113.841s einschließlich
+  Variantenbuilds,77.007s reine Gastzeit; `guests/attempt-7a704ed714694f579a00f0c56f7e06fd`.
+ 4/8GiB, echte Frames oberhalb4GiB,12KiB realer C-Stack, Guard-/NX-/RX-Fault,
+  CPU-Ausfall, Schlaf/Cancel, neue unveränderliche Bytes nach Slotwiederverwendung,
+  sechs OOM-Punkte0/1/2/11/23/46 und exakte Framebilanz. Alle327 neuen Boot-
+  Seiten mit Rechten, Reservierung, fehlendem Direct-Alias und Scratch-Nullung.
+- `import-runtime-01.log`:alle acht bisherigen Importfälle PASS/58.827s,
+  `import-guests/attempt-a181aafcbb2449a18b5cef2d4b5489ec`.
+  Normaler Bootstrap PASS/.473s; unveränderte originale i386-Pins PASS/1.109s.
+- Tatsächliche C-/ASM-Hostmechanismen O0/O2:6 Tests/24.293s, alle64 Positionen,
+  C-/Python-Bytevergleich, vollständige Claim-/Release-, Mapping-, Pointer-,
+  Kontext-/Identitäts- und Nichtmutationsnachweise. Bootblattprüfer O0/O2
+  sowie tatsächliche Linker-/ELF-Negativfälle bestehen. Negative Gastoracles
+  verlangen den genauen Page-Fault einschließlich RX-Ziel0x410000.
+- Normal-, NativeImport- und NativeWide-Builds bestehen.26 Standardobjekte
+  sind bytegleich zu AI; beim Scheduler sind alle belegten Sektionsbytes und
+  Instruktionen/Relokationen identisch, lediglich ein lokales Label ist neu.
+  `default-object-review-01.log` dokumentiert diesen Vergleich.
+
+Alle fehlgeschlagenen Versuche bleiben erhalten. Korrigiert wurden unter
+anderem Bootplatzierung/ELF-Zulassung, alte Diagnose-Arraystrides, Zulassung
+mehrseitiger Startupdaten und das Laden frischer CREATE-v5-Abbilder. Die
+Ring3-Fixture synchronisiert Elternmutation und Kindprüfung jetzt durch eine
+begrenzte IPC-Freigabe; keine Annahme über Schedulerreihenfolge. Der erste
+Schreibschutzgast traf R/NX-Daten statt RX-Code; die finale Matrix prüft RX.
+Der nach fehlgeschlagenem Build09 versehentlich gestartete Runtime09 ist
+ungültige Diagnose, keine Abnahme. Unbetroffene Nachweise wurden beibehalten;
+nach Änderungen wurden jeweils die betroffenen Gates erneuert.
+
+Die exakten18 Kommandos, Loghashes und der Reviewabschluss werden in
+`accepted-gates.json` festgehalten. Keine ABI-Umnummerierung, ungeprüfte
+Publikation, Kernel-C-/gemeinsame IPC-Änderung, Ring0-Datei-/Geräteparser
+oder Originalmedienänderung. Anschließend folgt nach sauberem lokalem Commit
+die nächste zusammenhängende native Dienstintegration. Dateisystem-/Dateiladen,
+normales Userland und System-/Hardwareabnahme sind weiterhin offen;
+R3.6b bleibt ausdrücklich zurückgestellt. Keine fertige64-Bit-OS-Behauptung.
+
+## R8.3aj: historischer Kandidat vor Abschluss der Bootlayout-Ergänzung
 
 Vertrag `822e8f1b` auf abgenommenem `a1f17276`, jetzt ausdrücklich um die
 Bootspeicher-Abhängigkeit ergänzt:48 erlaubte Dateien/18 Gategruppen.

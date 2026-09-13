@@ -1,3 +1,4 @@
+%include "arch/x86_64/mm/native_layout.inc"
 ; Native private64-byte C request. No user pointer or C stack survives a step.
 ; EDI operation, ESI slot, R8/R9 copied arguments. Preserve input registers.
 process_heap_service64:
@@ -19,7 +20,7 @@ process_heap_service64:
     mov [rsp],rax
     mov eax,esi
     mov [rsp+8],rax
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r10,[rel scheduler_tasks]
     add r10,rax
     mov rax,[r10+TASK_GENERATION]
@@ -161,7 +162,7 @@ process_heap_reapers64:
     btr dword [rel process_heap_retire_mask],ebx
     mov [rel scheduler_current_slot],ebx
     mov eax,ebx
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12,[rel scheduler_tasks]
     add r12,rax
     mov eax,ebx

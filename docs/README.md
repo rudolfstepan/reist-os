@@ -15,7 +15,8 @@ Nativer Prozessbesitz: [Task-Family-Vertrag](architecture/NATIVE_TASK_FAMILY_CON
 Nativer Start und IPC: [Startup-Handoff-Vertrag](architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md).
 Nativer Abbildimport: [Ring3-ELF-Vertrag](architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md).
 Native PIO-Domäne: [Treiber- und Fencingvertrag](architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
-Nativer Blockdienst (Kandidat, noch nicht abgenommen): [Block-RPC-Vertrag](architecture/NATIVE_BLOCK_SERVICE_CONTRACT.md).
+Nativer Blockdienst: [Block-RPC-Vertrag](architecture/NATIVE_BLOCK_SERVICE_CONTRACT.md).
+Native Programm-/Stackkapazität: [Speichervertrag](architecture/NATIVE_PROGRAM_MEMORY_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

@@ -1,3 +1,4 @@
+%include "arch/x86_64/mm/native_layout.inc"
 ; Pure SysV admission over a pinned64-byte snapshot. No output or authority.
 global family_request_admit64
 family_request_admit64:
@@ -8,6 +9,10 @@ family_request_admit64:
     cmp dword [rdi],3
     je .startup
     cmp dword [rdi],4
+%ifdef REIST_NATIVE_WIDE
+    je .startup
+    cmp dword [rdi],5
+%endif
     jne .invalid
 .startup:
     cmp dword [rdi+8],1
@@ -74,7 +79,11 @@ family_request_admit64:
     ja .invalid
     mov rax,[rdi+40]
     cmp dword [rdi],4
+%ifdef REIST_NATIVE_WIDE
+    jb .mask
+%else
     jne .mask
+%endif
     test rax,rax
     jz .invalid
     jmp .ok
@@ -202,9 +211,23 @@ family_startup_admit64:
 ; Only the private vector tail is adapted; reuse the existing stack builder.
 global family_startup_build64
 family_startup_build64:
+%ifdef REIST_NATIVE_WIDE
+    mov edx,0x409000
+family_startup_build_at64:
+    cmp rdx,0x409000
+    je .top_valid
+    cmp rdx,0x410000
+    je .top_valid
+    xor eax,eax
+    ret
+.top_valid:
+%endif
     push rbx
     push rbp
     sub rsp,72
+%ifdef REIST_NATIVE_WIDE
+    mov [rsp+56],rdx
+%endif
     mov rbx,rdi
     mov rbp,rsi
     call family_startup_admit64
@@ -222,7 +245,12 @@ family_startup_build64:
     mov [rsp],rbx
     mov [rsp+8],rbp
     mov qword [rsp+16],0x1000
+%ifdef REIST_NATIVE_WIDE
+    mov rax,[rsp+56]
+    mov [rsp+24],rax
+%else
     mov qword [rsp+24],0x409000
+%endif
     mov eax,[rbx+8]
     mov [rsp+40],rax
     test eax,eax
@@ -271,7 +299,7 @@ family_profile_apply64:
     mov r9d,eax
     mov [rsp+48],eax
     mov eax,edi
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r10,[rel scheduler_tasks]
     add r10,rax
     mov [rsp],r10
@@ -311,6 +339,13 @@ family_profile_apply64:
     setb al
     shl eax,4
     mov [rsp+40],rax
+%ifdef REIST_NATIVE_WIDE
+    mov rdi,rsp
+    mov eax,2
+    call scheduler_profile_ranges64
+    test eax,eax
+    jz .invalid_binding
+%endif
     mov rdx,r8
     mov esi,r9d
     mov rdi,rsp
@@ -379,7 +414,7 @@ family_validate_runtime64:
     mov edi,ebx
     call family_record64
     mov eax,ebx
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12,[rel scheduler_tasks]
     add r12,rax
     mov eax,ebx
@@ -541,6 +576,18 @@ family_validate_runtime64:
 ; Pointer/unused-register admission before copying the complete request once.
 ; RAX complete image source. Preserve the existing <=2060-byte access ABI;
 ; preflight every fixed chunk before any byte copy or authority publication.
+family_import_range_v2_64:
+%ifdef REIST_NATIVE_WIDE
+    push r8
+    push r9
+    push rdx
+    push rcx
+    mov r8,rax
+    add rax,NATIVE_PREPARED_V2_BYTES-1
+    jc family_import_range64.invalid
+    mov r9d,NATIVE_PREPARED_V2_BYTES
+    jmp family_import_range64.chunk
+%endif
 family_import_range64:
     push r8
     push r9
@@ -595,7 +642,11 @@ family_syscall64:
     cmp rax,1
     jne family_result64
     cmp dword [rel family_request],4
+%ifdef REIST_NATIVE_WIDE
+    jb .profile_ready
+%else
     jne .profile_ready
+%endif
     mov rax,[rel family_request+40]
     mov edx,40
     mov ecx,PF_R
@@ -632,21 +683,49 @@ family_syscall64:
     cmp dword [rel family_request],3
     jb .admitted
     mov rax,[rel family_request+24]
+%ifdef REIST_NATIVE_WIDE
+    cmp dword [rel family_request],5
+    jne .range_v1
+    call family_import_range_v2_64
+    jmp .range_ready
+.range_v1:
+%endif
     call family_import_range64
+%ifdef REIST_NATIVE_WIDE
+.range_ready:
+%endif
     test eax,eax
     jz .pointer
     mov rsi,[rel family_request+24]
     lea rdi,[rel elf_import_record]
     mov ecx,4612
+%ifdef REIST_NATIVE_WIDE
+    cmp dword [rel family_request],5
+    jne .copy_ready
+    mov ecx,NATIVE_PREPARED_V2_BYTES/8
+.copy_ready:
+%endif
     rep movsq
     lea rdi,[rel elf_import_record]
     mov esi,36896
+%ifdef REIST_NATIVE_WIDE
+    cmp dword [rel family_request],5
+    jne .admit_ready
+    mov esi,NATIVE_PREPARED_V2_BYTES
+.admit_ready:
+%endif
     call boot_program_admit64
     cmp eax,1
     jne .invalid_image
     ; Imported records have a canonical empty catalog argument tail. Actual
     ; arguments come exclusively from the independently admitted startup-v1.
     lea rdi,[rel elf_import_record+32800]
+%ifdef REIST_NATIVE_WIDE
+    cmp dword [rel family_request],5
+    jne .tail_ready
+    lea rdi,[rel elf_import_record+262240]
+.tail_ready:
+%endif
     xor eax,eax
     mov ecx,512
     repe scasq
@@ -708,7 +787,7 @@ family_result64:
     mov ecx,512
     rep stosq
     lea rdi,[rel elf_import_record]
-    mov ecx,4612
+    mov ecx,NATIVE_IMPORT_BYTES/8
     rep stosq
     pop rax
 .scrubbed:
@@ -751,7 +830,11 @@ family_create64:
     jmp family_result64
 .attenuated:
     cmp dword [rel family_request],4
+%ifdef REIST_NATIVE_WIDE
+    jb .full_attenuated
+%else
     jne .full_attenuated
+%endif
     mov eax,[rel scheduler_current_slot]
     shl eax,5
     lea rsi,[rel family_profiles]
@@ -776,6 +859,18 @@ family_create64:
     call x86_64_elf64_select_image64
     cmp eax,1
     jne scheduler_fail
+%ifdef REIST_NATIVE_WIDE
+    cmp dword [rel family_request],5
+    jne .cached_entry
+    ; The free dynamic slot is this staging image's sole consumer. A new
+    ; CREATE-v5 must execute its new admitted snapshot, never cached bytes.
+    call x86_64_elf64_release64
+    cmp eax,1
+    jne scheduler_fail
+    call physical_free_frame_count64
+    mov [rel family_initial_free],eax
+.cached_entry:
+%endif
     call x86_64_elf64_entry64
     test rax,rax
     jnz .loaded
@@ -799,13 +894,22 @@ family_create64:
     call scheduler_abort_frame_claim64
     cmp eax,1
     jne scheduler_fail
+%ifdef REIST_NATIVE_WIDE
+    call scheduler_stack_page64
+    mov rdx,rax
+%else
     mov rdi,DIRECT_MAP_BASE
     add rdi,[r12+TASK_STACK_FRAME]
+%endif
     cmp dword [rel family_request],1
     je .catalog_stack
     mov rsi,rdi
     lea rdi,[rel family_startup]
+%ifdef REIST_NATIVE_WIDE
+    call family_startup_build_at64
+%else
     call family_startup_build64
+%endif
     jmp .stack_ready
 .catalog_stack:
     call x86_64_boot_program_stack64
@@ -898,7 +1002,7 @@ family_create64:
     mov rax,-12
 .parent_result:
     mov ecx,[rel scheduler_current_slot]
-    shl ecx,8
+    shl ecx, NATIVE_TASK_SHIFT
     lea r12,[rel scheduler_tasks]
     add r12,rcx
     jmp family_result64
@@ -1090,7 +1194,7 @@ family_dispatch64:
     cmp eax,1
     jne scheduler_fail
     mov eax,edi
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12,[rel scheduler_tasks]
     add r12,rax
     mov rax,[r15+32]
@@ -1120,7 +1224,7 @@ family_cancel_one64:
     push r13
     mov ebx,edi
     mov eax,edi
-    shl eax,8
+    shl eax, NATIVE_TASK_SHIFT
     lea r12,[rel scheduler_tasks]
     add r12,rax
     mov rsi,[r12+TASK_GENERATION]

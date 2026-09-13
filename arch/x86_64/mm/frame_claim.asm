@@ -1,7 +1,7 @@
 bits 64
 %include "arch/x86_64/mm/memory_profile.inc"
-; Private SysV AMD64 transaction, trusted aligned120-byte kernel record.
-; No user pointers, heap, waits or new authority. All loops <=13 (pair checks <=169).
+; Private SysV AMD64 transaction, trusted aligned layout-derived kernel record.
+; No user pointers/heap/waits/new authority. At most69 frames (default13).
 ; Allocator/free are the production physical-frame mechanism, replaceable only
 ; at link time by host-test backends. ENOMEM requires complete rollback.
 global reist_x64_frame_claim_begin
@@ -9,9 +9,9 @@ global reist_x64_frame_claim_take
 global reist_x64_frame_claim_abort
 extern physical_frame_alloc64
 extern physical_frame_free64
-COUNT equ 104
-CURSOR equ 112
-CAPACITY equ 13
+COUNT equ NATIVE_CLAIM_FRAMES*8
+CURSOR equ COUNT+8
+CAPACITY equ NATIVE_CLAIM_FRAMES
 LIMIT equ 0x08000000
 
 section .text
@@ -38,7 +38,7 @@ claim_dispatch:
     test r12, 7
     jnz .bad
     mov rax, r12
-    add rax, 119
+    add rax, NATIVE_CLAIM_BYTES-1
     jc .bad
     cmp qword [r12 + COUNT], CAPACITY
     ja .bad

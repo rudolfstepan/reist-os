@@ -33,7 +33,7 @@ MAX_PROGRAM_HEADERS equ 4
 MAX_LOAD_SEGMENTS   equ 2
 USER_BASE           equ 0x00400000
 USER_END            equ 0x00408000
-USER_PAGE_COUNT     equ 8
+USER_PAGE_COUNT     equ NATIVE_IMAGE_PAGES
 PAGE_SIZE           equ 4096
 DIRECT_MAP_BASE     equ 0xFFFF800000000000
 ELF_IMAGE_PROBE     equ 0
@@ -50,7 +50,7 @@ extern reist_x64_startup_stack
 %else
 ELF_STORAGE_COUNT equ ELF_CONTEXT_COUNT
 %endif
-ELF_CONTEXT_SIZE    equ 88
+ELF_CONTEXT_SIZE    equ NATIVE_IMAGE_RECORD
 
 EH_TYPE             equ 16
 EH_MACHINE          equ 18
@@ -129,7 +129,7 @@ elf64_context_selftest64:
     cmp eax, 1
     jne .fail
     movzx eax, byte [rel elf_context_selftest_image]
-    shl eax, 6
+    shl eax, NATIVE_IMAGE_VECTOR_SHIFT
     lea rdi, [rel elf_context_selftest_frames]
     add rdi, rax
     lea rsi, [rel elf_page_frames]
@@ -192,7 +192,7 @@ elf64_context_selftest64:
     cmp byte [rel elf_load_active], 1
     jne .fail
     movzx eax, byte [rel elf_context_selftest_image]
-    shl eax, 6
+    shl eax, NATIVE_IMAGE_VECTOR_SHIFT
     lea rdi, [rel elf_context_selftest_frames]
     add rdi, rax
     lea rsi, [rel elf_page_frames]
@@ -221,7 +221,7 @@ elf64_context_selftest64:
     bt eax, ecx
     jc .count_next
     mov eax, ecx
-    shl eax, 6
+    shl eax, NATIVE_IMAGE_VECTOR_SHIFT
     lea rdx, [rel elf_context_selftest_frames]
     add rdx, rax
     xor edi, edi
@@ -649,7 +649,7 @@ x86_64_elf64_release_all64:
     ; Loader-owned immutable staging, never an extra task/authority record.
     lea rdi,[rel elf_import_record]
     xor eax,eax
-    mov ecx,4612
+    mov ecx,NATIVE_IMPORT_BYTES/8
     rep stosq
 %endif
     push rbx
@@ -774,7 +774,7 @@ x86_64_elf64_address_flags64:
     jne .invalid
     cmp rax, USER_BASE
     jb .invalid
-    cmp rax, USER_END
+    cmp rax, USER_BASE+USER_PAGE_COUNT*PAGE_SIZE
     jae .invalid
     sub rax, USER_BASE
     shr rax, 12
@@ -840,13 +840,22 @@ user_child_elf_start:
 user_child_elf_end:
 
 %ifdef REIST_NATIVE_PROGRAMS
+%ifdef REIST_NATIVE_WIDE
+section .native_catalog progbits alloc noexec nowrite align=4096
+%endif
 align 16
 boot_program_catalog:
     incbin BOOT_PROGRAM_CATALOG_PATH
 boot_program_catalog_end:
-    %if boot_program_catalog_end-boot_program_catalog != 4*36896
+%ifdef REIST_NATIVE_WIDE
+global native_catalog_used
+native_catalog_used equ boot_program_catalog_end-boot_program_catalog
+align 4096, db 0
+%endif
+    %if boot_program_catalog_end-boot_program_catalog != 4*NATIVE_IMPORT_BYTES
         %error "boot program catalog must contain four exact records"
     %endif
+section .rodata
 %endif
 
 elf64_load_ok_message db "REIST_X86_64_ELF64_LOAD_OK", 13, 10, 0
@@ -897,7 +906,15 @@ elf_context_store:
     resb (ELF_STORAGE_COUNT-ELF_CONTEXT_COUNT) * ELF_CONTEXT_SIZE
 %endif
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_WIDE
+section .native_scratch nobits alloc noexec write align=4096
+%endif
 alignb 16
 global elf_import_record
-elf_import_record: resb 36896
+elf_import_record: resb NATIVE_IMPORT_BYTES
+%ifdef REIST_NATIVE_WIDE
+global native_scratch_used
+native_scratch_used equ $-elf_import_record
+alignb 4096
+%endif
 %endif

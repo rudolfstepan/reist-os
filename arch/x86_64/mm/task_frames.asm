@@ -1,6 +1,6 @@
 bits 64
 %include "arch/x86_64/mm/memory_profile.inc"
-; Private32-byte binding. At most4 record regions and13 physical frame records.
+; Private32-byte binding. Four record regions, at most69 frames (default13).
 ; Validate before all effects; caller fences execution and owns pinned storage.
 global reist_x64_task_frames_release
 extern physical_frame_free64
@@ -16,7 +16,7 @@ reist_x64_task_frames_release:
     push r13
     push r14
     push r15
-    sub rsp, 120 ;13 cached record pointers and SysV call alignment
+    sub rsp, NATIVE_CLAIM_FRAMES*8+16 ; bounded record cache and SysV call alignment
     mov r12, rdi
     test r12, r12
     jz .bad
@@ -68,18 +68,18 @@ reist_x64_task_frames_release:
     lea rdx, [rax + rcx*8]
     mov [rsp + rcx*8], rdx
     inc ecx
-    cmp ecx, 8
+    cmp ecx, NATIVE_IMAGE_PAGES
     jb .data_pointers
     mov rax, [r12 + 8]
-    mov [rsp + 64], rax
+    mov [rsp + NATIVE_IMAGE_PAGES*8], rax
     mov rax, [r12 + 16]
     lea rdx, [rax + 24]
-    mov [rsp + 72], rdx ;PT
+    mov [rsp + (NATIVE_IMAGE_PAGES+1)*8], rdx ;PT
     lea rdx, [rax + 16]
-    mov [rsp + 80], rdx ;PD
+    mov [rsp + (NATIVE_IMAGE_PAGES+2)*8], rdx ;PD
     lea rdx, [rax + 8]
-    mov [rsp + 88], rdx ;PDPT
-    mov [rsp + 96], rax ;PML4 last
+    mov [rsp + (NATIVE_IMAGE_PAGES+3)*8], rdx ;PDPT
+    mov [rsp + (NATIVE_IMAGE_PAGES+4)*8], rax ;PML4 last
     mov rdx, [r12 + 24]
     mov rdx, [rdx]
     test rdx, rdx
@@ -111,7 +111,7 @@ reist_x64_task_frames_release:
     inc r14d
 .next_physical:
     inc ebx
-    cmp ebx, 13
+    cmp ebx, NATIVE_CLAIM_FRAMES
     jb .physical
     call physical_free_frame_count64
     cmp eax, MEMORY_FRAME_CAPACITY
@@ -137,7 +137,7 @@ reist_x64_task_frames_release:
     inc r14d
 .next_release:
     inc ebx
-    cmp ebx, 13
+    cmp ebx, NATIVE_CLAIM_FRAMES
     jb .release
     mov rax, [r12 + 24]
     mov qword [rax], 0
@@ -156,7 +156,7 @@ reist_x64_task_frames_release:
 .bad:
     xor eax, eax
 .return:
-    add rsp, 120
+    add rsp, NATIVE_CLAIM_FRAMES*8+16
     pop r15
     pop r14
     pop r13
@@ -168,7 +168,7 @@ reist_x64_task_frames_release:
     mov eax, 8
     test ecx, ecx
     jnz .not_data
-    mov eax, 64
+    mov eax, NATIVE_IMAGE_PAGES*8
 .not_data:
     cmp ecx, 2
     jne .size_done

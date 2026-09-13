@@ -1,5 +1,6 @@
 ; Private serialized SysV AMD64 context validate/capture. No user dereference.
 BITS 64
+%include "arch/x86_64/mm/native_layout.inc"
 section .text
 global reist_x64_context_apply
 reist_x64_context_apply:
@@ -92,7 +93,7 @@ reist_x64_context_apply:
     ; Only context fields are published. Identity/resources/accounting unchanged.
 %macro CAPTURE 2
     mov rax, [rsi + %1]
-    mov [r8 + %2], rax
+    mov [r8 + %2+NATIVE_REG_DELTA], rax
 %endmacro
     CAPTURE 0, 208
     CAPTURE 8, 200
@@ -114,7 +115,7 @@ reist_x64_context_apply:
     CAPTURE 160, 104
     cmp qword [rdi + 40], 0
     jne .success
-    mov qword [r8 + 232], 0
+    mov qword [r8 + 232+NATIVE_REG_DELTA], 0
 .success:
     mov eax, 1
     ret

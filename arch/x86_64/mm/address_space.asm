@@ -1,9 +1,9 @@
 bits 64
 %include "arch/x86_64/mm/memory_profile.inc"
-; Private192-byte physical plan; no global ELF selector, task roles or allocator.
+; Private layout-derived physical plan; no ELF selector, task roles or allocator.
 ; All ownership is held by the caller. Validate everything before writing pages.
-; Loops: <=21 records/pairs, <=21 pointer pairs, <=13*512 zero-check qwords,
-; <=8*512 copy qwords. Caller serializes this bounded operation with IF=0.
+; At most133 frame records,69 zero pages and64 copy pages with NativeWide;
+; default21 records/13 zero/8 copy pages. Caller serializes with IF=0.
 global reist_x64_address_space_build
 extern reist_x64_mapping_pointer64
 LIMIT equ 0x08000000
@@ -19,20 +19,27 @@ reist_x64_address_space_build:
     push r13
     push r14
     push r15
-    sub rsp, 184 ;21 cached page pointers, SysV call alignment
+    sub rsp, NATIVE_PLAN_FRAMES*8+16 ; bounded pointer cache, SysV call alignment
     mov r12, rdi
     test r12, r12
     jz .bad
     test r12, 7
     jnz .bad
     mov rax, r12
-    add rax, 192
+    add rax, NATIVE_PLAN_BYTES
     jc .bad
     xor ecx, ecx
 .flags:
-    movzx eax, byte [r12 + 96 + rcx]
+    movzx eax, byte [r12 + NATIVE_PLAN_FLAGS + rcx]
     mov rdx, [r12 + 32 + rcx*8]
-    mov r8, [r12 + 104 + rcx*8]
+    mov r8, [r12 + NATIVE_PLAN_PRIVATE + rcx*8]
+%ifdef REIST_NATIVE_WIDE
+    cmp ecx,8
+    jne .not_stack_slot
+    test eax,eax
+    jnz .bad
+.not_stack_slot:
+%endif
     test eax, eax
     jz .absent
     cmp eax, 4
@@ -55,11 +62,11 @@ reist_x64_address_space_build:
     jnz .bad
 .next_flags:
     inc ecx
-    cmp ecx, 8
+    cmp ecx, NATIVE_IMAGE_PAGES
     jb .flags
     xor ecx, ecx
 .kernel:
-    mov rax, [r12 + 176 + rcx*8]
+    mov rax, [r12 + NATIVE_PLAN_KERNEL + rcx*8]
     ; Preserve the existing NX direct map and executable higher-half template.
     test ecx, ecx
     jnz .kernel_text
@@ -85,16 +92,16 @@ reist_x64_address_space_build:
     xor ebx, ebx
 .frames:
     lea rax, [r12 + rbx*8]
-    cmp ebx, 12
+    cmp ebx, 4+NATIVE_IMAGE_PAGES
     jb .frame_address
-    add rax, 8 ;skip the8 flag bytes
+    add rax, NATIVE_IMAGE_PAGES ; skip the layout's flag bytes
 .frame_address:
     mov rdi, [rax]
     test rdi, rdi
     jnz .nonzero
     cmp ebx, 4
     jb .bad
-    cmp ebx, 20
+    cmp ebx, NATIVE_PLAN_FRAMES-1
     je .bad
     jmp .next_frame
 .nonzero:
@@ -104,7 +111,7 @@ reist_x64_address_space_build:
     jae .bad
     xor ecx, ecx
 .not_kernel_frame:
-    mov rax, [r12 + 176 + rcx*8]
+    mov rax, [r12 + NATIVE_PLAN_KERNEL + rcx*8]
     MEMORY_MASK_FRAME rax
     cmp rdi, rax
     je .bad
@@ -116,9 +123,9 @@ reist_x64_address_space_build:
     cmp ecx, ebx
     jae .next_frame
     lea rax, [r12 + rcx*8]
-    cmp ecx, 12
+    cmp ecx, 4+NATIVE_IMAGE_PAGES
     jb .compare_frame
-    add rax, 8
+    add rax, NATIVE_IMAGE_PAGES
 .compare_frame:
     cmp rdi, [rax]
     je .bad
@@ -126,14 +133,14 @@ reist_x64_address_space_build:
     jmp .unique_frame
 .next_frame:
     inc ebx
-    cmp ebx, 21
+    cmp ebx, NATIVE_PLAN_FRAMES
     jb .frames
     xor ebx, ebx
 .pointers:
     lea rax, [r12 + rbx*8]
-    cmp ebx, 12
+    cmp ebx, 4+NATIVE_IMAGE_PAGES
     jb .pointer_address
-    add rax, 8
+    add rax, NATIVE_IMAGE_PAGES
 .pointer_address:
     mov rdi, [rax]
     test rdi, rdi
@@ -149,7 +156,7 @@ reist_x64_address_space_build:
     ; Do not allow even a trusted malformed backend to alias the plan.
     cmp rdx, r12
     jbe .unique_pointer_start
-    lea rcx, [r12 + 192]
+    lea rcx, [r12 + NATIVE_PLAN_BYTES]
     cmp rax, rcx
     jb .bad
 .unique_pointer_start:
@@ -166,15 +173,15 @@ reist_x64_address_space_build:
 .store_pointer:
     mov [rsp + rbx*8], rax
     inc ebx
-    cmp ebx, 21
+    cmp ebx, NATIVE_PLAN_FRAMES
     jb .pointers
     cld
     xor ebx, ebx
 .zero_destinations:
-    ; Source slots4..11 are immutable. Tables, private data and stack must be0.
+    ; Source slots follow the four tables. All writable destinations must be0.
     cmp ebx, 4
     jb .check_zero
-    cmp ebx, 12
+    cmp ebx, 4+NATIVE_IMAGE_PAGES
     jb .next_zero
 .check_zero:
     mov rdi, [rsp + rbx*8]
@@ -186,7 +193,7 @@ reist_x64_address_space_build:
     jne .bad
 .next_zero:
     inc ebx
-    cmp ebx, 21
+    cmp ebx, NATIVE_PLAN_FRAMES
     jb .zero_destinations
 .validated:
     ; No fallible operation remains after this point; all pointers are cached.
@@ -194,9 +201,9 @@ reist_x64_address_space_build:
     mov rax, [r12 + 8]
     or rax, 7
     mov [r13], rax
-    mov rax, [r12 + 176]
+    mov rax, [r12 + NATIVE_PLAN_KERNEL]
     mov [r13 + 256*8], rax
-    mov rax, [r12 + 184]
+    mov rax, [r12 + NATIVE_PLAN_KERNEL+8]
     mov [r13 + 511*8], rax
     mov r13, [rsp + 8]
     mov rax, [r12 + 16]
@@ -209,17 +216,17 @@ reist_x64_address_space_build:
     mov r13, [rsp + 24]
     xor ebx, ebx
 .map_pages:
-    movzx r14d, byte [r12 + 96 + rbx]
+    movzx r14d, byte [r12 + NATIVE_PLAN_FLAGS + rbx]
     test r14d, r14d
     jz .next_page
     mov r15, [r12 + 32 + rbx*8]
     cmp r14d, 6
     jne .shared
     mov rsi, [rsp + 32 + rbx*8]
-    mov rdi, [rsp + 96 + rbx*8]
+    mov rdi, [rsp + 32+NATIVE_IMAGE_PAGES*8 + rbx*8]
     mov ecx, 512
     rep movsq
-    mov r15, [r12 + 104 + rbx*8]
+    mov r15, [r12 + NATIVE_PLAN_PRIVATE + rbx*8]
     or r15, 2
 .shared:
     or r15, 5
@@ -231,9 +238,9 @@ reist_x64_address_space_build:
     mov [r13 + rbx*8], r15
 .next_page:
     inc ebx
-    cmp ebx, 8
+    cmp ebx, NATIVE_IMAGE_PAGES
     jb .map_pages
-    mov rax, [r12 + 168]
+    mov rax, [r12 + NATIVE_PLAN_STACK]
     or rax, 7
     mov rdx, NX
     or rax, rdx
@@ -243,7 +250,7 @@ reist_x64_address_space_build:
 .bad:
     xor eax, eax
 .return:
-    add rsp, 184
+    add rsp, NATIVE_PLAN_FRAMES*8+16
     pop r15
     pop r14
     pop r13

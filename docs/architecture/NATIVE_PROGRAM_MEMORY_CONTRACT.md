@@ -3,10 +3,12 @@
 Frozen after accepted `a1f17276`, 13 September2026, with explicit renewed user
 approval of the program/stack boundary, subsequently extended by renewed user
 approval to the boot-memory dependency. Eighteen mandatory queue gate groups.
-This is a contract, not implementation acceptance or a complete native OS.
+This contract does not imply a complete native OS.
 
-Status: attributed candidate resumes under the explicit boot-memory amendment
-below; its first whole-image link failure remains evidence, not acceptance.
+Implementation on freeze60c65385 passes the13-case wide matrix, eight old
+import cases and normal bootstrap; exact18-group acceptance evidence is
+recorded under build/codex-agent/r83aj-memory/accepted-gates.json. Historical
+failed builds/guests remain preserved; see CURRENT_WORK.md for the final review.
 
 ## Inventory and standard reference
 
@@ -48,6 +50,12 @@ bind all stack pages to their owner. Absent/guard pages grant no authority.
 Prepared bytes are snapshotted before publication, independently admitted in
 Ring0, and scrubbed on all exits. Immutable import ownership remains7/8 for
 dynamic slots2/3; old catalogs3..6 stay independent.
+
+CREATE-v5 releases a free dynamic slot's sole-consumer staging image before
+loading its new admitted snapshot; replacement cannot execute cached bytes.
+The Ring3 proof uses the existing bounded IPC transport to admit child checks
+only after the parent has overwritten its source. No scheduling-order or
+extra quota assumption replaces immutable ownership.
 
 The opt-in private kernel layout expands fixed image/frame arrays to64,
 task records to1024 bytes and claims to69 frames. Shared mechanisms retain

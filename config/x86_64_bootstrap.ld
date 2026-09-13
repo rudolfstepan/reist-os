@@ -83,7 +83,32 @@ SECTIONS
   }
   _memory_state_start = 0x00200000;
   _memory_state_end = 0x00200000 + SIZEOF(.memory_state);
-  _x86_64_bootstrap_end = SIZEOF(.memory_state) ? _memory_state_end : _x86_64_bootstrap_legacy_end;
+  .native_catalog 0x00A00000 : {
+    KEEP(*(.native_catalog))
+  }
+  .native_scratch 0x00B05000 (NOLOAD) : {
+    KEEP(*(.native_scratch))
+  }
+  /* Outside-section symbols leave ordinary builds free of empty PT_LOADs. */
+  PROVIDE(native_catalog_used = 0);
+  PROVIDE(native_scratch_used = 0);
+  _native_catalog_start = 0x00A00000;
+  _native_catalog_payload_end = _native_catalog_start + native_catalog_used;
+  _native_catalog_end = _native_catalog_start + SIZEOF(.native_catalog);
+  _native_scratch_start = 0x00B05000;
+  _native_scratch_payload_end = _native_scratch_start + native_scratch_used;
+  _native_scratch_end = _native_scratch_start + SIZEOF(.native_scratch);
+  ASSERT((SIZEOF(.native_catalog) == 0 && SIZEOF(.native_scratch) == 0) ||
+         (SIZEOF(.memory_state) > 0 &&
+          _native_catalog_payload_end - _native_catalog_start == 1065344 &&
+          SIZEOF(.native_catalog) == 1069056 &&
+          _native_scratch_payload_end - _native_scratch_start == 266336 &&
+          SIZEOF(.native_scratch) == 270336), "native boot area exact pair/capacity")
+  ASSERT(_memory_state_end <= _native_catalog_start &&
+         _native_catalog_end <= _native_scratch_start &&
+         _native_scratch_end <= 0x01000000, "native boot area separation/map capacity")
+  _x86_64_bootstrap_end = SIZEOF(.native_scratch) ? _native_scratch_end :
+                         (SIZEOF(.memory_state) ? _memory_state_end : _x86_64_bootstrap_legacy_end);
 
   .init_array : { *(.init_array .init_array.*) }
   .fini_array : { *(.fini_array .fini_array.*) }

@@ -2,8 +2,9 @@
 #ifndef REIST_X64_FRAME_CLAIM_H
 #define REIST_X64_FRAME_CLAIM_H
 #include <stdint.h>
-struct reist_x64_frame_claim { uint64_t frames[13], count, cursor; };
-_Static_assert(sizeof(struct reist_x64_frame_claim)==120, "claim layout");
+#include "native_layout.h"
+struct reist_x64_frame_claim { uint64_t frames[NATIVE_CLAIM_FRAMES], count, cursor; };
+_Static_assert(sizeof(struct reist_x64_frame_claim)==NATIVE_CLAIM_FRAMES*8+16, "claim layout");
 #define X64_CLAIM_ABI __attribute__((sysv_abi))
 long long X64_CLAIM_ABI reist_x64_frame_claim_begin(struct reist_x64_frame_claim *, uint64_t);
 long long X64_CLAIM_ABI reist_x64_frame_claim_take(struct reist_x64_frame_claim *);

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3aj-x86_64-program-memory"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3aj-x86_64-program-memory"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Versioned native program capacity and guarded multiframe stack"
@@ -27,7 +27,7 @@ package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/
 runtime_tests = ["python scripts/run_qemu_x86_64_program_memory.py --image build/codex-agent/r83aj-memory/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83aj-memory/guests","python scripts/run_qemu_x86_64_image_import.py --image build/codex-agent/r83aj-memory/import/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83aj-memory/import-guests","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83aj-memory/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83aj-memory/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
 stop_conditions = ["Unrelated or unattributed changes overlap the package.","A required production source lies outside allowed_files, or the design needs another authority boundary.","A pre-existing source failure prevents trustworthy verification.","The same frozen gate failure remains after two focused in-scope corrections; retain evidence and do not retry an unchanged candidate.","CPU/IPC/restart quotas, original i386 bytes, old ABI meaning or a frozen oracle must be weakened."]
 commit_message = "feat: admit bounded native programs and guarded multiframe stacks"
-evidence_note = "Historical stop at additional boot-memory scope on contract822e8f1b; attributed uncommitted main-worktree candidate retained. Early actual C/ASM RNPGv2 host PASS O0/O2,64 positions and legacy admission, image-host-02.log/.906s; not the complete final host gate. First NativeWide whole build FAIL5.649s wide-build-01.log: catalog rodata112000..21cfff overlaps fixed C bridge184000, data21d000 overlaps memory_state200000..8c5fff. Four independent ELF programs and kernel objects compiled but no linked/runtime acceptance. Read-only config/x86_64_bootstrap.ld and boot/entry.asm confirm separate placement/reservation/permission boundary; NOLOAD memory_state cannot carry immutable initialized catalog, compression would change format/parser contract. At least linker script and boot paging/admission lie outside43 allowed files. Stop without removing assertions, widening quotas, rerunning unchanged candidate, implementation commit or queue advance; obtain explicit expanded boot-area scope and negative gates. Renewed user authority freezes the boot amendment before further source changes; all18 groups remain required, all failed evidence preserved. R3.6b stays deferred."
+evidence_note = "All18 frozen groups PASS on contract60c65385. Exact commands/log hashes: build/codex-agent/r83aj-memory/accepted-gates.json. NativeWide13 cases/104 lifetimes PASS113.841s, guest77.007s, attempt-7a704ed714694f579a00f0c56f7e06fd:4/8GiB, frames above4GiB, actual12KiB C stack, guard/NX/RX faults, CPU, sleep/cancel, distinct immutable replacement bytes, six OOM points0/1/2/11/23/46, full ownership/retirement balance; all327 boot leaves and complete reservation/no-alias/zero proof. Actual C/ASM O0/O2 hosts cover64 positions, C/Python bytes, malformed/nonmutation, mapping/pointers/claim/release/context/identity, outer-link negatives and leaf corruption. Old import8 PASS58.827s attempt-a181aafcbb2449a18b5cef2d4b5489ec; normal boot .473s, original i386 pins1.109s. Three builds and docs PASS.26 default objects byte-identical to AI; scheduler allocated bytes and instruction/relocation semantics identical, one additional local label only. Direct ABI/bounds/cleanup/scope review passed. All red attempts retained, including historical boot overlap and invalid runtime09 after failed build09. Changed-input gates renewed, unaffected evidence retained; no unchanged retry or weakened oracle. No kernel C/common IPC edit, quota increase, original-media write, Ring0 parser/driver, DMA/hardware/full OS claim. R3.6b stays explicitly deferred; no queued in-priority native package at this boundary. After clean local commit inventory/freeze next cohesive native transaction without routine handoff."
 
 [[packages]]
 id = "R8.3ai-x86_64-block-service"

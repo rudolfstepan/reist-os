@@ -7,7 +7,8 @@
  * CR3 independently bind the executing owner. No authority is granted here.
  * Intel64 SDM Vol3A: data access needs P/U at all levels, writes also W.
  * PF_X=1 checks one instruction byte with P/U and NX clear at every level.
- * Existing4KiB user leaves/8 image pages + stack; no user huge pages or PKU.
+ * Existing4KiB leaves:8 image pages + stack by default; NativeWide has64 slots,
+ * with private ownership checks for stack slots8..15. No huge user pages/PKU.
  * Physical bounds:128MiB default,16GiB with the explicit NativeRAM build.
  * Kernel direct-map large leaves do not enlarge user authority.
  * Returns1 admitted,0 invalid user range/rights, -4096 corrupt trusted state.
