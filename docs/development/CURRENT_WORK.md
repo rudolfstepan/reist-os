@@ -4,6 +4,13 @@ Stand: 13. September 2026
 
 ## R8.3ak: Kostenkorrektur ausdrücklich freigegeben
 
+Vertragsergänzung: Der zusätzlich eingefrorene Process-Run-Hosttest scheitert
+vor Mechanismenausführung an doppelt extrahierten bedingten Layoutkonstanten.
+NASM-Präprozessierung des tatsächlichen Standardprofils funktioniert. Die
+Implementierung pausiert für die ausdrückliche Aufnahme genau dieses bereits
+verpflichtenden Testadapters:25 Dateien, unverändert22 Gategruppen. Keine
+Abschwächung oder entfernten Verhaltensvektoren; roter Erstbeleg bleibt erhalten.
+
 Die erneute Nutzerfreigabe erlaubt die begrenzte Ursachenanalyse und nötige
 Kernelpfad-Korrekturen ohne Routineübergabe. Der19-Pfad-Kandidat stimmt exakt
 mit `verification-status.json` überein. Derselbe aktive Blockdienstvertrag

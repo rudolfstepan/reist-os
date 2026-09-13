@@ -1,10 +1,20 @@
 # Native bounded block-service profiles — R8.3ak
 
 Frozen after accepted91401365 under continuous interactive completion authority.
-24 allowed files,22 mandatory queue groups after renewed user authority below;
+25 allowed files,22 mandatory queue groups after renewed user authority below;
 this contract is not acceptance.
 
 ## Authorized frame-validation cost amendment, 13 September2026
+
+Supplement within the same renewed correction/negative-proof request: the
+already mandatory process-run host test raw-extracts both conditional task
+layout branches and fails in NASM before executing ownership vectors.
+Read-only NASM -E inventory succeeds. Pause source work and explicitly add
+test/test_x86_64_process_run.py (25 files, still22 groups) for selected-layout
+preprocessing of its actual mechanisms/constants/data. Keep all behavioral
+vectors/assertions and add an ambiguity regression. Retain the original red
+log; this is not a waived pre-existing failure or an unrelated kernel repair.
+Contract-only supplemental commit precedes this test adaptation.
 
 The renewed explicit user approval resumes the attributed19-path candidate
 recorded in verification-status.json; no unrelated changes or new package.
