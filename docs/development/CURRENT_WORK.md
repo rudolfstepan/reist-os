@@ -2,7 +2,73 @@
 
 Stand: 13. September 2026
 
-## R8.3ai: Diagnose wieder freigegeben, Abnahme weiter offen
+## R8.3ai: IPC-Kostenkorrektur ausdrücklich freigegeben
+
+Erneute Nutzerfreigabe nach der konkreten Umfangsfrage: native IPC-Kostenanalyse
+und daraus belegte Optimierungen ohne Routinefragen. Vor Produktionseingriff
+wird der zusätzliche Vertrag eingefroren:31 Dateien,20 Gates. Vollständige
+Integritätsprüfung bleibt; nur unveränderte Neuversiegelungen sollen entfallen.
+Host zählt echte Publikationen und vergleicht mit dem bisherigen Adapter.
+Keine Quotenänderung, keine Common-IPC-/Critical-Object- oder i386-Änderung.
+Der folgende Stopstand und seine Belege bleiben historisch erhalten; er ist
+keine Abnahme des nun wieder aufgenommenen Kandidaten.
+
+### Letzter geprüfter Stopstand vor dieser Erweiterung
+
+Aktueller Kandidat auf Vertragscommit `d1c4ddc4`, noch **nicht abgenommen**.
+28 erlaubte Dateien und17 Gategruppen; aktiv bleibt ausschließlich R8.3ai.
+PIO-v2 prüft die absolute Deadline im vorhandenen Mediationssyscall vor
+Zustands-, Quoten-, Port- oder Puffereffekten. V1 und alle CPU-/PIO-Limits
+bleiben unverändert. Nur das ausdrücklich erlaubte Schedulerobjekt ändert
+gegenüber AH; kein neuer Ring0-Treiber, keine Schreib- oder DMA-Autorität.
+
+Erhaltene Ergebnisse unter `build/codex-agent/r83ai-block/`:
+
+- Blockhost:7 Tests/3.181s PASS (`block-host-12.log`), tatsächliche C-Helfer
+  O0/O2, kompletter Vorlagen-Cache-Lebenslauf und generierter Gastbeobachter.
+  Die neuen roten Regressionen `cache-red-01`, `cancel-oracle-red-01` und
+  `output-order-red-01` zeigen den Fehler vor der jeweiligen Korrektur.
+  Fehlgeschlagene ELF-Aufbereitung gibt jetzt die Allokation frei und setzt
+  keinen gültigen Cache. Clientauswertung darf nach Kind-Retirement erfolgen,
+  aber niemals nach nächster Bindung oder eigenem Fencing. Nur beim absichtlich
+  falschen Reply werden exakt passende READY/IPC2 und BLOCKED/IPC1 akzeptiert;
+  Schlafabbruch und vollständige Frame-/Rechtefreigaben bleiben streng geprüft.
+- PIO-Host9/4.586s, Deadline-ASM/SDK1/.935s, Bootprogramme6/1.815s,
+  Startup7/3.889s, Import2/3.922s, ABI5/.201s, Referenzhost16/.260s PASS.
+- Builds Normal2.719s, NativePIO6.355s, NativeBlock5.362s PASS:
+  `normal-build-01`, `pio-build-01`, `deadline-build-07`.
+- Alte PIO-Matrix10 PASS/129.473s,
+  `pio-guests/attempt-6ae08ecb552c4eafa343cda57d2fe04d`; Fatalmatrix8
+  PASS/8.257s, `fatal-guests/attempt-5705b6914e914aa99d73af93c44a50bf`.
+  Normaler Bootstrap PASS/.646s; i386-Byteguard PASS/2.232s. Originalmedien
+  nicht neu gebaut oder überschrieben. Das sind Regressionen, keine Abnahme
+  des neuen Blockdiensts.
+- Letzte vollständige Blockmatrix: FAIL/12.941s (`deadline-guest-06.log`,
+  `guests/attempt-60e8de6bcc1044ccb168d32666a9d36d`). Im ersten4GiB-Gast
+  erreichen beide Supervisoren32 Samples und enden status256; nur sechs statt
+  acht Kindgenerationen je Durchlauf. **Null neue Gastfälle abgenommen.**
+  Die späteren Cache-Fehlerpfad-/Oraclekorrekturen beheben diese Erschöpfung
+  nicht; deshalb kein unveränderter Wiederholungsversuch als Abnahmesuche.
+
+Die vier freigegebenen identischen Diagnosegäste sind ausgeschöpft. Die
+Deadline-Zusammenlegung und das Entfernen redundanter Fixturekopien/Probes
+schließen den Budgetfehler nicht. Das experimentelle PIO-Journal ist entfernt;
+aktuell werden echte OUTs und READ16-Teilstücke beobachtet. Read-only-Inventur
+zeigt vollständige Integritätsprüfung und Neuversiegelung der nativen IPC-
+Snapshots; ein ursächlicher Kostenbeweis oder eine zulässige Optimierung dieses
+Kernpfads liegt noch nicht vor. Keine Prüfungen übersprungen. Den unabhängigen
+Peer zum Blockclient umzuwidmen würde den gefrorenen Unabhängigkeitsnachweis
+ändern und wurde nicht umgesetzt.
+
+Stopbedingung: keine weitere konkret belegte Korrektur innerhalb des aktiven
+Umfangs bestimmt. Eine neue Kernelkosten-Instrumentierung/-Optimierung der
+IPC-Integritätsverwaltung benötigt einen ausdrücklich erweiterten Vertrag mit
+eigenen Fehlerregressionen; diese Quelldateien sind nicht freigegeben.
+Kein Implementierungscommit, keine Queuefortschreibung, keine OS-Fertigmeldung.
+Eigene Änderungen und sämtliche Fehlbelege bleiben sichtbar. R3.6b bleibt
+ausdrücklich zurückgestellt; historischer vector20 und R341-H1/H2 bleiben offen.
+
+### Historische Diagnosefreigabe und frühere Kandidaten
 
 Erneute Nutzerfreigabe: begrenzte Mess-/Kernelkosten-Diagnose und anschließende
 Korrekturen ohne Routinefragen. Vier begrenzte Diagnoseläufe dürfen nur dasselbe

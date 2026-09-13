@@ -135,3 +135,81 @@ Only the scheduler object containing pio_domain.inc may differ from accepted
 AH; all other standalone mechanism hashes and all original gates remain.
 Add test_x86_64_pio_deadline.py actual assembly/SDK O0/O2 and expired-v2 runtime
 fixture coverage:17 gates,28 files. No silent acceptance from diagnostic runs.
+
+The ordinary reference generation issues six RPCs: the four different invalid
+headers and full reads of both LBA1 and LBA127, after self-test LBA0. Later
+generations repeat the reads after faults. This replaces the candidate's two
+redundant extra reads of the same LBAs; it does not change the reusable eight-
+request session maximum or its host quota/exhaustion proof. All ten cases,
+failure modes, byte comparisons and frozen CPU limits remain required.
+The four identical invalid-header probes run in the first service generation
+of each root transaction, not redundantly in every replacement. Every generation
+still uses a fresh owner, fresh self-test and sequence, old-owner PIO rejection,
+exact reply generation/data validation, and full fencing/reaping. Fault cases
+and actual expired-v2 admission remain covered in every appropriate generation.
+The supervisor demonstrates full36896-byte source mutation after its first
+successful CREATE. Replacements use its unchanged cached prepared template;
+the kernel still copies/admit-checks the complete source at every CREATE and
+every published child is compared with that exact imported record. This avoids
+repeated userspace copy/mutation demonstrations, not immutable kernel admission.
+
+## Current unaccepted candidate and stop boundary
+
+The template cache is published only after successful ELF preparation; failure
+releases its allocation and cannot seed a later CREATE. Actual helper O0/O2
+tests cover allocation/preparation failure, CREATE OOM, first-source mutation,
+immutable replacement imports and exhaustion. A completed reply or EPIPE may
+be consumed after child retirement, but before the next PIO owner or client
+fence. Bad-reply cancellation accepts only READY/IPC0, READY/IPC2 or
+BLOCKED/IPC1; sleeping-fault cancellation retains its no-IPC requirement.
+Host negatives retain exact generation, ordering and frame-cleanup rejection.
+
+Seven blockhost checks, the other mechanism/ABI hosts, three builds, all ten
+old PIO guests and eight fatal guests, normal bootstrap and original i386 guard
+pass. None replaces the new block matrix. Latest matrix attempt
+60e8de6bcc1044ccb168d32666a9d36d fails after12.941s: first4GiB case, both
+roots exhaust32 CPU samples after six of eight child generations. No case
+accepted. Later cache-error-path/oracle fixes do not address that cost failure;
+no unchanged guest retry. Direct physical OUT and READ16 observers replace the
+unaccepted journal experiment. All older attempts remain diagnostic evidence.
+
+The four authorized controlled diagnostic guests have completed. No further
+proven in-scope correction is identified. Native IPC integrity-cost changes
+would affect an additional kernel failure boundary outside the28-file scope;
+they require explicit scope and new regression gates before implementation.
+No validation skipping, quota increase, peer repurposing, candidate commit,
+queue advancement or full-OS claim. See CURRENT_WORK.md for exact gate logs.
+
+## Authorized IPC publication-cost amendment, 13 September2026
+
+Renewed explicit user approval resumes this attributed candidate and permits
+bounded native IPC cost analysis and demonstrated optimizations. Inventory shows
+check_all verifies every client/control and each active bulk tail, then seal_all
+rebuilds even unchanged records after every operation. Retain check_all in full.
+Measure actual native critical init/read/update calls in an O0/O2 host harness
+against the accepted adapter before changing production code; counts, not noisy
+host elapsed time, are the cost gate. Diagnosis is not guest acceptance.
+
+Permit operation-scoped publication only for records touched in this serialized
+IF0 transaction: BIND's client; all clients possibly affected by REQUEST/REAP;
+retired generations on REAP; pending records on admission, each pump transfer
+attempt/completion, TAKE and REAP. Use a local bounded four-bit pending mask, no
+persistent dirty cache or trusted external hint. Mark even failed transfer
+attempts, because output mutation must not be inferred from errno. Init still
+seals every record; active bulk contents and controls are sealed together.
+Inactive tail handling, zeroing, ABI, deadline, capability and pump order stay
+unchanged. No common critical-object, common IPC pool, scheduler budget or
+i386 source/format change is authorized by this amendment.
+
+Add arch/x86_64/ipc/native_ipc.c, test/test_x86_64_ipc_cost.py and
+test/x86_64_ipc_cost_host.c:31 files. Freeze the existing17 groups plus native
+IPC host, bulk IPC host and new publication-cost/differential-fault host:20.
+The new gate covers every slot and v1/v2 wait, completion, timeout, revoke,
+rebind and idle path, unchanged snapshots, exact publication counts and raw/
+redundant corruption rejection before effects. Only native_ipc.o joins the
+already amended scheduler exception to AH hashes; both changed objects must
+match new PIO/block variants, all other26 standalone mechanisms stay identical.
+All ten block guests and old PIO10/fatal8 remain required at original limits.
+Retain prior gates only when inputs are demonstrably unaffected; rerun changed
+consumers after correction. Contract commit before production changes, no
+candidate commit until all gates pass. All previous failure evidence remains.
