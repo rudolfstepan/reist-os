@@ -1,8 +1,12 @@
 # Native program and stack memory — R8.3aj
 
 Frozen after accepted `a1f17276`, 13 September2026, with explicit renewed user
-approval of the program/stack boundary. Sixteen mandatory queue gate groups.
+approval of the program/stack boundary, subsequently extended by renewed user
+approval to the boot-memory dependency. Eighteen mandatory queue gate groups.
 This is a contract, not implementation acceptance or a complete native OS.
+
+Status: attributed candidate resumes under the explicit boot-memory amendment
+below; its first whole-image link failure remains evidence, not acceptance.
 
 ## Inventory and standard reference
 
@@ -56,6 +60,36 @@ physical reserve, generation, fatal/fence and complete OOM rollback rules apply.
 Four tasks, eight CREATE attempts/root, CPU1..32, IPC, PIO and heap budgets
 do not change. No general unbounded executable-size or source-compatibility claim.
 
+## Boot-memory amendment (renewed user authority)
+
+Inventory: the larger catalog and import snapshot overflow the pre-0x184000
+assembly envelope. Keep that assertion, all fixed C sections and C layout4.
+NativeWide alone places .native_catalog at0xa00000, exact1065344 initialized
+bytes plus zero page padding to1069056 bytes, R/NX. .native_scratch follows
+at0xb05000, exact266336 bytes plus page padding to270336, NOLOAD/RW-NX.
+End0xb47000 is within the existing eight-page-table16MiB higher-half window.
+Linker assertions require the pair, exact sizes, alignment and separation.
+The existing physical allocator reserves [0,_x86_64_bootstrap_end); bind that
+symbol to the complete scratch extent. No allocator rewrite or writable
+direct-map alias. Explicitly clear the scratch before use, independently of
+Multiboot zero-fill. Map and verify every occupied leaf before C handoff.
+Do not relax the existing C-envelope verifier to accept new regions.
+
+The build-time outer ELF32 reader accepts at most2MiB, and verify_outer admits
+files over1MiB only with this exact paired native extension. The inner C ELF64
+reader/validator stays at1MiB. Validate exact new section types, flags, addresses,
+padding, dedicated PT_LOAD extents/permissions, symbol bounds and bootstrap end;
+reject extra/missing sections, file aliases, wrong sizes, permissions and bounds.
+No compressed catalog, new runtime parser, moved bridge or initialized NOLOAD.
+
+Five additional allowed files: boot/entry.asm, config/x86_64_bootstrap.ld,
+scripts/build_x86_64_c_payload.py, test/test_x86_64_c_payload.py and
+test/test_x86_64_program_memory_boot.py (boot path relative to arch/x86_64).
+Two extra host gates exercise actual linker/validator negative cases and actual
+assembly leaf verification with corrupted first/middle/last leaves. The native
+guest oracle additionally proves complete reservation, absent direct aliases,
+all new page permissions and zero-before-use scratch.48 files/18 groups total.
+
 ## Frozen validation and stop boundary
 
 New host gates run actual C producer/SDK and actual ASM admission, mapping,
@@ -82,7 +116,7 @@ i386 artifact verification is read-only. The new runtime records actual mapped
 bytes, permissions, frame ownership and teardown, not just success markers.
 No kernel C payload, common IPC or integrity-arithmetic change is authorized.
 
-All16 groups and direct ABI/bounds/cleanup/scope review precede done and local
+All18 groups and direct ABI/bounds/cleanup/scope review precede done and local
 commit. No push, no agents. Two focused corrections per concrete gate failure,
 never unchanged retries. Stop on remaining failure, pre-existing source failure,
 outside-scope production needs or another authority boundary; keep every red

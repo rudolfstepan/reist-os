@@ -2,6 +2,46 @@
 
 Stand: 13. September 2026
 
+## R8.3aj: Programm-/Stack-Kandidat mit freigegebener Bootlayout-Ergänzung
+
+Vertrag `822e8f1b` auf abgenommenem `a1f17276`, jetzt ausdrücklich um die
+Bootspeicher-Abhängigkeit ergänzt:48 erlaubte Dateien/18 Gategruppen.
+NativeWide/RNPGv2/CREATE-v5,64 Image-Slots,
+32KiB Stack mit unterer Guardpage und wiederverwendete Frame-/Kontext-
+Mechanismen sind ein **unabgenommener Kandidat im Hauptarbeitsbaum**.
+Kein Implementierungscommit, kein Gastnachweis, Queue bleibt aktiv.
+
+Unter `build/codex-agent/r83aj-memory/` bleiben erhalten:
+
+- `red-image-01.log`: fehlender neuer Layout-Include, absichtlich erster Rotbeleg.
+- `image-host-01.log`: Hostadapter-Includepfad fehlte; korrigiert, kein Kerneldefekt.
+- `image-host-02.log`: tatsächlicher C-Adapter und ASM-Recordzulassung O0/O2
+  PASS/0.906s, alle64 Slots, reservierte Bereiche/Stackbytes, alte RNPGv1-
+  Zulassung und unveränderte Ausgabe bei Fehler. Nur früher Teilnachweis,
+  keine Abnahme der noch unvollständigen gesamten Host-/Gastmatrix.
+- `wide-build-01.log`: erster Gesamtbuild FAIL/5.649s. Alle vier unabhängigen
+  ELF64-Programme und Kernelobjekte übersetzt; finaler Link verweigert:
+  `.rodata`0x112000..0x21cfff überlappt feste C-Brücke0x184000..0x184297,
+  `.data`0x21d000..0x21dfff überlappt `.memory_state`0x200000..0x8c5fff.
+  Producerartefakte: `native/x86_64/programs-3683e1b4b9a74efc995fa68b8d0326c6/`.
+
+Read-only Nachprüfung: `config/x86_64_bootstrap.ld` beschränkt Assembly-
+RO/Data/BSS auf den Bereich vor0x184000; die C-Brücke und C-Handoff bleiben
+fest platziert. `.memory_state` ist NOLOAD/RW-NX, also kein zulässiger Ersatz
+für den initialisierten unveränderlichen Katalog. Ein komprimierter Katalog
+wäre ein anderer Format-/Parservertrag. Keine Assertion entfernt, kein
+Relink ohne Änderung, keine schwächeren Rechte oder Reservierungen.
+
+Jetzt freigegebene zusätzliche Grenze: separat begrenztes Boot-Katalog-/Scratch-Areal
+mit R/NX beziehungsweise RW/NX, vollständiger physischer Reservierung und
+Seitennachweis, ohne Verschieben/Überschreiben der bestehenden C-Brücke.
+Mindestens Linkerskript und Boot-Paging/Admission (`arch/x86_64/boot/entry.asm`)
+waren außerhalb des ursprünglichen Scopes. Die erneute Nutzerfreigabe friert
+jetzt Katalog0xa00000..0xb05000 und Scratch0xb05000..0xb47000 ein,
+einschließlich strikter äußerer ELF-Zulassung, kompletter Reservierung und
+Negativtests. Die feste C-Brücke und alle bisherigen Gates bleiben bestehen.
+Noch keine Gesamt-/Gastabnahme; R3.6b bleibt zurückgestellt.
+
 ## R8.3ai: nativer Read-only-Blockdienst mit Gastnachweisen umgesetzt
 
 Vertrag `873d82fa`:34 erlaubte Dateien/21 Gategruppen. Wiederverwendbarer

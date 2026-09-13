@@ -6,6 +6,15 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3ai: Block-RPC, Dienst und geschützte Komplettierung zusammen
 
+Nachfolgender R8.3aj-Kandidat auf Vertrag `822e8f1b` erweitert versioniert
+Image und Stack, ist aber noch nicht abgenommen. Der erste Gesamtlink zeigt
+eine separate Grenze der bisherigen Boot-Speicheraufteilung: größerer
+Katalog und Scratch passen nicht vor die feste C-Brücke. Ein eigenes korrekt
+reserviertes R/NX-/RW-NX-Bootareal ist durch erneute Nutzerfreigabe jetzt
+im selben Paket eingefroren:48 Dateien/18 Gruppen samt Seitenschutz- und
+Reservierungsnachweis; keine Quoten oder bisherigen Linkerprüfungen gelockert.
+Teilnachweise und Erstfehler: [Arbeitsstand](CURRENT_WORK.md).
+
 Auf Vertrag `873d82fa` ist der gemeinsame Read-only-Blockdienst umgesetzt:
 wiederverwendbarer Client/Dispatcher, Ring3-ATA-Service, echte IPC-Übergabe,
 Deadline-Co-Admission und generationsgebundener Fehler-/Neustartpfad.
