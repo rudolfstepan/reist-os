@@ -2,6 +2,49 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: selbstständige Reparaturfortsetzung freigegeben
+
+Die neue Nutzeranweisung erlaubt die genaue READY/BLOCKED-Cancelkorrektur
+und die weitere begrenzte Bearbeitung ohne Rückfrage für jede gewöhnliche
+Reparatur. Die Startup-Beobachterdatei ergänzt den Umfang auf33 Dateien.
+Fehlerursache und Belege werden je Reparatur festgehalten; kein unveränderter
+Wiederholungsversuch, keine Quoten-/Gateabsenkung oder Paketvermischung.
+Echte externe Referenz-/Hardware-/Nutzerdaten- und Architekturgrenzen bleiben.
+Zuerst Vertragscommit, danach Negativtests, Korrektur und verbleibende Gates.
+
+## R8.3ah: OOM-Beobachter behoben, Startup-Zustandsprüfung blockiert
+
+Vertragscommit `1a9a3f51`; der Implementierungskandidat bleibt uncommittet.
+Der Allokationshaltepunkt ist jetzt nur im exakten Injektionsfenster aktiv.
+Der tatsächliche erzeugte Beobachter wird für alle sechs Positionen und zwei
+Root-Generationen geprüft. Family-Host4/1.059s und Startup-Host6/3.408s bestehen.
+Der neue Test reproduzierte zuerst den dauerhaft aktiven Haltepunkt; sein
+anschließender Escapingfehler wurde gezielt korrigiert. Beide Belege bleiben.
+
+Die vollständige Importmatrix besteht in67.863s: acht Fälle,148 Lebenszyklen,
+maximal26/32 Root-Samples. Zehn Kernelobjekte sind zum vorher gescheiterten
+OOM-Kandidaten bytegleich; keine Kernel-/Quotenlockerung.
+Beleg: `import-reference/attempt-715c39c376b44fdb979aee2d57e972cb`.
+
+Die Startupmatrix besteht sieben Fälle und scheitert nach65.248s im letzten
+OOM9-Fall an `startup cancellation`: Generation18 ist beim Cancel READY1
+statt ausschließlich BLOCKED6 laut alter Prüfung. Alle18 Endquittungen und
+beide vollständigen Frame-/Kontext-Cleanups sind vorhanden; beide Roots
+enden korrekt mit70 und12/31 Samples. Insgesamt148 Lebenszyklen beobachtet,
+aber keine vollständige Startup-Abnahme.
+Beleg: `startup-reference/attempt-14cbb3e6cca94dc4a160fdb084335256`.
+
+Der bestehende Family-Vertrag und `family_cancel_one64` behandeln READY und
+BLOCKED ausdrücklich, jeweils mit Queueentfernung vor Fencing. Die alte
+Startup-Prüfung ist damit enger als der Mechanismus; ihre Korrektur benötigt
+`scripts/run_qemu_x86_64_task_startup.py` außerhalb der32-Datei-Freigabe.
+Stop ohne Wiederholung, weitere Reparatur oder Implementierungscommit.
+Nächste Freigabe: exakt diese beiden Zustände mit negativen Regressionen,
+unverändert vier Generationen/Gründe/Fences/Frame- und Queuebereinigung.
+Logs `oom-observer-red-01`, `family-host-02/03`, `startup-host-04`,
+`import-guests-04`, `startup-guests-01` unter `build/codex-agent/r83ah-pio/`.
+PIO/COW-Gastnachweis und separate i386-Referenzabnahme bleiben offen.
+
 ## R8.3ah: OOM-Beobachterkorrektur freigegeben
 
 Das erneute `ja mach das` erlaubt die Eingrenzung des Allokationshaltepunktes

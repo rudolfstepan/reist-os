@@ -201,3 +201,30 @@ Host tests execute the generated observer for all six OOM counts and successive
 roots, including inactive allocation calls. ENOMEM boundary, rollback, old
 oracles, all16 gates and every runtime quota remain unchanged. Commit this
 authority before source edits. No i386 rebaseline or wider media permission.
+
+On contract1a9a3f51 the actual observer host tests pass, and all eight Import
+guests pass (148 lifetimes, root CPU maximum26/32) with the same ten kernel
+objects as the prior failed OOM candidate. Startup passes seven cases, then
+OOM9 fails the old cancellation oracle: gen18 is READY1 rather than BLOCKED6.
+All eighteen terminal receipts and final frame/context cleanup exist; both
+roots exit70. Existing task-family contract and family_cancel_one64 explicitly
+support both READY and BLOCKED cancellation, including queue removal before
+fencing. This does not make the frozen gate pass. Retain Import attempt
+715c39c376b44fdb979aee2d57e972cb and Startup14cbb3e6cca94dc4a160fdb084335256.
+No further repair/retry or implementation commit. Correcting the exact allowed
+cancellation-state assertion needs renewed authority for the currently unlisted
+scripts/run_qemu_x86_64_task_startup.py plus negative tests; never accept other
+states, wrong identities/reasons, missing fencing or incomplete retirement.
+
+The user's subsequent instruction approves this cancellation correction and
+requires continued implementation without asking for every routine repair.
+Add scripts/run_qemu_x86_64_task_startup.py (33 scoped files). Accept exactly
+READY1 or BLOCKED6 before cancellation with exact generation/reason/ordering,
+and regression-test every other state and lost/duplicate/misordered evidence.
+Bounded evidence-driven repairs within this same failure/authority boundary may
+continue after recording the cause without routine one-repair handoffs; retain
+all failed evidence and never retry unchanged candidates. All16 frozen gates,
+quotas, microkernel boundary, clean acceptance commit and one-package rule stay.
+Unrelated/user changes, unresolved external reference acceptance, new hardware
+or write authority and architectural scope expansion remain genuine blockers.
+No i386 repinning or reference overwrite is granted.

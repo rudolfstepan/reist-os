@@ -8,19 +8,29 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 Auf abgenommenem `abd9edb4` bündelt Vertrag `4b351bf3` das vollständige
 Syscallprofil mit PIO-Vermittlung, Ring3-ATA-Lesecode und Wiederanlaufnachweisen.
-Der eigene Kandidat besteht bisher Host O0/O2 und NativePIO-Build, ist aber
+Der eigene Kandidat besteht Host O0/O2 und NativePIO-Build, ist aber
 nicht abgenommen oder committet. QEMU11.1.0 verweigert Read-only-IDE-Backends
 vor Gaststart; drei pausierte Raw-Dateiversuche bestätigen das unverändert.
-Der Medienvertrag darf nicht stillschweigend auf ein beschreibbares Overlay
-umgestellt werden. Die notwendige Freigabe, Belege und verbleibenden Gates
+Die inzwischen ausdrücklich freigegebene COW-Testschicht darf ausschließlich
+eine erzeugte, read-only geöffnete Basis verwenden; unveränderte logische Daten
+und fehlende Overlay-Datenbelegung bleiben nachzuweisen. Freigaben und Gates
 stehen im [Arbeitsstand](CURRENT_WORK.md) und
 [PIO-Vertrag](../architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).
 
 Die Fortsetzung ergänzt geprüfte Korruptionssperren und vollständige
 Profilbindung; sechs Hostgruppen, drei Builds und der normale Gast bestehen.
-Die Abnahme stoppt zusätzlich an einer alten IPC-Test-Race außerhalb der
-Dateifreigabe und einem geänderten i386-Referenzabbild bei laufender VMware.
-Keine Testlockerung, Referenzersetzung oder Paketfreigabe daraus ableiten.
+Die alte IPC-Test-Race ist durch eine ausdrücklich freigegebene Bestätigung
+vor Rechtevergabe ersetzt. Vertrag `1a9a3f51` erlaubt zudem, den OOM-Beobachter
+nur während der exakten Fehlerinjektion auf Allokationen halten zu lassen.
+Die vollständige Importmatrix besteht danach wieder: acht Fälle mit148
+Lebenszyklen, unveränderte Kernelobjekte und höchstens26 von32 Root-CPU-Samples.
+Die Startupmatrix besteht sieben Fälle; der letzte OOM9-Fall scheitert an
+einer BLOCKED-only-Cancelprüfung bei einem zulässigen READY-Kind. Trotz
+vollständiger Endquittungen und Bereinigung keine Abnahme; die zusätzliche
+Beobachterdatei benötigt ausdrückliche Freigabe, siehe Arbeitsstand.
+Die separate i386-Referenzabnahme bleibt wegen zuvor bestätigter Abbild- und
+Programmdigeständerungen offen. Keine Referenzersetzung oder Paketfreigabe
+daraus ableiten; PIO/COW-Gastnachweis und Gesamtabnahme fehlen weiterhin.
 
 ## R8.3ag: Ring3-ELF64 bis zum nativen Abbildbesitz zusammen
 
