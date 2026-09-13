@@ -2,6 +2,47 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: weiterer begrenzter Optimierungsversuch freigegeben
+
+Das erneute `ja mach das` gibt die Optimierung des bestehenden Testkandidaten
+frei: Root-eigener Bestätigungskanal mit erneuter generationsgebundener
+Delegation je Kind, einmalige unveränderliche PID-/Argumentaufbereitung und
+vollständige begrenzte Wortüberschreibungen der Import-/Startupquellen.
+Alle negativen Prüfungen, Kinddurchläufe,32 CPU-Samples und16 Gates bleiben.
+Zuerst Vertragscommit, dann tatsächliche Hostregression und beide bestehenden
+Gastmatrizen. Die folgenden Fehlernotizen bleiben historische Belege.
+Die separate i386-Referenzabnahme und PIO-Gastabnahme sind weiterhin offen.
+
+## R8.3ah: Bestätigung implementiert, CPU-Gate stoppt den Reparaturversuch
+
+Vertragscommit `02e2e179` enthält ausschließlich die geprüfte Freigabe und
+Dokumentation. Der Implementierungskandidat bleibt uncommittet.
+`task_startup.c` verwendet jetzt einen gesonderten Bestätigungskanal: Das Kind
+prüft zuerst die fehlenden Rechte, bestätigt dies, dann vergibt die Root das
+getestete Recht. Keine feste20ms-Annahme; beide Sendephasen teilen200ms und
+je höchstens20 Versuche. Anzahl/Leer-/Maximalargumente, Quoten und Outcomes
+bleiben unverändert. Tatsächlicher Helper O0/O2 und Startup-Host5/2.649s,
+Import-Build4.802s und Startup-Build5.866s bestehen.
+
+Die Gastabnahme scheitert nach dem fokussierten Reparaturversuch erneut:
+`import-reference/attempt-5ecd5b7fad7c4173a16d24456edf00d8`,9.326s,
+16 statt20 Retirements. Die frühere Kind237-Race tritt nicht auf; Normalende68,
+UD2/134 und Cancel0 werden erreicht. Beide Roots erschöpfen aber exakt32
+CPU-Samples (Status256/State3). RIP40047f und4008a1 liegen laut Disassemblierung
+des tatsächlichen Root-ELFs hinter IPC_CREATE49 beziehungsweise IPC_DELEGATE55.
+Das ist keine erfolgreiche Gesamtabnahme. Die Stopregel verbietet jetzt einen
+weiteren Reparatur-/Gastversuch ohne neue Richtung; CPU-Limit bleibt32.
+
+Die QEMU-COW-Schicht ist freigegeben, aber noch nicht implementiert oder
+angeschlossen. Der zusätzliche Startupgast wurde nach dem Gatefehler nicht
+gestartet. Bestehende Belege und Kandidat bleiben erhalten.
+Die schreibfreie Inventur bestätigt auch Änderungen am VMware-flat-Abbild
+und am96-PRG-Gesamtdigest, nicht nur am Haupt-Raw-Abbild. Der historische
+Framebuffer-Pin stimmt weiterhin. Zu Beginn dieses Laufs war keine VMware-
+oder QEMU-Instanz aktiv; keine Referenz ersetzt, kein Hash neu gepinnt.
+Nächste notwendige Entscheidung: weiterer fokussierter Optimierungslauf ohne
+Quotenvergrößerung und gesonderte Klärung der neuen i386-Referenzabnahme.
+
 ## R8.3ah: zwei Testanpassungen ausdrücklich freigegeben
 
 `ja mach das` gibt die wegwerfbare QEMU-COW-Testschicht und die begrenzte

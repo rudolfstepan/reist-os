@@ -161,3 +161,22 @@ its old eight-case matrix;16 total. Contract commit precedes source edits.
 The confirmed i386 artifact changes still require provenance/acceptance
 clarification. Existing pins and the guard remain unchanged; no blind rebase,
 reference overwrite or VMware process control is authorized by this amendment.
+
+The approved handshake candidate on02e2e179 passes host O0/O2 and both builds.
+Its frozen Import guest fails after that focused repair at the root's exact
+32-sample CPU budget (16/20 expected retirements). The original child237 race
+is absent; this is still failure, not acceptance. Retain attempt
+5ecd5b7fad7c4173a16d24456edf00d8 and stop under the existing repair rule.
+No second fix/retry, CPU quota widening or implementation commit is allowed
+without renewed direction. The authorized COW harness is still unfinished.
+
+The subsequent explicit `ja mach das` resumes this same candidate for one
+focused fixture optimization within the unchanged31-file scope and16 gates.
+One root-owned acknowledgement channel may span sequential children, with
+separate generation grants and exact sender/sequence checks each time. Cache
+immutable root identity/arguments and use bounded full-width source overwrites;
+all source bytes must still be mutated after import. Preserve every negative
+test, child iteration, stale-rights check and cleanup, including final channel
+close. CPU quota32, deadlines and old runtime oracles remain unchanged. Commit
+this authority before implementation; the earlier failure is retained evidence.
+This does not authorize i386 reference replacement or unchecked rebaselining.
