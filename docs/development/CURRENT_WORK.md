@@ -2,6 +2,19 @@
 
 Stand: 13. September 2026
 
+## R8.3al: nativer Read-only-Dateisystemdienst eingefroren
+
+R8.3ak ist mit `3cd8fe87`, allen25 Gates und sauberem Worktree abgeschlossen.
+Der nächste gemeinsame Schnitt umfasst FAT12/FAT32 und EXT2 mit1/2/4KiB,
+stat/read/readdir über natives IPC, begrenzten generationsgebundenen Cache
+und getrennte Ring3-Dateisystem-/Treiberprozesse. Der gemessene4KiB-EXT2-
+Engpass (21 Sektoren für15 Bytes bei16 Anfragen) wird durch echtes
+Bereichslesen geschlossen, nicht durch höhere Quoten. Eigene Treiber-Endpunkte
+vermeiden die unzulässige Delegation an zwei Peers.22 Dateien/19 Gates,
+einschließlich18 neuer Gäste und alter vollständiger Blockprofilmatrix.
+Noch keine Implementierungs- oder normale OS-/Shell-Abnahme.
+[Eingefrorener Dateisystemvertrag](../architecture/NATIVE_FILESYSTEM_CONTRACT.md).
+
 ## R8.3ak: Blockprofile und vollständige Laufzeitabnahme umgesetzt
 
 Auf Vertragscommit `59a3f6e6` besteht `runtime-09.log` mit allen elf Gästen

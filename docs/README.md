@@ -18,6 +18,7 @@ Native PIO-Domäne: [Treiber- und Fencingvertrag](architecture/NATIVE_PIO_DOMAIN
 Nativer Blockdienst: [Block-RPC-Vertrag](architecture/NATIVE_BLOCK_SERVICE_CONTRACT.md).
 Native Programm-/Stackkapazität: [Speichervertrag](architecture/NATIVE_PROGRAM_MEMORY_CONTRACT.md).
 Native Blockdienstprofile: [Profilvertrag](architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md).
+Native Read-only-Dateisystemdienste: [Dateisystemvertrag](architecture/NATIVE_FILESYSTEM_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

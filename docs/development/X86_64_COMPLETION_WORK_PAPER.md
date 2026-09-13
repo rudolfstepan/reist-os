@@ -6,6 +6,12 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3ak: begrenzte Blockprofile und vollständige Gastnachweise
 
+Nächster eingefrorener Schnitt auf sauberem `3cd8fe87`: R8.3al bündelt den
+nativen Read-only-IPC-/Cacheadapter, FAT12/FAT32 und sämtliche unterstützten
+EXT2-Blockgrößen mit getrenntem Treiber, frischen Selftests und begrenztem
+Abhängigkeitsersatz.22 Dateien/19 Gates; keine Quoten-, Kernel- oder
+Schreibrechtserweiterung. [Dateisystemvertrag](../architecture/NATIVE_FILESYSTEM_CONTRACT.md).
+
 Elf vollständige Blockprofil-Gäste bestehen nach begrenzten Release-/CREATE-
 Haltepunkten auf unverändertem Gastabbild und bei unveränderten Quoten.
 Neun reale Reads, Fehlercontainment, Ersatz und vollständige Löschung sind
