@@ -2,6 +2,44 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: OOM-Beobachterkorrektur freigegeben
+
+Das erneute `ja mach das` erlaubt die Eingrenzung des Allokationshaltepunktes
+in `scripts/run_qemu_x86_64_task_family.py` auf das vorhandene Injektionsfenster.
+Erneute Aktivierung nur je neuer Root-Generation, Abschaltung nach der exakten
+Fehlerinjektion; ENOMEM-/Rollbacknachweis und alle16 Gates bleiben unverändert.
+Hostregression führt den tatsächlich erzeugten Beobachter für alle sechs
+OOM-Positionen aus. Vertragscommit vor Implementierung, keine Referenzänderung.
+Die folgenden Stopnotizen bleiben historische Belege.
+
+## R8.3ah: Normalgäste bestehen, OOM-Abnahme bleibt blockiert
+
+Auf Vertragscommit `311d4db0` wurde der freigegebene Optimierungsversuch
+umgesetzt: ein Root-Bestätigungskanal mit separater Freigabe je Kind,
+einmalige PID-/Argumentaufbereitung und vollständige Wortüberschreibungen.
+27 Root-Systemaufrufe je Normaldurchlauf entfallen; alle Prüfungen bleiben.
+Startup-Host6/3.799s (tatsächliche Helper O0/O2), Import-Build4.547s und
+Startup-Build4.427s bestehen. Der rote neue Test bleibt als Beleg erhalten.
+
+Die unveränderte Importmatrix besteht bei4/8GiB mit jeweils20 Lebenszyklen;
+Root-Samples23/16 beziehungsweise24/17, normaler Status70. Danach scheitert
+OOM0 an beiden Roots mit Status256/State3 und exakt32 Samples. Alle18
+Lebenszyklen und beide Frame-/Kontext-Cleanups sind vorhanden, reichen aber
+nicht zur Abnahme. RIP400e02 liegt hinter TASK_CONTROL132,400894 hinter der
+veralteten IPC_DELEGATE55-Prüfung. Beleg: `import-reference/attempt-4123370886ab425581580b71fd3e28a2`,
+34.381s; Logs `startup-host-03`, `import-build-03`, `startup-build-02`,
+`import-guests-03` unter `build/codex-agent/r83ah-pio/`.
+
+Die schreibfreie Ursachenprüfung zeigt: Der OOM-GDB-Haltepunkt auf jede
+Frame-Allokation bleibt auch außerhalb der Injektion aktiv. Ob dessen
+Zusatzaufwand den Unterschied verursacht, ist noch nicht bewiesen. Nächster
+gezielter Ansatz wäre Aktivierung ausschließlich im bisherigen Injektionsfenster,
+bei unveränderten Fehler-/Rollbacknachweisen. Das benötigt neue Freigabe für
+`scripts/run_qemu_x86_64_task_family.py`, derzeit außerhalb des Pakets.
+Gemäß Stopregel keine weitere Reparatur, Startupmatrix oder Implementierungs-
+commit. Kandidat und Belege bleiben erhalten. PIO/COW-Gastnachweis und separate
+i386-Referenzabnahme sind offen; die64-Bit-Version ist noch nicht fertig.
+
 ## R8.3ah: weiterer begrenzter Optimierungsversuch freigegeben
 
 Das erneute `ja mach das` gibt die Optimierung des bestehenden Testkandidaten

@@ -180,3 +180,24 @@ test, child iteration, stale-rights check and cleanup, including final channel
 close. CPU quota32, deadlines and old runtime oracles remain unchanged. Commit
 this authority before implementation; the earlier failure is retained evidence.
 This does not authorize i386 reference replacement or unchecked rebaselining.
+
+The optimization on311d4db0 passes actual host6/3.799s and both builds. The
+unchanged Import matrix passes normal4/8GiB (20 lifetimes each, root CPU at
+most24) but fails OOM0: both roots reach32, status256, despite all18 lifetimes
+and final frame/context cleanup. Preserve attempt4123370886ab425581580b71fd3e28a2;
+this focused repair has reached the stop condition, not package acceptance.
+Read-only observer inventory finds the OOM allocator breakpoint stays enabled
+even when unarmed or already injected. Its possible CPU impact needs proof.
+Scoping that breakpoint to the actual injection window would require the
+currently unlisted scripts/run_qemu_x86_64_task_family.py and renewed authority;
+no observer, quota, old oracle or i386 reference has been changed here.
+
+The next explicit `ja mach das` authorizes that focused observer repair.
+Add scripts/run_qemu_x86_64_task_family.py to scope: allocator breakpoint
+disabled initially, enabled only for the existing injection window and
+disabled immediately after injecting the exact requested allocation failure.
+Rearm for the next root generation, never repeat within the same generation.
+Host tests execute the generated observer for all six OOM counts and successive
+roots, including inactive allocation calls. ENOMEM boundary, rollback, old
+oracles, all16 gates and every runtime quota remain unchanged. Commit this
+authority before source edits. No i386 rebaseline or wider media permission.
