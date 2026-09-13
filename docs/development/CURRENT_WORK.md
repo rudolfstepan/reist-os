@@ -2,6 +2,52 @@
 
 Stand: 13. September 2026
 
+## R8.3ah: plattformgerechte Referenzmatrix freigegeben
+
+Neue Zustimmung: beide Originalabbilder auf isolierten unsichtbaren VMware-
+APIC-Kopien; separater QEMU/vga-Neubau mit APIC/PIT-Snapshotgästen. Weiterhin
+vier vollständige GTEST-/Recoveryfälle,1CPU/1GiB/60s und reale Backendmarker.
+Der zusätzliche isolierte Build erhöht auf20 Gates, gleiche36 Quelldateien.
+Alle96 Programme müssen zwischen beiden Builds bytegleich sein; der jeweilige
+signierte Kernel wird gegen seinen eigenen Plattformbuild geprüft. Alte
+Fehlbelege bleiben, keine VMware-PIT-Behauptung oder Host-Sicherheitsänderung.
+
+## R8.3ah: echter VMware-GTEST bestanden, PIT-Profil nicht nachgewiesen
+
+Vertragscommit `88592bdc`. Der neue begrenzte VMware-Prüfer verwendet nur
+exklusive Kopien, generierte lokale VMX/VMDK-Dateien, `nogui`, einen lokalen
+RFB-Port und den festen GTEST-Befehl. Keine NIC, physische Floppy, Audio,
+USB-/HID-Durchreichung oder Freigaben. Start, Inventar und Cleanup sind begrenzt;
+ein mehrdeutiger Start durchläuft ebenfalls den exakten Aufräumpfad.
+
+`vmware-host-03.log`:15 Tests/0.118s bestanden, inklusive negativer
+Pfad-/Profil-/Backend-/Timeout-/Cleanup-Prüfungen und bestehender Hashregressionen.
+Der echte Lauf
+`reference-qualification-adad41a628784333a3cd4409ad20fd83` endet nach79.549s:
+
+- Hauptabbild/APIC: PASS35.497s,37 GTEST-Stufen, Unicode-Font, Prozessfehler,
+  Recovery und Rückkehr zur Shell. Keine erneute Font-Zeitüberschreitung.
+- Hauptabbild/PIT: vollständiger GTEST in33.125s, aber kein PIT-Nachweis:
+  der Gast benutzt trotz VMX-Maske weiterhin APIC. Deshalb FAIL, nicht PASS.
+- Beide gestarteten Kopien sind laut `cleanup.json` beendet; `vmrun list`
+  bestätigt0 VMs. Hash-Nachprüfung aller Originale besteht auch im Fehlerfall.
+- Die beiden Fälle des zweiten Abbilds wurden nach dem Fehler nicht gestartet.
+
+Hostbefund: VMware protokolliert `Hyper-V detected`, `Monitor Mode: ULM`, die
+eingetragene `cpuid.1.edx`-Maske und `FeatureCompat: No VM masks`. Der Gast
+meldet weiterhin den kalibrierten APIC-Timer. Das beweist keine allgemeine
+Unmöglichkeit von CPUID-Masken, aber keinen brauchbaren PIT-Nachweis auf diesem
+Host mit der geprüften Konfiguration. Keine blinden Variantenwiederholungen,
+keine globalen Hyper-V-/VBS-/Bootänderungen, kein sichtbarer Ausweichstart.
+Der Prüfer kontrolliert den tatsächlichen Timer nun schon vor GTEST-Eingabe.
+
+Benötigt wird eine passende PIT-Prüfumgebung oder eine ausdrücklich korrigierte
+plattformgleiche Matrix: VMware-Originalprofile unter VMware und separater
+QEMU-Neubau für dessen PIT-Profil. Kein stiller Ersatz des eingefrorenen Gates.
+Referenzpins unverändert; Paket/Implementierung uncommittet und aktiv. Sämtliche
+Belege/Kopien erhalten. Nativer historischer Timer-Fatal weiterhin offen;
+die64-Bit-OS-Fertigstellung ist damit nicht erreicht.
+
 ## R8.3ah: unsichtbare VMware-Testkopien freigegeben
 
 Die neue Zustimmung erlaubt ausschließlich neu angelegte, isolierte VMware-

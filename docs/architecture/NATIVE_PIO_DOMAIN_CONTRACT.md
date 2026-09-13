@@ -306,3 +306,25 @@ Bound start/list/stop, refuse existing VMX processes, and finally stop only the
 owned test VM and prove it gone even after ambiguous start. Missing headless
 support or incomplete cleanup stops acceptance. Original hashes and all signed
 rebuild/content requirements remain. No pin update until actual qualification.
+
+Workstation result on88592bdc: the first APIC copy passes full GTEST/recovery
+and shell return; the intended PIT copy also finishes GTEST but still uses
+APIC. The checked ULM host logs the CPUID setting but no applied VM masks.
+Both exact copies are stopped and originals unchanged. PIT and second-disk
+acceptance remain open; no pin/queue update or global Hyper-V/VBS changes.
+Actual backend admission now precedes GTEST input, with conflicting/missing
+backend regression cases. A matching PIT environment or explicitly revised
+platform matrix is needed; the failed case is never relabeled successful.
+
+## Authorized platform-matched reference matrix
+
+The user approves two original VMware disks on exclusive invisible Workstation
+APIC copies, and an independent QEMU/vga build with APIC/PIT snapshot guests.
+Four complete GTEST/recovery cases, one CPU/1GiB/60s, actual backend assertions.
+One additional isolated QEMU build makes20 frozen groups; same36 source files.
+Both rebuilds must contain identical96 user programs; their target-specific
+signed kernels/manifests bind to their own profile, never to the other kernel.
+All original16 groups, protected source hashes and failed evidence remain.
+No VMware PIT claim, original overwrite, user VM control or host Hyper-V/VBS
+change. Keep unaffected passed gates; rerun only the materially corrected
+qualification and affected hosts. Ordinary scoped repairs need no new handoff.
