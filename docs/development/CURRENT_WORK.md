@@ -2,7 +2,46 @@
 
 Stand: 13. September 2026
 
-## R8.3al: freigegebene Beobachterkorrektur wird fortgesetzt
+## R8.3al: Dateisystem und alte Referenzmatrix umgesetzt
+
+Vertrag `3d608fb9`,24 erlaubte Dateien/21 Prüfgruppen. Die neue18-Gast-
+Dateisystemmatrix bleibt an alle18 tatsächlich ausgeführten, AST-identischen
+Beobachterprogramme gebunden (`runtime-08.log`,413.936s/278.136s Gastzeit).
+Gemeinsame seltene Fatal-/Exception-/Reap-Haltepunkte liegen jetzt an
+geprüften kalten Kontrollrouten. Im alten Blockprofil ist zusätzlich der
+unveränderte GETPID-Antwortfang nur zwischen Antwort/Fehlermeldung und
+Auswertung aktiv. Keine Änderung an Gastabbild, Kernel, Takt, Quoten oder
+Ablehnungsregeln; Original-Oracle und Trace-Detektor bleiben unverändert.
+
+`old-profile-runtime-04.log`: alle elf vollständigen Referenzgäste PASS,
+213.395s/124.478s Gastzeit, Versuch `1b9193e0a1474635be018c64799ac9be`.
+`trace-runtime-01.log`: alle drei strengen Manipulations-/Fortsetzungsnachweise
+PASS,27.054s/26.608s Gastzeit, Versuch `09248e6b0613469496bbfa4800602292`.
+Geänderte Beobachterhosts: Dateisystem10/8.556s (`fs-runtime-host-12.log`),
+Blockprofil7/2.464s (`old-runtime-host-03.log`). Standardstart PASS/.747s
+(`normal-runtime-01.log`), ursprünglicher i386-Artefaktwächter PASS/2.119s
+(`reference-01.log`). Übrige unveränderte Fachhosts und alle drei Builds
+bleiben quell-/artefaktgebunden; Abschlussumfang einschließlich Dokumentation
+und direkter Scope-/ABI-/Bereinigungsprüfung:21 Gruppen, kompakter Nachweis
+`build/codex-agent/r83al-filesystem/verification-status-observer.json`.
+
+Alle Fehlbelege bleiben erhalten: alte Matrix02 besteht Normal4/8GiB, weist
+aber bei UD2 die abschließende Framebilanz zurück; die Ursache dieser einzelnen
+Abweichung ist nicht geklärt. Jetzt wird zusätzlich jeder zurückgegebene Frame
+samt Reihenfolge und Zwischenbilanz vor der Allokatorwirkung geprüft. Matrix03
+besteht damit bis Besitzerverlust, erreicht bei OOM0 jedoch erneut Treiber-
+CPU32; erst der begrenzte GETPID-Fang schließt die zweite gezielte CPU-Korrektur
+mit Matrix04 ab. Das beweist weder allgemeine Timing-Stabilität noch die
+Ursache der historischen Frameabweichung. Keine unveränderten Gastretrys.
+
+Alle3481 früher gebundenen Belegdateien und207 Referenzartefakte bleiben
+unverändert;27 Standardobjekte plus Boot-ELF sind bytegleich. R3.6b bleibt
+ausdrücklich zurückgestellt. Nach allen Gates und sauberem lokalem Commit
+folgt die nächste priorisierte native Transaktion, ohne Routine-Rückfrage.
+Dies ist ein begrenztes Read-only-Dienstprofil, keine normale Shell-/OS-
+Integration und keine fertige64-Bit-Version. Kein Push.
+
+## Historie R8.3al: freigegebene Beobachterkorrektur
 
 Der Nutzer hat die Erweiterung um den alten Blockprofil-Beobachter und dessen
 Runtime-Regression ausdrücklich freigegeben. Alle22 bisherigen Quell-/Dokument-
@@ -13,7 +52,7 @@ gäste. Kein neuer Diagnosegast-Spielraum, keine Änderung an Kernel, Abbild,
 Quoten oder Ablehnungsregeln. Der vorige Stop samt Fehlbelegen bleibt unten
 erhalten. Erst vollständige Abnahme, dann lokaler Commit und nächstes Paket.
 
-## R8.3al: neue Dateisystemmatrix bestanden, alte Referenz blockiert
+## Historie R8.3al: neue Dateisystemmatrix bestanden, alte Referenz blockiert
 
 R8.3ak ist mit `3cd8fe87`, allen25 Gates und sauberem Worktree abgeschlossen.
 Der nächste gemeinsame Schnitt umfasst FAT12/FAT32 und EXT2 mit1/2/4KiB,

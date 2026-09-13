@@ -27,16 +27,28 @@ def safe_folder(folder):
     return folder
 
 class Fixture:
-    def __init__(self,folder,*,block=False):
+    def __init__(self,folder,*,block=False,filesystem=None,malformed=False):
         if type(block) is not bool:raise ValueError('fixture profile')
         self.block=block
+        self.filesystem=filesystem;self.malformed=malformed
+        expected=self.expected()
         self.folder=safe_folder(folder)
         self.base=self.folder/'generated.raw';self.overlay=self.folder/'disposable.qcow2'
         self.tool=startup.family.programs.resolve_qemu(None).parent/'qemu-img.exe'
         self.commands=[]
         if self.base.exists() or self.overlay.exists():raise ValueError('fixture already exists')
-        with self.base.open('xb') as out:out.write(BLOCK_DISK if self.block else DISK)
+        with self.base.open('xb') as out:out.write(expected)
         self.run('create','-f','qcow2','-F','raw','-b',str(self.base),str(self.overlay))
+
+    def expected(self):
+        filesystem=getattr(self,'filesystem',None);malformed=getattr(self,'malformed',False)
+        if type(self.block) is not bool or type(malformed) is not bool:raise ValueError('fixture profile')
+        if filesystem is None:
+            if malformed:raise ValueError('malformed requires filesystem')
+            return BLOCK_DISK if self.block else DISK
+        if self.block:raise ValueError('exclusive filesystem profile')
+        from build_x86_64_fs_media import image
+        return image(filesystem,malformed)
 
     def run(self,*args):
         r=subprocess.run([str(self.tool),*args],cwd=ROOT,capture_output=True,text=True,timeout=10,
@@ -49,7 +61,7 @@ class Fixture:
     def paths(self):
         if safe_folder(self.folder)!=self.folder or self.base!=self.folder/'generated.raw' or self.overlay!=self.folder/'disposable.qcow2':
             raise ValueError('fixture path change')
-        regular(self.base,65536);regular(self.overlay,4*1024*1024)
+        regular(self.base,70000*512 if getattr(self,'filesystem',None) is not None else 65536);regular(self.overlay,4*1024*1024)
 
     def arguments(self,folder):
         self.paths()
@@ -67,9 +79,10 @@ class Fixture:
         try:
             self.paths()
             raw=self.base.read_bytes();result['base_sha256']=hashlib.sha256(raw).hexdigest()
-            if type(self.block) is not bool or raw!=(BLOCK_DISK if self.block else DISK):raise ValueError('generated base changed')
+            expected=self.expected()
+            if raw!=expected:raise ValueError('generated base changed')
             info=json.loads(self.run('info','--output=json','-f','qcow2',str(self.overlay)))
-            if (info['format']!='qcow2' or info['virtual-size']!=65536 or
+            if (info['format']!='qcow2' or info['virtual-size']!=len(expected) or
                     Path(info['full-backing-filename'])!=self.base or info['backing-filename-format']!='raw'):
                 raise ValueError('overlay backing mismatch')
             extents=json.loads(self.run('map','--output=json','-f','qcow2',str(self.overlay)))
@@ -78,9 +91,9 @@ class Fixture:
                 if item['start']!=end or item['length']<=0 or item['depth']!=1:
                     raise ValueError('allocated overlay data or incomplete map')
                 end+=item['length']
-            if end!=65536:raise ValueError('overlay extent')
+            if end!=len(expected):raise ValueError('overlay extent')
             self.run('compare','-f','qcow2','-F','raw',str(self.overlay),str(self.base))
-            result.update(passed=True,overlay_allocated_data=0,logical_bytes=65536,extents=extents)
+            result.update(passed=True,overlay_allocated_data=0,logical_bytes=len(expected),extents=extents)
         except Exception as error:
             result['error']=str(error);raise
         finally:

@@ -41,7 +41,10 @@ def prepare(raw,args,wide=False):
         return b'RNPGv2\0\0'+struct.pack('<IIQ',2,266336,entry)+rights+bytes(8)+pages+source
     return b'RNPGv1\0\0'+struct.pack('<IIQ',1,SIZE,entry)+rights+pages+source
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2):
+    if type(filesystem) is not bool or filesystem_case not in range(9) or filesystem_layout not in range(5):raise ValueError('filesystem selector')
+    if filesystem and (not block_profile or block_profile_case):raise ValueError('filesystem requires plain block profile')
+    if not filesystem and (filesystem_case or filesystem_layout!=2):raise ValueError('filesystem options')
     if block_profile and (not (wide and import_image and pio and block) or memory_case or pio_case or startup_case):raise ValueError('block profile requires plain wide PIO block')
     if block_profile_case not in range(8) or (block_profile_case and not block_profile):raise ValueError('block profile case')
     if wide and not block_profile and (not import_image or pio or block or startup_case):raise ValueError("wide requires plain import")
@@ -60,7 +63,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         if r.returncode:raise RuntimeError((r.stdout+r.stderr).decode(errors='replace')[-2000:])
     start=attempt/'start.o';run([*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start])
     records=[None]*4
-    for n in ([2,0,1,3] if import_image else range(4)):
+    for n in ([2,3,0,1] if filesystem else [2,0,1,3] if import_image else range(4)):
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
         extra=[];objects=[]
         if import_image and n==2:extra=['-DNATIVE_IMPORT_CHILD=1']
@@ -69,6 +72,10 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             # Writable input fixture is private to the Ring3 root; never a kernel parser.
             header=attempt/'import_blob.h'
             header.write_text('static const unsigned char import_blob[] __attribute__((section(".data.import_blob")))={'+','.join(str(b) for b in blob)+'};\n',encoding='ascii')
+            if filesystem:
+                fs_blob=(attempt/'program3.prg').read_bytes()
+                with header.open('a',encoding='ascii') as output:
+                    output.write('static const unsigned char filesystem_blob[] __attribute__((section(".data.import_blob")))={'+','.join(str(b) for b in fs_blob)+'};\n')
             extra=['-DNATIVE_IMPORT=1','-include',str(header)]
             parser=attempt/'image.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/image.c','-o',parser])
@@ -77,9 +84,11 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             driver=attempt/'ata-pio.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/drivers/ata/native_pio.c','-o',driver])
             objects.append(driver)
-        if block and n in (0,2):
+        if block and (n in (0,2) or filesystem and n==3):
             sources=['userspace/storage/lib/native_block.c']
             if n==2:sources+=['userspace/drivers/ata/native_service.c']
+            if filesystem and n in (0,3):sources+=['userspace/storage/lib/native_filesystem.c']
+            if filesystem and n==3:sources+=['userspace/storage/lib/vfs_shadow_fat32.c','userspace/storage/lib/vfs_shadow_ext2.c']
             for index,source in enumerate(sources):
                 unit=attempt/f'block-{n}-{index}.o'
                 run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include','-c',source,'-o',unit])
@@ -89,7 +98,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
              '-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include',
              f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',f'-DFAMILY_CASE={family_case}',f'-DSTARTUP_CASE={startup_case}',
-             f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',f'-DBLOCK_PROFILE_CASE={block_profile_case}',*extra,'-c','arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',f'-DBLOCK_PROFILE_CASE={block_profile_case}',
+             *([f'-DFILESYSTEM_CASE={filesystem_case}',f'-DFILESYSTEM_LAYOUT={filesystem_layout}'] if filesystem else []),
+             *extra,'-c','arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
@@ -115,10 +126,13 @@ if __name__=='__main__':
     p.add_argument('--wide',action='store_true')
     p.add_argument('--block-profile',action='store_true')
     p.add_argument('--block-profile-case',type=int,choices=range(8),default=0)
+    p.add_argument('--filesystem',action='store_true')
+    p.add_argument('--filesystem-case',type=int,choices=range(9),default=0)
+    p.add_argument('--filesystem-layout',type=int,choices=range(5),default=2)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
     p.add_argument('--startup-case',type=int,choices=range(2),default=0)
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout)

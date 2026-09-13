@@ -120,6 +120,70 @@ def create_watch_leave(retry):
 '''
 
 
+def scope_runtime_page_hooks(code):
+    """Share proven cold control routes; keep the caller's full oracle intact."""
+    code=once(code,"    boot_seen=True", "    boot_seen=True\n    cold_control_paths()")
+    code=once(code,"Hook('process_run_complete_retire64',release_arm)",
+        "release_arm_hook=Hook('process_run_complete_retire64',release_arm);release_arm_hook.enabled=False")
+    code=once(code,"    assert mode()==8 and release is None and not release_hook.enabled",
+        "    assert mode()==8 and release is None and not release_hook.enabled\n    assert release_arm_hook.enabled\n    release_slot=d(S['scheduler_current_slot']);release_gen=task(release_slot)[1]\n    assert (release_slot,release_gen) in release_pending\n    release_pending.remove((release_slot,release_gen))\n    release_arm_hook.enabled=bool(release_pending)")
+    code=once(code,"Hook('native_pio_fail64',fail)", "")
+    code=once(code,"Hook('process_run_exception64',fault)", "")
+    return code+COLD_CONTROL
+
+COLD_CONTROL=r'''
+release_pending=set()
+def cold_control_paths():
+    # Bind the unchanged machine-code routes before observing them elsewhere.
+    # Fatal detection moves to the next off-page call after emergency fencing;
+    # it still rejects unconditionally, never classifies corruption as recovery.
+    branch_target('native_pio_fail64',0xe8,'native_pio_emergency_fence64')
+    a=S['native_pio_fail64']+5;raw=mem(a,5)
+    assert raw[0]==0xe8 and a+5+struct.unpack_from('<i',raw,1)[0]==S['serial_init64']
+    a=S['x86_64_scheduler_user_exception64'];raw=mem(a,26)
+    assert raw[:2]==b'\x80\x3d' and a+7+struct.unpack_from('<i',raw,2)[0]==S['scheduler_active']
+    assert raw[6:9]==b'\x01\x0f\x85'
+    assert raw[13:15]==b'\x80\x3d' and a+20+struct.unpack_from('<i',raw,15)[0]==S['scheduler_mode']
+    assert raw[19:22]==b'\x08\x0f\x84' and a+26+struct.unpack_from('<i',raw,22)[0]==S['process_run_exception64']
+
+def cold_fail():
+    if q(reg('rsp'))!=S['native_pio_fail64']+10:return
+    cold_control_paths();fail()
+Hook('serial_init64',cold_fail)
+
+def cold_fault():
+    if mode()!=8:return
+    assert mem(S['scheduler_active'],1)==b'\x01'
+    cold_control_paths();fault()
+Hook('x86_64_scheduler_user_exception64',cold_fault)
+
+def cold_reap():
+    if mode()!=8 or reg('rdi')!=4:return
+    slot=reg('rsi');gen=reg('rdx')
+    assert slot<4 and task(slot)[1]==gen and not reg('eflags')&512
+    assert len(release_pending)<4 and (slot,gen) not in release_pending
+    # Every terminal path revokes IPC before bounded heap/frame retirement.
+    # Observe that existing boundary, not every unrelated heap allocation step.
+    release_pending.add((slot,gen));release_arm_hook.enabled=True
+Hook('process_ipc_service64',cold_reap)
+'''
+
+def scope_result_page_hooks(code):
+    """Inspect the same GETPID result before overwrite, only when one is due."""
+    code=once(code,"Hook('process_run_syscall64.pid',result)",
+        "result_hook=Hook('process_run_syscall64.pid',result);result_hook.enabled=False")
+    code=once(code,"        else:emit('partial',gen=gen,bytes=value,mode=mode_)",
+        "        else:\n            emit('partial',gen=gen,bytes=value,mode=mode_)\n            if CASE in (1,2,3):result_watch()")
+    code=once(code,"        item['pending']=None\nHook('process_ipc_syscall64',rpc)",
+        "        item['pending']=None\n        result_watch()\nHook('process_ipc_syscall64',rpc)")
+    code=once(code,"    if status:devices[owner]['pending']=None",
+        "    if status:devices[owner]['pending']=None\n    result_hook.enabled=False")
+    return code+'''
+def result_watch():
+    assert not result_hook.enabled
+    result_hook.enabled=True
+'''
+
 def observer_body(*,scoped=True):
     code=once(wide.OBSERVER,"'WIDE '","'PROFILE '")
     # Match the accepted block observer: retain EVERY first publication proof,
@@ -149,7 +213,11 @@ def observer_body(*,scoped=True):
     code=once(code,"            self.fn()\n        except Exception as error:\n            import traceback",
         "            self.fn()\n        except Exception as error:\n            if trace_expected_rejection(error):return False\n            import traceback")
     code=code+TRACE_CORE+EXTRA
-    return scope_creation_page_hooks(scope_validator_page_hooks(code)) if scoped else code
+    code=once(code,"    release['freed'].append(reg('rdi'));assert len(release['freed'])<=69",
+        "    index=len(release['freed']);frame=reg('rdi')\n    assert index<len(release['frames']) and frame==release['frames'][index],('frame return order',index,frame,release)\n    assert free()==release['before']+index,('frame return balance',free(),index,release)\n    release['freed'].append(frame);assert len(release['freed'])<=69")
+    code=once(code,"            assert r['freed']==r['frames'] and free()==r['before']+len(r['frames'])",
+        "            assert r['freed']==r['frames'] and free()==r['before']+len(r['frames']),('complete frame return',free(),r)")
+    return scope_result_page_hooks(scope_runtime_page_hooks(scope_pio_page_hooks(scope_creation_page_hooks(scope_validator_page_hooks(code))))) if scoped else code
 
 def observer(s,c,folder,case,oom,result_address,service_address,trace_fault=None):
     config=dict(s=s,cs={n:v['value'] for n,v in c['symbols'].items()},case=case,oom=oom,result_address=result_address,service_address=service_address,trace_fault=trace_fault)

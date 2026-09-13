@@ -2,7 +2,7 @@
 
 Stand: 13. September 2026
 
-R8.3al-Kandidat: `-NativeFilesystem` beziehungsweise
+R8.3al: `-NativeFilesystem` beziehungsweise
 `X86_64_NATIVE_FILESYSTEM=1` wählt den nativen Read-only-Dateisystemverbraucher
 mit getrennten Ring3-Prozessen für FAT12/FAT32/EXT2 und den bestehenden
 PIO-Blocktreiber. Windows impliziert NativeBlockProfile; Make verlangt dessen
@@ -13,10 +13,13 @@ keine STORAGE_SUBMIT-Kompatibilitätsbehauptung oder neue Systemaufrufnummer.
 Fest16 Cache-Sektoren, acht Dateianfragen und bestehende Treiber-/CPU-Budgets;
 je eine getrennte Dienstgeneration und höchstens ein frischer Abhängigkeits-
 ersatz. EXT2 liest nur die vom regulären Dateibereich berührten Daten-Sektoren,
-bei unveränderter vollständiger Block-/Volumenprüfung. Alle18 neuen Gäste
-bestehen; die Pflichtwiederholung des alten bytegleichen Blockprofils endet
-an CPU32. Dessen Beobachter liegt außerhalb des eingefrorenen Scopes:
-Kandidat uncommitted, kein Paket-/normaler64-Bit-OS-/Shell-Abnahmeclaim.
+bei unveränderter vollständiger Block-/Volumenprüfung. Alle18 neuen Gäste,
+elf alte Blockprofilgäste, drei Trace-Ablehnungsfälle und Standardboot bestehen.
+Vertrag `3d608fb9`:24 Dateien/21 Gruppen einschließlich ausdrücklich erlaubter
+gemeinsamer kalter Beobachtungsrouten und zeitlich begrenztem alten Antwortfang.
+Gastabbilder, Kernel und Quoten bleiben unverändert; historische Einzelabweichung
+der Framebilanz bleibt ursächlich offen. Kein normaler64-Bit-OS-/Shell- oder
+Timing-Stabilitätsclaim; Standardobjekte und207 Referenzartefakte unverändert.
 [Dateisystemvertrag](NATIVE_FILESYSTEM_CONTRACT.md),
 [aktuelle Verifikation](../development/CURRENT_WORK.md).
 

@@ -51,6 +51,70 @@ def sample(case,oom=None):
 def trace(events):return '\n'.join('PROFILE '+json.dumps(e) for e in events)
 
 class ProfileRuntimeTests(unittest.TestCase):
+    def test_result_trap_only_while_publication_is_due(self):
+        source=r.observer_body();nodes=ast.parse(source).body
+        functions={n.name:ast.get_source_segment(source,n) for n in nodes if isinstance(n,ast.FunctionDef)}
+        self.assertTrue('result_watch' in functions)
+        class Hook:
+            enabled=False
+        ns={'result_hook':Hook()};exec(functions['result_watch'],ns)
+        ns['result_watch']();self.assertTrue(ns['result_hook'].enabled)
+        with self.assertRaises(AssertionError):ns['result_watch']()
+        self.assertIn('if CASE in (1,2,3):result_watch()',functions['rpc'])
+        self.assertIn("item['pending']=None\n        result_watch()",functions['rpc'])
+        self.assertIn('result_hook.enabled=False',functions['result'])
+        # The exact old live-user output reads and rejection checks remain.
+        self.assertIn("actual=user(task(0),address,512)",functions['result'])
+        self.assertIn("assert owner==pio_owner and sequence==lba",functions['result'])
+
+    def test_frame_return_is_checked_before_allocator_side_effect(self):
+        source=r.observer_body()
+        function=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='freed')
+        ns=dict(release=dict(frames=[4096,8192],freed=[],before=100),reg=lambda n:4096,free=lambda:100)
+        exec(compile(ast.Module([function],type_ignores=[]),'actual-frame-return','exec'),ns)
+        ns['freed']();self.assertEqual(ns['release']['freed'],[4096])
+        with self.assertRaises(AssertionError):ns['freed']()
+        ns['reg']=lambda n:8192
+        with self.assertRaises(AssertionError):ns['freed']()
+        ns['free']=lambda:101;ns['freed']();self.assertEqual(ns['release']['freed'],[4096,8192])
+        with self.assertRaises(AssertionError):ns['freed']()
+
+    def test_cold_observation_matches_proven_fs_and_retirement_generations(self):
+        import run_qemu_x86_64_filesystem as fs
+        code=r.observer_body();tree=ast.parse(code)
+        functions={n.name:ast.get_source_segment(code,n) for n in tree.body if isinstance(n,ast.FunctionDef)}
+        self.assertTrue('cold_reap' in functions)
+        fs_code=fs.observer_body()
+        self.assertEqual(hashlib.sha256(ast.dump(ast.parse(fs_code),include_attributes=False).encode()).hexdigest(),
+            'e6a44a099f974478cfc0044cc696e0a4b2ecfbc0e677b5745006d5d5f57ea1e1')
+        fs_functions={n.name:ast.dump(n,include_attributes=False) for n in ast.parse(fs_code).body if isinstance(n,ast.FunctionDef)}
+        for name in ('cold_reap','cold_control_paths','cold_fail','cold_fault','release_arm'):
+            self.assertEqual(ast.dump(ast.parse(functions[name]).body[0],include_attributes=False),fs_functions[name])
+        class Hook:
+            enabled=False
+        regs={'rdi':4,'rsi':2,'rdx':3,'eflags':0};tasks={0:(3,1),2:(3,3)};calls=[]
+        ns=dict(mode=lambda:8,reg=lambda n:regs[n],task=lambda slot:tasks[slot],
+            release_pending=set(),release_arm_hook=Hook(),release_hook=Hook(),release=None,
+            S={'scheduler_current_slot':1},d=lambda a:regs['rsi'],branch_target=lambda *args:calls.append(args))
+        for name in ('cold_reap','release_arm'):exec(functions[name],ns)
+        ns['cold_reap']();self.assertEqual(ns['release_pending'],{(2,3)})
+        with self.assertRaises(AssertionError):ns['cold_reap']()
+        regs.update(rsi=0,rdx=1);ns['cold_reap']()
+        regs.update(rsi=2,rdx=4)
+        with self.assertRaises(AssertionError):ns['cold_reap']()
+        regs['rdx']=3;ns['release_arm']()
+        self.assertEqual(ns['release_pending'],{(0,1)});self.assertTrue(ns['release_hook'].enabled)
+        self.assertTrue(ns['release_arm_hook'].enabled)
+        ns['release_hook'].enabled=False;regs['rsi']=0;ns['release_arm']()
+        self.assertFalse(ns['release_pending'] or ns['release_arm_hook'].enabled)
+        with self.assertRaises(AssertionError):ns['release_arm']()
+        self.assertEqual(calls,[('process_run_complete_retire64',0xe8,'scheduler_release_task_frames64'),
+            ('scheduler_fail',0xe9,'native_pio_fail64')]*2)
+        for literal in ("Hook('native_pio_fail64',fail)","Hook('process_run_exception64',fault)"):
+            self.assertNotIn(literal,code)
+        self.assertIn('trace_before_hook.enabled=trace_after_hook.enabled=False',code)
+        self.assertIn('cancel_hook.enabled=False',functions['cancel'])
+
     def test_exact_events_and_mutations(self):
         for case in range(8):
             oom=13 if case==7 else None;serial,events=sample(case,oom)

@@ -4,7 +4,20 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3al: Read-only-Dateisystemintegration in Verifikation
+## R8.3al: Read-only-Dateisystemprofil und Referenznachweise
+
+Der gemeinsame FAT12/FAT32/EXT2-Dienst mit getrenntem PIO-Treiber ist im
+begrenzten nativen Profil umgesetzt:18 Dateisystemgäste, elf alte Blockprofil-
+gäste, drei Trace-Ablehnungsfälle, Standardstart und Referenzartefakte bestehen.
+Vertrag `3d608fb9` umfasst24 Dateien/21 Gruppen; konkrete Befehle, Zeiten,
+Quellbindungen und erhaltene Fehlerhistorie stehen im [Arbeitsstand](CURRENT_WORK.md).
+Gemeinsame kalte Beobachtungsrouten und der zeitlich begrenzte alte Antwortfang
+ändern weder Gast noch Kernel/Quoten. Eine frühere isolierte Framebilanz-
+abweichung bleibt ursächlich offen; verschärfte Vorher-/Nachherprüfungen
+bestehen in der vollständigen neuen Matrix. Keine System-Timing-Zusage.
+Normale Shell-/Userland-Anbindung und vollständige OS-Abnahme bleiben offen.
+
+## Historie R8.3al: Scope-Stopp und Wiederaufnahme
 
 Aktuell ist die Nacharbeit am alten Blockprofil-Beobachter samt Runtime-Test
 ausdrücklich freigegeben: derselbe zugeordnete Kandidat,24 Dateien/21 Gates.

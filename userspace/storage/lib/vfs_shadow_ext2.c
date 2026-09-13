@@ -896,7 +896,11 @@ static int ext2_read_file(ext2_shadow_volume_t *volume,
     if (offset >= size) return 0;
     uint32_t amount = size - offset < capacity ? size - offset : capacity;
     uint32_t completed = 0U;
-    uint8_t block_data[REIST_VFS_SHADOW_EXT2_MAX_BLOCK_SIZE];
+    uint8_t sector_data[X86OS_STORAGE_BLOCK_SIZE];
+    if ((volume->block_size != 1024U && volume->block_size != 2048U &&
+         volume->block_size != 4096U) ||
+        volume->sectors_per_block != volume->block_size / X86OS_STORAGE_BLOCK_SIZE)
+        return -5;
     while (completed < amount) {
         uint32_t position = offset + completed;
         uint32_t logical = position / volume->block_size;
@@ -904,12 +908,31 @@ static int ext2_read_file(ext2_shadow_volume_t *volume,
         uint32_t block = 0U;
         int status = ext2_inode_block(volume, inode, logical, &block);
         if (status != 0) return status;
-        status = ext2_read_block(volume, block, block_data);
-        if (status != 0) return status;
-        uint32_t chunk = volume->block_size - in_block;
-        if (chunk > amount - completed) chunk = amount - completed;
-        ext2_copy(data + completed, block_data + in_block, chunk);
-        completed += chunk;
+        /* Admit the complete mapped block before narrowing its physical I/O.
+         * Regular-file range reads need no unrelated sectors; metadata and
+         * directory reads retain their existing full-block validation. */
+        if (block >= volume->blocks_count || volume->block_size == 0U ||
+            volume->block_size > REIST_VFS_SHADOW_EXT2_MAX_BLOCK_SIZE)
+            return -5;
+        uint64_t first = (uint64_t)block * volume->sectors_per_block;
+        if (first + volume->sectors_per_block > volume->sectors) return -5;
+        uint32_t block_amount = volume->block_size - in_block;
+        if (block_amount > amount - completed) block_amount = amount - completed;
+        uint32_t in_range = 0U;
+        while (in_range < block_amount) {
+            uint32_t local = in_block + in_range;
+            uint32_t sector_index = local / X86OS_STORAGE_BLOCK_SIZE;
+            if (sector_index >= volume->sectors_per_block) return -5;
+            status = ext2_read_sector(volume, (uint32_t)first + sector_index,
+                                      sector_data);
+            if (status != 0) return status;
+            uint32_t in_sector = local % X86OS_STORAGE_BLOCK_SIZE;
+            uint32_t chunk = X86OS_STORAGE_BLOCK_SIZE - in_sector;
+            if (chunk > block_amount - in_range) chunk = block_amount - in_range;
+            ext2_copy(data + completed + in_range, sector_data + in_sector, chunk);
+            in_range += chunk;
+        }
+        completed += block_amount;
     }
     *transferred = completed;
     return 0;
