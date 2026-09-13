@@ -1,7 +1,74 @@
 # Native bounded block-service profiles — R8.3ak
 
 Frozen after accepted91401365 under continuous interactive completion authority.
-20 allowed files,20 mandatory queue groups; this contract is not acceptance.
+24 allowed files,22 mandatory queue groups after renewed user authority below;
+this contract is not acceptance.
+
+## Authorized frame-validation cost amendment, 13 September2026
+
+The renewed explicit user approval resumes the attributed19-path candidate
+recorded in verification-status.json; no unrelated changes or new package.
+Freeze and locally commit only this contract/queue/documentation amendment
+before source work. Historical stops and failed evidence below remain valid
+history, not acceptance or permission to raise budgets.
+
+Inventory identifies process_run_frames64 as a repeated whole-run gate in
+syscall, dispatch and IRQ admission: up to276 nonzero frames incur37950 exact
+prior-frame comparisons per call. Keep EVERY call, all slot/state/range/CR3/
+mandatory-frame checks and the exact64-bit duplicate rejection. No cache,
+new persistent authority, skipped validation, allocator or kernel C change.
+For NativeWide only, allow a512-bit per-invocation stack-local negative filter
+alongside the existing bounded frame list. Clear all64 filter bytes on entry;
+derive a bounded hash from the full physical page number. An unset bit proves
+that no equal earlier value exists; a set bit ALWAYS uses the original exact
+full-width prior-frame scan. Hash collisions may cost time but never admit an
+alias. Append every nonzero frame to the same original list. Worst case keeps
+the original37950 exact comparisons plus bounded hashing, with only64 extra
+stack bytes. No published state and no assumptions about allocator ordering.
+Legacy non-Wide code/allocated bytes must remain unchanged.
+
+Add only process_run.inc, test/test_x86_64_frame_cost.py,
+test/x86_64_frame_cost_host.c and scripts/diagnose_x86_64_block_profile.py
+to the original20-file allowlist. Add actual O0/O2 frame-cost/differential
+host gate and existing process-run host gate to the original20 groups:22.
+Compare the actual candidate assembly against the frozen61efea3d algorithm,
+all276 positions/pairs, missing/unaligned/out-of-range/kernel-root/CR3 cases,
+cross-slot and high-bit aliases, adversarial hash collisions, repeated calls
+and byte-for-byte input nonmutation. Instrument exact comparisons only in
+host copies, never the kernel; assert a deterministic reduced comparison count
+for sequential and actual captured guest frames, not host-time guarantees.
+
+Diagnostic adapter: exactly two same-image4GiB guests per explicitly labelled
+baseline/after invocation (at most four across this amendment), each original
+20s ceiling and unchanged quotas/media safety. One detached run, one minimal
+observer capturing once the actual live child3 task/table frame records and
+original CR3 at process_run_frames64, then detaching. Bind image/C/catalog
+hashes before/after; bounded4096 callbacks and fixed snapshots, actual serial
+receipts and fail-closed media cleanup. Diagnostics never replace the full
+new11-case matrix or claim a specific historical IRQ cause. No unchanged
+diagnostic retries. Record pre/post receipts and measured host work separately.
+
+Renew affected Wide/profile builds and runtime gates after kernel changes;
+retain unchanged host/legacy evidence by exact source/artifact hashes. Review
+default objects and scope again. Same failure after two focused production
+corrections remains a stop, not permission for a larger CPU grant. Completion
+still requires all22 gates, direct review and local implementation commit.
+
+## Candidate stop evidence, not an amended gate
+
+Candidate on61efea3d remains active/uncommitted. Actual C/PIO O0/O2 hosts,
+five builds and legacy block10 pass. New matrix runtime-03.log FAIL5.757s,
+attempt358eec3507eb44d1972a68bee3e8ed1a: child generation3 reaches32 CPU
+samples/status256/RIP0x4104fc during request4 after three correct replies.
+Physical IDENTIFY512 plus data2240 bytes, fence/reap and surviving peer77
+are observed; nine reads/replacement are absent, zero cases accepted.
+The observer rejects the incomplete lifetime count. Two focused observer
+cost corrections retained all authority/data/cleanup assertions; same concrete
+failure remains. Stop condition reached, no third correction or quota change.
+Exact cost attribution is unproved. Further diagnostic/implementation scope
+requires explicit frozen authority, including relevant Wide syscall/context/
+pointer paths if needed. Historical failed evidence is retained; see
+[current work](../development/CURRENT_WORK.md) for unaffected gate results.
 
 ## Inventory and common boundary
 

@@ -6,6 +6,21 @@ eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
 ## R8.3aj: Imagekapazität, Stack und Bootbesitz gemeinsam
 
+Die erneute ausdrückliche Nutzerfreigabe setzt R8.3ak mit einer begrenzten
+Frameprüfungs-Kostenanalyse fort:24 Dateien/22 Gates, unveränderte vollständige
+Besitzprüfungen und Quoten. Historische Stopbelege bleiben erhalten; dies ist
+keine Vorwegnahme einer Gast- oder Systemabnahme.
+
+R8.3aj ist mit `91401365` und allen18 Gates abgeschlossen. Der folgende
+R8.3ak-Kandidat auf `61efea3d` ist nicht abgenommen: Nach zwei gezielten
+Beobachterkorrekturen beendet das unveränderte32-Sample-Budget den Wide-
+Blockdienst im vierten Leseauftrag. Neun erfolgreiche Anfragen und Ersatz-
+lebenslauf fehlen. Host-/Buildpässe und alte Block10 ersetzen diese Gast-
+abnahme nicht. Stop-Bedingung erreicht; sichtbare Änderungen und Fehlbelege
+bleiben erhalten. Begrenzte Kostenanalyse benötigt eine neue ausdrückliche
+Vertragsfreigabe; keine Quotenanhebung oder stillschweigende Scopeerweiterung.
+Details: [Arbeitsstand](CURRENT_WORK.md).
+
 Auf sauberem Abschluss `91401365` folgt R8.3ak: Der vorhandene EXT2-Parser
 benötigt schon für15 Dateibytes neun unterschiedliche Sektoren, das alte
 Blockprofil erlaubt acht Anfragen. Ein eigenes begrenztes Dienstprofil und

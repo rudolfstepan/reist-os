@@ -2,7 +2,77 @@
 
 Stand: 13. September 2026
 
-## R8.3ak: Blockdienstprofil und Wide-PIO-Besitz eingefroren
+## R8.3ak: Kostenkorrektur ausdrücklich freigegeben
+
+Die erneute Nutzerfreigabe erlaubt die begrenzte Ursachenanalyse und nötige
+Kernelpfad-Korrekturen ohne Routineübergabe. Der19-Pfad-Kandidat stimmt exakt
+mit `verification-status.json` überein. Derselbe aktive Blockdienstvertrag
+wird auf24 Dateien/22 Gategruppen erweitert, nicht als Folgepaket vermischt.
+Inventur: `process_run_frames64` führt bei bis276 Frames bis37950 vorherige
+Framevergleiche aus und wird bei Syscalls/Dispatch/IRQ erneut geprüft.
+Eine nur lokale, jedes Mal geleerte512-Bit-Negativmaske darf ausschließlich
+unmögliche Gleichheit ausschließen; Kollisionen behalten den exakten64-Bit-
+Vergleich. Keine Prüfung oder Quotenänderung entfällt. Tatsächliche O0/O2-
+Differenz-/Kollisions-/Kostenprüfungen und begrenzte gleichabbildige Gast-
+diagnose werden vor der erneuten vollständigen Profilmatrix verlangt.
+[Erweiterter Vertrag](../architecture/NATIVE_BLOCK_PROFILE_CONTRACT.md).
+Der folgende Stopbeleg bleibt historische Evidenz, keine aktuelle Sperre
+gegen die jetzt ausdrücklich freigegebene begrenzte Untersuchung.
+
+## R8.3ak: Kandidat umgesetzt, Gastabnahme am CPU-Budget gestoppt
+
+Auf Vertrag `61efea3d` sind das lokale24-Byte-Profil, gemeinsame Dispatcher-
+Zähler, generationsgebundene Dienstinitialisierung, Wide-PIO-Strides und
+separate Windows-/Make-Buildanbindung als sichtbarer Kandidat umgesetzt.
+Keine Implementierungsabnahme und kein Kandidatencommit: Nach zwei gezielten
+Beobachterkorrekturen bleibt derselbe echte32-Sample-Abbruch bestehen.
+
+`build/codex-agent/r83ak-block-profile/runtime-03.log` FAIL/5.757s,
+`guests/attempt-358eec3507eb44d1972a68bee3e8ed1a`: erster4GiB-Fall,
+IDENTIFY/Selbsttest und drei vollständige Leseantworten korrekt; vierter
+Leseauftrag endet nach192 Datenbytes durch CPU-Budgetstatus256 bei RIP0x4104fc.
+Client erhält EPIPE bei unverändertem Ausgabepuffer; Peer endet regulär77.
+Physisches Fence und Retirement sind beobachtet, der geforderte zweite
+Dienstlebenslauf und neun erfolgreiche Anfragen fehlen. Null neue Fälle
+abgenommen. Die Matrix meldet `program capture/detach failure`, weil der
+Beobachter die unvollständige Lebenslaufzahl ausdrücklich zurückweist.
+
+Die beiden gezielten Korrekturen entfernen nur wiederholte First-Publication-
+Breakpoints sowie unbenutzte Taskrecordbytes beim Generationslesen. Alle
+Publikations-, Zustands-, Daten- und Freigabeprüfungen bleiben erhalten;
+`runtime-host-04.log` PASS2/.926s. Runtime01/02, roter Regressionstest und
+alle ursprünglichen Build-/Hostfehler bleiben erhalten. Die genaue Ursache
+der Laufzeitkosten ist noch nicht nachgewiesen; kein bestimmter Kernelpfad
+wird allein aus dem gespeicherten Userspace-RIP als Ursache bezeichnet.
+
+Acht bisherige Hostgruppen und alle fünf Builds bestehen. Neue tatsächliche
+C-/PIO-Adapter O0/O2: `profile-host-05.log` PASS2/2.549s, einschließlich
+Limit1..16, Fehlversuchen, Fristen, Generationen und beiden Tasklayouts.
+Alte Blockmatrix: `block-runtime-01.log` PASS10/142.380s,
+`block-guests/attempt-5cd177e995404281a05ea53ed826639f`.
+`default-object-review-02.log`: alle27 Standardobjekte bytegleich zu AJ;
+erster Vergleich mit falschem Dateiglob ist verworfene Diagnose.
+Weitere Rückfallgates bestehen:
+
+- `wide-runtime-01.log`:13 Fälle/104 Lebensläufe PASS/133.558s,
+  reine Gastzeit95.930s, `wide-guests/attempt-42908ebdd70942eb8f791ce61f8aa1f5`.
+- `fatal-runtime-01.log`:neun Fälle PASS/8.688s,
+  `fatal-guests/attempt-75327c88d6c9441cb4e43cc3081f791f`.
+- `normal-runtime-01.log`:normaler Ring3-Bootstrap PASS/.566s Kommandolaufzeit;
+  `i386-guard-01.log`:Originalmedienprüfung PASS/1.078s.
+
+Exakte eingefrorene Kommandos und Loghashes stehen in `verification-status.json`,
+ausdrücklich kein `accepted-gates.json`. Der neue Profilgate bleibt FAIL;
+seine späteren Varianten wurden wegen des ersten Fehlers nicht ausgeführt.
+
+Stop-Bedingung des eingefrorenen Vertrags erreicht. Paket bleibt aktiv und
+der Kandidat unverändert sichtbar; kein Folgepaket. Fortsetzung benötigt
+ausdrücklich neu eingefrorene, begrenzte Kosten-/Ursachenanalyse einschließlich
+der relevanten Wide-Syscall-/Kontext-/Pointerpfade und ihrer Negativnachweise,
+falls dort eine Korrektur erforderlich ist. Keine automatische Erweiterung
+der20 Dateien, CPU-/PIO-/IPC-/Restartquoten oder Gastfristen.
+
+### Ursprüngliche Paketdefinition
 
 R8.3aj ist mit `91401365` lokal abgeschlossen; Arbeitsbaum danach sauber.
 Die anschließende tatsächliche EXT2-Inventur O0/O2 benötigt für15 Dateibytes
