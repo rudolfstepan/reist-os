@@ -36,7 +36,8 @@ def prepare(raw,args):
         source[cursor:cursor+len(b)+1]=b+b'\0';cursor+=len(b)+1
     return b'RNPGv1\0\0'+struct.pack('<IIQ',1,SIZE,entry)+rights+pages+source
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False):
+    if block and not pio:raise ValueError('block service requires PIO')
     if pio and (not import_image or startup_case):raise ValueError('PIO requires normal import')
     if pio_case not in range(4) or (pio_case and not pio):raise ValueError('PIO case')
     if import_image and not startup:raise ValueError('import requires startup')
@@ -67,14 +68,22 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             driver=attempt/'ata-pio.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/drivers/ata/native_pio.c','-o',driver])
             objects.append(driver)
+        if block and n in (0,2):
+            sources=['userspace/storage/lib/native_block.c']
+            if n==2:sources+=['userspace/drivers/ata/native_service.c']
+            for index,source in enumerate(sources):
+                unit=attempt/f'block-{n}-{index}.o'
+                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include','-c',source,'-o',unit])
+                objects.append(unit)
         run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz' if pio else '-O2','-Wall','-Wextra','-Werror',
              '-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone',
              '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
              '-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include',
              f'-DPROGRAM_ID={n}',f'-DPROGRAM_CASE={case}',f'-DFAMILY_CASE={family_case}',f'-DSTARTUP_CASE={startup_case}',
-             f'-DPIO_CASE={pio_case}',*extra,'-c','arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             f'-DPIO_CASE={pio_case}',*extra,'-c','arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
+             *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
              '-T','config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
         records[n]=prepare(elf.read_bytes(),[f'program{n}.prg',str(n)])
     catalog=attempt/'boot-programs.bin';catalog.write_bytes(b''.join(records))
@@ -93,9 +102,10 @@ if __name__=='__main__':
     p.add_argument('--startup',action='store_true')
     p.add_argument('--import-image',action='store_true')
     p.add_argument('--pio',action='store_true')
+    p.add_argument('--block',action='store_true')
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
     p.add_argument('--startup-case',type=int,choices=range(2),default=0)
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block)

@@ -11,11 +11,11 @@ class PioTests(unittest.TestCase):
         from collections import defaultdict
         import run_qemu_x86_64_pio as p
         symbols=defaultdict(int,{'native_pio_out8.done':1000,'native_pio_syscall64':1001,
-                                'native_pio_apply64':2000,'timer_runtime_progress64':3000,
+                                'native_pio_apply64':2000,'timer_runtime_progress64':3000,'process_ipc_take64':5000,
                                 'x86_64_scheduler_shell_timer_validate64':4000})
         for kind in p.FATAL_CASES:
             code=p.fatal_observer(symbols,ROOT/'build/codex-agent/r83ah-pio',kind)
-            expected=3000 if kind in ('expired','backward','lease','eoi') else 4000 if kind=='context' else 2000
+            expected=3000 if kind in ('expired','backward','lease','eoi') else 4000 if kind=='context' else 5000 if kind=='ipc-ticket' else 2000
             self.assertIn("trigger=Probe("+str(expected)+",'trigger',False)",code)
             self.assertNotIn("trigger=Probe(1001",code) # No adjacent RET/entry debugger traps.
             compile(code.split('python\n',1)[1].rsplit('end\ncontinue',1)[0],'<actual-fatal-observer>','exec')
@@ -42,7 +42,7 @@ class PioTests(unittest.TestCase):
             events+=['PIO_FATAL_FENCE physical=1 unchanged=1','PIO_FATAL_DIAG fenced=1 unchanged=1',
                      'PIO_FATAL_HALT unchanged=1']
             trace='\n'.join(events)
-            serial='REIST_X86_64_EXCEPTION_FATAL '+('pio=1' if kind in ('metadata','scheduler') else 'vector=06' if kind=='kernel' else 'vector=20')
+            serial='REIST_X86_64_EXCEPTION_FATAL '+('pio=1' if kind in ('metadata','scheduler','ipc-ticket') else 'vector=06' if kind=='kernel' else 'vector=20')
             p.validate_fatal(serial,trace,kind)
             for i in range(len(events)):
                 with self.assertRaises(ValueError):p.validate_fatal(serial,'\n'.join(events[:i]+events[i+1:]),kind)
@@ -159,7 +159,7 @@ int main(void) {
         host.TaskFrameTests().build('BITS 64\nsection .text\n',code,'PIO_IMAGE_COPY_HOST')
 
     @staticmethod
-    def sample(case,oom):
+    def sample(case,oom,*,block=False):
         import run_qemu_x86_64_pio as r
         import struct,hashlib
         common=[m for m in r.startup.family.REQUIRED_MARKERS if 'SHELL' not in m]
@@ -184,10 +184,15 @@ int main(void) {
             order=[]
             for i,mode in enumerate(modes,3):
                 gen=base+i;length=0 if case==2 else 256 if mode in (1,2,4) else 512
-                trace+=f'IMPORT_COPY gen={gen} bytes=36896 immutable=1\nSTARTUP_ARGS gen={gen} argc=2 immutable=1\nFAMILY_START slot=2 gen={gen} image=7 high=1 wx=1 argv=1\nPIO_BIND gen={gen} recycled=1\n'
+                trace+=f'IMPORT_COPY gen={gen} bytes=36896 immutable=1\nSTARTUP_ARGS gen={gen} argc={4 if block else 2} immutable=1\nFAMILY_START slot=2 gen={gen} image=7 high=1 wx=1 argv=1\nPIO_BIND gen={gen} recycled=1\n'
                 if mode==2:trace+=f'FAMILY_CANCEL slot=2 gen={gen} state=6 ipc=0 heap=0 reason={3 if case==3 else 2}\n'
-                trace+=f'PIO_RETIRE gen={gen} identify={0 if case==2 else 512} data={length} sha256={hashlib.sha256(r.SECTOR[:length]).hexdigest()} fenced=1\n'
-                status,state=(0,3) if case==3 or mode==2 else (134,3) if mode==1 else (256,3) if mode==4 else (89 if case==2 else 80,4)
+                if block and mode==3:trace+=f'FAMILY_CANCEL slot=2 gen={gen} state=6 ipc=1 heap=0 reason=2\n'
+                payload=r.SECTOR[:length]
+                if block:
+                    length=0 if case==2 else 768 if mode in (1,2,4) else 1024 if mode==3 else 1536
+                    payload=(r.BLOCK_DISK[:1024]+r.BLOCK_DISK[127*512:])[:length]
+                trace+=f'PIO_RETIRE gen={gen} identify={0 if case==2 else 512} data={length} sha256={hashlib.sha256(payload).hexdigest()} fenced=1\n'
+                status,state=(0,3) if case==3 or mode==2 or block and mode==3 else (134,3) if mode==1 else (256,3) if mode==4 else (89 if case==2 else 80,4)
                 order.append((2,gen,status,state))
                 trace+=f'FAMILY_FENCE slot=2 gen={gen} ipc=1 heap=1 profile=1\n'+frames(8,2,gen,state)
             for slot,status,state in ((0,134 if case==3 else 79 if case==2 else 78,3 if case==3 else 4),(1,77,4)):
@@ -197,7 +202,7 @@ int main(void) {
                 serial+='REIST_X86_64_PROCESS_REAP_OK v1='+struct.pack('<4I2Q',slot,gen,status,state,32 if status==256 else 1,0x40002b).hex().upper()+'\n'
             serial+=r.startup.family.process.DONE+'\n'
             trace+=f'PROCESS_ZERO_OK run={run+1} zero=1 free=1000007 initial=1000007 reaps={count} generation={(run+1)*count} ticks={(run+1)*100}\nPIO_ZERO run={run+1} complete=1\nFAMILY_ZERO run={run+1} complete=1\n'
-        trace+=('IMPORT_SCRUB bytes=36896 complete=1\nSTARTUP_SCRUB bytes=4096 complete=1\n')*r.minimum_scrubs(case)
+        trace+=('IMPORT_SCRUB bytes=36896 complete=1\nSTARTUP_SCRUB bytes=4096 complete=1\n')*r.minimum_scrubs(case,block)
         return serial+'\n'.join(common[cut:])+'\n'+r.startup.family.process.SUCCESS+'\n',trace
 
     def test_guest_oracle(self):

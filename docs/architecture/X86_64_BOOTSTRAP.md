@@ -2,6 +2,21 @@
 
 Stand: 13. September 2026
 
+R8.3ai ergänzt `-NativeBlock` beziehungsweise
+`X86_64_NATIVE_BLOCK=1` setzt NativePIO und bündelt Ring3-Block-RPC-v1 über
+bestehende IPC-v1/v2-Envelopes. PIO-Request-v2 trägt eine absolute Deadline;
+V1 bleibt unverändert. Native IPC vermindert unveränderte Neuversiegelungen;
+geschützte generationsgebundene Komplettierungsrecords vermeiden unnötige
+C-TAKE-Aufrufe bei IPC-fremdem Wiedereintritt. IF=0 und Recordintegrität werden
+auch dort geprüft; jede tatsächliche IPC-Operation prüft weiterhin vollständig.
+Auf Vertrag `873d82fa` bestehen Block10, PIO10 und Fatal9 mit unveränderten
+Quoten, darunter tatsächliche Komplettierungsrecord-Korruption vor Fence/Halt.
+O0/O2-Kosten-/Zustands-/Korruptionstests ergänzen diese Gastbelege.
+Keine normale Storage-/Shellintegration
+oder vollständige64-Bit-Version behauptet.
+[Blockdienstvertrag](NATIVE_BLOCK_SERVICE_CONTRACT.md),
+[aktuelle Belege](../development/CURRENT_WORK.md).
+
 R8.3ah ergänzt `-NativePIO` (setzt
 NativeImport) beziehungsweise Make `X86_64_NATIVE_PIO=1`. CREATE-v4 bleibt
 64Byte groß und übernimmt ein40-Byte-Profil mit allen192 Syscallbits;

@@ -16,6 +16,31 @@ def elf():
     return bytes(b)
 
 class BootProgramTests(unittest.TestCase):
+    def test_actual_block_variants(self):
+        import os,uuid,shutil
+        import build_x86_64_boot_programs as p
+        from build_user_program import find_zig
+        folder=ROOT/'build/codex-agent/r83ai-block'/('program-matrix-'+uuid.uuid4().hex)
+        folder.mkdir(parents=True)
+        zig=find_zig();nasm=shutil.which('nasm') or 'C:/tools/nasm-3.02/nasm.exe'
+        with patch.dict(os.environ,{'ZIG_GLOBAL_CACHE_DIR':str(ROOT/'build/zig-global-cache'),
+                                    'ZIG_LOCAL_CACHE_DIR':str(folder/'cache')}):
+            for case in range(4):
+                destination=folder/str(case)
+                p.build(destination,[zig,'cc'],[nasm],[zig,'ld.lld'],0,
+                        family=True,startup=True,import_image=True,pio=True,pio_case=case,block=True)
+                catalog=(destination/'boot-programs.bin').read_bytes()
+                self.assertEqual(len(catalog),4*36896)
+                attempt=next(destination.glob('programs-*'))
+                for role in range(4):
+                    record=p.prepare((attempt/f'program{role}.prg').read_bytes(),[f'program{role}.prg',str(role)])
+                    self.assertEqual(catalog[role*36896:(role+1)*36896],record)
+                witness=re.findall(r'^\s*([0-9a-f]+)\s+(?:[0-9a-f]+\s+)*block_result_record\s*$',(attempt/'program0.map').read_text(),re.M)
+                self.assertEqual(len(witness),1)
+                address=int(witness[0],16)
+                self.assertTrue(0x400000<=address<0x408000)
+                self.assertEqual(catalog[24+(address-0x400000)//4096],6)
+
     @staticmethod
     def sample(case=0):
         import run_qemu_x86_64_boot_programs as r

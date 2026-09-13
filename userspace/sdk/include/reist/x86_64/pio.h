@@ -14,4 +14,16 @@ typedef char reist_native_pio_size_check[sizeof(reist_native_pio_request)==64?1:
 static inline int64_t reist_x64_pio(reist_native_pio_request *q) {
     return reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,(uintptr_t)q);
 }
+/* Append-only envelope v2: offset48 is deadline_ms only in v2; v1 retains
+ * both reserved-zero words. BIND/FENCE deliberately remain deadline-free v1. */
+static inline int reist_x64_pio_deadline_prepare(reist_native_pio_request *out,
+        const reist_native_pio_request *input,uint64_t deadline_ms) {
+    if(!out || !input || input->version!=1 || input->size!=64 ||
+       input->operation<REIST_PIO_READ8 || input->operation>REIST_PIO_READ16 ||
+       input->reserved0 || input->flags || input->reserved1 || input->reserved2 || !deadline_ms)return -22;
+    *out=*input;out->version=2;out->reserved1=deadline_ms;return 0;
+}
+static inline uint64_t reist_x64_pio_deadline_ms(const reist_native_pio_request *q) {
+    return q && q->version==2?q->reserved1:0;
+}
 #endif

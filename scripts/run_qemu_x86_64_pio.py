@@ -7,6 +7,7 @@ from run_qemu_x86_64_runtime_clock import once
 ROOT=Path(__file__).resolve().parents[1]
 SECTOR=bytes((n^0xa5)&255 for n in range(512))
 DISK=SECTOR*128
+BLOCK_DISK=b''.join(bytes((n^(lba*17)^0xa5)&255 for n in range(512)) for lba in range(128))
 
 def regular(path,limit):
     info=path.lstat()
@@ -26,13 +27,15 @@ def safe_folder(folder):
     return folder
 
 class Fixture:
-    def __init__(self,folder):
+    def __init__(self,folder,*,block=False):
+        if type(block) is not bool:raise ValueError('fixture profile')
+        self.block=block
         self.folder=safe_folder(folder)
         self.base=self.folder/'generated.raw';self.overlay=self.folder/'disposable.qcow2'
         self.tool=startup.family.programs.resolve_qemu(None).parent/'qemu-img.exe'
         self.commands=[]
         if self.base.exists() or self.overlay.exists():raise ValueError('fixture already exists')
-        with self.base.open('xb') as out:out.write(DISK)
+        with self.base.open('xb') as out:out.write(BLOCK_DISK if self.block else DISK)
         self.run('create','-f','qcow2','-F','raw','-b',str(self.base),str(self.overlay))
 
     def run(self,*args):
@@ -64,7 +67,7 @@ class Fixture:
         try:
             self.paths()
             raw=self.base.read_bytes();result['base_sha256']=hashlib.sha256(raw).hexdigest()
-            if raw!=DISK:raise ValueError('generated base changed')
+            if type(self.block) is not bool or raw!=(BLOCK_DISK if self.block else DISK):raise ValueError('generated base changed')
             info=json.loads(self.run('info','--output=json','-f','qcow2',str(self.overlay)))
             if (info['format']!='qcow2' or info['virtual-size']!=65536 or
                     Path(info['full-backing-filename'])!=self.base or info['backing-filename-format']!='raw'):
@@ -86,13 +89,13 @@ class Fixture:
 def modes(case):
     return [2] if case==3 else [0] if case==2 else [0,1,0,2,0,3,4,0][case==1:]
 
-def minimum_scrubs(case):
+def minimum_scrubs(case,block=False):
     # Three rejected profiles, optional injected create, each actual create,
     # stale WAIT after reap (except owner loss), and final exhausted CREATE.
     count=len(modes(case))
-    return 2*(3+(case==1)+count+(count if case!=3 else 0)+(case<2))
+    return 2*((0 if block else 3)+(case==1)+count+(count if case!=3 else 0)+(case<2))
 
-def observer(s,c,folder,ram,case,oom,record):
+def observer(s,c,folder,ram,case,oom,record,*,block=False):
     code=startup.observer(s,c,folder,ram,oom,record)
     # Observe the actual completed scrub, not every unrelated PIO/sleep syscall.
     code=once(code,"class StartupScrub(gdb.Breakpoint):\n    def __init__(self):super().__init__('*'+hex("+str(s['process_run_resume64'])+"),internal=True)",
@@ -113,6 +116,8 @@ pio_retire(slot,gen)
     extra=f'''python
 import hashlib
 pio_seen={{}};pio_owner=0;pio_events=0
+
+
 def pio_state():
     v=struct.unpack('<8Q',mem({s['native_pio_state']},64))
     assert v[1]==(v[0]^0xffffffffffffffff) and v[2] in (0,1) and v[5]<=64
@@ -130,7 +135,10 @@ def pio_retire(slot,gen):
         else:
             assert len(ident)==512 and struct.unpack_from('<H',ident,98)[0]&512
             assert struct.unpack_from('<I',ident,120)[0]==128
-            assert data==bytes((n^0xa5)&255 for n in range(len(data))) and len(data) in (256,512)
+            if {block!r}:
+                expected=b''.join(bytes((n^(lba*17)^0xa5)&255 for n in range(512)) for lba in d['lbas'])
+                assert data==expected[:len(data)] and len(data) in (768,1024,1536)
+            else:assert data==bytes((n^0xa5)&255 for n in range(len(data))) and len(data) in (256,512)
         gdb.write('PIO_RETIRE gen=%d identify=%d data=%d sha256=%s fenced=1\\n'%(gen,len(ident),len(data),hashlib.sha256(data).hexdigest()))
 class PioOut(gdb.Breakpoint):
     def __init__(self):super().__init__('*'+hex({s['native_pio_out8.done']}),internal=True)
@@ -138,7 +146,8 @@ class PioOut(gdb.Breakpoint):
         global pio_owner,pio_events
         try:
             pio_events+=1;assert pio_events<=512
-            port=reg('edx')&65535;value=reg('eax')&255;v=pio_state();owner=v[0]
+            port=reg('edx')&65535;value=reg('eax')&255
+            v=pio_state();owner=v[0]
             slot=struct.unpack('<I',mem({s['scheduler_current_slot']},4))[0]
             gen=u64({s['scheduler_tasks']}+slot*256+8)
             if port==0x3f6 and value==6:
@@ -148,7 +157,7 @@ class PioOut(gdb.Breakpoint):
                     assert slot==0 and not v[2] and owner not in pio_seen
                     assert u64({s['family_records']}+(owner&3)*64+8)==gen<<32
                     pio_owner=owner
-                    pio_seen[owner]=dict(reset=True,released=False,retired=False,command=0,identify=bytearray(),data=bytearray())
+                    pio_seen[owner]=dict(reset=True,released=False,retired=False,command=0,identify=bytearray(),data=bytearray(),lba=0,lbas=[])
                     gdb.write('PIO_BIND gen=%d recycled=1\\n'%(owner>>32))
                 else:pio_seen[owner]['reset']=True
             else:
@@ -161,11 +170,18 @@ class PioOut(gdb.Breakpoint):
                     if port==0x1f7:
                         assert value in (0xec,0x20)
                         if value==0xec:assert d['command']==0
-                        else:assert d['command']==0xec and len(d['identify'])==512
+                        else:
+                            assert d['command'] in ((0xec,0x20) if {block!r} else (0xec,)) and len(d['identify'])==512
+                            if {block!r}:
+                                assert len(d['lbas'])<5 and len(d['data'])==512*len(d['lbas'])
+                                assert d['lba'] in (0,1,127);d['lbas'].append(d['lba'])
                         d['command']=value
                     elif port==0x1f6:assert 0xe0<=value<=0xef
                     elif port==0x1f2:assert value==1
-                    else:assert port in (0x1f3,0x1f4,0x1f5) and value==0
+                    else:
+                        assert port in (0x1f3,0x1f4,0x1f5)
+                        if {block!r} and port==0x1f3:assert value in (0,1,127);d['lba']=value
+                        else:assert value==0
         except Exception as e:
             gdb.write('PIO_OBSERVER_FAIL OUT '+repr(e)+'\\n');gdb.execute('quit 71')
         return False
@@ -174,11 +190,13 @@ class PioData(gdb.Breakpoint):
     def stop(self):
         try:
             q=struct.unpack('<4IQ4I3Q',mem(reg('r13'),64));v=pio_state()
-            assert q[:4]==(1,64,4,0) and q[4]==v[0] and not v[2]
-            assert q[5:9]==(0x1f0,0,16,0) and q[10:]==(0,0) and reg('ebp')==16
+            assert q[:4]==(2 if {block!r} else 1,64,4,0) and q[4]==v[0] and not v[2]
+            assert q[5:9]==(0x1f0,0,16,0) and q[11]==0 and reg('ebp')==16
+            if {block!r}:assert v[4]*10<q[10]<=v[4]*10+1000
+            else:assert q[10]==0
             d=pio_seen[v[0]];assert not d['retired'] and d['released']
             key='identify' if d['command']==0xec else 'data'
-            assert d['command'] in (0xec,0x20) and len(d[key])<=480
+            assert d['command'] in (0xec,0x20) and len(d[key])<=(2528 if {block!r} and key=='data' else 480)
             d[key].extend(mem(q[9],32))
         except Exception as e:
             gdb.write('PIO_OBSERVER_FAIL DATA '+repr(e)+'\\n');gdb.execute('quit 72')
@@ -199,7 +217,7 @@ end
 '''
     return code[:-len('continue\n')]+extra+'continue\n'
 
-def validate(serial,trace,case,oom=None):
+def validate(serial,trace,case,oom=None,*,block=False):
     if 'OBSERVER_FAIL' in trace:raise ValueError('PIO observer failure')
     common=[m for m in startup.family.REQUIRED_MARKERS if 'SHELL' not in m]+[startup.family.process.SUCCESS]
     if any(m in serial for m in startup.family.FAILURES) or any(serial.count(m)!=1 for m in common):raise ValueError('PIO kernel progress')
@@ -214,11 +232,11 @@ def validate(serial,trace,case,oom=None):
         expected[(0,base+1)]=(134,3) if case==3 else (79 if case==2 else 78,4)
         expected[(1,base+2)]=(77,4)
         for i,mode in enumerate(sequence,3):
-            expected[(2,base+i)]=(0,3) if case==3 or mode==2 else (134,3) if mode==1 else (256,3) if mode==4 else (89 if case==2 else 80,4)
+            expected[(2,base+i)]=(0,3) if case==3 or mode==2 or block and mode==3 else (134,3) if mode==1 else (256,3) if mode==4 else (89 if case==2 else 80,4)
         for m in receipts[run*count:(run+1)*count]:
             slot,gen,status,state,ticks,rip=struct.unpack('<4I2Q',bytes.fromhex(m[1]))
             if expected.get((slot,gen))!=(status,state) or ticks>32 or status==256 and ticks!=32:raise ValueError('PIO outcome '+str((slot,gen,status,state,ticks)))
-            if not 0x400000<=rip<(0x402000 if slot==0 else 0x401000):raise ValueError('PIO RIP')
+            if not 0x400000<=rip<(0x402000 if slot==0 or block and slot==2 else 0x401000):raise ValueError('PIO RIP')
             if not (ends[run-1].end() if run else -1)<m.start()<m.end()<ends[run].start():raise ValueError('PIO receipt order')
             rows.append((slot,gen,state))
     if len(set((s,g) for s,g,_ in rows))!=len(expected) or ends[-1].end()>serial.index('REIST_X86_64_C_KERNEL_CONTROL_OK'):raise ValueError('PIO lifetime identity')
@@ -258,7 +276,11 @@ def validate(serial,trace,case,oom=None):
     if [int(m[1]) for m in binds]!=children or [int(m[1]) for m in data]!=children:raise ValueError('PIO generation binding')
     for i,m in enumerate(data):
         mode=sequence[i%len(sequence)];length=0 if case==2 else 256 if mode in (1,2,4) else 512
-        if (int(m[2]),int(m[3]),m[4])!=(0 if case==2 else 512,length,hashlib.sha256(SECTOR[:length]).hexdigest()):raise ValueError('PIO actual data')
+        payload=SECTOR[:length]
+        if block:
+            length=0 if case==2 else 768 if mode in (1,2,4) else 1024 if mode==3 else 1536
+            payload=(BLOCK_DISK[:512]+BLOCK_DISK[512:1024]+BLOCK_DISK[127*512:]+BLOCK_DISK[512:1024]+BLOCK_DISK[127*512:])[:length]
+        if (int(m[2]),int(m[3]),m[4])!=(0 if case==2 else 512,length,hashlib.sha256(payload).hexdigest()):raise ValueError('PIO actual data')
         fence=next(f for f in fences if f[2]==m[1])
         if not binds[i].end()<m.start()<m.end()<fence.start():raise ValueError('PIO transfer fence order')
     zeros=list(re.finditer(r'PROCESS_ZERO_OK run=(\d+) zero=1 free=(\d+) initial=(\d+) reaps=(\d+) generation=(\d+) ticks=(\d+)',trace))
@@ -270,9 +292,15 @@ def validate(serial,trace,case,oom=None):
     for label in ('PIO_ZERO','FAMILY_ZERO'):
         if re.findall(label+r' run=(\d+) complete=1',trace)!=['1','2']:raise ValueError('PIO complete zero')
     cancel=list(re.finditer(r'FAMILY_CANCEL slot=(\d+) gen=(\d+) state=(\d+) ipc=(\d+) heap=(\d+) reason=(\d+)',trace))
-    wanted=[(2,run*count+i,3 if case==3 else 2) for run in range(2) for i,mode in enumerate(sequence,3) if mode==2]
-    if [(int(m[1]),int(m[2]),int(m[6])) for m in cancel]!=wanted or any(int(m[3]) not in (1,6) or int(m[4]) or int(m[5]) for m in cancel):raise ValueError('PIO cancellation')
+    wanted=[(2,run*count+i,3 if case==3 else 2) for run in range(2) for i,mode in enumerate(sequence,3) if mode==2 or block and mode==3]
+    if [(int(m[1]),int(m[2]),int(m[6])) for m in cancel]!=wanted:raise ValueError('PIO cancellation')
+    bad_reply={run*count+i for run in range(2) for i,mode in enumerate(sequence,3) if block and mode==3}
     for m in cancel:
+        # After a bad reply the service may await its next request, unlike the
+        # sleeping fault. Ready-copyout (IPC2) belongs to READY; pending IPC1
+        # belongs to BLOCKED. Never accept arbitrary task/IPC combinations.
+        states=((1,0),(1,2),(6,1)) if int(m[2]) in bad_reply else ((1,0),(6,0))
+        if (int(m[3]),int(m[4])) not in states or int(m[5]):raise ValueError('PIO cancellation')
         start=next(x for x in starts if x[2]==m[2]);fence=next(x for x in fences if x[2]==m[2])
         if not start.end()<m.start()<m.end()<fence.start():raise ValueError('PIO cancel order')
     if re.findall(r'FAMILY_OOM acquired=(\d+)',trace)!=([str(oom)]*2 if oom is not None else []):raise ValueError('PIO OOM count')
@@ -281,16 +309,16 @@ def validate(serial,trace,case,oom=None):
     for i,b in enumerate(boundaries):
         if b.end()>next(m for m in starts if int(m[2])==i*count+3).start():raise ValueError('PIO OOM outside create')
     copies=re.findall(r'IMPORT_COPY gen=(\d+) bytes=36896 immutable=1',trace)
-    args=re.findall(r'STARTUP_ARGS gen=(\d+) argc=2 immutable=1',trace)
+    args=re.findall(r'STARTUP_ARGS gen=(\d+) argc='+('4' if block else '2')+r' immutable=1',trace)
     if list(map(int,copies))!=children or list(map(int,args))!=children:raise ValueError('PIO immutable source')
     scrub=trace.count('STARTUP_SCRUB bytes=4096 complete=1')
-    if scrub<minimum_scrubs(case) or trace.count('IMPORT_SCRUB bytes=36896 complete=1')!=scrub:raise ValueError('PIO temporary scrub')
+    if scrub<minimum_scrubs(case,block) or trace.count('IMPORT_SCRUB bytes=36896 complete=1')!=scrub:raise ValueError('PIO temporary scrub')
     for label,n in (('PIO_BIND',len(binds)),('PIO_RETIRE',len(data)),('PIO_ZERO',2),('FAMILY_ZERO',2),('FAMILY_START',len(starts)),('FAMILY_FENCE',len(fences)),('FAMILY_CANCEL',len(cancel)),('PROCESS_ZERO_OK',2),('TASK_FRAMES_BEFORE',len(before)),('TASK_FRAMES_AFTER',len(after)),('TASK_FRAMES_FREE',len(frees)),('IMPORT_COPY',len(copies)),('STARTUP_ARGS',len(args)),('STARTUP_OOM_BOUNDARY',len(boundaries)),('FAMILY_OOM',len(boundaries))):
         if trace.count(label)!=n:raise ValueError('PIO malformed '+label)
     return len(rows)
 
 FATAL_CASES={'expired':4,'backward':5,'lease':3,'eoi':2,'context':7,
-             'kernel':0,'metadata':0,'scheduler':0}
+             'kernel':0,'metadata':0,'scheduler':0,'ipc-ticket':0}
 
 def fatal_clock_inputs(kind,now,deadline,ticks,eois):
     if not 0<=now<(1<<63) or not 0<=ticks<(1<<60):raise ValueError('clock injection bounds')
@@ -312,7 +340,7 @@ def validate_fatal(serial,trace,kind):
                'PIO_FATAL_DIAG fenced=1 unchanged=1','PIO_FATAL_HALT unchanged=1']
     events=[line for line in trace.splitlines() if line.startswith('PIO_FATAL_')]
     if events!=expected or 'OBSERVER_FAIL' in trace:raise ValueError('fatal exact ordered witnesses')
-    marker='REIST_X86_64_EXCEPTION_FATAL '+('pio=1' if kind in ('metadata','scheduler') else 'vector=06' if kind=='kernel' else 'vector=20')
+    marker='REIST_X86_64_EXCEPTION_FATAL '+('pio=1' if kind in ('metadata','scheduler','ipc-ticket') else 'vector=06' if kind=='kernel' else 'vector=20')
     if serial.count('REIST_X86_64_EXCEPTION_FATAL')!=1 or marker not in serial:
         raise ValueError('fatal exact terminal diagnostic')
     if any(m in serial for m in ('PROCESS_REAP_OK',startup.family.process.SUCCESS)):
@@ -323,6 +351,7 @@ def fatal_observer(s,folder,kind):
     ranges=[(s['native_pio_state'],64),(s['scheduler_tasks'],1024),
             (s['family_records'],256),(s['family_profiles'],128),
             (s['family_extended_masks'],64)]
+    if kind=='ipc-ticket':ranges.append((s['process_ipc_completions'],96))
     return f'''set logging file {str(folder/'frame-trace.log').replace(chr(92),'/')}
 set logging overwrite on
 set logging redirect on
@@ -376,6 +405,7 @@ class Probe(gdb.Breakpoint):
                 values=fatal_clock_inputs(kind,*(reg(n) for n in names))
                 for name,value in zip(names,values):gdb.execute('set $'+name+'='+str(value))
             elif kind=='context':write(reg('rdi')+144,0) # Saved CS, never a valid Ring3 selector.
+            elif kind=='ipc-ticket':write({s.get('process_ipc_completions',0)},u64({s.get('process_ipc_completions',0)})^1)
             else:write({s['native_pio_state']}+8,u64({s['native_pio_state']}+8)^1)
             inject()
         elif label=='clock':
@@ -399,7 +429,7 @@ class Probe(gdb.Breakpoint):
             event('HALT unchanged=1');gdb.execute('detach');gdb.execute('quit 0')
         elif label=='forbidden':raise AssertionError('runtime cleanup/resume after fatal injection')
 Probe({s['native_pio_out8.done']},'port')
-trigger=Probe({s['timer_runtime_progress64'] if kind in ('expired','backward','lease','eoi') else s['x86_64_scheduler_shell_timer_validate64'] if kind=='context' else s['native_pio_apply64']},'trigger',False)
+trigger=Probe({s['timer_runtime_progress64'] if kind in ('expired','backward','lease','eoi') else s['x86_64_scheduler_shell_timer_validate64'] if kind=='context' else s['process_ipc_take64'] if kind=='ipc-ticket' else s['native_pio_apply64']},'trigger',False)
 Probe({s['timer_runtime_progress64.fail']},'clock')
 Probe({s['x86_64_timer_interrupt64.shell_clock_invalid']},'context')
 Probe({s['serial_init64']},'diagnostic')

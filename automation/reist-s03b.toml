@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3ai-x86_64-block-service"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3ai-x86_64-block-service"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native Ring3 read-only block RPC and generation-scoped service lifecycle"
@@ -39,7 +39,7 @@ evidence = [
 "Full new runtime command guest-09.log FAIL2.935s in first4GiB case, guests/attempt-37dfa2305e5f4e889e60bf76756c6092: four invalid requests without I/O and exact512-byte LBA1 response/client data witnessed; next LBA127 hits service32-sample status256 and client EPIPE. Zero new accepted cases. Earlier attempts and all COW evidence retained.",
 "Diagnostic unobserved-01.log on earlier candidate completes both lifecycles, ordinary service13..16 samples; later journal candidate connected-01.log reaches23..30 and eventual root exhaustion. Different candidates, no controlled quantitative cause claim. Neither is frozen gate evidence.",
 ]
-evidence_note = "BLOCKED uncommitted candidate on337eb009,31 files/20 gates. Authorized IPC publication correction retains full entry verification; actual O0/O2 counts,215-step equivalence and all-slot byte/redundant corruption PASS7.540s. Native IPC7, bulk2, block9 and bootprogram7 hosts pass; all four Werror producer variants build. Latest matrix ipc-block-guests-06.log FAIL15.313s, attempt630ff21c1121492d83ee836861c2c4d3: root1 exhausts32 at RIP4008d3 after final RECEIVE_TIMEOUT54, lastchild10 consequently canceled by owner-loss reason3 at13 samples; root11 completes78 at30 samples with exact automatic endpoint cleanup. Zero accepted cases this attempt, earlier eight-case progress only partial. Current NativePIO/NativeBlock builds PASS; PIO10 PASS128.363s attempt-ea3b2dee8b5f4cc6a6d4f049f55d7b87 and fatal8 PASS8.680s attempt-f1cb822609aa420b913e3a44d5620be8 use the amended IPC. Earlier normal bootstrap/i386 guard evidence retained. No further concrete bounded in-scope correction demonstrated and original four controlled diagnostics exhausted: stop before unchanged retry; another finite guest cost-attribution budget must be explicitly frozen first. No skipped validation, larger quota, implementation commit or queue transition; R3.6b deferred. CURRENT_WORK.md preserves exact logs and historical evidence; original i386 media untouched."
+evidence_note = "PASS all21 frozen groups on contract873d82fa. Exact command/log manifest: build/codex-agent/r83ai-block/accepted-gates.json. Actual O0/O2 completion/adapter gate passes including IF0, all-slot corruption, stale/duplicate/missing completion and4000 no-work dispatches without C entry. Final block10/160 lifetimes PASS145.662s attempt-cb759b08deaa42a88b143995388319f8; old PIO10 PASS141.818s attempt-b7a59009b41449198682ede57801729b; fatal9 PASS9.658s attempt-8b530d8539244915bea6655ac82bcf67 retains eight old faults plus real corrupted completion authority, physical fence before diagnosis and halt without metadata repair. Normal/PIO/block builds, normal bootstrap, docs and i386 byte guard PASS. Retained unaffected host evidence as explicitly authorized; current native IPC source hash matches the actual O0/O2 differential/cost proof. Regular block roots17..28 of unchanged32 samples. Direct ABI/boundedness/copyout/recovery/scope review passed. No new ring0 driver/parser, shared IPC/critical-object edit, original-media write, DMA/hardware/full OS claim. All historical failures and diagnostics retained; R3.6b remains explicitly deferred and queued. No queued in-priority package is active at this commit boundary; inventory/freeze the next cohesive native package after the clean local implementation commit, without routine handoff."
 
 [[packages]]
 id = "R8.3ah-x86_64-pio-domain"

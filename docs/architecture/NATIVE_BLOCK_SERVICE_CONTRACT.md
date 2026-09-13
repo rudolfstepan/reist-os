@@ -3,6 +3,15 @@
 R8.3ai, frozen on accepted7f452faf, 13 September2026. Queue gates are the
 acceptance authority; this document is not a full OS or runtime success claim.
 
+Current scoped runtime evidence on contract873d82fa: all ten block cases
+pass145.662s (160 task lifetimes), all ten old PIO cases pass141.818s, eight
+old plus one completion-corruption fatal case pass9.658s. Regular roots use
+17..28 of the unchanged32 samples. Normal bootstrap and original i386 pins
+pass. Actual O0/O2 completion/adapter, IPC semantic/corruption/cost and block
+protocol hosts supplement the guests;21 frozen groups govern package acceptance.
+The historical candidate failures and later explicit amendments below remain
+evidence, not current stop claims or permission to change more mechanisms.
+
 ## Inventory and scope
 
 R8.3ah provides full192-bit profiles, read-only generation-owned PIO, reusable
@@ -355,3 +364,11 @@ one before copyout; missing results and corrupt authority fail closed. Existing
 native IPC differential/corruption gates and all new block/old PIO/fatal guests
 remain mandatory under unchanged32-sample,20s and PIO limits. Only the already
 amended scheduler object changes; other mechanism pins and i386 remain intact.
+
+Direct review after the first ten-case block pass identifies the no-work
+serialization obligation formerly checked by C: the completion wrapper must
+verify IF=0 before accessing its records, even when no C call follows. Actual
+host regression first observes the missing rejection, then models only the
+PUSHFQ input to execute the unchanged flags check with IF clear/set. Keep the
+successful earlier guest evidence but rebuild/retest the amended scheduler;
+no accepted candidate from an omitted serialization check.

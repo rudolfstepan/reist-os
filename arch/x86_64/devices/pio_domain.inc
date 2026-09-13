@@ -1,14 +1,27 @@
 ; Pure SysV fixed-request admission. Device protocol stays in Ring3.
 global native_pio_admit64
 native_pio_admit64:
-    cmp dword [rdi],1
-    jne .bad
+    mov eax,[rdi]
+    dec eax
+    cmp eax,1
+    ja .bad
     cmp dword [rdi+4],64
     jne .bad
     mov eax,[rdi+12]
     or eax,[rdi+36]
-    mov rcx,[rdi+48]
-    or rcx,[rdi+56]
+    mov rcx,[rdi+56]
+    cmp dword [rdi],2
+    je .deadline_format
+    or rcx,[rdi+48]
+    jmp .reserved
+.deadline_format:
+    cmp qword [rdi+48],0
+    je .bad
+    mov edx,[rdi+8]
+    sub edx,2
+    cmp edx,2
+    ja .bad
+.reserved:
     or rax,rcx
     jnz .bad
     mov rax,[rdi+16]
@@ -201,6 +214,19 @@ native_pio_apply64:
     jne .denied
     cmp qword [r12+16],0
     jne .denied
+    cmp dword [r13],2
+    jne .deadline_ready
+    ; Same trusted monotonic tick as quota accounting; no second syscall and
+    ; no state, quota, port or buffer effect on deadline rejection.
+    lea rax,[r15+r15*4]
+    add rax,rax
+    mov rcx,[r13+48]
+    cmp rcx,rax
+    jbe .expired
+    sub rcx,rax
+    cmp rcx,1000
+    ja .invalid
+.deadline_ready:
     cmp dword [r13+8],3
     jne .time
     cmp dword [r13+24],0x3f6
@@ -302,6 +328,9 @@ native_pio_apply64:
     ret
 .invalid:
     mov rax,-22
+    jmp .return
+.expired:
+    mov rax,-110
     jmp .return
 .denied:
     mov rax,-13

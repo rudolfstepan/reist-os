@@ -4,18 +4,28 @@ Stand: 13. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3ai: Blockdienst noch nicht abgenommen
+## R8.3ai: Block-RPC, Dienst und geschützte Komplettierung zusammen
 
-Kandidat auf Vertrag `17954988`, keine neue Implementierungsabnahme. Client,
-Dispatcher, ATA-Service und opt-in NativeBlock bauen; drei Hosttests einschließlich
-tatsächlichem C O0/O2 bestehen. Die vollständige Gastprüfung scheitert bereits
-bei der zweiten gültigen RPC am unveränderten32-Sample-Budget. Eine frühere
-Gegenprobe ohne laufenden Debugger besteht, ersetzt aber keine eingefrorenen
-Gates. Auch reduzierte Beobachtung hat das Problem nicht ausreichend eingegrenzt.
-Mess-/Kernelkosten müssen in einem ausdrücklich erweiterten Diagnoseumfang
-untersucht werden; keine stille Erhöhung von Quoten oder Absenkung der Beweise.
-Details, Kandidatenunterschiede und erhaltene Fehlbelege im
-[Arbeitsstand](CURRENT_WORK.md). Paket bleibt aktiv, Restgates und Commit offen.
+Auf Vertrag `873d82fa` ist der gemeinsame Read-only-Blockdienst umgesetzt:
+wiederverwendbarer Client/Dispatcher, Ring3-ATA-Service, echte IPC-Übergabe,
+Deadline-Co-Admission und generationsgebundener Fehler-/Neustartpfad.
+Die ausdrücklich freigegebene IPC-Kostenkorrektur kombiniert unveränderte
+volle C-Eintrittsprüfung mit gezielter Neuversiegelung und einem geschützten
+Komplettierungszustand für den Dispatch. IF=0 bleibt auch ohne C-Aufruf Pflicht.
+
+Die finale Blockmatrix besteht zehn Fälle/160 Lebensläufe in145.662s; alte
+PIO10 bestehen141.818s, Fatal9 bestehen9.658s einschließlich beschädigtem
+Komplettierungsrecord. Reguläre Roots bleiben17..28 von32 Samples. Tatsächliche
+O0/O2-Protokoll-, IPC-Kosten-/Korruptions- und ASM-/Adaptertests ergänzen die
+Gastbelege. Normaler Bootstrap und originale i386-Pins bleiben gültig.
+34 Dateien/21 Gategruppen; alle historischen Fehlversuche erhalten. Einzelne
+Diagnosepässe oder fehlende Diagnosesummen wurden nicht als Abnahme verwendet.
+Details und Kommandobelege: [Arbeitsstand](CURRENT_WORK.md).
+
+Das ist noch keine vollständige64-Bit-Version: Dateisystemverbraucher,
+Dateiladen über Dienstgrenzen, normales Userland und System-/Hardwareabnahme
+bleiben offen. Keine Schreib-/DMA-Autorität oder alte Timerursache behauptet.
+R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## R8.3ah: Treiberrechte, Lesen und Fehlergrenze zusammen
 

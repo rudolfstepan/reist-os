@@ -124,7 +124,14 @@ static int transfer(unsigned slot,native_ipc_request_t *r) {
         return ipc_send_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->message,0);
     return ipc_receive_timeout(&clients[slot],(ipc_handle_t)r->a0,&r->message,0);
 }
-static uint64_t pump(bool deadlines_only) {
+static void seal_pending(unsigned slot) {
+    protect(pending_guards[slot],&pending[slot],64,false);
+    protect(pending_guards[slot]+1,&pending[slot].request.handle,20,false);
+    protect(pending_guards[slot]+2,&pending[slot].request.message,140,false);
+    if(pending[slot].state && pending[slot].request.copy_size==2060)
+        protect(pending_guards[slot]+5,(unsigned char*)&pending[slot].request.bulk+140,1920,false);
+}
+static uint64_t pump(bool deadlines_only,uint32_t *changed) {
     uint64_t ready=0;
     /* At most four completions. A completion can free space for a preceding
      * sender, hence four bounded passes, never a userspace-facing spin. */
@@ -134,6 +141,8 @@ static uint64_t pump(bool deadlines_only) {
             Pending *p=&pending[s];
             if(p->state!=1) continue;
             if(deadlines_only && current_tick<p->request.deadline) continue;
+            /* Even an unsuccessful transfer may touch its output record. */
+            *changed|=1U<<s;
             int result=current_tick>=p->request.deadline ? -110 : transfer(s,&p->request);
             if(result==-11) continue;
             native_ipc_require(result!=IPC_EINTEGRITY);
@@ -144,7 +153,7 @@ static uint64_t pump(bool deadlines_only) {
     }
     return ready;
 }
-static int dispatch_request(unsigned slot,native_ipc_request_t *r) {
+static int dispatch_request(unsigned slot,native_ipc_request_t *r,uint32_t *changed) {
     if(r->number<49 || r->number>58 || r->number==56 || r->number==57 || r->a3)
         return -22;
     if(r->number!=49 && r->a0>UINT32_MAX) return -22;
@@ -174,6 +183,7 @@ static int dispatch_request(unsigned slot,native_ipc_request_t *r) {
     int result=transfer(slot,r);
     if(result!=-11 || !timeout) return result;
     r->deadline=deadline;r->result=NATIVE_IPC_PENDING;
+    *changed|=1U<<slot;
     pending[slot].request=*r;pending[slot].generation=clients[slot].generation;
     pending[slot].state=1;
     return NATIVE_IPC_PENDING;
@@ -194,6 +204,9 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
         ipc_init();seal_all(true);initialized=1;initialized_inverse=~initialized;
     }
     check_all();current_tick=tick;r->ready=0;
+    /* Transaction-local only: IF0 and entered prohibit an external writer.
+     * All persistent snapshots were checked above, including unchanged ones. */
+    uint32_t changed=0;
     Process *p=&clients[slot];
     if(operation==NATIVE_IPC_BIND) {
         native_ipc_require(!p->is_running && !pending[slot].state && generation>retired[slot]);
@@ -204,25 +217,41 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
                             !stats.active_capabilities && !stats.queued_messages);
         for(unsigned s=0;s<4;s++) native_ipc_require(!clients[s].is_running && !pending[s].state);
     } else if(operation==NATIVE_IPC_PUMP) {
-        r->ready=pump(true);
+        r->ready=pump(true,&changed);
     } else {
         native_ipc_require(p->is_running && p->generation==generation);
         if(operation==NATIVE_IPC_REQUEST) {
             native_ipc_require(!pending[slot].state);
-            r->deadline=0;r->handle=0;r->result=dispatch_request((unsigned)slot,r);
+            r->deadline=0;r->handle=0;r->result=dispatch_request((unsigned)slot,r,&changed);
             native_ipc_require(r->result!=IPC_EINTEGRITY);
-            if(r->result!=NATIVE_IPC_PENDING) r->ready=pump(false);
+            if(r->result!=NATIVE_IPC_PENDING) r->ready=pump(false,&changed);
         } else if(operation==NATIVE_IPC_TAKE) {
             r->result=NATIVE_IPC_PENDING;
             if(pending[slot].state==2) {
                 *r=pending[slot].request;r->ready=0;
+                changed|=1U<<slot;
                 memset(&pending[slot],0,sizeof(pending[slot]));
             } else native_ipc_require(!pending[slot].state);
         } else if(operation==NATIVE_IPC_REAP) {
+            changed|=1U<<slot;
             memset(&pending[slot],0,sizeof(pending[slot]));
             ipc_process_cleanup(p->pid,p->generation);
-            retired[slot]=p->generation;memset(p,0,sizeof(*p));r->ready=pump(false);
+            retired[slot]=p->generation;memset(p,0,sizeof(*p));r->ready=pump(false,&changed);
         }
     }
-    seal_all(false);entered=0;return 1;
+    if(operation==NATIVE_IPC_BIND) protect(client_guards[slot],p,sizeof(*p),false);
+    else if(operation==NATIVE_IPC_REQUEST && r->number==55) {
+        for(unsigned i=0;i<4;i++)
+            if(clients[i].is_running && (uint64_t)clients[i].pid==r->a1)
+                protect(client_guards[i],&clients[i],sizeof(clients[i]),false);
+    }
+    /* Normal transfer paths only read local capabilities. Shared quarantine
+     * returns EINTEGRITY and has already entered fatal above, never here. */
+    else if(operation==NATIVE_IPC_REAP || (operation==NATIVE_IPC_REQUEST &&
+            (r->number==49 || r->number==52 || r->number==58)))
+        for(unsigned i=0;i<4;i++) protect(client_guards[i],&clients[i],sizeof(clients[i]),false);
+    if(operation==NATIVE_IPC_REAP) protect(&retired_guard,retired,sizeof(retired),false);
+    native_ipc_require(!(changed&~15U));
+    for(unsigned i=0;i<4;i++) if(changed&(1U<<i)) seal_pending(i);
+    entered=0;return 1;
 }

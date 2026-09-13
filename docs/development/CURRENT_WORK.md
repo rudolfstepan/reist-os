@@ -2,6 +2,61 @@
 
 Stand: 13. September 2026
 
+## R8.3ai: nativer Read-only-Blockdienst mit Gastnachweisen umgesetzt
+
+Vertrag `873d82fa`:34 erlaubte Dateien/21 Gategruppen. Wiederverwendbarer
+Block-RPC-Client/Dispatcher, Ring3-ATA-Service, IPC-Übergabe und begrenzte
+Fehler-/Neustartbehandlung bilden einen gemeinsamen Schnitt. PIO-v2 lässt
+dieselbe absolute Deadline im Mediationsaufruf zu; V1 bleibt unverändert.
+Native IPC versiegelt nur veränderte Records neu. Vier geschützte
+generationsgebundene Komplettierungsrecords vermeiden unnötige C-TAKE-Aufrufe.
+IF=0 und alle vier Records werden auch ohne C-Aufruf geprüft; echte IPC-
+Operationen behalten ihre vollständige Eintrittsprüfung. Keine Quotenänderung.
+
+Finale Laufzeitbelege unter `build/codex-agent/r83ai-block/`:
+
+- `completion-block-guests-02.log`:10 Fälle/160 Task-Lebensläufe PASS/145.662s,
+  `guests/attempt-cb759b08deaa42a88b143995388319f8`.4/8GiB, sechs OOM-Punkte,
+  kein Medium, Ownerverlust, volle LBA1-/127-Daten, ungültige Requests/Replies,
+  UD2, Schlaf-/CPU-Ausfall, Neustarts und vollständiges Fencing/Retirement.
+  Reguläre Roots17..28 Samples bei unveränderter Grenze32.
+- `completion-pio-guests-01.log`:10 alte PIO-Fälle PASS/141.818s,
+  `pio-guests/attempt-b7a59009b41449198682ede57801729b`.
+- `completion-fatal-guests-01.log`:neun Fatalfälle PASS/9.658s,
+  `fatal-guests/attempt-8b530d8539244915bea6655ac82bcf67`. Die acht bisherigen
+  Fälle plus beschädigter IPC-Komplettierungsrecord: physischer Fence vor
+  Diagnose, unveränderte beschädigte Metadaten, Halt statt Cleanup/Resume.
+- Finalbuilds Normal4.570s, NativePIO5.540s, NativeBlock4.868s PASS;
+  `completion-normal-build-01`, `completion-pio-build-02`,
+  `completion-block-build-02`. Normaler Bootstrap PASS
+  (`completion-normal-runtime-01.log`); i386-Pins PASS/2.077s
+  (`completion-reference-guard-01.log`). Keine Originalmedien überschrieben.
+- Neuer tatsächlicher ASM-/Adapterhost O0/O2 PASS/.932s
+  (`completion-host-03.log`): alle Slots/Übergänge, Byte-/Wortkorruption,
+  stale/duplicate/missing completion, Timeout/EPIPE, Cancel/Rebind und jeweils
+  1000 No-work-Wiedereintritte ohne C-Aufruf. Nur PUSHFQ-Eingang wird im Host
+  modelliert; die echte IF-Prüfung läuft mit freigegebenem/gesperrtem IF.
+  Die rote IF-Regression erklärt die Korrektur nach dem ersten Matrixpass.
+- PIO-Host9/4.672s PASS (`completion-pio-host-01.log`), Blockhost10/3.240s
+  PASS (`attribution-host-03.log`); unveränderte Producer-, Startup-, Import-,
+  ABI-, Referenz-, Deadline-, Native-/Bulk-IPC- und IPC-Kostengates behalten
+  ihre unten benannten Belege. Der C-IPC-Quellhash entspricht weiterhin exakt
+  `ipc-cost-e7ccf66dd1064b159cd9d6f37e4d5f3b/sources.json`; tatsächlicher
+  O0/O2-215-Schritt-Vergleich und Korruptionsprüfung bleiben gültig.
+
+Die Queue enthält die vollständigen21 Abnahmekommandos. Direkte Prüfung:
+keine ABI-Umnummerierung, kein zweiter Wait-Node, keine ungeprüfte Copyout-
+Publikation, kein Ring0-Treiber-/Dateiparser, keine Änderung gemeinsamer IPC-
+oder Critical-Object-Quellen.25 Mechanismusobjekte bleiben bytegleich zu AH;
+ein Memory-Export wird exakt abgeleitet geprüft; die beiden ausdrücklich
+geänderten Objekte stimmen in PIO- und allen Blockvarianten überein.
+
+Offen bleiben native Dateisystem-/Dateiladeintegration, allgemeines Userland
+und eigene vollständige System-/Hardwareabnahme. Keine fertige64-Bit-OS-,
+DMA-, Timing-Stabilitäts- oder Zertifizierungsbehauptung. R3.6b bleibt
+ausdrücklich zurückgestellt. Alle folgenden Stop-/Diagnosestände sind
+historische Belege; sie wurden weder gelöscht noch als Ersatzgates genutzt.
+
 ## R8.3ai: Dispatch-Komplettierungsgrenze ausdrücklich freigegeben
 
 Erneute Nutzerfreigabe beantwortet die konkrete Scopefrage. Vor Umsetzung

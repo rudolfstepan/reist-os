@@ -33,6 +33,17 @@ unchanged; the approved host-only COW exception below does not grant guest write
 
 ## Public profile and mediation
 
+R8.3ai amendment on d1c4ddc4: append envelope version2 with the same64-byte
+layout. Offset48, formerly reserved in v1, denotes an absolute monotonic
+deadline_ms only in v2; offset56 stays zero. Only operations2..4 may use v2.
+After generation/authority/clock checks but before quota or I/O effects,
+deadline<=tick*10 returns ETIMEDOUT(-110); more than1000ms ahead returns
+EINVAL(-22). No buffer/state/port publication on either rejection. V1 and
+unconditional BIND/FENCE semantics, quotas and fatal behavior remain unchanged.
+SDK preparation/accessor helpers make the versioned field meaning explicit.
+This bundles an already required clock admission with I/O; not a timing,
+POSIX, physical-platform or full block-service acceptance claim.
+
 CREATE-v4 retains64 bytes and imports prepared records like v3. Its syscalls
 field becomes a pointer to a fixed40-byte profile-v1: u32 version,size,
 three u64 masks and one reserved-zero u64. Copy/admit the entire profile
