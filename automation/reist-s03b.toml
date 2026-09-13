@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3aj-x86_64-program-memory"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -11,6 +11,22 @@ allow_parallel_writers = false
 max_read_only_reviewers = 1
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3aj-x86_64-program-memory"
+status = "active"
+phase = "post-s0"
+risk = "high"
+title = "Versioned native program capacity and guarded multiframe stack"
+scope = "On accepteda1f17276 and renewed explicit user approval, implement NATIVE_PROGRAM_MEMORY_CONTRACT.md as one image/stack ownership and rollback boundary. Reuse ELF preparation, frame claim/mapping/release, task identity/context, startup and pointer admission. No filesystem implementation, CPU/IPC/restart increase, driver change or original-media write."
+allowed_files = ["automation/reist-s03b.toml","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/architecture/NATIVE_PROGRAM_MEMORY_CONTRACT.md","docs/architecture/X86_64_BOOTSTRAP.md","docs/README.md","arch/x86_64/mm/native_layout.inc","arch/x86_64/mm/native_layout.h","arch/x86_64/mm/memory_profile.inc","arch/x86_64/mm/address_space.asm","arch/x86_64/mm/address_space.h","arch/x86_64/mm/task_frames.asm","arch/x86_64/mm/task_frames.h","arch/x86_64/mm/frame_claim.asm","arch/x86_64/mm/frame_claim.h","arch/x86_64/mm/user_access.asm","arch/x86_64/mm/user_access.h","arch/x86_64/exec/elf64_loader.asm","arch/x86_64/exec/boot_programs.inc","arch/x86_64/exec/image_frames.asm","arch/x86_64/exec/image_frames.h","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/context_core.asm","arch/x86_64/proc/context_core.h","arch/x86_64/proc/identity_core.asm","arch/x86_64/proc/identity_core.h","arch/x86_64/proc/process_run.inc","arch/x86_64/proc/process_run.h","arch/x86_64/proc/task_family.inc","arch/x86_64/proc/process_heap.inc","arch/x86_64/proc/process_ipc.inc","userspace/sdk/include/reist/x86_64/image.h","userspace/sdk/lib/x86_64/image.c","userspace/sdk/include/reist/x86_64/task.h","arch/x86_64/user/program_memory.c","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","scripts/run_qemu_x86_64_program_memory.py","config/x86_64_wide_program.ld","Makefile","test/test_x86_64_program_memory.py","test/x86_64_program_memory_host.c","test/test_x86_64_program_memory_runtime.py"]
+invariants = ["NativeWide opt-in; ordinary builds and RNPGv1/CREATE1..4 retain their meanings and wrappers.","RNPGv2 fixed266336 bytes,64 image slots within256KiB, fixed32KiB guarded stack; ELF parsing stays Ring3/host.","Fail before publication, exact unique frame ownership, W^X/NX, zero stack, bounded copy/range checks, complete OOM and retirement cleanup.","Four task slots, eight attempts/root, CPU32, heap/IPC/PIO quotas unchanged; no parser or device policy enters Ring0.","All16 frozen groups must pass before done/commit. Preserve every failed log; no unchanged retries or weakened oracle."]
+targeted_tests = ["python test/test_x86_64_program_memory.py -v","python test/test_x86_64_program_memory_runtime.py -v","python test/test_x86_64_image_import.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_x86_64_task_startup.py -v","python test/test_x86_64_task_family.py -v","python test/test_x86_64_ipc_completion.py -v","python test/test_syscall_abi_source.py -v","python test/test_documentation.py -v"]
+package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/codex-agent/r83aj-memory/normal",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeImport -OutputDirectory build/codex-agent/r83aj-memory/import",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeWide -OutputDirectory build/codex-agent/r83aj-memory/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_program_memory.py --image build/codex-agent/r83aj-memory/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83aj-memory/guests","python scripts/run_qemu_x86_64_image_import.py --image build/codex-agent/r83aj-memory/import/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83aj-memory/import-guests","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83aj-memory/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83aj-memory/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
+stop_conditions = ["Unrelated or unattributed changes overlap the package.","A required production source lies outside allowed_files, or the design needs another authority boundary.","A pre-existing source failure prevents trustworthy verification.","The same frozen gate failure remains after two focused in-scope corrections; retain evidence and do not retry an unchanged candidate.","CPU/IPC/restart quotas, original i386 bytes, old ABI meaning or a frozen oracle must be weakened."]
+commit_message = "feat: admit bounded native programs and guarded multiframe stacks"
+evidence_note = "Contract freeze only; no implementation or runtime acceptance. Previous inventory: reachable FAT read/stat/readdir79705 bytes, EXT2 readdir frame5192 bytes, incompatible with old32KiB image/4KiB stack. R3.6b remains deferred."
 
 [[packages]]
 id = "R8.3ai-x86_64-block-service"
