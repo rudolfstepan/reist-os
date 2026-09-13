@@ -302,3 +302,56 @@ Reuse the current diagnostic and blockhost files;31 files/20 gates unchanged.
 Contract commit precedes diagnostic implementation. Concrete bounded corrections
 inside the existing source/authority boundary may continue without routine
 questions; any necessary new production failure boundary must be frozen first.
+
+The additional batch is consumed by attribution-c034368876db44fd942c16554ed6cdd3.
+IPC census records3134 entries:2724 TAKE,254 REQUEST,114 PUMP,20 BIND,20 REAP,
+2 END. The scheduler unconditionally calls TAKE at every native task reentry,
+including non-IPC resumes. This identifies a correction candidate, not a proven
+complete budget fix. Detached/IRQ/IPC/full-IRQ root receipts all complete78;
+none is frozen block acceptance. The full-IRQ final aggregate is missing due
+to a CLI-quit diagnostic-output bug; only its receipts are usable. Host tests
+now reject missing/duplicate summaries and prove the corrected generated quit
+path and callback caps; no replacement or fifth guest was run.
+
+Suppressing no-work C TAKE entries safely requires a new protected generation-
+scoped completion contract at process_ipc.inc, outside the current allowed
+production files. READY and the removed deadline entry alone are insufficient.
+Do not introduce an unprotected work bit or omit real-operation verification.
+Freeze this additional source boundary and actual ASM/corruption/lifecycle cost
+tests before implementation, retaining all20 gates and original limits. The
+candidate remains active but blocked at that scope boundary, not accepted.
+
+## Authorized generation-scoped dispatch completion
+
+Renewed explicit approval adds process_ipc.inc and actual ASM/adapter host
+regressions (test_x86_64_ipc_completion.py, x86_64_ipc_completion_host.c).
+34 files,21 groups; preserve the previous20 and add one O0/O2 gate. Retain
+eight fatal guests and add a real corrupted completion-record fencing/halt
+case in the same matrix. Freeze before modifying production code.
+
+Four fixed24-byte records encode generation and unbound/idle/waiting/ready.
+Each value has its complement and rotated-XOR check word. Check all four
+records and exact generation before any transition or no-work return. BIND
+requires a newer generation; pending REQUEST moves idle to waiting; ready
+receipt moves waiting to ready before queue publication; TAKE requires ready
+and a real non-pending C result, then consumes before copyout. REAP clears
+state while retaining retired generation; END requires all unbound. Missing,
+duplicate, stale and corrupt completion authority fails before client output.
+No allocation, second wait node, persistent C cache or new user ABI.
+
+All actual C IPC operations retain complete check_all, including TAKE. An
+IPC-unrelated dispatch checks the completion authority instead of polling
+unrelated IPC payloads. Payload integrity is still checked before any IPC
+effect or copyout; PIO/context/profile checks remain independently mandatory.
+This explicitly changes no-work dispatch, not the C entry validation contract.
+The record detects changes in one or two encoded words; coherent corruption
+of all three words is not claimed detectable, nor is this SECDED correction.
+Corruption enters existing fatal fencing/halt without repairing metadata.
+
+Host proof executes actual assembly for every slot, transition, stale identity,
+corrupted word/bit, cancel/rebind and terminal cleanup. The actual adapter's
+no-work path must make zero C calls, whereas a ready result must make exactly
+one before copyout; missing results and corrupt authority fail closed. Existing
+native IPC differential/corruption gates and all new block/old PIO/fatal guests
+remain mandatory under unchanged32-sample,20s and PIO limits. Only the already
+amended scheduler object changes; other mechanism pins and i386 remain intact.

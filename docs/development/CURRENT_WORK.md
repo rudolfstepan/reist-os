@@ -2,7 +2,65 @@
 
 Stand: 13. September 2026
 
-## R8.3ai: zusätzliche begrenzte Kostenattribution freigegeben
+## R8.3ai: Dispatch-Komplettierungsgrenze ausdrücklich freigegeben
+
+Erneute Nutzerfreigabe beantwortet die konkrete Scopefrage. Vor Umsetzung
+wird die private IPC-Komplettierungsgrenze eingefroren:34 Dateien/21 Gates,
+einschließlich tatsächlichem ASM/Adapter-O0/O2-Test und zusätzlichem realem
+Fatalgast mit beschädigtem Komplettierungsrecord. Vier geschützte feste
+generationsgebundene Records ersetzen unnötige C-TAKE-Abfragen; jede echte
+IPC-Operation behält ihre vollständige Integritätsprüfung. Quoten unverändert.
+Die folgenden Diagnose- und Stopstände bleiben historische Belege.
+
+## R8.3ai: Kostenattribution abgeschlossen, Dispatch-Grenze offen
+
+Vertragscommit `123cfc9f`; keine Implementierungsabnahme. Einmaliger zusätzlicher
+Diagnosesatz `attribution-01.log`, Ordner
+`diagnostic/attribution-c034368876db44fd942c16554ed6cdd3`,45.054s insgesamt.
+Die vier Gäste verbrauchen6.521/8.750/12.766/16.944s auf identischen ELF-,
+Katalog- und C-Payloadhashes. Keine Schutzgrenze oder Kerneldatei geändert.
+
+Konkreter Befund:3134 IPC-Eintritte in der getrennten IPC-Zählung, davon2724
+TAKE (Root442, Peer41, Treiber2241),254 REQUEST,114 PUMP, je20 BIND/REAP
+und2 END. Code bestätigt: `scheduler_enter_task64.state_published` ruft vor
+jedem nativen Wiedereintritt `process_ipc_take64` auf. Das prüft alle IPC-
+Snapshots auch nach PIO, Schlafen und Präemption ohne IPC-Ergebnis. Der
+vorhandene Deadline-Eintrag wird vor READY entfernt; dieser liefert beim
+Wiedereintritt keinen verbleibenden Nachweis einer IPC-Komplettierung.
+Das ist ein belegter Ansatz, **noch kein Beweis**, dass seine Korrektur die
+gesamte Blockmatrix zuverlässig innerhalb der Quote abschließt.
+
+Root-Samples der beiden Lebenszyklen: detached17/16, IRQ-Probe16/16,
+IPC-Zählung26/24, voller Observer mit IRQ-Probe26/21. Alle enden hier mit78;
+dies sind Diagnoseergebnisse und keine Abnahme oder unveränderte Gatewiederholung.
+Die minimale IRQ-Probe und IPC-Zählung haben vollständige Summen. Beim vollen
+Observer fehlt die abschließende IRQ-Summe, weil dessen CLI-quit den Python-
+Ausgabehook umgeht. Diesen Diagnosemangel nicht als gültige Attribution werten.
+Rote Hostregression und Korrektur der CLI-Ausgabe, aller Callback-Grenzen und
+fehlender/duplizierter Summen liegen vor; kein fünfter Gast nachgeschoben.
+Blockhost10/3.240s PASS (`attribution-host-03.log`), einschließlich tatsächlich
+erzeugtem Diagnosetext und weiterhin allen C-/RPC-/Relokationsprüfungen.
+
+Notwendige neue Produktionsgrenze: private Dispatch-/IPC-Komplettierung in
+`arch/x86_64/proc/process_ipc.inc`, derzeit außerhalb der31 erlaubten Dateien.
+Die erste Inventur nannte zusätzlich die aufrufende Schedulerdatei; ein Guard
+direkt am bestehenden TAKE-Einstieg kann voraussichtlich deren Änderung
+vermeiden. Nicht einfach anhand READY oder ungeschütztem Bit überspringen.
+Erforderlich wäre ein fester geschützter generationsgebundener Komplettierungs-
+zustand mit Bind/Ready/Take/Reap-Cleanup, Fehlerprüfung vor Copyout und Nachweis,
+dass keine Ausgabe oder Frist verloren geht. Sämtliche echten IPC-Operationen
+müssen weiter vollständig prüfen; der Nachweisvertrag muss die Trennung von
+IPC-fremdem Wiedereintritt und notwendiger IPC-Integritätsprüfung festlegen.
+Vor Produktionseingriff: expliziter Zusatzscope und tatsächlicher ASM/Adapter-
+Hosttest für Korruption, veraltete Generation, doppelte/verlorene Komplettierung,
+Timeout, Cancel/Rebind und ausbleibende unnötige C-Eintritte. Alle20 bisherigen
+Gates einschließlich Block10/PIO10/Fatal8 bleiben; keine Quotenänderung.
+
+Hier greift die Stopbedingung „Required production file outside frozen scope“.
+Kein ungeschützter Shortcut, kein Kandidatencommit, keine Queuefortschreibung.
+Der letzte echte Blockgateausgang bleibt FAIL15.313s; historische Belege unten.
+
+### Freigabe des zusätzlichen Diagnosesatzes
 
 Die erneute Nutzeranweisung beantwortet die konkrete Vier-Gast-Frage mit
 Freigabe zur Fortsetzung. Ein zusätzlicher, vor Ausführung eingefrorener Satz
