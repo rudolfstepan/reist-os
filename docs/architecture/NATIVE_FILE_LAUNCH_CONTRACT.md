@@ -504,3 +504,36 @@ directly measured comparison cost from unmeasured historical timing variation.
 Stop after this pair or an unknown fault. Timeout is diagnostic, not accepted.
 All old budgets and original/IRQ obligations remain unchanged; no speculative
 repair, new acceptance/gate renewal, implementation commit, queue advance or push.
+
+### One regular qualification renewal (2026-09-14)
+
+Renewed user approval explicitly restarts regular qualification once. Preserve
+the36-source/267-evidence equivalence-cost manifest and raw source snapshots.
+Freeze30 gate commands and all current source/helper hashes before execution:
+original13 targeted hosts, seven existing supplementary timer/transport hosts,
+original3 builds and4 runtime groups, binary equivalence/full and IRQ matrix.
+Only substitute the original evidence prefix with qualification-renewal/ beneath
+the same ignored package directory. No production/test implementation change,
+oracle reduction, timeout/selector/stepmask or default-capture change.
+
+Original file and filesystem18-case matrices retain default GDB transport and
+each20s/total360s guest bounds. Supplementary binary controls and four IRQ cases
+reuse unchanged actual observers/validators and the fresh FAT12 case0 image from
+the successful original file matrix, with linked-file/catalog/config provenance.
+Each remains20s including cleanup, binary pair40s and IRQ matrix80s. Preserve
+the existing exact normal-idle, expired-lease, saved-SS, EOI, fencing and physical
+halt requirements. No failed legacy predicate was repaired; its conditional
+unimplemented correction hosts do not become evidence obligations for a change
+that did not occur. Existing timer/queue/process mechanisms remain tested.
+
+Main agent executes gates in the visible worktree. Ordinary deterministic
+ignored verification helpers are source-hash frozen, not agents; no nested
+Codex/runner/reviewer. Host process envelopes180s, builds90s, original matrix
+orchestration1800s only cover their already-bounded builds and guests, not a
+larger per-guest deadline. Exactly once in sequence, stop the entire pass at the
+first failure, timeout or unattributed source change. No correction/retry or
+profiling loop in this pass. Old attempt budgets/directories remain untouched.
+No retroactive acceptance of a diagnostic control. All30 gates and final direct
+scope/ABI/cleanup/default/FS artifact review are required before implementation
+commit and queue transition. Otherwise remain active with complete evidence.
+No push or claim that this bounded file-launch package completes the native OS.
