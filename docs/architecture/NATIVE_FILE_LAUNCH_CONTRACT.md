@@ -329,3 +329,37 @@ Host tests execute the real helpers and transformed observer, including short
 transfers and invalid entries/frames. This sixth diagnostic guest retains the
 same image, cost accounting,20s bound and all oracles. A repeated timeout stops
 this diagnosis; it does not authorize another retry or a looser acceptance gate.
+
+### Separate bounded stop/timer timeline diagnosis
+
+Renewed approval permits exactly two differently instrumented diagnostic guests,
+`--timeline stops` then `--timeline peer-clock`, after matching34 sources and159
+evidence hashes in `verification-status-file-transport.json`. Reuse only the
+transport diagnostic and its host test; all36 allowed paths, production observer,
+kernel, userspace and common capture remain unchanged. Same source-bound FAT12/
+4GiB image,20s active capture per guest/40s total, existing bounded cleanup.
+
+Wrap the existing callbacks and observe the documented GNU GDB Python
+[cont/stop notifications](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Events-In-Python.html).
+Do not change breakpoint locations, conditions, enabled states, return values,
+guest bytes or existing assertions. A callback interval proves that the guest
+is stopped during that interval; a gap also contains guest execution and cannot
+be assigned to pure debugger overhead. Notifications need not represent every
+internal single step; record their actual coverage, do not invent missing events.
+
+Journal limits:4096 callbacks,8192 notifications,16384 records of at most2048
+bytes each, monotonic nanosecond timestamps. Buffer one file, flush after32
+records or200ms and at snapshots/exits; a timeout can leave a bounded unflushed
+tail, which is explicitly incomplete evidence. No extra hot timer breakpoint.
+The second mode adds at most192 fixed-RAM snapshots of at most1280 bytes,
+paced200ms except existing first-publication/retirement/finish boundaries.
+Record exact clock widths, deadlines/queue bytes, root/peer identities and saved
+peer registers; never chase an observed guest pointer or modify admission from
+these diagnostic values. Include the snapshot reads in callback time.
+
+Actual host execution covers the recorder, wrappers, fixed reader and parser,
+including original exceptions, short reads, malformed sequence/accounting and
+capacity bounds. Preserve default transport/source and complete file oracle.
+All earlier budgets remain spent. This new pair permits no correction, IRQ
+renewal, acceptance retry or implementation commit by itself; stop after two
+guests or an unknown new failure and retain every historical result.
