@@ -12,21 +12,21 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_COMMIT = '92df3aa2'  # Qualification authority, not an OS release commit.
-BASELINE_EVIDENCE = 'build/codex-agent/r83ah-pio/reference-qualification-f6047a0a5c5d485db69225327f5e6704/summary.json'
+BASELINE_COMMIT = '8fafa5d0'  # Qualification authority, not an OS release commit.
+BASELINE_EVIDENCE = 'build/codex-agent/r83am-file-launch/reference-resume/reviewed-admission.json'
 MAX_FILE_BYTES = 1024 * 1024 * 1024
 IMAGES = {
     # Reviewed after signed rebuild binding and four platform-matched guests.
     # Historical pins remain in BASELINE_EVIDENCE and Git; no runtime learning.
     'build/reist-os.img':
-        'd6e77ebe48762d9b1e41bae29c26e5e1240afee70f1bd77ca03a9d135384713c',
+        '2b58094b7bc68eb261f18ab0cf053b4815f8528bc6e33ed6ca68e73232353bc7',
     'build/vmware/reist-os/reist-os-flat.vmdk':
-        '793b1955d41aa6d468bc6cb6f289c01c1febda588009734406e1582f93122a3b',
+        '9f2998be4acc1ed6a8b7ab3051746fd14de1de06851575871422a0ad996309f5',
     'build/codex-agent/r345-js-colors/framebuffer/reist-os.img':
         'ac4b127e871c6aa46d36c92cd4929bf9225a25ddbcf571c8b91b2ad232984f42',
 }
 PROGRAM_COUNT = 96
-PROGRAMS_SHA256 = '6e7d0301097d05be5c7595211372f1087a9fa7d106c5a0e5ca131664c2303556'
+PROGRAMS_SHA256 = '7ba8d99a96ce6e242d9c07ed50907df5ceb8356b6c3387780dd1bb9db1997de5'
 
 
 def digest(path):

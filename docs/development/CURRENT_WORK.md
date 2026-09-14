@@ -1,8 +1,1330 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 13. September 2026
+Stand: 14. September 2026
 
-## R8.3am: dateibasierten ELF64-Start gemeinsam einfrieren
+## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
+
+Auf eingefrorenem Vertrag `f979c9a6` sind alle30 Abnahmeverpflichtungen sowie
+Eingangs- und Abschlussprüfung bestanden, insgesamt375,114s. Die vollständige
+18-Fall-Dateistartmatrix besteht mit unveränderten Oracles, Medien-,4/8GiB-,
+OOM- und Fehlerfällen. Zusätzlich werden in jedem Gast Kernel-/High-RAM-Bytes
+am selben Stop unabhängig über GDB verglichen. Gastzeit302,416s, jeweils
+14,375..17,458s einschließlich Cleanup;20s/360s-Grenzen bleiben unverändert.
+Separater vollständiger Kontrollgast PASS16,901s. Die Äquivalenz-Nachprüfung
+wertet den neuen Matrixgast aus und wird nicht als weiterer Gast ausgegeben.
+
+Null neue Builds oder Links: zwölf feste Cachevarianten und die beiden bereits
+gebauten Varianten9/10 sind quellen-/profil-/werkzeug-/artefaktgebunden verwendet.
+19 Hostgruppen mit150 Tests, drei native Standardbuilds, vollständige FS18,
+Normalboot, vier IRQ-Rückweg-/Fence-/Haltfälle und Referenz-Guard werden mit
+exakten erfolgreichen Belegen wiederverwendet. Dokumentation frisch bestanden
+(7 Tests,1 historischer Skip). Null QEMU-/GDB-Prozesse nach Abschluss.
+
+Direkter ABI-/Bounds-/Autoritäts-/Cleanup-/Defaultobjekt-Review bestanden.
+39 Gatezeit-Snapshots,1516 Eingaben,521 geschützte Artefakte/207 native Pins,
+31142 vorherige AM- und5278 AL-Belege unverändert. Belege:
+`build/codex-agent/r83am-file-launch/native-final/`, vollständige Kandidatenbindung
+`verification-status-native-final-qualified.json`; der separate Abschlussbeleg
+`verification-status-native-final.json` bindet den tatsächlichen lokalen Commit.
+Queue R8.3am abgeschlossen, R3.6b weiterhin ausdrücklich zurückgestellt.
+
+Der frühere22,565s-Timeout bleibt fehlgeschlagen und ungeklärt. Die stärkere
+aktuelle Konfiguration ist abgenommen, keine kausale Reparatur oder garantierte
+Hostlatenz behauptet. Ebenso keine spekulative Legacy-Sleep-Reparatur. Fertig
+ist dieser begrenzte Ring3-Datei-/ELF64-/Ausführungs-/Recoveryschnitt, nicht das
+gesamte64-Bit-OS. Allgemeiner paralleler Dienstbetrieb, normale Shell, Desktop,
+Browser und Systemabnahme bleiben im priorisierten Fertigstellungsplan offen.
+
+## Vorheriger Stand: Vollständige native Dateisystem- und Bootregression bestanden
+
+Vertragscommits `502f0a3d`/`b5bec1c8`; alle sieben eingefrorenen Gruppen
+PASS398,925s. Unveränderte ursprüngliche Dateisystem-Matrix18/18 Gäste PASS,
+264,557s Gastzeit, jeweils12,803..15,321s einschließlich Cleanup und damit
+unter20s. Alle Medien-/4GiB-/8GiB-/Dienstfehler-/OOM-/beschädigte-Medien-Fälle
+mit vollständigen ursprünglichen Oracles belegt. Normaler64-Bit-Boot ebenfalls
+PASS0,425s (`REIST_X86_64_RING3_SHELL_OK`). Keine vollständige Shell-/OS-Parität
+aus diesem Bootstrap-Marker abgeleitet.
+
+Nur ein vollständiger Kontrollbuild (8,790s), anschließend14 inkrementelle
+Links (Prüfgruppe13,084s).64 Payloads einschließlich des gesamten Boot-ELF,
+aller Objekt-/Katalog-/Programmbytes sind für den ersten Link bytegleich zum
+unabhängigen Vollbuild; danach alle Varianten quellen-/profil-/artefaktgebunden
+zugelassen. Nur `cooperative_scheduler.o` aus dem bereits geprüften aktuellen
+FS-Standardbuild ersetzt das alte Objekt. Der originale Windows-Linkaufruf
+verwendet den gepinnten `zig.exe ld.lld`, unveränderte Flags/Objektreihenfolge.
+Keine Binärpatches, Compiler- oder Kernelquelländerung. Weitere14 Vollbuilds
+innerhalb der Matrix entfallen; inkrementelle Links werden nicht als neue
+Kompilierung ausgegeben.
+
+Buildadapter: zwei positive Zulassungen und21 Ablehnungsfälle bestanden.
+Originaler FS-Matrixcode, Capture, Media, Observer und Validator unverändert;
+nur exakte Buildaufrufe beziehen die geprüften neuen Linkoutputs mit separaten
+Receipts. Dokumentationssuite bestanden (7 Tests,1 historischer D1.1-Skip).
+Bestehender Referenz-Guard quellen-/werkzeug-/artefakt-/beleggebunden erhalten.
+Abschließendes lesendes Prozessinventar: null QEMU-/GDB-Prozesse.
+
+Belege unter `build/codex-agent/r83am-file-launch/native-fs-completion/`,
+Gesamtbindung `verification-status-native-fs.json`.39 Quellsnapshots,1516
+Gateeingaben,521 geschützte Artefakte/207 native Pins,28709 frühere AM- und
+5278 AL-Belege unverändert.12er-Dateistartcache und alle neun zuletzt bestandenen
+OOM-/Dateifehler-/IRQ-Gäste erhalten; keine weitere dieser Gastprüfungen gestartet.
+
+**Weiter offen:** ursprüngliche vollständige Dateistart18-/native30-Abnahme
+und der ungeklärte22,565s-Zeitausreißer. FS-/Bootregression ist geschlossen,
+nicht die gesamte native Abnahme. Kein Implementierungscommit, Queuewechsel
+oder vollständige64-Bit-Version.
+
+## Vorheriger Stand: Native OOM-/Dateifehler-/IRQ-Gastnachweise bestanden
+
+Vertragscommit `8fbcd28b`; alle13 eingefrorenen Gruppen PASS231,911s,
+neun reale Gäste PASS. Die drei OOM-Punkte und vier IRQ-Fälle haben jetzt
+vollständige Gastbelege, nicht nur Hosttests. Jeder Gast bleibt unter20s
+einschließlich Capture-Cleanup; zusammen122,103s Gastzeit.
+
+| Native Prüfung | Ergebnis | Gastzeit einschließlich Cleanup |
+| --- | --- | --- |
+| OOM erste/mittlere/letzte Allokation | 3/3 PASS | 17,266 / 16,937 / 17,156s |
+| Dateifälle9/10, Layout2,4GiB | 2/2 PASS | 16,039 / 16,487s |
+| IRQ gültiger Idle-Rückweg | PASS | 17,058s |
+| IRQ Frist/Kontext/EOI ungültig | 3/3 PASS | 7,059 / 7,094 / 7,006s |
+
+Originale vollständige Dateilebensdauer-/Fencing-/Reap-/Speicherprüfer und
+IRQ-Injektionen/Frame-/Fatal-/Haltprüfer unverändert. Gültiger IRQ-Rückweg:
+READY1, keine Deadline, gespeichertes IF0; ungültige Fälle: physische
+Gerätesperre vor Fataldiagnose und Halt, unverändertes gespeichertes Frame.
+IRQ nutzt den bereits geprüften binären RAM-Transport mit einem Logausgang.
+Kein Kernel-/Ring3-/Test-/ABI-/Zeit-/Quota-Umbau in diesem Durchlauf.
+
+Zehn bestehende Hostgruppen quellen-/beleggebunden wiederverwendet, keine
+Hostsuite wiederholt. Zwölf alte Varianten vollständig zugelassen; nur die
+nie gebauten Fälle9/10 neu gebaut (9,675/9,416s einschließlich Inhaltsprüfung).
+Der feste12er-Cache bleibt unverändert; die beiden neuen Outputs sind separat
+gesichert, noch nicht automatisch im Cache zugelassen. Abschließendes lesendes
+Inventar im regulären Konto: null QEMU-/GDB-Prozesse, kein Prozesssteueraufruf.
+
+Belege: `native-pending/`, Gesamtbindung `verification-status-native-pending.json`
+unter `build/codex-agent/r83am-file-launch/`.39 Quellstände,1516 Gateeingaben,
+521 geschützte Artefakte,27714 frühere Belege und207 native Pins erhalten;
+historische Guard-Archiv-Ausnahme unverändert. Referenz7/7 bleibt bestanden.
+
+**Weiter offen:** vollständige ursprüngliche18-Fall-/30-Gruppen-Abnahme und
+der ungeklärte frühere22,565s-Zeitausreißer. Die neuen Einzelbelege ersetzen
+diese Gesamtprüfung nicht. Kein weiterer Gastversuch in diesem begrenzten
+Durchlauf, Implementierungscommit oder Queuewechsel;64-Bit-System nicht fertig.
+
+## Vorheriger Stand: Native Variantenbuilds von14 auf2 reduziert
+
+Vertragscommits `fe927896` und `8944049a`. Die Dateistart-Matrix kann zwölf
+vorhandene, exakt gepinnte Varianten aus `retirement-renewal` wiederverwenden.
+1509 Quellen,16 aktuelle Werkzeuge und924 erhaltene Artefakte/Build-Logs sind
+gebunden. Frühere Quellstände stimmen; nur die bereits geprüfte Verschiebung
+dreier Make-Defaults ist buildseitig verschieden. Historische Werkzeugidentität
+wird nicht nachträglich behauptet. Gelieferte Standardvariante case0/layout2
+bleibt unverändert; nur die nie gebauten Fälle9/10 benötigen später neue Builds.
+
+Fester Cachebefehl: `python scripts/run_qemu_x86_64_file_launch.py --check-builds`.
+Cachezulassung erfolgt vor Build-/Gast-/Ausgabeeffekten. Quellen-, Werkzeug-,
+Profil-, Pfad- oder Payloadabweichung lehnt ab, ohne Ersatzbuild bei beschädigtem
+Cache. Ohne optionalen ignorierten Katalog bleibt der ursprüngliche Buildpfad
+für frische Checkouts verfügbar. Wiederverwendung wird ausdrücklich protokolliert,
+nicht als Gastabnahme gewertet. Originale Matrix,20s-Gastgrenze, Speicher-/Reap-
+Prüfungen und uncached Buildkommando bleiben unverändert.
+
+Erster eingefrorener Lauf:23 Hosttests PASS, reale Cacheprüfung FAIL an einem
+zu strengen Aliasverbot. Der vorhandene WinGet-Make-Link ist nun ausschließlich
+mit festem Ziel und SHA256 zugelassen, einschließlich erneuter Linkidentitäts-
+und Zielprüfung. Keine allgemeine Aliasfreigabe, Hoständerung oder Katalogmutation.
+Rote Regressionen und erster Fehlversuch bleiben erhalten. Korrigiertes Paar:
+25 Hosttests PASS16,645s, reale Cacheprüfung PASS2,881s; parallel20,724s inklusive
+Abschlussbindung. Null neue Kernelbuilds oder Gäste. Belege: `native-build-reuse/`,
+`native-build-alias/`, `verification-status-native-build-reuse.json` unter
+`build/codex-agent/r83am-file-launch/`.
+
+Referenz7/7 bleibt bestanden. Native Zeit-/OOM-/IRQ-Abnahme ist weiterhin offen;
+keine identische Gastwiederholung, neue native Abnahmefreigabe, Kernelkorrektur,
+Implementierungscommit oder Queueänderung. Die64-Bit-Version ist nicht fertig.
+
+## Vorheriger Stand: Vollständige Referenzabnahme ohne Neubau bestanden
+
+Vertragscommit `8fafa5d0`; alle sieben eingefrorenen Prüfgruppen PASS,
+zusammen313,376s.69 bereits bestandene Hosttests und zwei erfolgreiche,
+quellen-/werkzeug-/profilgebundene Referenzbuilds wiederverwendet. Null neue
+Builds;288,234s erneute Buildarbeit vermieden. Vier Images,96 Programme,
+Signaturen und vollständige Inhaltsbindung erneut geprüft.
+
+Beide ursprünglichen VMware/APIC-Kopien bestehen vollständigen GTEST-/Recovery-
+und Timer-Nachweis im erhöhten Konto `ASUSNB/oe3sr` (26,903/27,520s).
+Start und Stop jeweils Exit0; ursprüngliche20s/60s-Grenzen unverändert.
+Der vorherige Steuerkanalfehler trat in diesem Kontext nicht auf; dies ist
+keine Reparaturbehauptung für reguläre VMware-Aufrufe. QEMU/APIC und QEMU/PIT
+sowie EXT2-Stat und Symlink-/Storage-Recovery im regulären Konto ebenfalls
+PASS. Abschließendes reguläres Inventar: null VMX-Prozesse/laufende VMs.
+Keine Host-/Dienst-/ACL-/Sicherheitsänderung oder Löschung.
+
+Erst nach sechs bestandenen Gruppen und direkter Prüfung wurden exakt fünf
+freigegebene Guard-Konstanten/Attributionswerte aktualisiert; ursprünglicher
+Byte-Guard danach PASS. Historische Guard-Quelle bytegleich archiviert,
+alte JSONs/Logs und originale Images unverändert. Belege unter
+`build/codex-agent/r83am-file-launch/reference-resume/`, Gesamtbindung in
+`verification-status-reference-resume.json`.
+
+Die i386-Referenzhürde ist geschlossen, nicht das native AM-Paket. Native
+Zeit-/OOM-/IRQ-Abnahme bleibt offen; keine erneuerten nativen Gastbudgets,
+Kernel-/Teständerung, Implementierungscommit, Queuewechsel oder64-Bit-
+Fertigmeldung. Nächster zulässiger Schritt ist die beleggestützte Eingrenzung
+der verbliebenen nativen Laufzeithürde, kein unveränderter Wiederholungsversuch.
+
+## Vorheriger Stand: Zurückgebliebene Test-VM sicher beendet
+
+Vertragscommit `dda3f132`. Einmaliger freigegebener RunAs-Cleanup PASS10,937s.
+Erhöhtes Konto `ASUSNB/oe3sr` konnte PID248, Startzeit1789398624820ms UTC,
+VMware-x64-Programmdatei und vollständige Kommandozeile mit exakt der eigenen
+`reference-user/vmware-main-apic/reference.vmx` zuordnen. Unveränderter ursprünglicher
+Cleanup ausgeführt; neue Belege separat unter `owned-cleanup/`.
+
+Abschließende Prozess- und Inventarprüfungen bestanden, auch im regulären
+Benutzerkonto: null VMX-Prozesse, null laufende VMs. Der vorherige Cleanup-Blocker
+ist geschlossen. `vmrun stop` selbst meldete weiterhin "not powered on";
+daraus folgt keine Reparatur des Start-/Steuerkanals und keine Gastabnahme.
+Alte Fehlerbelege/Rohaufnahmen erhalten, keine Dienste/ACLs/Hosteinstellungen
+geändert und keine Dateien gelöscht. Null Builds oder Gaststarts.
+
+Build-Wiederverwendung bleibt verfügbar. VMware-Steuerkanalfehler und native
+Zeit-/OOM-/IRQ-Abnahme bleiben offen; bestehende Gastbudgets nicht erneuert.
+Kein Kernel-/Testumbau, Implementierungscommit, Queuewechsel oder64-Bit-
+Fertigmeldung. Belege: `owned-cleanup/result.json`, `owned-cleanup/cleanup.json`,
+`owned-cleanup/final-inventory.json`, `verification-status-owned-cleanup.json`.
+
+## Vorheriger Stand: Unveränderte Referenzbuilds wiederverwenden
+
+Vertragscommit `d0b0bc93`. Neuer fester, lesender Befehl
+`python scripts/qualify_x86_64_reference_renewal.py --check-builds` prüft die
+beiden bereits erfolgreichen Referenzbuilds statt sie erneut zu erzeugen.
+Bindung an drei unveränderte historische Manifest-/Ergebnis-/Inhalts-SHA256,
+exakte VMware-/QEMU-VGA-Buildbefehle, erfolgreiche Logs, Werkzeuge, Originale
+und202 Artefakte. Von1516 eingefrorenen Eingaben sind nur sieben namentlich
+festgelegte reine Prüf-/Statusdateien ausgenommen; insbesondere Signierschlüssel,
+Makefile, Buildskripte und Kernel-/Userspacequellen bleiben gebunden. Ein
+abweichender oder unvollständiger Cache bricht ab, kein automatischer Neubau.
+
+Erwartete rote Regression0,429s, danach18 Hosttests PASS und echter Cachecheck
+PASS5,164s parallel, gemeinsame Prüfphase9,276s. Null Builds/Gäste. Ersetzte
+Buildzeiten144,444+143,790=288,234s; diese unveränderte Profilpaarprüfung spart
+gegenüber erneuter Kompilierung hier283,070s. Status ist ausdrücklich REUSED,
+keine neue Build-/Gastabnahme. Künftige Abnahmedefinitionen müssen passende
+Buildbelege übernehmen; historische Gates/Fehler bleiben unverändert.
+
+VMware-Cleanup weiterhin separat offen: die zuletzt aktive isolierte Testkopie
+wurde in dieser Runde weder angesprochen noch beendet. Keine neuen OS-Quellen,
+Implementierungscommits oder Queuewechsel. Native Zeit-/OOM-/IRQ- und vollständige
+64-Bit-Abnahme bleiben offen. Belege: `build-reuse/result.json` und
+`verification-status-build-reuse.json` unter `build/codex-agent/r83am-file-launch/`.
+
+## Vorheriger Stand: Gast bootet; VMware-Steuerkanal und Cleanup blockieren
+
+Vertragscommit `580acdda`, genau ein Diagnosevergleich im regulären Konto
+`oe3sr`, keine neue Abnahmerunde. Dieselbe unveränderte Referenzkopie erreicht
+APIC-Timer, `BOOT_OK` und Ring-3-Shell ohne Gastfehler-Marker. `vmrun start`
+quittiert jedoch nicht innerhalb von20s; deshalb wird GTEST nicht gesendet.
+Der anschließende exakte `stop ... hard` läuft nach10s ebenfalls ins Zeitlimit.
+Diagnose FAIL in42,671s; fehlender `TEST_OK`, keine GTEST-/Recovery-Abnahme.
+
+VM-lokales Log belegt `VMAutomation: Unable to attach AsyncSocket to the SSL
+socket` und Socketfehler10038. Das grenzt den aktuellen Fehler auf den
+Host-Steuerpfad ein, beweist aber nicht dessen interne Ursache. Der alte
+Sandbox-Fehler `Unknown error` wird nicht rückwirkend als derselbe Fehler
+abgenommen oder durch einen längeren Timeout verdeckt.
+
+Cleanup ist ausdrücklich NICHT bestanden: Testkopie
+`build/codex-agent/r83am-file-launch/reference-user/vmware-main-apic/reference.vmx`
+bleibt laut letzter Aufnahme registriert/laufend. VM-Log nennt PID248;
+CIM liefert denselben `vmware-vmx.exe`, Erzeugung14.09.2026 15:10:24,820285UTC,
+Eigentümer `ASUSNB/oe3sr`, aber keine Kommandozeile/ExecutablePath. Deshalb
+führt der unveränderte Cleanup-Prüfer keinen unzureichend zugeordneten Kill aus.
+Zunächst ausdrücklich freigegebener privilegierter Cleanup nur dieser Kopie
+oder manuelles Ausschalten durch den Benutzer erforderlich. Kein neuer Start,
+Host-/ACL-/Dienstumbau oder Identitätsprüfungs-Bypass in diesem Diagnoseumfang.
+
+33 Kandidatenpfade bleiben erhalten; keine Produktions-/Testkorrektur und
+kein Implementierungscommit/Queuewechsel/Push.117 Originale,404 Buildartefakte,
+26.272 alte Belege und207 native Bootstrap-Pins geprüft. Frische Kopie beim
+Messzeitpunkt ebenfalls bytegleich; laufende VM-Dateien sind keine dauerhaften
+Hashpins. Acht stabile Rohaufnahmen liegen separat in `reference-user/observed-live-vm/`.
+Vorherige64 Hosttests/beide Builds und17 Gruppen12/1/4 bleiben historisch,
+native Zeit-/OOM-/IRQ-Gates und vollständige64-Bit-Abnahme offen.
+Belege: `reference-user/analysis.json`, `verification-status-reference-user.json`.
+
+## Historie: Metadatenkorrektur verifiziert; VMware-Start blockiert
+
+Vertragscommit `9cb39d62`. Echter CMD-/Rewrite-Test gegen den unveränderten
+Prüfer zunächst erwartungsgemäß rot (0,336s). Quellhasher vergleicht jetzt die
+gemeinsamen Identitätsfelder zwischen Pfad und Handle und beide vollständigen
+Metadatenansichten jeweils mit sich selbst vor/nach dem Lesen. Mode-/ctime-
+Änderungen bleiben erkennbar; Grenzen und Nonempty-Artefaktguard unverändert.
+
+Zehn Hostgruppen/64 Tests PASS, darunter alle 13 Referenzadaptertests: echte
+Rewrite-/CMD-/Leerdateifälle, sieben gemeinsame Identitätsabweichungen, vier
+lokale Mode-/ctime-Änderungen sowie Grow/Shorten/mtime mit tatsächlicher Mutation,
+Payloadlesen und exakt verlangter Fehlerphase. Vollständige VMware-/QEMU-Builds
+PASS (144,444/143,790s). Anschließend komplette 1.516-Quellaufnahme und bestehende
+Inhalts-/Signatur-/Manifestbindung erfolgreich: vier Systemabbilder, 96 Programme,
+unverändertes VMware-Kernelpayload und gültige plattformspezifische Abbilder.
+Keine Gastabnahme aus diesen Host-/Inhaltsnachweisen abgeleitet.
+
+Gruppe 13 stoppt nach 30,958s beim ersten headless VMware-Start: `vmrun start
+... reference.vmx nogui` liefert `4294967295` / `Error: Unknown error`.
+17 Gruppen insgesamt 12 PASS / 1 FAIL / 4 NOT_RUN in 387,591s. Genau eine
+Startanforderung, kein serieller Bootnachweis; übrige drei Referenzgäste und
+beide EXT2-Gäste nicht gestartet. Eigene Kopie nach Cleanup unverändert,
+`cleanup.json` bestätigt gestoppt und `vmrun list` anschließend null VMs.
+
+Kein VM-lokales VMware-/Serial-Log. Host-Logverzeichnis ist im Sandbox- und
+erweiterten Lesezugriff gesperrt. Lesender Identitätsvergleich: Sandboxkonto
+`CodexSandboxOffline`, regulärer Kontext `oe3sr`; unterschiedliche Kontexte,
+noch keine bewiesene Startursache. Keine ACL-/Dienst-/Hypervisor-/VM-Änderung,
+Wiederholung oder Sollhashänderung. Nächster eigener Umfang: begrenzte VMware-
+Startdiagnose mit frischer Kopie im ausdrücklich freigegebenen Benutzerkontext,
+striktem Cleanup und unveränderten Oracles; keine blinde Gesamtwiederholung.
+
+117 Originalartefakte, 202 bisherige Buildartefakte, 22.743 frühere Belege und
+207 native Bootstrap-Pins erhalten. Kein Implementierungscommit, Queuewechsel
+oder Push. Native Zeit-/OOM-/IRQ-Abnahme bleibt offen; 64-Bit-OS nicht fertig.
+Belege unter `build/codex-agent/r83am-file-launch/`: `reference-metadata/`,
+`reference-metadata-analysis.json`, `verification-status-reference-metadata.json`.
+
+## Historie: Leerdateiregression grün; Windows-Metadatenvergleich blockiert
+
+Vertragscommit `3efc9f37`. Neue echte Leerdateiregression gegen den unveränderten
+Adapter zunächst erwartungsgemäß rot (0,333s). Danach Quellhasher ergänzt:
+leere Quellen bleiben SHA256-gebunden; ursprüngliche Nonempty-Regeln für Images,
+Programme und Logs unverändert. Feste 1-GiB-/1-MiB-Grenzen, EOF-/Dateityp-/Link-
+und Änderungsprüfungen; kein Kernel-, OS-, Buildskript- oder Gastumbau.
+
+Die erste eingefrorene Hostgruppe endet nach 0,597s mit 8 erfolgreichen Tests
+und 2 Fehlern. Leerdatei-/Artefakttrennung besteht; normale nichtleere Quellen
+scheitern an `source changed before read`. Daher 0 PASS / 1 FAIL / 16 NOT_RUN,
+gesamte Prüfphase 2,949s. Keine weiteren Tests, Builds, Gäste oder Reparaturen.
+
+Lesender Vergleich aller 1.516 vorhandenen Eingaben: 1.300 Pfad-/Handle-
+Metadatenabweichungen, davon 1.299 bei ctime und vier bei vollständigen Modebits
+der vorhandenen `.cmd`-Dateien. Geräte-/Datei-ID, Dateityp, Linkzahl, Größe,
+mtime und Geburtszeit stimmen überein; kein Pfadwert änderte sich zwischen
+Vorher-/Nachheraufnahme. Mein Quellhasher setzt unterschiedliche Windows-
+Metadatendarstellungen unzulässig gleich. Kein belegter OS-/Quellendefekt.
+Die breiten ValueError-Negativtests können bereits vor der beabsichtigten
+Mutation abbrechen; ihr PASS belegt allein noch keinen ausgeführten Schreibfall.
+
+Nächster eigener Umfang: gemeinsame Identitätsfelder zwischen Pfad und Handle
+vergleichen, vollständige Pfad- und Handlemetadaten jeweils separat vor/nach
+dem Lesen erhalten; echte Rewrite-/CMD-Positivtests und phasengenaue Mutation-
+Negativtests, danach unveränderte Referenzabnahme neu einfrieren. Kein Lockern
+von Artefaktregeln, Fristen oder Quellbindung. 117 Originalartefakte, 202 letzte
+Buildartefakte, 22.679 frühere Belege und 207 native Bootstrap-Pins erhalten.
+Keine Sollhashänderung, Implementierungscommit, Queueänderung oder Push.
+AM-/Zeit-/OOM-/IRQ-Abnahme bleibt offen; die 64-Bit-OS-Version ist nicht fertig.
+Belege unter `build/codex-agent/r83am-file-launch/`: `reference-source/`,
+`reference-source-red.json`, `reference-source-identity.json`,
+`reference-source-analysis.json`, `verification-status-reference-source.json`.
+
+## Historie: Interpreterkorrektur bestanden; Quellaufnahme im Prüfer blockiert
+
+Vertragscommit `fd35f2f1`. Beide Buildaufrufe verwenden jetzt die vorhandene,
+hashgebundene PowerShell 7.6.6. Bestehender Ausführungshelfer, Prüfkriterien,
+Tests, Buildskripte, OS und Gastfristen unverändert; am Referenzadapter nur
+die beiden festen Literale für neuen Ausgabeordner und Vertragscommit geändert.
+39 Quellen vorab gesichert, alle 1.516 Eingabedateien erneut eingefroren.
+
+Zehn Hostgruppen/58 Tests sowie beide vollständigen i386-Builds PASS:
+VMware 147,356s, QEMU 145,819s; Bootmanifest-/SBOM-Prüfungen bestanden.
+VMware-Kernel weiterhin `3be2b5c9...`. Der ArgumentList-/Interpreterfehler ist
+damit behoben. 17 Gruppen stehen nach 361,791s bei 12 PASS / 1 FAIL / 4 NOT_RUN.
+
+Gruppe 13 stoppt nach 0,638s, Exit 1, vor Inhaltsvergleich und jedem Gast:
+`invalid artifact size/type: kernel/syscall/syscall.c`. Die einzige leere
+Datei unter den 1.516 Eingaben ist ein unveränderter, bereits in Git vorhandener
+Quellplatzhalter (Blob `e69de29b...`, SHA-256 `e3b0c442...`). Der neue Adapter
+verwendet für Quellen irrtümlich die Nonempty-Regel des bestehenden Bootartefakt-
+Hashers. Kein belegter Kernel-/Builddefekt und kein Grund, eine Quelle aus der
+Bindung zu entfernen oder den Image-/Programmprüfer abzuschwächen.
+
+Nur lesende Ursachenprüfung nach dem Stopp; keine Reparatur oder Gatewiederholung.
+117 Originalartefakte, 19.168 frühere Belege und 207 native Bootstrap-Pins erhalten;
+neue Builds separat gesichert. Keine Gäste, Sollhashänderung, Implementierungs-
+commit, Queueänderung oder Push. Nächster eigener Umfang: begrenzten Quellhasher
+im vorhandenen Adapter mit tatsächlicher Leerdatei-Regression korrigieren;
+Originalartefakt-/Logprüfungen unverändert und dieselbe Referenzabnahme neu
+einfrieren. AM und ursprüngliche native Zeit-/OOM-/IRQ-Gates bleiben offen.
+Die 64-Bit-OS-Version ist nicht fertig. Belege unter
+`build/codex-agent/r83am-file-launch/`: `reference-pwsh/`,
+`reference-pwsh-analysis.json`, `verification-status-reference-pwsh.json`.
+
+## Historie: Referenzhosts bestanden; Buildaufruf verwendet falsche PowerShell
+
+Vertragscommit `0c8fcb5a`. Neuer fest begrenzter Referenzabnahme-Adapter und
+Hostregression implementiert; bestehende Inhalts-/Signatur-/Plattformprüfer und
+deren Gastisolierung unverändert wiederverwendet. Temporäre Profilkonstanten
+werden auch im Fehlerfall zurückgesetzt. Kein OS-/Parser-/Kernel-/ABI-Fix.
+1.516 Eingabedateien, 39 Paketquellen und 117 Originalartefakte vor dem Lauf
+gebunden; 19.084 frühere Belege und 207 native Bootstrap-Pins erhalten.
+
+Zehn Hostgruppen mit 58 Tests PASS, darunter sieben echte Adaptertests und
+EXT2 O0/O2 mit jeweils 45 Bereichsvektoren samt alten Objekt-/Symlinkverbrauchern.
+Von 17 eingefrorenen Gruppen: 10 PASS / 1 FAIL / 6 NOT_RUN, 66,266s bis Stopp.
+Gruppe 11, erster VMware-Neubau, scheitert nach 0,435s mit Exit 1 vor der
+Kompilierung: `Invoke-PythonProcess`, `build-windows.ps1:177`, fehlende
+`ProcessStartInfo.ArgumentList`-Eigenschaft. Der neu eingefrorene Aufruf
+verwendete irrtümlich `powershell.exe` (Windows PowerShell 5.1).
+
+Lesender API-Vergleich ohne Build oder Gast bestätigt: Desktop 5.1.26100.9444
+bietet ArgumentList nicht; vorhandenes `pwsh.exe` / Core 7.6.6 bietet sie.
+Das ist ein Fehler in der Interpreterwahl dieses Abnahmelaufs, kein belegter
+OS-Defekt. Keine Neuübersetzung, Folgegruppe, Gastabnahme, Prüferreparatur oder
+Wiederholung nach dem Stopp. Nur leere neue Cacheverzeichnisse entstanden;
+bestehende Images, Programme, Signaturen und ursprüngliche Guard-Pins unverändert.
+
+Nächster eigener Umfang: nur die beiden Buildaufrufe auf die vorhandene,
+hashgebundene PowerShell 7 umstellen und dieselben 17 Gruppen einmal neu
+einfrieren; kein OS-/Buildskriptfix oder anderes Prüfziel. Sollhashänderung
+weiterhin ausschließlich nach vollständig bestandener Referenzabnahme.
+Kein Implementierungscommit, Queuewechsel oder Push; AM aktiv und nicht
+abgenommen. Ursprüngliche 23/1/6 native Paketgates einschließlich Zeit-, OOM-
+und IRQ-Nachweisen bleiben offen; die 64-Bit-OS-Version ist nicht fertig.
+Belege unter `build/codex-agent/r83am-file-launch/`: `reference-renewal/`,
+`reference-shell-windows-01.log`, `reference-shell-core-01.log`,
+`verification-status-reference-renewal.json`.
+
+## Historie: Herkunft der i386-Abweichung eingegrenzt
+
+Lesende Diagnose auf `d53f5b7a`, ohne Quellen-/Imageänderung: neuer i386-Build
+mit STORAGE `4cb46748...` statt `6450b474...`; Kernel und 95 weitere Programme
+unverändert. Einzige geänderte direkte Storage-Quelle ist der gemeinsame
+EXT2-Bereichsleser aus `1835ee97`; kein neuer Clean-Rebuild daraus behauptet.
+Gegenüber erhaltenem altem Neubau unterscheiden sich nur zwei Signaturmanifest-
+und 379 Storage-Sektoren. Das spätere Hauptimage enthält zusätzlich exakt
+256 KiB Benchmarkdaten und 16 FAT32-/Journal-/Desktop-Metadatensektoren.
+Benchmarkcluster wieder frei, Journalheader CLEAN; keine volle FS-Abnahme.
+Die damalige Referenzprüfung war vor dem gemeinsamen Quellcommit erfolgreich
+und prüfte bestehende Binärdateien, nicht einen späteren i386-Neubau.
+Person/Buildaufruf durch Zeitstempel nicht authentifiziert; keine automatische
+Rücksetzung oder Neufestlegung von Referenzen. Vollständiger Befund:
+`build/codex-agent/r83am-file-launch/reference-provenance/REPORT.md`.
+
+## Historie: Build-Prüfer korrigiert; i386-Referenzprüfung blockiert
+
+Vertragscommit `d53f5b7a`. Ausschließlich explizite stdout/stderr-Weitergabe im
+neuen direkten Build-Helfer korrigiert; bisheriger Helfer und Belege erhalten.
+Keine Änderung an OS, Makefile, Tests, Produktionsobserver, Capture oder Fristen.
+Die unveränderten acht Build-Prüfgruppen wurden genau einmal erneut ausgeführt:
+7 PASS / 1 FAIL / 0 NOT_RUN in 62,635s, Stopp beim ersten Fehler in Gruppe 8.
+
+Drei Hostgruppen mit 26 Tests PASS (14,909/8,890/5,689s). Normal-/FS-/Dateistart-
+Windows-Builds und direkter Make-Build PASS (3,001/8,909/9,400/9,692s).
+Direkter Build ohne die drei Case-Overrides: Exit 0, vollständiges Log und
+Abschlussmarker. Alle 35/43/43/43 Kernelartefakte bytegleich zum jeweiligen
+Vergleichsbuild; auch fünf Dateistartprogramme und insgesamt 24 Programm-/Objekt-/
+Katalogdateien bytegleich zwischen Windows und direktem Make. Der Prüferfehler
+ist damit behoben, die gesamte Referenz-/Paketabnahme jedoch nicht bestanden.
+
+`python scripts/verify_x86_64_reference_artifacts.py` FAIL, Exit 1 nach 0,487s:
+`reference drift: build/reist-os.img`. SHA-256 Soll
+`d6e77ebe48762d9b1e41bae29c26e5e1240afee70f1bd77ca03a9d135384713c`, Ist
+`2b58094b7bc68eb261f18ab0cf053b4815f8528bc6e33ed6ca68e73232353bc7`.
+Letzter erfolgreicher Referenzbeleg: 13. September 20:00:41 UTC; Änderungszeit
+des 512-MiB-Images: 20:42:07 UTC desselben Tages. Diese Zeitstempel belegen
+weder Verursacher noch Ursache. Der Prüfer stoppt am ersten Image; weitere
+i386-Images und Programmreferenzen sind in diesem Lauf nicht erneut geprüft.
+
+Korrektur bisheriger Berichte: Die 207 erhaltenen Pins betreffen native x86_64-
+Bootstrap-Artefakte, nicht i386-Diskimages. `build/reist-os.img` gehört nicht zu
+dieser Liste. Die frühere Bezeichnung "207 i386-Pins" war falsch und wird durch
+diese Klarstellung berichtigt; historische Belege/Verträge bleiben unverändert.
+36 Quellsicherungen, 18.525 frühere Belegdateien und alle 207 nativen Pins sind
+geprüft und erhalten. Kein Image ersetzt, Sollhash geändert oder Gate wiederholt.
+
+Neuer erforderlicher Umfang: Herkunft der abweichenden i386-Referenz klären,
+zunächst ausschließlich lesend und ohne Neufestlegung eines Sollhashes. Keine
+neuen Gäste oder 30-Gate-Erneuerung. Ursprüngliche 23/1/6 Paketgates, Zeitbefund,
+OOM- und übrige Laufzeitnachweise bleiben offen. Kein Implementierungscommit,
+Queuewechsel oder Push; AM aktiv, letzte akzeptierte Implementierung `1835ee97`.
+Die 64-Bit-OS-Version ist nicht fertig. Belege unter
+`build/codex-agent/r83am-file-launch/`: `make-stdio-check/`,
+`make-stdio-analysis.json`, `verification-status-make-stdio.json`.
+
+## Historie: Make-Defaults korrigiert; direkter Build-Prüfer blockiert
+
+Vertragscommit `18ff9a83`. 36 Quellen, 17.972 bisherige Belege und 207 i386-Pins
+geprüft und erhalten. Der neue tatsächliche Make-Regressionstest reproduziert
+vor Korrektur sieben fehlgeschlagene von acht zulässigen Defaultkombinationen
+(0,731s; Kommando 1,057s). FILESYSTEM_CASE, PIO_CASE und STARTUP_CASE wurden vor
+ihren Defaultzuweisungen geprüft. Nur diese drei vorhandenen ?=0-Zuweisungen
+vor die ersten Verbraucher verschoben; keine Guard-/Rezept-/Gastcodeänderung.
+
+Danach drei Hostgruppen mit 26 Tests PASS: alle acht ausgelassenen/expliziten
+Nullkombinationen erzeugen exakt denselben Make-Plan; fünf Medienlayouts und
+elf Dateifälle wählbar, sechs inkompatible Konfigurationen ohne Ausgabeerzeugung
+abgewiesen. Normal-/FS-/Dateistart-Windows-Builds PASS (2,711/8,150/8,422s).
+Alle 35/43/43 Kernelartefakte sowie vorhandene Programme bytegleich zum Vorlauf.
+
+Von acht eingefrorenen Build-Prüfgruppen: 6 PASS / 1 FAIL / 1 NOT_RUN in 58,512s.
+Gruppe 7, direkter Make-Aufruf ohne die drei Case-Overrides, endet nach 8,272s
+mit Code 2 und leerem Log. Trotzdem sind sämtliche 43 Kernelartefakte und fünf
+Programme, insgesamt 24 Programm-/Objekt-/Katalogdateien, bytegleich zum neuen
+Windows-Dateistartbuild. Das ersetzt weder erfolgreichen Prozessabschluss noch
+das nicht ausgeführte Referenzgate 8.
+
+Zusätzlicher begrenzter Hostvergleich ohne Build/Gast: gleicher versteckter
+Unterprozess und einfache printf-Ausgabe scheitern bei impliziter stdout/stderr-
+Vererbung (Code 1, keine Ausgabe); explizite Weitergabe funktioniert (Code 0,
+Marker vorhanden), 0,363/0,367s. Das weist einen Fehler im neu hinzugefügten
+direkten Build-Prüfer nach. Der exakte fehlende Make-Fehlertext ist nicht
+rückwirkend rekonstruierbar; die Abschlussphase bleibt formal unabgenommen.
+Kein zweiter Buildversuch oder Umdeuten des fehlgeschlagenen Gates.
+
+Make-Reihenfolgebefund hostgetestet korrigiert, Prüferkorrektur noch offen.
+Nächster eigener Umfang: explizite Ausgabekanäle im direkten Build-Prüfer und
+erneute unveränderte acht Build-Prüfgruppen. Keine Gast-/30-Gate-Erneuerung aus
+diesem Lauf. Ursprüngliche 23/1/6 Paketgates, Zeitproblem und OOM-Gastnachweis
+bleiben offen; kein Implementierungscommit, Queuewechsel oder Push. AM aktiv,
+letzte akzeptierte Implementierung `1835ee97`; 64-Bit-OS nicht fertig.
+Belege unter `build/codex-agent/r83am-file-launch/`: `make-default-check/`,
+`make-default-analysis.json`, `verification-status-make-default.json`.
+
+## Historie: FAT12-Diagnose vollständig; Zeitfehler nicht reproduziert
+
+Vertragscommit `d53ecf49`. 36 Quellen, 17.712 frühere Belegdateien und 207 i386-
+Referenzartefakte geprüft und erhalten. Vorhandenen Case6-/FAT12-Diagnoseablauf
+zusammengeführt, mit fest gebundenen Profilen und unverändertem Case6-Einstieg.
+Nur Diagnose und Hosttest geändert; Kernel, Programme, Produktionsobserver,
+Capture, Binärleser und Fristen unverändert. Keine neue Gastautorität.
+
+24 Hosttests PASS (0,788s, Kommando 1,357s). Beide eingefrorenen FAT12-Kontrollen
+am unveränderten fehlgeschlagenen Abbild bestehen den vollständigen ursprünglichen
+Oracle: minimal 16,911144s, profiliert 17,144125s einschließlich Cleanup, jeweils
+16 Reaps und zwei PROCESS_RUN. Kommandos 17,866/18,131s; kein Rebuild, Fatal,
+Observerfehler, OOM-Eingriff oder wiederholtes Abnahmegate.
+
+Callbackzeiten mindestens 3,068/3,180s, Zwischenintervalle 10,707/10,735s.
+Diese Intervalle enthalten Gast, Debugger und Transport, sind keine reine
+Hostverzögerung und erklären den früheren 22,565s-Ausreißer nicht. Alle 75
+profilierten Snapshots zeigen gleiche monotone Tick-/EOI-/last_tick-Zähler.
+Die tatsächliche 45x100ms-Peerschleife und das QIB3s-Deadlinelayout sind am
+Quelllayout/Abbild gebunden geprüft. Peers 2/10: 36/37 Aufnahmen, Wartezähler
+45 bis 2 beziehungsweise 1 beobachtet, beide anschließend normaler EXIT4;
+alle erfassten Wartefristen passen exakt zu Generation/Slot und Uhr.
+
+Keine reproduzierte Zeitursache, kein belegter Kernel-Fix. Beide Diagnoseplätze
+verbraucht; Diagnoseerfolg erneuert die gescheiterte Qualifikation nicht:
+historisch 23 PASS / 1 FAIL / 6 NOT_RUN, OOM- und übrige Gastnachweise weiter offen.
+Keine weitere Ausführung, ungeprüfte Reparatur, Implementierungscommit,
+Queueänderung oder Push. AM aktiv, letzte akzeptierte Implementierung `1835ee97`;
+die 64-Bit-Version ist nicht fertig. Der statische direkte Make-Defaultfehler
+bleibt ein konkreter offener Reviewpunkt: positiver Default-Regressionstest und
+gegebenenfalls Reihenfolgekorrektur brauchen eigenen freigegebenen Umfang.
+Kein unveränderter Gesamtlauf als Ersatz für diesen offenen Befund.
+Belege unter `build/codex-agent/r83am-file-launch/`: `fat12-timing/`,
+`fat12-timing-analysis.json`, `verification-status-fat12-timing.json`.
+
+## Historie: erneute Abnahme am ersten FAT12-Gast gestoppt
+
+Vertragscommit `f934a12d`. Ein vollständig eingefrorener Lauf mit unveränderten
+30 Prüfgruppen und Fristen; keine Implementierungs-, Test- oder Prüferänderung.
+36 Quellen, 16.981 frühere Belegdateien und 207 i386-Referenzartefakte gesichert.
+20 Hostgruppen (144 Tests, davon ein bestehender Skip) und drei Builds PASS.
+Gate 24 FAIL nach 33,299s; insgesamt 23 PASS / 1 FAIL / 6 NOT_RUN in 148,048s.
+
+Schon success/case0/FAT12/4GiB überschreitet die 20s-Abnahmegrenze:
+22,565s Capture einschließlich Cleanup, 15/16 Reaps und 1/2 PROCESS_RUN.
+Alle vier Dateiprogramme (Generationen 5/8/13/16) enden korrekt mit 82,
+beide Roots (1/9) mit 83; nur der letzte Peer (10) fehlt. Kein protokollierter
+Kernel-Fatal oder OBSERVER_FAIL. 73 Binärexporte / 12.402.144 Byte exakt geprüft.
+Kein OOM-Eingriff; weder Case6 noch die OOM-Gäste wurden diesmal erreicht.
+
+Normal-/FS-/Standard-Dateistartartefakte sind unverändert. Alle 43 Kernelartefakte
+und fünf Programme des fehlgeschlagenen Gasts sind bytegleich zum früheren
+FAT12-Lauf, der in 17,605s bestand. Das belegt keine Zeitursache; die vorhandenen
+Logs trennen Host-/Debuggerverzögerung und Gastfortschritt nicht. Die allgemeine
+Offlineanalyse wählte zunächst nur .elf; der ergänzende Review vergleicht die
+fünf tatsächlichen .prg und insgesamt 24 Programm-/Objekt-/Katalogbinärdateien.
+
+Zusätzlicher statischer Reviewhinweis: Der direkte Make-Dateistart prüft
+X86_64_FILESYSTEM_CASE vor dessen Defaultzuweisung (Zeilen 264/272); der Windows-
+Wrapper übergibt den Wert explizit. Noch keine eigene Kommando-Reproduktion oder
+Korrektur; dieser Hinweis erklärt nicht den Gasttimeout. Ein positiver Test der
+direkten Make-Standardselektoren bleibt vor Paketannahme erforderlich.
+
+Stoppregel eingehalten: kein weiterer Gast, Retry, Folgegate, Implementierungs-
+commit, Queuewechsel oder Push. AM bleibt aktiv; letzte akzeptierte Implementierung
+`1835ee97`, die 64-Bit-OS-Version ist nicht fertig. Nächster freizugebender Umfang:
+begrenzte Zeit-/Peerfortschrittsdiagnose am exakt gesicherten FAT12-Abbild mit
+unveränderten 20s und vollständigem Oracle; kein ungeprüfter erneuter Gesamtlauf.
+Belege unter `build/codex-agent/r83am-file-launch/`: `post-case6-renewal/`,
+`post-case6-analysis.json`, `post-case6-failure-review.json`,
+`verification-status-post-case6.json`.
+
+## Historie: Case6-Zeitdiagnose vollständig; Fehler nicht reproduziert
+
+Vertragscommit `cb254293`.36 Quellen/2737 letzte Belege und gesamte16732-Dateien-
+Belegkette abgeglichen, Rohkopien und207 i386-Pins erhalten. Nur vorhandener
+Transportdiagnose-Einstieg und dessen Hosttest erweitert; Produktionsobserver,
+Kernel, Ring-3-Programme, Binärleser, Capture und Fristen unverändert.
+
+22 Hosttests PASS (.812s, Kommando1.399s). Genau zwei eingefrorene Kontrollen
+am unveränderten case6/EXT2-1KiB/4GiB-Abbild: minimal16.215368s,
+profiliert16.512205s inklusive Cleanup; jeweils14 Reaps,2 PROCESS_RUN und alle
+ursprünglichen Assertions bestanden. Kommandos17.214/17.499s. Kein Kernel-Fatal,
+Observerfehler oder OOM-Eingriff; kein Rebuild und kein Abnahmegate wiederholt.
+
+Messung: Callbackzeit mindestens2.471/2.764s, Zwischenintervalle10.548/10.568s;
+diese Intervalle sind keine reine Gastzeit und erklären nicht den früheren
+Ausreißer22.508s. Profilierter Lauf:72 Snapshots, Tick=EOI=last_tick stets gleich
+und monoton; Peers2/9 zeigen die tatsächliche45x100ms-Schleife von45 bis1 und
+anschließend EXIT4. Deadline-Tick/Generation/Slot sind in jedem erfassten
+Wartezustand konsistent. Keine belegte verlorene Weckung oder neue Kernelursache.
+Die erste Offlineauswertung gruppierte rohe Deadlinebytes unpassend alsIIQ;
+der zusätzliche quelllayoutgebundene Review dekodiert QIB3s korrekt. Eine
+Off-by-one-Prüfung des reinen Offline-Codebytesvergleichs wurde korrigiert;
+erste Helferversion und Fehlerlog erhalten, kein Hostgate/Gast dafür wiederholt.
+
+Beide Diagnoseplätze verbraucht. Nicht-Reproduktion ist weder Fehlerbehebung
+noch Paketabnahme: Originalqualifikation bleibt historisch23 PASS/1 FAIL/6 NOT_RUN;
+OOM-Gastnachweis und nachfolgende reguläre Gates bleiben offen. Keine weitere
+Ausführung, ungeprüfte Reparatur, Implementierungscommit, Queueänderung oder
+Push. AM aktiv, letzte akzeptierte Implementierung `1835ee97`, OS nicht fertig.
+Eine erneute vollständige Qualifikation benötigt einen eigenen freigegebenen
+Umfang mit unveränderten Gates/Fristen; kein unveränderter Einzelgast-Retry.
+Belege unter `build/codex-agent/r83am-file-launch/`: `case6-timing/`,
+`case6-timing-analysis.json`, `case6-clock-review.json`,
+`verification-status-case6-timing.json`.
+
+## Historie: OOM-Prüfer hostgetestet; Gastabnahme an Frist gestoppt
+
+Vertragscommit `15f650f2`.36 Quellen/3063 letzte Belege und gesamte ältere
+Kette geprüft (13.995 Belegdateien), Rohkopien und207 i386-Pins erhalten.
+Nur Dateistartobserver und dessen vorhandener Hosttest geändert. Der tatsächliche
+generierte `create_end` reproduziert vor Korrektur für OOM0/10/19 die falsche
+Bilanzgrenze. Danach bestehen drei neue Hosttests: exakte alte Imagefreigabe
+vor neuer Allocation-Basis,23 Freigabe-/Scrub-/Generations-/Bilanz-/Reihenfolge-
+Fehler, vier inaktive Hookfälle und negative Receiptprüfungen. Keine gelockerte
+ENOMEM-Gleichheit, Frist oder Gesamtfreigabe; kein Kernel-/Ring-3-/ABI-Umbau.
+
+Erneut30 Gates eingefroren:20 Hostgruppen (142 Tests, davon ein bestehender
+D1.1-Scope-Skip) und3 Builds PASS. Elf vollständige Dateistartgäste bestehen
+16.835..17.853s, jeweils zwei PROCESS_RUN-Abschlüsse. Gate24 stoppt im zwölften
+Gast, Treiber-UD2/case6/EXT2-1KiB/4GiB:22.508s inklusive Cleanup überschreiten
+20s,13/14 Reaps und1/2 Runs. Kein protokollierter Kernel-Fatal oder OBSERVER_FAIL.
+Beide FS-Generationen4/11 enden weiter exakt90, beide Roots1/8 mit83; nur der
+letzte Peer9-Abschluss fehlt. Das ist keine erneute FS-Cancel-Statusabweichung.
+
+Normal/FS/Standard-Dateistart und alle43 Kernartefakte sowie fünf Programme des
+case6-Gasts sind bytegleich zum vorherigen Lauf; derselbe case6 bestand dort
+16.624s. Im aktuellen case6 ist OOM=None, neue OOM-Hooks bleiben inaktiv.
+Das beweist keine Zeitursache: reguläre Logs unterscheiden weder Host-/Debugger-
+Verzögerung noch Gastfortschritt. Alle drei OOM-Gäste wurden noch nicht erreicht;
+die neue OOM-Prüferkorrektur hat damit noch keinen realen Gastnachweis.
+
+23 PASS/1 FAIL/6 NOT_RUN; Matrixgate311.102s, gesamter Block416.706s.
+Original20 aktuell16/1/3. Kein Retry, Folgegate, Implementierungscommit,
+Queuewechsel oder Push. AM aktiv, letzte akzeptierte Implementierung `1835ee97`.
+Nächster freizugebender Umfang: begrenzte Capture-/Peer-Fortschrittsdiagnose am
+exakt gleichen case6-Abbild, unveränderte20s-Abnahme und vollständiger Oracle;
+keine spekulative Kernelkorrektur. Belege unter
+`build/codex-agent/r83am-file-launch/`: `oom-boundary-renewal/`,
+`oom-boundary-analysis.json`, `oom-boundary-failure-review.json`,
+`verification-status-oom-boundary.json`. Die64-Bit-OS-Version ist nicht fertig.
+
+## Historie: Retirement korrigiert;13 Dateistartgäste bestanden
+
+Vertragscommit `ffce1f2c`.36 Quellen/2683 Altbelege und gesamte vorherige Kette
+abgeglichen, Rohkopien erhalten. Einzige neue Produktionsänderung:
+`file_launch.c` cancelt den FS-Dienst nach fehlgeschlagener Initialisierung
+(Modus5) nicht mehr, sondern wartet nach dem Fencing auf dessen normalen Exit90.
+Alle übrigen Cancel-/Wait-/Status-/Generations-/Reap-/Close-Prüfungen bleiben.
+Kein Kernel-, gemeinsamer FS-, ABI-, Quota-, Transport- oder Observerumbau.
+
+Neue Hostregression kompiliert die tatsächlichen Retirement-Statements und den
+tatsächlichen FS-Reply-/Exitabschnitt mit expliziten begrenzten Syscalladaptern.
+O0/O2 vor Korrektur beide rot mit Fehler221 bei Reply-vor-Exit; danach je89
+Prüffälle grün (.622s Hostgruppe). Beide Ablaufreihenfolgen, normale/FS-Fault/
+Treiber-Fault/Protokollfehler-Modi, exakte Aufrufreihenfolge, Stale-Handles,
+1000ms-WAIT/1ms-Stale-Probes und Fehlerabbruch vor weiteren Seiteneffekten.
+Das ist kein Ersatz für den echten Gastnachweis.
+
+Erneuerte30 Gates:20 Hostgruppen (139 Tests, ein bestehender D1.1-Scope-Skip)
+und3 Builds PASS. Gate24 stoppt erst im14. Gast nach13 vollständigen Erfolgen;
+340.103s Matrixgate,440.806s gesamter Prüfblock.23 PASS/1 FAIL/6 NOT_RUN.
+Treiber-UD2 jetzt vollständig16.624s mit14 Reaps und2 PROCESS_RUN:
+FS-Generationen4/11 enden exakt90/TASK_EXITED4, Roots1/8 mit83, Peers2/9 mit77.
+Auch Eigentümerverlust besteht14.612s mit8 Reaps/2 Runs. Kein Statuswert oder
+Assertion abgeschwächt;13 positive Gäste14.612..17.709s inklusive Cleanup.
+
+Neuer Fehler: case8/EXT2-1KiB/4GiB, OOM an erster Allocation (Index0), stoppt
+nach5.634s mit `OBSERVER_FAIL` in `create_end`. Der unveränderte Prüfer erreicht
+den ENOMEM-Zweig und verwirft die zusammengesetzte Rollback-Assertion
+`OOM is not None and allocation_count==OOM and free()==allocation_before`.
+OOM-Record: owner4294967296/acquired0; kein Rollback-Record,3 Reaps/0 Runs,
+kein protokollierter Kernel-Fatal. Kein Timeout. Freizähler vor/nach dieser
+Grenze wurden vom bisherigen Fehlerprotokoll nicht ausgegeben.
+
+Read-only-Quellbefund: Der Observer setzt `allocation_before` schon an
+`family_create64.found`. CREATE-v5 gibt später das alte slotgebundene Image
+frei und setzt erst danach `family_initial_free` neu. Der Kernel prüft den
+ENOMEM-Rollback gegen diesen späteren Wert, der Observer gegen den früheren.
+Konkreter Ansatz für eine falsche Prüfer-Transaktionsgrenze, noch kein gemessener
+Freizählervergleich und kein nachgewiesenes Kernel-Speicherleck. Nächster eigener
+Umfang: diese beiden Phasen mit begrenztem tatsächlichem Host-/Gastnachweis
+abgrenzen; alte Imagefreigabe und neue Allocation-Rückabwicklung jeweils exakt
+beweisen, keine pauschale Freizählertoleranz oder ungeprüfte Kernelkorrektur.
+
+Normal-, NativeFilesystem- und Standard-NativeFileLaunch-Builds sind gegenüber
+dem vorherigen Prüflauf bytegleich. Beim gezielt geänderten Treiberfehler-Build
+unterscheiden sich nur Supervisorprogramm0, dessen Katalog, `elf64_loader.o`
+und das äußere ELF; Peer/Driver/FS/Dateiprogramm und alle anderen Kernobjekte gleich.
+Alte gemeinsame IF-Bit-Differenz gegenüber AL bleibt dokumentiert. Original20
+aktuell16/1/3; folgende FS-/Normal-/Referenz-/Binär-/IRQ-Gates nicht gestartet.
+207 i386-Pins erhalten, kein Ersatz für das nicht ausgeführte Referenzgate.
+Kein weiterer Reparatur-/Gastversuch, Implementierungscommit, Queuewechsel oder
+Push. AM aktiv, letzte akzeptierte Implementierung `1835ee97`, OS nicht fertig.
+Belege unter `build/codex-agent/r83am-file-launch/`: `retirement-renewal/`,
+`retirement-analysis.json`, `verification-status-retirement.json`.
+
+## Historie: Binärleser integriert; elf Dateistartgäste bestanden
+
+Vertragscommit `55959eae`.36 Quellen/648 Altbelege samt vollständiger vorheriger
+Belegkette abgeglichen, Rohkopien erhalten. Ein kleiner Dateiprofil-Adapter
+aktiviert den bestehenden Binärleser und genau ein GDB-Logziel; eine bestehende
+Matrix-Aufrufstelle nutzt ihn. Ursprünglicher Beobachter, Assertions, Validator,
+gemeinsamer Capture-Standard, Binärleser und Kernel-/Ring-3-Code unverändert.
+Neue echte Dispatch-/Fehlerweitergabe-Hosts zuerst rot, danach2/.064s grün.
+Der erste rote Test wurde wegen übergroßer unittest-Payloaddifferenzen beendet;
+seine Ausgabe und Quellkopie bleiben erhalten. Nach begrenzter Fehlerausgabe
+zeigt der vollständige rote Lauf18 fehlende Optionsweitergaben und den fehlenden
+Adapter; kein Gast oder Abnahmegate dafür wiederholt.
+
+Erneut exakt30 Gates eingefroren:20 Hostgruppen (138 Tests, ein bestehender
+D1.1-Scope-Skip) und3 Builds PASS. Gate24 läuft292.486s und stoppt im zwölften
+Gast; gesamter Prüfblock402.605s.23 PASS/1 FAIL/6 NOT_RUN. Alle fünf Medienlayouts
+und EXT2-1KiB/8GiB sowie Programm-UD2, Spin, Cancel, ungültiges ELF und FS-UD2
+bestehen vollständig. Elf Gäste16.272..19.669s einschließlich Capture/Cleanup,
+je zwei PROCESS_RUN-Abschlüsse mit allen jeweils geforderten Lebenszyklen.
+Der zuvor abbrechende FAT12-Fall besteht mit16 Reaps/2 Runs in19.669s; geringe
+Fristreserve bleibt sichtbar, keine generelle Zeitstabilitätsbehauptung.
+
+Neuer konkreter Fehler: Treiber-UD2 (case6/EXT2-1KiB/4GiB) stoppt bereits nach
+9.276s, nicht an der20s-Grenze. Treiber Generation3 ist gefaultet (134), FS4
+meldet Initialisierungsfehler -5, wird danach aber abgebrochen (Status0,
+TASK_FAULTED3), statt normal mit90 zu enden. Supervisor1 endet mit221;
+unabhängiger Peer2 normal mit77. Vier Reaps/ein Run, anschließend
+`OBSERVER_FAIL` in `finish`, kein protokollierter Kernel-Fatal.
+
+Quellbezug: `file_launch.c` sendet bei Zeile58 bedingungslos CANCEL an FS,
+verlangt danach bei Modus5 aber normalen Exit90. Der FS-Dienst meldet zunächst
+seinen Fehler über IPC und kehrt erst anschließend mit90 zurück. Die frühe
+Cancellation konkurriert damit mit seinem normalen Ende. Der bestehende
+NativeFilesystem-Supervisor wartet in diesem Fehlerfall bereits ohne CANCEL.
+Nächster ausdrücklich freizugebender Umfang: gezielte Ring-3-Retirementkorrektur
+mit tatsächlicher Hostregression beider Ablaufreihenfolgen, unveränderten
+Fencing-/Generation-/Exitprüfungen und vollständiger neuer Gastabnahme.
+Keine Anpassung der erwarteten Statuswerte, kein Kernel-/Quota-Workaround.
+
+Alle drei neuen Buildvarianten sind gegenüber dem vorherigen regulären Prüflauf
+bytegleich (.o/.elf/.bin); die dort dokumentierte gemeinsame frühere IF-Bit-
+Korrektur gegenüber AL bleibt bestehen. Aktuelle Original20:16/1/3;
+FS-Matrix, normaler Gast, Referenzgate, Binäräquivalenz/-vollkontrolle und IRQ-
+Matrix nach dem Fehler nicht gestartet.207 i386-Artefaktpins bleiben erhalten,
+das ersetzt nicht das ausgefallene Referenzgate. Kein Implementierungscommit,
+Queuewechsel, weiterer Reparatur-/Gastversuch oder Push. AM bleibt aktiv;
+letzte akzeptierte Implementierung `1835ee97`, kein fertiges64-Bit-OS.
+Belege unter `build/codex-agent/r83am-file-launch/`: `binary-integration/`,
+`binary-integration-analysis.json`, `verification-status-binary-integration.json`.
+
+## Historie: Reguläre GDB-Abnahme bei Gate24 gestoppt
+
+Vertrag `3c72519b`,36 Quellen/267 Altbelege vor Beginn abgeglichen und roh
+gesichert.30 Gatebefehle samt Quellen und zwei reinen Verifikationshelfern vor
+Ausführung eingefroren; keine Produktions-/Teständerung während des Prüflaufs.
+Originale13 Hostgruppen, sieben bestehende Timer-/Transporthostgruppen und alle
+drei Builds bestanden:23 PASS,1 FAIL,6 NOT_RUN.20 Hostgruppen umfassen136 Tests
+mit einem bestehenden, für dieses Paket nicht zutreffenden D1.1-Scope-Skip.
+Gesamter Prüfblock143.991s; keine Wiederholung oder Fortsetzung nach dem Fehler.
+
+Gate24, ursprüngliche18-Fall-Dateistartmatrix, stoppt bereits im ersten Gast:
+FAT12/case0/4GiB, `program capture/detach failure`,22.459s inklusive
+Capture-Setup/Cleanup;32.701s Gatezeit einschließlich Variantenbuild.
+15 von16 Reaps und ein vollständiger PROCESS_RUN, zweiter Root9 freigegeben,
+Peer10-Abschluss fehlt. Kein protokollierter EXCEPTION_FATAL/OBSERVER_FAIL.
+Das passt zur20s-Beobachtungsgrenze mit anschließendem Cleanup; die unveränderte
+reguläre Capture aktiviert keine Zusatzmetriken, daher keine erfundene genaue
+aktive Laufzeit oder nachträglich gemessene Stopursache angeben.
+
+Der frische FAT12-Kernel hat exakt den bisherigen SHA `3c79f8be...`; kein neuer
+Buildunterschied zu den Diagnosegästen. Quell-/Konfigurationsunterschied:
+regulärer Prüfer ruft Capture ohne `binary_memory` auf und protokolliert sowohl
+in Datei als auch Konsole. Erfolgreiche Äquivalenzdiagnosen nutzen den optionalen
+Binärleser und ein Logziel. Der Binärleser ist noch nicht in die reguläre
+Dateistartmatrix integriert. Daraus folgt keine bereits bewiesene Laufzeit-
+reparatur. Ein sinnvoller nächster, ausdrücklich freizugebender Umfang ist
+diese Anbindung mit unveränderten Byte-/Rechte-/Cleanup-Prüfungen und Fristen,
+anschließend vollständiger Matrix und offenen IRQ-/Regressionsnachweisen.
+
+Artefaktreview gegen den letzten akzeptierten AL-Stand:26 von28 normalen
+Vergleichsartefakten gleich. Bei Normal- und NativeFilesystem-Build unterscheiden
+sich nur `cooperative_scheduler.o` und das äußere Kernel-ELF; die schon zuvor
+zugeordnete gemeinsame IRQ-IF-Korrektur wird in beide Varianten assembliert.
+Der alte Dateisystem-Programmkatalog ist bytegleich. Keine Behauptung vollständiger
+Binäridentität oder nachgeholter Normal-/FS-Gastabnahme: diese Gates wurden nach
+Gate24 nicht mehr ausgeführt. Ein anfänglich zu strenger Offlinevergleich wurde
+mit erhaltenem Fehlprotokoll berichtigt; kein Gate oder Gast wiederholt.
+
+Aktuelle Original20:16 PASS/1 FAIL/3 NOT_RUN; zusätzliche sieben Hostgruppen
+PASS, Binäräquivalenz/-vollkontrolle und IRQ-Matrix NOT_RUN. Alle alten Budgets
+bleiben unverändert. Kein Implementierungscommit oder Queuewechsel, AM aktiv.
+Letzte akzeptierte Implementierung `1835ee97`, kein Push/64-Bit-OS-Fertigstatus.
+Belege: `qualification-renewal/frozen-gates.json`, `qualification-result.json`,
+`qualification-analysis.json` und `verification-status-qualification.json`
+unter `build/codex-agent/r83am-file-launch/`.
+
+## Historie: Zusatzvergleiche vermessen
+
+Diagnosevertrag `4db9ec7f`,36 Quellen/306 Altbelege vollständig abgeglichen und
+roh gesichert. Nur Diagnose/Hosttest ergänzt; Binärleser, Capture, produktiver
+Prüfer, Kernel und Gastprogramme unverändert.20 Hosttests/.460s PASS, vier neue
+Verhaltenstests vorher rot. Beide festgelegten Diagnosegäste durchlaufen den
+tatsächlichen Äquivalenzpfad mit allen ursprünglichen Assertions vollständig:
+
+- `minimal-ba2213d2`:18.554s inklusive Cleanup,18.216s aktiv/.024s Cleanup;
+  Kernelvergleich96.991ms, High-RAM59.092ms, zusammen156.083ms.
+- `profiled-a4b490e4`:17.196s inklusive Cleanup,16.875s aktiv/.023s Cleanup;
+  beide Zusatzvergleiche zusammen110.061ms. Vorhandene Kostenmessung:
+  1228 Callbacks/3.141s,6776 GDB-Zugriffe/2.69MB/1.416s.
+
+Je16 Lebenszyklen,2 Programmstarts und75 Binärtransfers. Beide zusätzlichen
+GDB-Lesungen (270336/155648 Byte, zusammen425984 Byte) stimmen byte- und
+hashgebunden mit den unveränderten Kernel-/High-RAM-Exporten überein.
+Kein zusätzlicher Gastlesevorgang, keine neue Haltestelle oder QEMU-Spur;
+Fristen, Maske und sämtliche Fehler-/Rechte-/Cleanup-Prüfungen bleiben.
+
+Die Zusatzlesungen kosten in diesen Läufen weniger als1% der aktiven Capturezeit.
+Zwischen den Kontrollen liegen1.358s Gesamtzeitdifferenz, davon nur46ms bei den
+Zusatzlesungen. Ein teurer Zusatzvergleich ist damit hier nicht als Ursache
+der früheren mehrsekündigen Verzögerung belegt. Die historische Dauer wurde
+damals nicht gemessen; keine nachträgliche Jittergrenze oder Kernelreparatur
+behaupten. Der historische Rootabschluss16.458s erfolgt jetzt bei14.642/13.561s.
+
+Beide Messplätze2/2 sind verbraucht; erfolgreiche Diagnose bleibt ausdrücklich
+keine Paketabnahme und erneuert keine bisherigen Budgets. Eine weitere reine
+Profilierungsrunde ist aus diesen Befunden nicht begründet. Nächster Vorschlag
+ist eine ausdrücklich neu eingefrorene, begrenzte Wiederaufnahme der regulären
+Paketabnahme mit unveränderten Prüfaussagen/Fristen und Stopps beim ersten Fehler,
+nicht eine rückwirkende Umdeutung dieser Diagnose als bestandenes Originalgate.
+
+Belege: `equivalence-cost-analysis.json`, quellgebundener Status
+`verification-status-equivalence-cost.json` unter `build/codex-agent/r83am-file-launch/`.
+AM aktiv/uncommitted, Original20 Gruppen historisch4 PASS/1 FAIL/15 ausständig;
+zusätzliche IRQ-Nachweise und vollständige Binärabnahme bleiben offen.
+Letzte akzeptierte Implementierung `1835ee97`, kein Push und keine OS-Fertigmeldung.
+
+## Historie: Timer-/Fortsetzungsspur
+
+Diagnosevertrag `5e04515b`,36 Quellen/375 Altbelege vor Änderungen abgeglichen
+und roh gesichert. Begrenzter optionaler QEMU-Trace ergänzt ausschließlich den
+Host-Prüftransport; keine Kernel-, Gast-, Quoten-, Frist- oder Schrittmaskenänderung.
+Hosttests: Transport13/.344s und Diagnose16/.329s PASS, neue Funktionen vorher rot.
+
+Beide vorgesehenen Kontrollgäste bestehen sämtliche ursprünglichen Assertions,
+alle16 Lebenszyklen und beide Programmstarts innerhalb20s inklusive Cleanup:
+
+- `plain-222428ec`:18.291s gesamt,17.958s aktiv/.026s Cleanup,
+  20236 Tracezeilen. ISO-Zeitstempelformat zuerst falsch erwartet; Rohdaten
+  unverändert erhalten, Parser offline korrigiert und volle Abnahmeaussagen
+  nachgeprüft (`decoded.json`), kein erneuter Gastlauf.
+- `measured-34b1bfba`:18.721s gesamt, mit unveränderter gemeinsamer Zeitmessung,
+  20250 Tracezeilen und79 nativen Uhr-/Peeraufnahmen bis Tick904.
+
+QEMU meldet in beiden Läufen916 IRQ0 auf Vektor32, davon je452 pro nativer
+Runde, sowie einen früheren BIOS-IRQ auf Vektor8. Alle Zustellungen liegen in
+protokollierten normalen Fortsetzungen, keine in Stop-/Einzelschrittphasen.
+Die unverändert abgefragte Schrittmaske ist `0x7`. Alle79 nativen Aufnahmen
+zeigen gleiche, monotone Tick-/EOI-/last_tick-Werte. Das beweist keinen Fehler
+oder Reparaturbedarf des Kerneltimers.
+
+QEMU-Laufzustände trennen erstmals die bisher gemischten Zwischenzeiten:
+normale Fortsetzungen9.835/9.921s, Debuggerstopps5.096/5.429s,
+Einzelschritt-Laufphasen.270/.274s. Das sind Emulator-Ereignisintervalle;
+Stopps enthalten Prüferarbeit und Transport, Fortsetzungen sind keine CPU-Zeit.
+Der Anfang vor der ersten Fortsetzung und das Cleanup werden getrennt geführt.
+Exakte Auswertung: `continuation-analysis.json`. Dokumentierte Semantik:
+[QEMU GDB](https://www.qemu.org/docs/master/system/gdb.html) und
+[QEMU Tracing](https://www.qemu.org/docs/master/devel/tracing.html).
+
+Die frühere Zeitüberschreitung wurde nicht reproduziert. Beide neuen Kontrollen
+verwenden `binary full`, nicht den noch fehlgeschlagenen Äquivalenzpfad mit zwei
+zusätzlichen GDB-Bytevergleichen. Dessen konkrete Restkosten/Ursache sind nicht
+gemessen; kein Schluss auf Laufzeitstreuung oder behobenen Fehler. Das Paar2/2
+ist verbraucht und erneuert weder Binärabnahme noch IRQ-/Originalgates.
+Nächster sinnvoller begrenzter Umfang: den tatsächlichen Äquivalenzpfad mitsamt
+seinen beiden Zusatzlesevorgängen zeitlich zuordnen, bevor eine weitere
+Reparatur vorgeschlagen wird. Dafür ist neue ausdrückliche Freigabe nötig.
+
+Quell-/Belegbindung: `verification-status-file-continuation.json` unter
+`build/codex-agent/r83am-file-launch/`. Paket aktiv/uncommitted; ursprüngliche
+20 Gruppen historisch4 PASS/1 FAIL/15 offen, Zusatz-IRQ-Nachweise ausständig.
+Letzte akzeptierte Implementierung `1835ee97`; kein Push, keine OS-Fertigmeldung.
+
+## Historie: Gemeinsame Zeitmessung und letzte Transportkorrektur
+
+Verträge `96a228f1`/`277405bc`, auf36 Quellen/319 exakt abgeglichenen Belegen.
+Messung ergänzt ausschließlich die vorhandene Diagnose und deren Hosttest:
+13 Tests/.223s PASS (`combined-host-02.log`, vier neue Funktionen vorher rot).
+Beide unterschiedlich konfigurierten Kontrollgäste schließen alle16 Lebensläufe,
+beide PROCESS_RUNs und sämtliche bisherigen Prüfaussagen innerhalb20s ab:
+
+- Binärpfad `7f582d5d`:17.294s Capture inklusive Cleanup,1225 Callbacks,
+  8482 kleine GDB-Zugriffe/2.30MB,1.255s GDB-Lesezeit,75 Binärtransfers.
+- GDB-Pfad `30d8ab3e`:18.102s inklusive Cleanup,1218 Callbacks,
+  8330 GDB-Zugriffe/15.01MB,4.024s GDB-Lesezeit.
+
+Die insgesamt157 nativen Uhr-/Peeraufnahmen zeigen gleiche Tick-/EOI-/last_tick-
+Werte und beide Peers bis zum terminalen Zustand; kein neuer Kerneldefekt.
+Gemischte Zwischenzeiten10.716/10.669s enthalten Gastarbeit und Debuggeranteile;
+sie sind keine reine Transportkostenmessung. Ein Paar ist keine belastbare
+Laufzeitstreuungsgrenze. Erfolgreiche Diagnosekontrollen sind keine Paketabnahme.
+Exakte Auswertung: `combined-analysis.json` und `combined-analysis-01.log`.
+
+75 QMP-Verbindungsaufbauten kosten im Binärkontrolllauf1.073s inklusiv/.997s
+exklusiv. Die letzte bereits freigegebene gezielte Korrektur teilt deshalb nur
+die Verbindung innerhalb desselben angehaltenen Callbacks und schließt sie vor
+der Rückgabe/Gastfortsetzung; außerhalb bleibt der bisherige Einzellesepfad.
+Alle Abbildungs-, Stillstands-, Byte- und Fehlerprüfungen bleiben pro Zugriff,
+kein Daten-/Seitentabellencache. Echter Host rot (2 statt1 Verbindung), dann
+14 Tests/.568s PASS (`stop-scope-host-01.log`), inklusive Fehler-/Verschachtelungs-
+und Cleanup-Prüfung. Kernel, Gastprogramm und produktiver Beobachter unverändert.
+
+Der anschließende vollständige Äquivalenzversuch `940b733e` scheitert dennoch:
+73 bytegebundene RAM-Exporte und beide GDB-Vergleichsbereiche korrekt, kein Fatal
+oder OBSERVER_FAIL, aber nur15/16 Reaps bei20.012s aktiver Capturezeit plus
+2.043s Cleanup. Zweiter Root bei16.458s freigegeben, Peerabschluss fehlt.
+Die Ursache der verbleibenden zeitlichen Differenz zu den instrumentierten
+Kontrollen ist damit nicht nachgewiesen; keine erfolgreiche Laufzeitkorrektur.
+
+Die eingefrorene Stoppregel nach der letzten Korrektur greift. Messpaar2/2
+verbraucht, ursprüngliche Binärversuche3/4 und beide gezielten Korrekturen
+verwendet; der vierte Slot ist ohne bestandene Äquivalenz nicht freigegeben.
+Kein unveränderter Retry, keine IRQ-/Originalgateerneuerung. Alle alten Budgets,
+Fehler,207 Referenzartefakte und20 Originalgates bleiben erhalten.
+Quell-/Belegbindung: `verification-status-file-combined.json` unter
+`build/codex-agent/r83am-file-launch/`. R8.3am aktiv/uncommitted, letzte
+akzeptierte Implementierung `1835ee97`, kein Push und keine64-Bit-OS-Fertigmeldung.
+Weiterführende Diagnose des zeitabhängigen Gast-/Debugger-Fortsetzungsverhaltens
+braucht einen neuen begrenzten Umfang; Fristen oder Prüfaussagen werden nicht
+an erfolgreiche Einzelbeobachtungen angepasst.
+
+## Historie: Binärer RAM-Leser, vollständiger20s-Nachweis offen
+
+Vertrag `aa6086a2`, auf34 exakt abgeglichenen Quellen/65 neuen Altbelegen.
+Zwei zusätzliche Pfade, insgesamt38 erlaubt/36 vorhanden; die beiden nur
+bedingt benötigten Legacy-Hostdateien bleiben unimplementiert. Kein neuer
+Kernel-/Gastprogramm-/Produktionsbeobachterstand. Gemeinsamer Capture bekommt
+einen ausdrücklich optionalen lokalen QMP-Leser; Standardaufrufe unverändert.
+Große RAM-Lesezugriffe prüfen aktuelle CR3-Abbildung, RAM-Grenzen, Gastname,
+angehaltenen Zustand, exakte Dateilänge und Hash. Alle alten Prüfbytes,
+Breakpoints, Medien-/Prozessbereinigungen und20s-Grenzen bleiben bestehen.
+
+Vier Hostgruppen PASS: Binärleser12/.521s (`binary-host-05.log`), bestehender
+Transport10/.276s, Dateistart8/5.101s, Transportdiagnose8/.166s. Zusätzlich
+echter Rot-/Grün-Nachweis der Verbindungslebensdauer: die alte Implementierung
+hält den Kanal offen; die korrigierte öffnet ihn je angehaltenem Lesevorgang
+neu und schließt ihn bei Erfolg und Fehler. Das32-Ereignislimit wird nicht erhöht.
+
+Zwei begrenzte FAT12/4GiB-Gäste auf demselben `3c79f8be`-Image:
+
+- `equivalence-e57f8b70`: Kernel-/High-RAM bytegleich zu GDB, fünf Exporte;
+  Abbruch nach5.789s aktiver Capturezeit am32-Ereignislimit. Ursache:
+  aufgestaute QMP-STOP-/RESUME-Meldungen zwischen großen Lesezugriffen.
+- `equivalence-0cbe76b3`: nach der einen gezielten Verbindungskorrektur73
+  erfolgreiche Exporte, erneut Kernel-/High-RAM bytegleich. Kein Fatal oder
+  OBSERVER_FAIL, aber20.006s aktive Capturezeit/2.036s Cleanup,15 Reaps und
+  nur ein vollständiger PROCESS_RUN. Der zweite Root ist bei16.059s bereits
+  freigegeben, der zweite Peerabschluss fehlt beim Abbruch.
+
+Damit ist die kombinierte Äquivalenz-/Vollständigkeitsprüfung **nicht bestanden**.
+Keine reine Transfermessung erklärt den verbleibenden Zeitbedarf; insbesondere
+sind Dateizeitstempel keine Aufteilung in Gastzeit und Transportkosten. Keine
+unveränderte Wiederholung. Zwei von maximal vier neuen Gästen verwendet,
+eine gezielte Korrektur; ein weiterer Äquivalenzversuch benötigt eine belegte
+Quellkorrektur. Der reine Vollbeobachter und die bedingte IRQ-/Gateerneuerung
+bleiben NOT_RUN. Frühere Budgets, Fehler und20 Originalgates unverändert.
+
+Quell- und Belegbindung: `verification-status-file-binary.json` unter
+`build/codex-agent/r83am-file-launch/`. R8.3am bleibt aktiv/uncommitted,
+letzte akzeptierte Implementierung `1835ee97`; keine Queuefortschaltung,
+kein Implementierungscommit, kein Push und keine vollständige64-Bit-OS-Abnahme.
+Für die nächste belegte Korrektur fehlt eine genaue Zuordnung des verbleibenden
+Zeitbedarfs; zusätzliche instrumentierte Diagnose ist nicht als unveränderter
+Wiederholungsversuch dieses Budgets freigegeben.
+
+## Historie: Stop-/Timerdiagnose belegt Peerfortschritt
+
+Vertrag `491443ac`: genau zwei neu instrumentierte Diagnosen, nach exaktem
+Abgleich von34 Quellen/159 Belegen. Nur Transportdiagnose und deren Hosttest
+ergänzt; Kernel, Dateiprogramm, produktiver Beobachter und gemeinsamer Capture
+bleiben bytegleich. Alle36 erlaubten Pfade, alten Budgets und20 Gates erhalten.
+Einmal-Sperre erzwingt Reihenfolge und verhindert Wiederholung nach Reservierung.
+Host8/.221s PASS (`timeline-host-02.log`); drei neue Mechanismen zuvor rot.
+
+Beide unveränderten FAT12/4GiB-Gäste erreichen den ersten vollständigen
+PROCESS_RUN und später die20s-Capturefrist, ohne Fatal oder OBSERVER_FAIL:
+
+- `stops-59ece958`:985 protokollierte Callbackeintritte,984 abgeschlossene
+  Callbacks/5.700s, gemischte Zwischenzeiten9.822s;11 Reaps/ein Lauf.
+  Aktive Capturezeit20.014s, Cleanup2.087s. Gesamter Diagnosekörper inklusive
+  separater Fixture-/Startvorbereitung24.963s (`timeline-stops-01.log`).
+- `peer-clock-5be10b1a`:1058 Eintritte,1057 abgeschlossene Callbacks/6.426s,
+  gemischte Zwischenzeiten10.516s;12 Reaps/ein Lauf. Zusätzlich73 feste
+  RAM-Snapshots. Capture20.002s, Cleanup2.039s, Diagnosekörper22.525s
+  (`timeline-peer-clock-01.log`).
+
+GDB meldet in beiden Läufen lediglich eine CONT- und keine STOP-Notification.
+Diese Schnittstelle deckt die internen False-Callbacks somit nicht als einzelne
+Fortsetzungen ab. Callbackzeit ist ein gemessener Stillstandsanteil; die
+Zwischenzeiten enthalten Gastarbeit, Gastwartezeit und Debugger-/Transportkosten.
+Insbesondere sind die5.447s zwischen48 cold_reap-Paaren keine nachgewiesenen
+reinen Debuggerkosten. Gepufferte Protokolle können nach dem Abbruch einen
+unvollständigen Rest haben; kein fehlender Abschluss wird als erfolgreich gewertet.
+
+Alle73 nativen Stichproben zeigen gleiche Tick-/EOI-/last_tick-Werte und
+monotonen Tickfortschritt. Peer2 beendet den ersten Lauf bei Tick454. Peer10
+beginnt danach bei Tick455; sein Schleifenzähler sinkt sichtbar von45 auf33.
+Letzte gesicherte Aufnahme: Tick584, Peer10 BLOCKED, nächste eigene Deadline586,
+RIP0x4100a0/RBX33/RDI100. Die tatsächlichen ELF-Instruktionen binden RBX an
+die45-mal100ms-Schleife. An diesem Beobachtungspunkt fehlen mindestens
+20ms bis zum laufenden Wake und32 weitere100ms-Sleeps, zusammen3220ms
+nominale Gastzeit. Das ist kein gemessener Stillstand des Peers und keine
+Garantie seines späteren Abschlusses. Der Supervisor/zweite Dateistart war
+ebenfalls noch nicht vollständig abgeschlossen.
+
+Begrenzte Auswertung: `timeline-analysis.json`, dazu bytegebundener tatsächlicher
+Peer-Disassemblybeleg. Medienbasen unverändert, keine COW-Datenbelegung.
+Die zwei Diagnosegäste sind verbraucht; keine Korrektur, weitere Gastwiederholung,
+IRQ-Erneuerung oder Implementierungsabnahme freigegeben. Alte unbeobachtete
+Fatalursachen bleiben offen. R8.3am aktiv/uncommitted, R3.6b deferred,
+letzte akzeptierte Implementierung `1835ee97`, kein Push.
+
+Damals nächster, inzwischen oben bearbeiteter Schnitt: binärer, strikt begrenzter
+RAM-Lesepfad des Prüfers statt großer hexkodierter GDB-Transfers, mit gleichem
+angehaltenem Gastzustand, sämtlichen Prüfbytes und unveränderter20s-Grenze.
+QEMUs dokumentiertes
+[pmemsave](https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#command-pmemsave)
+ist nur eine zu prüfende Möglichkeit; kein QMP-Kanal wurde eingerichtet und
+kein Laufzeit-/Geschwindigkeitsnachweis dafür behauptet.
+Alle aktuellen Quellen, beide Läufe und sämtliche früheren Belege:
+`build/codex-agent/r83am-file-launch/verification-status-file-timeline.json`.
+
+## Historie: Transportkosten reduziert, feste Laufzeitabnahme weiterhin blockiert
+
+Gemeinsame Transportdiagnose freigegeben; Vertragscommits `617832e1`,
+`af247388`, `6c59454d`. Vorher30 Quellen/32 Belege exakt zum Legacy-Manifest
+gebunden. Umfang36 Pfade, davon34 vorhanden; die zwei Legacy-Assemblerhosts
+bleiben ohne nachgewiesenen Legacy-Defekt unimplementiert. Keine weitere
+Kerneländerung: der vorhandene native IF-Kandidat bleibt bytegleich erhalten.
+
+Der gemeinsame Capturepfad zeichnet optional aktive Zeit, Cleanup, Stopgrund,
+seriellen Fortschritt und QEMU/GDB-Kinderprozess-CPU auf. Der neue begrenzte
+Diagnosebeobachter misst echte Callback-/Speicher-/Registerkosten; keine
+zusätzlichen Breakpoints, Gastschreibzugriffe oder geänderten Standardfristen.
+Alle sechs Kontrollen verwenden dasselbe FAT12/4GiB-Abbild `3c79f8be...abc8a8`
+und dasselbe1024-Byte-Dateiprogramm `42144aa3...aff2a`.
+
+| Kontrolle | Aktive Capturezeit | Vollständiger Dateistartprüfer |
+| --- | ---: | --- |
+| ohne Beobachter, getrennt | 9.825s | nicht vorhanden;16 Reaps/zwei Läufe |
+| nur beide Schlussstopps | 9.824s | nicht vorhanden;16 Reaps/zwei Läufe |
+| voller Beobachter | 19.615s | PASS, aber nur Diagnose; einschließlich Medien/Cleanup20.001s |
+| voller Beobachter mit Kostenmessung | 20.011s | unvollständig,15 Reaps/ein Lauf |
+| gezielte Seitentabellenspannen | 20.012s | unvollständig,15 Reaps/ein Lauf |
+| zusätzlich gebündelte RAM-Bereiche | 20.005s | unvollständig,15 Reaps/ein Lauf |
+
+Erste Korrektur: kleine Nutzerlesezugriffe übertragen nur die tatsächlich
+benötigten Seitentabelleneinträge (12-Byte-Lese:32 statt16384 Tabellenbytes).
+Zweite Korrektur: vollständige64-Blatt-Prüfung beim Prozessstart und genaue
+Nutz-/Freigabeseiten werden innerhalb desselben Stopps gebündelt. Keine Lücken
+mitlesen, höchstens69 Seiten/270336 Byte pro Transfer, keine Werte über
+Gastfortsetzung hinweg behalten. Alle Inhalts-, Rechte-, Lebensdauer- und
+Löschprüfungen bleiben bestehen. Keine Änderung von ABI, Programm, Frist,
+IRQ-Schrittmaske, CPU-/Gerätequoten oder Host-Energie-/Sicherheitsrichtlinien.
+
+Letzte Kostencheckpoints: vorher8109 Reads/23,548,535 Byte/6.407s Lesezeit,
+nach beiden Korrekturen6500 Reads/14,599,982 Byte/4.963s. Die Checkpoints sind
+unvollständige Laufmessungen, kein statistischer Geschwindigkeitsnachweis.
+Der letzte Lauf benötigt zusätzlich2.040s begrenztes Cleanup und erreicht
+den zweiten Peerabschluss nicht. Kein neuer Fatal/OBSERVER_FAIL; jede
+Medienbasis unverändert, kein belegter COW-Datenbereich.
+
+Aktuelle Hostnachweise: Dateistart8/4.536s (`file-launch-host-11.log`),
+Transportdiagnose4/.137s (`file-transport-host-04.log`), gemeinsamer Transport
+10/.240s (`shared-transport-host-02.log`) PASS. Neue reale Leser-/Starttests
+zuerst rot, danach grün; fehlerhafte Einträge, Nutzbytes, Grenzen und kurze
+Transfers werden abgelehnt. Bestehender Blockhost korrigiert ausschließlich
+seine doppelte Anwendung einer bereits voreingestellten Beobachterskopierung.
+
+Sechs von sechs Diagnosegästen und beide gezielten Korrekturen verbraucht.
+Die unveränderte20s-Zeitüberschreitung aktiviert die Stopregel; keine siebte
+Wiederholung, keine bedingte neue IRQ-Matrix und keine erneute Paketabnahme.
+Historisch20 Gruppen:4 PASS/1 FAIL/15 NOT_RUN; neuer Hoststand ersetzt keinen
+seit der IF-Korrektur überholten Build-/Laufzeitbeleg. R8.3am bleibt aktiv,
+Implementierung uncommitted, R3.6b deferred, letzter akzeptierter
+Implementierungscommit `1835ee97`, kein Push. Die alten unbeobachteten Fatals
+werden nicht rückwirkend dem Transport zugeschrieben. Fortsetzung benötigt
+neu begrenzte Diagnoseautorität für die verbleibenden Stop-/Timerkosten.
+Quellen, alle sechs Kontrollen und sämtliche vorherigen Belege sind gebunden in
+`build/codex-agent/r83am-file-launch/verification-status-file-transport.json`.
+
+## Historie: Legacy-Sleep in beiden Diagnosen korrekt, Zeitgrenze weiter offen
+
+Freigabe und lokaler Vertragscommit `9ebaf6a5`: begrenzte Untersuchung des
+Legacy-Sleep-Schlussprüfpfads samt tatsächlichen Regressionstests, falls eine
+Ursache belegt wird. Vorher29 Quellen/298 neue Belege exakt zum Idle-Manifest
+geprüft. Der erlaubte Umfang umfasst32 Pfade; die zwei vorgesehenen neuen
+Assemblerhostdateien sind noch nicht implementiert, da kein Legacy-Defekt
+nachgewiesen wurde. Kein neuer Kernel-, Quoten-, Frist- oder Oracle-Eingriff.
+
+Der vorhandene Diagnosebeobachter erfasst jetzt höchstens zwei16KiB-Records
+mit Schlusswerten, Ereignissen, Queues und vier Taskrecords. Optional werden
+höchstens40 tatsächliche Sleep-Ereignisse samt Tickwerten aufgezeichnet.
+Keine Gastschreibzugriffe, erfundenen IRQ-Frames oder unterdrückten alten
+Callbacks. Diagnosehost9/.021s PASS (`legacy-observer-host-01.log`, außen .251s).
+
+Beide freigegebenen Gäste verwenden unverändert das korrigierte FAT12-Abbild
+`3c79f8be...abc8a8`, getrennte Medien und vollständige Dateistartprüfer:
+
+- `c36d2e32` (`legacy-diagnostic-01.log`): ein Schlussrecord; Tick/EOI/
+  last_tick/final_tick jeweils4, Handoffs3, Fehler0, Reaps4, alle27 Ereignisse
+  exakt. `DEADLINE_SLEEP_OK` erreicht. Später unvollständiger zweiter
+  Dateistartlauf an der20s-Capturefrist; einschließlich Cleanup20.545s,
+  äußerer Aufruf20.979s.
+- `32f377a0` (`legacy-diagnostic-02.log`): zusätzlich genau27 Ereignisse mit
+  Tickwerten; Aufwecken1/2/0 bei Tick2/3/4, dieselben korrekten Schlusswerte.
+  `DEADLINE_SLEEP_OK` erreicht. Ebenfalls später Captureabbruch im zweiten
+  Dateistartlauf; einschließlich Cleanup22.370s, außen22.811s.
+
+Kein neuer Fatal, keine Reproduktion des historischen Modus5/0x9F-Abbruchs,
+kein Post-Fencing-Record. Beide Gäste belegen den ersten vollständigen
+PROCESS_RUN und Dateiprogramme5/8/13, nicht den vollständigen zweiten Lauf.
+Die neue gebündelte Nutzerlese wird damit erreicht; ein Laufzeitgewinn oder
+eine Erklärung der Zeitüberschreitung ist nicht nachgewiesen. Beide logischen
+Medienbasen unverändert, kein belegter COW-Datenbereich.
+
+Das Paarbudget ist ausgeschöpft. Keine spekulative Änderung der festen
+Legacy-Ereignisprüfung, kein dritter Diagnosegast und keine neue IRQ-Matrix:
+deren Freigabe ist an eine belegte Legacy-Korrektur gebunden. Die ursprüngliche
+Sleep-Ursache bleibt offen; der Dateistart-Zeitfehler besteht unabhängig davon
+in diesen beiden Läufen. Weitere Arbeit benötigt einen neu begrenzten
+Diagnoseumfang für Laufzeit/Beobachterkosten und die verbleibende Fehlerzuordnung.
+
+Alle ursprünglichen20 Gatebefehle bleiben erhalten; historisch4 PASS/1 FAIL/
+15 NOT_RUN, der alte native Build bleibt seit der IF-Korrektur überholt.
+Keine neue Paketabnahme, kein Implementierungscommit/Queuewechsel/Push.
+Die zuvor belegte native IF-Korrektur bleibt als Kandidat erhalten; R3.6b deferred.
+Aktuelle Bindungen und alle historischen Belege:
+`build/codex-agent/r83am-file-launch/verification-status-legacy-sleep.json`.
+
+## R8.3am: nativer Idle-IRQ korrigiert, Abnahme an Legacy-Sleep gestoppt
+
+Erneute ausdrückliche Reparaturfreigabe: Verträge `300cfbc2` und `eab12d16`,
+29 erlaubte Quellen einschließlich begrenzter Timer-/Idle-Regression. Kandidat
+bleibt aktiv und uncommitted; letzter akzeptierter Implementierungscommit ist
+`1835ee97`. Die folgenden Befunde ersetzen keine vollständige Paketabnahme.
+
+Versuch `a0d4be69` erfasst erstmals einen konkreten nativen Timer-Fatal:
+IRQ0x20 bei `process_run_dispatch64.idle_wait+2` (CLI), gespeichertes
+RFLAGS0x10202, Tick/EOI/last_tick jeweils61, Ready1/Deadline3/Live4.
+Die Uhrprüfung hat keinen Fehler gemeldet (R9=0); ein vorheriger Wake hat
+Peer2 bereits READY gemacht. Der alte CPL0-IRQ-Rückweg stellt IF wieder her,
+bevor der Dispatcher erneut seine Idle-Voraussetzung prüft. Ein weiterer
+IRQ vor CLI trifft deshalb auf die inzwischen geänderte Readyqueue.
+
+Der tatsächliche IRQ-Tail löscht jetzt ausschließlich IF im bereits geprüften
+gespeicherten CPL0-Frame. Erst Dispatcher-STI oder separat zugelassener
+Nutzerkontext erlaubt Interrupts wieder. Keine gelockerte Kontextprüfung,
+neue Autorität, Quote oder Frist. Der deterministische Test des echten
+Assemblerausschnitts scheitert vorher (`timer-idle-reentry-red-01.log`, .473s)
+und besteht nach der gezielten Korrektur bei O0/O2
+(`timer-idle-host-02.log`, .850s; 117 Matrixfälle plus Wiedereintrittstest
+je Optimierung). CR3/RDTSC/OUT sind ausdrücklich Hostadapter; vollständige
+Kernel-/Hardwareausführung wird damit nicht behauptet.
+
+Zusatzprüfungen: Runtime-Clock5/4.350s, Process-Run5/1.805s und Diagnosehost8/.017s
+PASS. Clock-/Process-Hosts liefen vor der IF-Korrektur; ihre ausgewählten
+Mechanismen sind unverändert, aber sie ersetzen keine erneute Profilabnahme.
+Der korrigierte FAT12-Build besteht in9.290s (`timer-idle-build-01.log`),
+ELF-SHA256 `3c79f8becaffdd9428e1ed23f2d5c6c30367e5f801fb9cb13d4b9b2944abc8a8`.
+Das tatsächliche Dateiprogramm bleibt bytegleich.
+
+Vier begrenzte Matrixversuche sind verbraucht; alle stoppen im ersten
+Kontrollgast. Abgelaufene Lease, ungültiger SS und EOI-Fehlinjektion bleiben
+NOT_RUN, nicht bestanden:
+
+- `a0d4be69`: nativer Wiedereintritts-Fatal nach5.578s, vollständiger
+  Post-Fencing-Register-/Frame-Snapshot erhalten.
+- `d5d51087`: Korrektur im Gast beobachtet (Ready1/Deadline0/IF0), danach
+  20s-Capturefrist erreicht; einschließlich Abbruch/COW22.331s. Erster
+  PROCESS_RUN vollständig, im zweiten fehlt der letzte Peerabschluss.
+- `ebb4fd35`: derselbe Zeitfehler nach erster gezielter Beobachterkorrektur
+  (ein Logziel statt synchroner Duplizierung), einschließlich Cleanup22.377s.
+  IF-Sperre erneut belegt, kein Fatal, weiterhin keine vollständige Abnahme.
+- `9a735540`: nach zweiter gezielter Korrektur bereits vor dem nativen
+  Dateistart `EXCEPTION_FATAL pio=1`, Scheduler-Modus5/Stufe0x9F, Gast3.509s.
+  `DEADLINE_SLEEP_OK` fehlt. Welche der Legacy-Sleep-Schlussprüfungen
+  scheitert, ist nicht erfasst; kein belegter Zusammenhang mit dem Idle-Fix.
+
+Die zweite Beobachterkorrektur bündelt Seitentabellenlesen pro pausiertem
+Nutzerzugriff in höchstens acht4KiB-Snapshots, ohne fortlebenden Cache.
+Alle benötigten Einträge und Nutzbytes werden weiterhin geprüft. Tatsächlicher
+Hosttest: derselbe266336-Byte-Bereich mit fünf Transfers, beschädigte Einträge
+werden vor dem Nutzdatenlesen verworfen. Dateistarthost6/4.941s PASS
+(`file-launch-host-09.log`); letzter Gast erreicht diese Lesefunktion nicht,
+also noch kein belegter Laufzeitgewinn. Beide Zeitkorrekturen und Fehlerbelege
+bleiben erhalten; weder Frist noch Peer-Schlafdauer wurde verändert.
+
+Stop-Bedingung: kein fünfter Versuch. Der betroffene ältere Schlussprüfpfad
+in `arch/x86_64/proc/cooperative_scheduler.asm` liegt außerhalb der
+freigegebenen Kernelquellen. Seine begrenzte Diagnose und eine belegte Korrektur
+brauchen einen ausdrücklich erweiterten Umfang samt Tests, keine blinde
+Wiederholung. Auch die Ursachen der älteren Versuche19bf6f9b/20b8dfe8 werden
+ohne deren Registerbelege nicht nachträglich dem neuen Befund zugeordnet.
+
+Die ursprünglichen20 Gatebefehle bleiben eingefroren. Historisch4 PASS,
+1 FAIL,15 NOT_RUN; der frühere NativeFileLaunch-Build ist durch die
+Kerneländerung überholt und betroffene Builds/Gastgates sind erneut nötig.
+Der ergänzende FAT12-Build und einzelne Gastzeugen ersetzen sie nicht.
+Kein Implementierungscommit, Queuewechsel oder Push; R3.6b bleibt deferred.
+Quellenbindung, alle vier Versuche und unveränderte frühere Belege:
+`build/codex-agent/r83am-file-launch/verification-status-timer-idle.json`.
+
+## Historie R8.3am: kalter Diagnoselauf vollständig, Timerursache weiter offen
+
+Erneute ausdrückliche Einzellauf-Freigabe, Vertrag `d0263b65`: kein neuer
+Breakpoint oder beobachteter Codeort. Der vorhandene `serial_init64`-Callback
+wird nur hostseitig um einen exakten Zwei-CALL-/Rücksprungabgleich nach dem
+Notfall-Fencing ergänzt; sein ursprünglicher Prüfer läuft stets weiter.
+Aufzeichnung höchstens ein16KiB-Record, generischer IRQ-Frame an RSP+8 statt
+des vom physischen Fencing überschriebenen RDI. Alte Diagnosequellen sind
+byteidentisch unter `timer-diagnostic/*-5ad56853.py` gesichert.
+
+`python test/test_x86_64_file_timer_diagnostic.py -v`: PASS6/.003s,
+`timer-cold-host-01.log`, äußerer Aufruf .264s. Tatsächliche Callbackdelegation
+auch bei Diagnosefehler, keine zusätzlichen Breakpoints, beide Maschinen-CALLs,
+abweichende Rücksprünge und begrenzter Post-Fencing-Frame sind regressionsgeprüft.
+
+`python scripts/diagnose_x86_64_file_timer.py --cold`: Diagnose abgeschlossen,
+`timer-cold-01.log`, äußerer Aufruf18.280s, Gast/COW17.547s. Versuch
+`13b8dc8dccc648d0be09aa505c33ea2e` unter
+`build/codex-agent/r83am-file-launch/timer-diagnostic-cold/`.
+Unveränderter FAT12/4GiB-Gast aus19bf6f9b; der vollständige bisherige Prüfer
+besteht: zwei PROCESS_RUN,16 Lebenszyklen, Dateiprogramme5/8/13/16 mit Status82,
+Supervisoren1/9 mit Status83 bei16/13 CPU-Samples, unabhängige Peers2/10 mit77.
+Beide Dienstpaar-/Programmwechsel sind vollständig gefenct/gereapt; beide
+Schlussbilanzen und Trace-Löschungen stimmen. FAT12-/COW-Prüfung besteht,
+logische Basis unverändert, kein belegter Overlay-Datenbereich.
+
+Kein Fatal und keine IRQ-Registeraufzeichnung in diesem Lauf. Das widerlegt
+den früheren Timer-Fatal nicht und beweist weder eine Kernelkorrektur noch eine
+Beobachterursache. `guest_oracle_passed=true` im Diagnosebericht ist ausdrücklich
+kein Ersatz für das fehlgeschlagene Abnahmegate. Alle20 eingefrorenen Gruppen
+bleiben unverändert4 PASS/1 FAIL/15 NOT_RUN; Kandidat aktiv/unaccepted, kein
+Implementierungscommit. Der zweite einzelne Diagnoserahmen ist ausgeschöpft.
+Weitere Gäste oder Timer-/Idle-Implementierung samt deterministischem
+Regressionstest benötigen einen gesondert freigegebenen Umfang; keine blinde
+Wiederholung oder nachträgliche Umdeutung früherer Fehler. R3.6b bleibt deferred.
+
+## R8.3am: freigegebene Timerdiagnose ohne Reproduktion
+
+Die Nutzerfreigabe vom14. September wurde als begrenztes Diagnosesupplement
+`5ad56853` eingefroren: zwei zusätzliche reine Hostdateien, ein Hostprüflauf,
+genau ein unveränderter FAT12/4GiB-Gast aus dem früher fehlgeschlagenen Build.
+Vorher stimmen alle22 Kandidatenquellen und469 bisherigen Paketbelege exakt
+mit `verification-status.json` überein. Kernel, Programme, Quoten, ursprünglicher
+Beobachter und sämtliche20 Abnahmegruppen bleiben unverändert.
+
+`python test/test_x86_64_file_timer_diagnostic.py -v`: PASS3/.002s
+(`timer-diagnostic-host-01.log`, äußerer Aufruf .397s). Die tatsächliche reine
+Register-/Frame-Sammlung prüft feste Lesegrenzen und undereferenzierte ungültige
+Zeiger; Instrumentierung wird nur angehängt, höchstens acht16KiB-Records.
+
+`python scripts/diagnose_x86_64_file_timer.py`: Diagnose beendet, KEINE ABNAHME
+(`timer-diagnostic-01.log`, äußerer Aufruf9.216s, Gast/COW7.742s).
+Versuch `4ff30f57b35e4620893beeea47f6e9c1` unter
+`build/codex-agent/r83am-file-launch/timer-diagnostic/` erreicht den alten
+Timer-Fatal nicht: Blocktreiber Slot2/Generation3 wird zuvor mit Status256,
+Zustand3 und32 CPU-Samples bei RIP0x4104a5 begrenzt. Während Blockanfrage5/LBA34
+offen ist, lehnt der unveränderte FS-Erfolgsbeobachter den Fehlerstatus ab.
+Keine IRQ-Registerrecords, kein Timer-Fatal in diesem Lauf, kein nachgewiesener
+Zusammenhang zwischen Diagnose-Breakpoints und früherer Quotenerschöpfung.
+Die ursprüngliche Timerursache bleibt deshalb offen, nicht widerlegt.
+FAT12-Basis und logische Bytes unverändert; kein belegter Overlay-Datenbereich.
+
+Das freigegebene Ein-Lauf-Budget ist verbraucht. Kein weiterer Gast, keine
+Kernelreparatur, keine Wiederholung oder Umdeutung der20 Gates und kein
+Implementierungscommit. Kandidat bleibt aktiv/unaccepted; bisher4 PASS,
+1 FAIL,15 NOT_RUN. Ein weiteres, gesondert freizugebendes Diagnosesupplement
+kann den bestehenden kalten Fatal-/Fencing-Pfad für Registeraufzeichnung nutzen,
+ohne Ablehnungshaltepunkte auf Timer-/Scheduler-Seiten; dessen Wirksamkeit und
+Timingwirkung sind noch nicht nachgewiesen. R3.6b bleibt zurückgestellt.
+
+## R8.3am: Dateistart funktioniert teilweise, Timer-Fatal blockiert Abnahme
+
+Vertrag `f2040a17`,22 Dateien/20 Gruppen; Kandidat uncommitted und aktiv.
+Der wiederverwendbare SDK-Adapter liest stat, höchstens sechs256-Byte-Blöcke
+und EOF unter einer unveränderlichen Frist. Ein vom Aufrufer bereitgestellter
+268384-Byte-Arbeitsbereich enthält1536 Dateibytes,512-Byte-Frame und vorhandenes
+RNPGv2-Zwischenabbild; keine interne Heapallokation. Erst vollständige Datei-,
+ELF64-, Generations- und Fristprüfung publiziert das Ausgabeabbild. Zugelassene
+Fehlerpfade lassen die Ausgabe unverändert und löschen den ganzen Arbeitsbereich.
+Echte FAT12/FAT32/EXT2-/Block-/ELF-Hosts bestehen bei O0/O2 über alle fünf Medien
+(`file-image-host-01.log`,4.536s). Medien-/COW-Hosts3/6.254s bestehen ebenso
+(`media-host-01.log`), unveränderte alte Medien bleiben bytegleich gebunden.
+
+Der neue explizite NativeFileLaunch-Build besteht (`build-native-01.log`,8.713s).
+Separat gelinktes, nicht im Supervisor eingebettetes C-ELF:1024 Byte,
+SHA256 `42144aa3215c49586c4b30adc5195f63d8cf87f304b5bd6e3e5cc80258baff2a`.
+Runtime-/Oracle-/Buildhosts5/4.402s PASS (`file-launch-host-07.log`), einschließlich
+fehlender/doppelter/vertauschter Nachweise und tatsächlicher Quell-/Löschprüfung.
+Erste Hostfehler (Cacheberechtigung, fehlender Typheader, falscher PE-Linker,
+fehlender Testimport) bleiben unverändert erhalten; kein Gate wurde entfernt.
+
+`runtime-01.log`: erster FAT12-Gast liest die vollständige Datei und EOF, stoppt
+aber am Beobachter, weil268384 Bytes dessen266336-Byte-Lesegrenze überschreiten.
+Regressionsbeleg `workspace-red-01.log`; gezielte Korrektur liest2048 plus266336
+Bytes und prüft unverändert den gesamten Bereich, ohne Grenzerhöhung.
+
+`runtime-02.log`, Versuch `19bf6f9b71af490786906d4dc0c079be`: erster FAT12-Gast
+startet beide tatsächlichen Dateiprogramm-Generationen5/8 mit Status82 und
+1/2 CPU-Samples. Beide vorherigen Dienstpaare sind physisch gefenct und gereapt;
+importierte Bytes sind exakt an das auf dem Medium gelesene ELF gebunden.
+Supervisor1 endet regulär83 bei25/32 Samples, seine Framefreigabe ist beobachtet.
+Danach `REIST_X86_64_EXCEPTION_FATAL vector=20`: Timer-IRQ0x20, da
+`exceptions.asm` den Wert mit `serial_hex8` ausgibt. Peer2-Abschluss, endgültige
+Trace-Löschung und zweiter PROCESS_RUN fehlen. Gast14.969s, Gesamt24.856s;
+0/18 neue Fälle akzeptiert. Kein voller Gast-, Shell- oder OS-Nachweis.
+
+Dies ist kein weiterer CPU32-Abbruch. Aktuelle Kernelobjekte sind zum
+akzeptierten AL bytegleich; der ähnliche historische Timer-Fatal20b8dfe8 bleibt
+ebenfalls ursächlich offen. Ohne gesicherte Register/normalisierten IRQ-Frame
+lassen sich Clock-/Idle-Zulassung, Integritätszustand und Beobachtereinfluss
+nicht zuverlässig unterscheiden. Keine behauptete Ursachenreparatur.
+
+Vertragsstopp: Timer-/Scheduler-/Exception-Quellen liegen außerhalb des
+22-Dateien-Scopes. Keine weitere unveränderte Gastwiederholung, Diagnose-Only-
+Abnahme, Implementierungscommit oder Queue-Weitergabe. Erforderlicher nächster
+Freigabeschritt ist eine ausdrücklich begrenzte Timer-/Idle-Diagnose mit echter
+Register-/IRQ-Aufzeichnung; ein dadurch belegter Kernelbedarf muss vor der
+Korrektur samt Host-/Fatal-/Referenzgates im Vertrag stehen. Keine Lockerung
+von CPU-, Clock-, PIO-, IPC-, CREATE- oder Gastgrenzen. Vier Gruppen PASS,
+neue Laufzeit FAIL,15 übrige Gates nach dem Pflichtfehler noch offen.
+Vollständige Quellen, alte Referenzen und beide Fehlversuche:
+`build/codex-agent/r83am-file-launch/verification-status.json`.
+R3.6b bleibt zurückgestellt; kein Push, keine fertige64-Bit-Version.
+
+## Historie R8.3am: dateibasierten ELF64-Start gemeinsam einfrieren
 
 R8.3al ist lokal als `1835ee97` mit21/21 Gates abgeschlossen; Worktree sauber.
 Nächster zusammenhängender Schnitt: vorhandenen Ring3-Dateizugriff und ELF64-

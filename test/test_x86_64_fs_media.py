@@ -5,6 +5,35 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
 import build_x86_64_fs_media as media
 import run_qemu_x86_64_pio as pio
 class FilesystemMedia(unittest.TestCase):
+    def test_file_bytes_chains_and_actual_cow(self):
+        program=bytes(n&255 for n in range(1536))
+        base=ROOT/'build/codex-agent/r83am-file-launch'/('media-host-'+uuid.uuid4().hex);base.mkdir(parents=True)
+        for layout in media.LAYOUTS:
+            raw=media.image(layout,program=program)
+            if layout.startswith('fat'):
+                fat32=layout=='fat32';reserved=32 if fat32 else 1;fat=544 if fat32 else 9
+                root=(reserved+2*fat)*512;data=root+(512 if fat32 else 14*512)
+                self.assertEqual(raw[root:root+11],b'BOOT    PRG')
+                self.assertEqual(raw[data:data+1536],program)
+                for copy in range(2):
+                    for cluster in range(3 if fat32 else 2,6 if fat32 else 5):
+                        off=(reserved+copy*fat)*512
+                        value=struct.unpack_from('<I',raw,off+cluster*4)[0]&0xfffffff if fat32 else (struct.unpack_from('<H',raw,off+cluster+cluster//2)[0]>>(4 if cluster&1 else 0))&0xfff
+                        self.assertEqual(value,cluster+1 if cluster<(5 if fat32 else 4) else 0xfffffff if fat32 else 0xfff)
+            else:
+                bs=1024<<struct.unpack_from('<I',raw,1048)[0];off=5*bs+11*128
+                self.assertEqual(struct.unpack_from('<I',raw,off+4)[0],1536)
+                self.assertEqual(raw[22*bs:22*bs+1536],program)
+                if bs==1024:self.assertEqual(struct.unpack_from('<I',raw,off+44)[0],23)
+            folder=base/layout;folder.mkdir();fixture=pio.Fixture(folder,filesystem=layout,file_program=program)
+            fixture.verify('before');fixture.verify('after')
+            self.assertEqual(fixture.base.read_bytes(),raw)
+            fixture.file_program=bytes([program[0]^1])+program[1:]
+            with self.assertRaisesRegex(ValueError,'base changed'):fixture.verify('changed-program')
+        for bad in (False,'ELF',b'',bytes(63),bytes(1538),bytearray(64)):
+            with self.assertRaises(ValueError):media.image('fat12',program=bad)
+        with self.assertRaises(ValueError):pio.Fixture(base,file_program=program)
+
     def test_standard_geometry_and_readonly_mutations(self):
         for layout in media.LAYOUTS:
             with self.subTest(layout=layout):

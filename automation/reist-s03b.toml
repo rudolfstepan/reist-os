@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3am-x86_64-file-launch"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,7 +14,7 @@ push = false
 
 [[packages]]
 id = "R8.3am-x86_64-file-launch"
-status = "active"
+status = "done"
 phase = "post-s0"
 risk = "high"
 title = "Native immutable-file ELF64 preparation, explicit execution and bounded recovery"
@@ -134,6 +134,7 @@ package_tests = [".\\scripts\\build-x86_64-bootstrap.ps1 -OutputDirectory build/
 runtime_tests = ["python scripts/run_qemu_x86_64_file_launch.py --image build/codex-agent/r83am-file-launch/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83am-file-launch/guests","python scripts/run_qemu_x86_64_filesystem.py --image build/codex-agent/r83am-file-launch/filesystem/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83am-file-launch/filesystem-guests","python scripts/run_qemu_x86_64_boot.py --image build/codex-agent/r83am-file-launch/normal/x86_64/reist-x86_64-bootstrap.elf --log build/codex-agent/r83am-file-launch/normal-guest.log","python scripts/verify_x86_64_reference_artifacts.py"]
 stop_conditions = ["Unrelated changes, source required outside allowed_files or pre-existing source failure.","Need quota/authority/persistence expansion, ordinary concurrent shell integration or user/physical media.","Same concrete frozen failure remains after two focused corrections; no unchanged retry or diagnostic-only acceptance."]
 commit_message = "feat: load and execute bounded native ELF64 files through Ring3 services"
+evidence_note = "Accepted complete stronger qualification on frozen contract f979c9a6: all30 logical obligations PASS/REUSED, plus common admission and final review,375.114s. Fresh full18-case file matrix302.416s, each14.375..17.458s including cleanup, exact original oracles/order/media/4GiB/8GiB/OOM/fault cases plus independent same-stop kernel/high byte comparisons in every guest. Separate original full control16.901s PASS; equivalence review explicitly adds no guest. Source/tool/artifact/result-bound reuse:19 host groups150 tests, three native baseline builds, complete FS18, normal boot, all four IRQ frame/fence/halt cases and qualified reference guard. Documentation7 tests PASS (one historical skip). Zero new builds/links,12 literal cached variants plus two retained9/10 outputs. Exact39 snapshots/1516 inputs/521 protected artifacts/207 native pins and31142 previous AM plus5278 AL evidence entries verified; historical guard archive exception only. Read-only final inventory: zero QEMU/GDB. Direct source/ABI/bounds/cleanup/default-object review and immutable binding verification-status-native-final-qualified.json completed. Old22.565s timeout remains failed/unexplained, not causally repaired or converted to PASS; no guaranteed host latency, normal concurrent shell, full native OS or certification claim. Prior pending legacy test paths remain unimplemented, no legacy repair claimed. Local implementation commit permitted by native_final_authority only after this complete evidence; never push. R3.6b remains explicitly deferred/queued; empty active_id at the clean commit boundary before inventory/freezing the next cohesive in-priority native package."
 inventory = "Clean1835ee97, all21 AL gates and source-bound manifest accepted. Actual existing8-RPC/256-byte FS adapter yields one stat plus6 reads plus EOF within1536 bytes; ELF parser already supports standard FILEHDR-compatible congruent PT_LOAD without requiring4KiB file padding. Runtime/task admission remains4 slots, CPU1..32,8 CREATE attempts/root and two imported image contexts. Native file preparation/execution is missing; no second parser or kernel format path needed. Four-slot concurrent shell expansion is separate, not silently implemented here."
 
 [[packages]]

@@ -4,9 +4,12 @@ LAYOUTS=('fat12','fat32','ext2-1k','ext2-2k','ext2-4k')
 CONTENT=b'REIST NATIVE FILESYSTEM\n'
 MAX_BYTES=70000*512
 
-def image(layout,malformed=False):
+def image(layout,malformed=False,program=None):
     if type(layout) is not str or layout not in LAYOUTS or type(malformed) is not bool:
         raise ValueError('filesystem media selector')
+    if program is not None and (type(program) is not bytes or not 64<=len(program)<=1537):
+        raise ValueError('bounded file program bytes')
+    content=CONTENT if program is None else program
     raw=bytearray((2880 if layout=='fat12' else 70000 if layout=='fat32' else 256)*512)
     def w16(at,value):struct.pack_into('<H',raw,at,value)
     def w32(at,value):struct.pack_into('<I',raw,at,value)
@@ -30,10 +33,22 @@ def image(layout,malformed=False):
             if fat32:
                 for n,value in enumerate((0x0ffffff8,0xffffffff,0x0fffffff,0x0fffffff)):w32(off+4*n,value)
             else:raw[off:off+5]=b'\xf0\xff\xff\xff\x0f'
+            if program is not None:
+                first=3 if fat32 else 2;count=(len(content)+511)//512
+                for cluster in range(first,first+count):
+                    value=cluster+1 if cluster+1<first+count else 0x0fffffff if fat32 else 0xfff
+                    if fat32:w32(off+4*cluster,value)
+                    else:
+                        at=off+cluster+cluster//2;pair=raw[at]|raw[at+1]<<8
+                        pair=(pair&0xf)|(value<<4) if cluster&1 else (pair&0xf000)|value
+                        w16(at,pair)
         root=reserved+2*fat;data=root+(1 if fat32 else 14);entry=root*512
-        raw[entry:entry+11]=b'README  TXT';raw[entry+11]=0x20
-        w16(entry+26,3 if fat32 else 2);w32(entry+28,len(CONTENT))
-        raw[data*512:data*512+len(CONTENT)]=CONTENT
+        raw[entry:entry+11]=b'README  TXT' if program is None else b'BOOT    PRG';raw[entry+11]=0x20
+        w16(entry+26,3 if fat32 else 2);w32(entry+28,len(content))
+        raw[data*512:data*512+len(content)]=content
+        if program is not None and fat32:
+            w32(512+488,70000-reserved-2*fat-1-(len(content)+511)//512)
+            w32(512+492,3+(len(content)+511)//512);raw[7*512:8*512]=raw[512:1024]
         if malformed:raw[510]^=0x01
     else:
         log=LAYOUTS.index(layout)-2;bs=1024<<log;sb=1024
@@ -43,19 +58,20 @@ def image(layout,malformed=False):
         gd=(1 if log else 2)*bs
         for off,value in ((0,3),(4,4),(8,5)):w32(gd+off,value)
         # Allocated metadata/data and inode bits, no journal or write profile.
-        occupied=set(range(0,5+(2048+bs-1)//bs))|{21,22}
+        occupied=set(range(0,5+(2048+bs-1)//bs))|{21}|set(range(22,22+(len(content)+bs-1)//bs))
         for block in occupied:
             if block>=(0 if log else 1):
                 bit=block-(0 if log else 1);raw[3*bs+bit//8]|=1<<(bit%8)
         for inode in range(1,13):raw[4*bs+(inode-1)//8]|=1<<((inode-1)%8)
-        for number,mode,size,block,links in ((2,0x41ed,bs,21,2),(12,0x81a4,len(CONTENT),22,1)):
+        for number,mode,size,block,links in ((2,0x41ed,bs,21,2),(12,0x81a4,len(content),22,1)):
             off=5*bs+(number-1)*128;w16(off,mode);w32(off+4,size);w16(off+26,links)
-            w32(off+28,bs//512);w32(off+40,block)
+            blocks=(size+bs-1)//bs;w32(off+28,blocks*bs//512)
+            for n in range(blocks):w32(off+40+4*n,block+n)
         off=21*bs
-        for number,name,length,kind in ((2,b'.',12,2),(2,b'..',12,2),(12,b'readme.txt',bs-24,1)):
+        for number,name,length,kind in ((2,b'.',12,2),(2,b'..',12,2),(12,b'readme.txt' if program is None else b'boot.prg',bs-24,1)):
             w32(off,number);w16(off+4,length);raw[off+6]=len(name);raw[off+7]=kind
             raw[off+8:off+8+len(name)]=name;off+=length
-        raw[22*bs:22*bs+len(CONTENT)]=CONTENT
+        raw[22*bs:22*bs+len(content)]=content
         if malformed:raw[1024+56]^=0x01
     if not 0<len(raw)<=MAX_BYTES or len(raw)%512:raise ValueError('generated media extent')
     return bytes(raw)

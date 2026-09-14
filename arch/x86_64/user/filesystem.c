@@ -46,6 +46,7 @@ static int64_t task_control(unsigned op,uint64_t owner,unsigned timeout) {
     reist_task_control_request_t q={1,64,op,0,owner,0,timeout,0,0,0};return reist_x64_task_control(&q);
 }
 static uint32_t driver_control;
+#ifndef REIST_FILE_LAUNCH
 static reist_fs_frame frame;
 static volatile reist_fs_frame filesystem_result_snapshot;
 static volatile uint64_t filesystem_result_record[7] __attribute__((used));
@@ -58,6 +59,7 @@ static void witness(reist_fs_client *c,unsigned operation,int result) {
     filesystem_result_record[5]=(uintptr_t)&filesystem_result_snapshot;filesystem_result_record[6]=mode;
     filesystem_result_record[0]=0x4e46535250435631ULL;
 }
+#endif
 static int fs_send(void *p,const x86os_ipc_bulk_message_t *m,unsigned timeout) {
     (void)p;return (int)S3(IPC_SEND_TIMEOUT,control_ep,m,timeout);
 }
@@ -133,6 +135,7 @@ static int block_receive(void *p,x86os_ipc_bulk_message_t *q,unsigned timeout) {
 }
 #endif
 #endif
+#if !defined(REIST_FILE_LAUNCH) || PROGRAM_ID!=0
 int main(int argc,char **argv,char **envp) {
     REQUIRE(argc==2 && !argv[2] && !envp[0],200);
 #if PROGRAM_ID==0
@@ -251,3 +254,4 @@ int main(int argc,char **argv,char **envp) {
     REQUIRE(!reist_fs_server_fence(&filesystem_service),247);return 80;
 #endif
 }
+#endif

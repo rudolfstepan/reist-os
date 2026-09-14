@@ -250,8 +250,10 @@ X86_64_PROGRAM_CASE ?= 0
 X86_64_NATIVE_LIFECYCLE ?= 0
 X86_64_FAMILY_CASE ?= 0
 X86_64_NATIVE_STARTUP ?= 0
+X86_64_STARTUP_CASE ?= 0
 X86_64_NATIVE_IMPORT ?= 0
 X86_64_NATIVE_PIO ?= 0
+X86_64_PIO_CASE ?= 0
 X86_64_NATIVE_BLOCK ?= 0
 X86_64_NATIVE_WIDE ?= 0
 X86_64_MEMORY_CASE ?= 0
@@ -259,6 +261,17 @@ X86_64_NATIVE_BLOCK_PROFILE ?= 0
 X86_64_BLOCK_PROFILE_CASE ?= 0
 X86_64_NATIVE_FILESYSTEM ?= 0
 X86_64_FILESYSTEM_CASE ?= 0
+X86_64_NATIVE_FILE_LAUNCH ?= 0
+X86_64_FILE_LAUNCH_CASE ?= 0
+ifeq ($(X86_64_NATIVE_FILE_LAUNCH),1)
+ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_FILESYSTEM_CASE),10)
+$(error NativeFileLaunch requires plain NativeFilesystem)
+endif
+else
+ifneq ($(X86_64_FILE_LAUNCH_CASE),0)
+$(error FileLaunchCase requires NativeFileLaunch)
+endif
+endif
 X86_64_FILESYSTEM_LAYOUT ?= 2
 ifeq ($(X86_64_NATIVE_FILESYSTEM),1)
 ifneq ($(X86_64_NATIVE_BLOCK_PROFILE)$(X86_64_BLOCK_PROFILE_CASE),10)
@@ -287,7 +300,6 @@ ifneq ($(X86_64_NATIVE_PIO),1)
 $(error NativeBlock requires NativePIO)
 endif
 endif
-X86_64_PIO_CASE ?= 0
 ifeq ($(X86_64_NATIVE_PIO),1)
 ifneq ($(X86_64_NATIVE_IMPORT),1)
 $(error NativePIO requires NativeImport)
@@ -303,7 +315,6 @@ ifneq ($(X86_64_NATIVE_STARTUP),1)
 $(error NativeImport requires NativeStartup)
 endif
 endif
-X86_64_STARTUP_CASE ?= 0
 ifeq ($(X86_64_NATIVE_STARTUP),1)
 ifneq ($(X86_64_NATIVE_LIFECYCLE)$(X86_64_FAMILY_CASE),10)
 $(error NativeStartup requires NativeLifecycle and excludes FamilyCase)
@@ -521,7 +532,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \

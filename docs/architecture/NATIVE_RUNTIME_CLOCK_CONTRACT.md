@@ -1,6 +1,6 @@
 # Native Laufzeituhr und Fristen
 
-Stand: 12. September 2026. R8.3ac, Basis `f88a439d`.
+Stand: 14. September 2026. R8.3ac, Basis `f88a439d`; R8.3am-Idle-Kandidat unten.
 
 ## Umfang und Grenze
 
@@ -71,3 +71,75 @@ Je neuer Gast maximal20s; alte Gastprüfungen bleiben bei10s. Grenzfälle für
 Der alte Heapkernel muss bytegleich zu SHA256
 `b135c6456d48b7eb0468cf220543135588a8d7bb9dbc976fcffce7d88231d5e8` bleiben.
 Logs und auch fehlgeschlagene Versuche bleiben unter `build/codex-agent/`.
+
+## R8.3am: geprüfter CPL0-IRQ-Rückweg nach Idle-Wake
+
+Freigegebener Kandidat, Verträge `300cfbc2` und `eab12d16`, noch nicht
+abgenommen. Referenz ist der Intel64/IA-32-Interrupt-/IRETQ-/STI-Vertrag
+([Intel SDM](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html)),
+nicht eine neue REIST-Interruptsemantik oder öffentliche ABI.
+
+Native IRQ-Zulassung prüft den gespeicherten Kernel-Idle-Kontext einschließlich
+IF, CR3, Stackgrenzen und leerer Readyqueue vor der Tick-/EOI-Publikation.
+Der anschließende Wake darf die Readyqueue verändern. Deshalb darf IRETQ
+zu derselben Idle-Instruktionsfolge IF nicht wieder setzen, bevor der
+Dispatcher seine Voraussetzung erneut geprüft hat. Der CPL0-Arm von
+`process_run_irq_tail64` löscht allein Bit9 im zugelassenen gespeicherten
+RFLAGS. Alle übrigen Framewerte und CPL3-Rückwege bleiben unverändert.
+Interrupts werden erst durch Dispatcher-STI oder den separat zugelassenen
+Nutzerkontext wieder erlaubt. Kontext-/Frist-/EOI-Fehler bleiben fail-closed.
+
+Konkreter Vorherbeleg `a0d4be69`: normalisierter IRQ0x20-Frame an
+`process_run_dispatch64.idle_wait+2`, CS8/SS0x10/RFLAGS0x10202,
+Tick=EOI=last_tick61, Ready1/Deadline3/Live4. Peer2 war bereits READY;
+R9=0 schließt einen gemeldeten Clockarithmetikfehler dieses Eintritts aus.
+Der alte Rückweg öffnet damit das vor CLI liegende Wiedereintrittsfenster.
+Frühere Fatalversuche ohne diesen Snapshot erhalten keine nachträgliche
+Ursachenzuordnung.
+
+Deterministischer Host führt echte native IRQ-/Idle-/Tick-/Rückweg-
+Assemblerausschnitte aus: Wiedereintrittstest vor Korrektur rot, danach
+117 Matrixfälle plus Rückwegtest bei O0/O2 grün. CR3/RDTSC/OUT werden auf
+feste Hostadapter abgebildet; vollständige Run-Ownership ist eine explizite
+Fixturevoraussetzung mit separaten bestehenden Tests. Keine Aussage, dass
+ein Hosttest privilegierten Gastbetrieb ersetzt.
+
+Zwei korrigierte Gäste beobachten Ready1/Deadline0/IF0 am tatsächlichen
+Rückweg, erreichen aber vor dem letzten Peer die unveränderte20s-Capturefrist.
+Eine Logziel-Bündelung und anschließend vollständig validierte begrenzte
+Seitentabellen-Snapshots sind die zwei gezielten Zeitkorrekturen; keine
+Frist-/Quotenerhöhung. Die zweite ist nur hostqualifiziert: der letzte Gast
+stoppt vorher im älteren Sleep-Schlussprüfpfad (Modus5/Stufe0x9F), dessen
+genaues fehlgeschlagenes Prädikat nicht erfasst wurde. Dieser Befund ist
+nicht als gleicher Wiedereintrittsfehler oder Wirkung des neuen Lesers belegt.
+
+Vier Matrixversuche verbraucht, kein fünfter. Die drei vorgesehenen echten
+Lease-/SS-/EOI-Ablehnungsgäste wurden nicht erreicht. Die20 ursprünglichen
+Paketgatebefehle bleiben bestehen; durch die Kernelkorrektur betroffene
+Build-/Gastbelege sind erneut erforderlich. Weitergehende Legacy-Sleep-
+Diagnose in `cooperative_scheduler.asm` liegt außerhalb dieses Supplements
+und braucht einen ausdrücklich erweiterten begrenzten Umfang mit Tests.
+Manifest: `build/codex-agent/r83am-file-launch/verification-status-timer-idle.json`.
+
+### Ergebnis der freigegebenen Legacy-Schlussdiagnose
+
+Vertrag `9ebaf6a5` ergänzt ausdrücklich `cooperative_scheduler.asm` und zwei
+vorgesehene tatsächliche Assemblerhostdateien, ohne eine unbelegte Änderung
+zu verlangen. Der reine Diagnosehost besteht9/.021s. Beide erlaubten
+unveränderten FAT12-Gäste erfassen korrekte Schlusszustände: Tick/EOI/
+last_tick/final_tick4, Handoffs3, Fehler0, Reaps4 und alle27 festen Ereignisse.
+Die zweite Aufzeichnung bindet zusätzlich jeden Event an den realen Tick;
+Wake1/2/0 erfolgt bei2/3/4. Beide erreichen `DEADLINE_SLEEP_OK`.
+
+Der historische Abbruch Modus5/0x9F bleibt damit ursächlich ungeklärt, nicht
+widerlegt. Keine neue Kerneländerung, kein Ersatz der Ereignisfolge und keine
+Behauptung eines belegten erlaubten Interleavings als Fehlerursache. Die neuen
+Assemblerhosts bleiben unimplementiert; ohne belegten Defekt kein red/green-
+Reparaturnachweis. Beide Gäste scheitern später an der unveränderten20s-
+Dateistart-Capturefrist, nicht am Sleep-Schluss. Alle bisherigen Records und
+Medien-/COW-Nachweise sind erhalten. Paarbudget ausgeschöpft; kein dritter
+Gast oder an eine Legacy-Korrektur gebundener neuer IRQ-Matrixlauf.
+Weitere begrenzte Laufzeit-/Beobachterdiagnose benötigt einen ausdrücklich
+neuen Umfang. Keine Paketabnahme; ursprüngliche20 Gates und veralteter
+NativeFileLaunch-Build bleiben als solche gekennzeichnet.
+Manifest: `build/codex-agent/r83am-file-launch/verification-status-legacy-sleep.json`.

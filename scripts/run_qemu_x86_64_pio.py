@@ -27,10 +27,11 @@ def safe_folder(folder):
     return folder
 
 class Fixture:
-    def __init__(self,folder,*,block=False,filesystem=None,malformed=False):
+    def __init__(self,folder,*,block=False,filesystem=None,malformed=False,file_program=None):
         if type(block) is not bool:raise ValueError('fixture profile')
         self.block=block
         self.filesystem=filesystem;self.malformed=malformed
+        self.file_program=file_program
         expected=self.expected()
         self.folder=safe_folder(folder)
         self.base=self.folder/'generated.raw';self.overlay=self.folder/'disposable.qcow2'
@@ -42,13 +43,14 @@ class Fixture:
 
     def expected(self):
         filesystem=getattr(self,'filesystem',None);malformed=getattr(self,'malformed',False)
+        program=getattr(self,'file_program',None)
         if type(self.block) is not bool or type(malformed) is not bool:raise ValueError('fixture profile')
         if filesystem is None:
-            if malformed:raise ValueError('malformed requires filesystem')
+            if malformed or program is not None:raise ValueError('malformed/program requires filesystem')
             return BLOCK_DISK if self.block else DISK
         if self.block:raise ValueError('exclusive filesystem profile')
         from build_x86_64_fs_media import image
-        return image(filesystem,malformed)
+        return image(filesystem,malformed,program)
 
     def run(self,*args):
         r=subprocess.run([str(self.tool),*args],cwd=ROOT,capture_output=True,text=True,timeout=10,

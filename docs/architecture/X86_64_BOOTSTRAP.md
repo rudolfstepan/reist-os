@@ -1,6 +1,330 @@
 # REIST x86_64 bootstrap contract
 
-Stand: 13. September 2026
+Stand: 14. September 2026
+
+Neuester Stand: R8.3am-Dateistartpaket vollständig qualifiziert auf Vertrag
+`f979c9a6`, alle30 Verpflichtungen plus Eingangs-/Abschlussprüfung bestanden.
+Neue vollständige18-Fall-Matrix mit unabhängigen Kernel-/High-Bytevergleichen
+PASS302,416s, jeder Gast14,375..17,458s inklusive Cleanup. Separater vollständiger
+Kontrollgast16,901s PASS; unveränderte20s/360s und vollständige ursprüngliche
+Oracles. Null neue Builds/Links; FS18, Normalboot, vier IRQ-Fälle und Referenz
+quellen-/werkzeug-/artefakt-/beleggebunden erhalten. Gesamtreview und immutable
+Kandidatenbindung abgeschlossen, null QEMU-/GDB-Prozesse. Queue R8.3am done,
+lokaler Commit wird separat gebunden. Alter22,565s-Timeout bleibt fehlgeschlagen
+und ungeklärt, kein garantierter Zeitnachweis oder kausaler Reparaturanspruch.
+Begrenzter Ring3-Dateistart ist nicht normale parallele Shell-/Dienstintegration
+oder die vollständige64-Bit-Version. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`b5bec1c8`): Unveränderte native Dateisystem-Matrix18/18
+und normaler Bootstrap bestanden, sieben Prüfgruppen PASS398,925s. Jeder
+FS-Gast einschließlich Cleanup12,803..15,321s,20s-Grenze unverändert. Nur
+ein vollständiger Kontrollbuild;64 Payloads/komplettes Boot-ELF bytegleich
+zum inkrementellen Link, dann14 Varianten mit aktuellem Scheduler-Objekt
+neu gelinkt. Originaler gepinnter Zig-Linker, keine Kernel-/Testquelländerung
+oder weitere Kompilierung in der Matrix. Null verbleibende QEMU-/GDB-Prozesse.
+FS-/Bootregression geschlossen; ursprüngliche Dateistart18-/native30-Abnahme
+und22,565s-Zeitausreißer offen. Kein Implementierungscommit, Queuewechsel
+oder vollständige64-Bit-Version. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`8fbcd28b`): Neun fehlende native Gastprüfungen und13/13
+eingefrorene Gruppen PASS. OOM an drei Punkten, Dateifälle9/10 und vier
+IRQ-Rückweg-/Fatalfälle mit vollständigen ursprünglichen Prüfern belegt;
+Gastzeit jeweils inklusive Cleanup unter20s. Nur zwei fehlende Varianten
+gebaut, zehn Hostgruppen wiederverwendet; feste zwölf Cachevarianten erhalten.
+Kein Kernel-/Ring3-/Test-/ABI-/Deadline-Umbau. Null QEMU-/GDB-Prozesse nach
+Abschluss. Referenz7/7 bleibt bestanden; ursprüngliche18-Fall-/30-Gruppen-
+Gesamtabnahme und22,565s-Zeitausreißer offen. Kein Implementierungscommit,
+Queuewechsel oder vollständige64-Bit-Version. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`8944049a`): Zwölf vorhandene native Dateistartvarianten sind
+quellen-/profil-/artefaktgebunden wiederverwendbar;14 zusätzliche Variantenbuilds
+werden auf2 reduziert.25 Hosttests und reale Cacheprüfung PASS, unveränderte
+Gastoracles/Fristen. Ausschließlich ein bekannter WinGet-Make-Link erhält eine
+feste Ziel-/Hashbindung; kein allgemeines Aliasrecht. Null Kernelbuilds/Gäste,
+Referenz7/7 weiterhin bestanden. Native Zeit-/OOM-/IRQ-Abnahme bleibt offen;
+keine Kernelkorrektur, native Abnahmeerneuerung oder vollständige64-Bit-Version.
+[Stand und Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`8fafa5d0`): Vollständige i386-Referenzabnahme7/7 PASS,
+sechs originale Plattform-/EXT2-Gäste erfolgreich.69 Hosttests und zwei
+quellen-/werkzeuggebundene signierte Builds wiederverwendet, null Neubauten.
+VMware-Kopien erhöht mit unveränderten Oracles/Fristen/Cleanup, QEMU/EXT2
+regulär. Nach vollständiger Prüfung exakt fünf Guard-Konstanten aktualisiert,
+ursprünglicher Guard PASS. Null verbleibende VMs, keine Hostkonfiguration
+geändert. Referenzhürde geschlossen, native Zeit-/OOM-/IRQ-Abnahme weiterhin
+offen; keine neuen nativen Gastbudgets oder vollständige64-Bit-Abnahme.
+Kein Implementierungscommit/Queuewechsel. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`dda3f132`): Exakte erhöhte Prozessidentität der eigenen
+Test-VM geprüft, ursprünglicher Cleanup PASS10,937s. Abschließende Prozess-/
+Inventarprüfungen auch im regulären Konto: null VMX-Prozesse/VMs. Keine neue
+VM, Builds, Host-/Dienst-/ACL-Änderung oder Löschung. Cleanup-Blocker geschlossen,
+Steuerkanal noch nicht nachweislich repariert; keine Gastabnahme daraus.
+Build-Wiederverwendung verfügbar, native Zeit-/OOM-/IRQ-Gates und64-Bit-Abnahme
+offen. Kein Implementierungscommit/Queuewechsel. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`d0b0bc93`): Erfolgreiche Referenzbuilds werden über den festen
+lesenden `--check-builds`-Pfad wiederverwendbar: Quellen/Werkzeuge/Profile,
+ursprüngliche Belege und202 Artefakte hashgebunden, nur sieben explizite reine
+Prüf-/Statuspfade ausgenommen.18 Hosttests und realer Cachecheck parallel PASS.
+Prüfung5,164s ersetzt unveränderte288,234s Buildarbeit; null neue Builds/Gäste,
+kein Gastnachweis daraus. Historische Gates bleiben unverändert; nächste
+Abnahmedefinitionen nutzen passende Buildbelege. VMware-Cleanup und native
+Zeit-/OOM-/IRQ-Abnahme bleiben offen, kein Implementierungscommit/Queuewechsel
+oder vollständiges64-Bit-OS. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`580acdda`): Einmalige VMware-Diagnose im regulären Konto bootet
+die identische Referenzkopie bis APIC/BOOT_OK/Ring-3-Shell. `vmrun start`20s
+und Stop10s überschritten; keine GTEST-Ausführung, Diagnose FAIL42,671s.
+VM-lokaler VMAutomation-Socket-/SSL-Fehler10038, keine bewiesene interne Ursache.
+Test-VM bleibt aktiv und Cleanup ist NICHT bestanden: CIM-Kommandozeile fehlt,
+deshalb kein unzureichend zugeordneter Prozess-Kill. Zunächst gezielt freigegebener
+privilegierter Cleanup nur dieser Kopie oder manuelles Ausschalten erforderlich.
+Originale/alte Belege erhalten; keine Abnahmewiederholung, Zeit-/Host-/ACL-/
+Sollhashänderung, OS-/Testkorrektur oder Implementierungscommit/Queuewechsel.
+Native Zeit-/OOM-/IRQ-Abnahme und OS-Fertigstellung bleiben offen.
+[Exakte Testkopie und Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`9cb39d62`): getrennte vollständige Pfad-/Handlemetadatenprüfung
+nach roter CMD-/Rewrite-Regression durch64 Hosttests und beide Builds bestätigt.
+Tatsächliche Grow/Shorten/mtime-Mutationen werden in der verlangten Fehlerphase
+erkannt; Artefaktregeln/Fristen unverändert. Quellaufnahme und vier vollständige
+Image-/96-Programm-/Signaturbindungen bestehen. 17 Gruppen stehen12/1/4 in387,591s:
+erster headless VMware-Start Unknown error, keine Gastabnahme. Exakte eigene Kopie
+unverändert, Cleanup bestätigt null VMs. Hostlogzugriff gesperrt, unterschiedliche
+Ausführungskonten nur Diagnoseansatz. Kein Kernel-/OS-Defekt daraus abgeleitet,
+kein Retry oder Host-/ACL-/Sollhashwechsel. Begrenzte VMware-Startdiagnose separat;
+native Zeit-/OOM-/IRQ-Gates bleiben offen. Kein Implementierungscommit/Queuewechsel
+oder OS-Fertigmeldung. [Gesicherter Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`3efc9f37`): Leerdatei-Regression nach tatsächlichem erwarteten
+Fehler reproduziert und mit separatem Quellhasher grün; Artefaktguard unverändert.
+Erste Hostgruppe 8 erfolgreiche Tests/2 Fehler, Gesamtlauf0/1/16 in2,949s.
+Windows-Pfad-/Handlemetadaten werden im neuen Prüfer unzulässig vollständig
+gleichgesetzt; bei1.300 vorhandenen Eingaben unterschiedliche ctime/Modewerte,
+Identität/Größe/mtime stabil. Kein belegter Kernel- oder Quellendefekt. Eigene
+Metadatenkorrektur samt Rewrite-/CMD- und phasengenauen Mutationstests erforderlich;
+breite ValueError-Negative beweisen noch keine tatsächliche Mutation im Lesepfad.
+Keine weitere Prüfung, Build, Gast, Sollhashänderung, Implementierungscommit
+oder Queueänderung. Native Zeit-/OOM-/IRQ-Abnahme und OS-Fertigstellung bleiben
+offen. [Gesicherter Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`fd35f2f1`): PowerShell-Interpreterwahl korrigiert und durch
+58 Hosttests sowie beide vollständigen i386-Builds bestätigt; VMware147,356s,
+QEMU145,819s. Unveränderte 17 Referenzgruppen stehen 12/1/4 nach361,791s.
+Gruppe13 stoppt vor jedem Gast: Der Adapter verwendet die Nonempty-Regel des
+Bootartefakt-Hashers für die vorhandene leere Quelle `kernel/syscall/syscall.c`.
+Unveränderter Git-Platzhalter, kein belegter OS-/Builddefekt. Begrenzte eigene
+Quellhasherkorrektur samt Leerdatei-Regression erforderlich; weder Quellen aus
+der Bindung entfernen noch die ursprünglichen Image-/Programmoracles lockern.
+Keine Wiederholung, Gäste, Originalartefakt-/Sollhashänderung, Implementierungs-
+commit oder Queueänderung. Native Zeit-/OOM-/IRQ-Abnahme und OS-Fertigstellung
+bleiben offen. [Gesicherter Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`0c8fcb5a`): neuer quell-/beleggebundener i386-Abnahme-Adapter,
+bestehende Plattformoracles und Gastisolierung unverändert. Zehn Hostgruppen
+mit 58 Tests PASS; erster Build stoppt vor Kompilierung an fehlender
+ArgumentList-API unter irrtümlich gewählter Windows PowerShell 5.1. Vorhandene
+PowerShell 7.6.6 unterstützt sie; nur lesend nachgewiesen, kein Retry.
+17 Gruppen stehen 10/1/6 in 66,266s. Keine Originalartefakt-/Sollhashänderung,
+kein Gast oder OS-/Parserfix. Neue Referenz hat verändertes STORAGE aus dem
+gemeinsamen EXT2-Quellstand `1835ee97`, nicht einen veränderten Kernel; spätere
+Benchmark-/Desktop-Schreibspuren getrennt belegt. Interpreterkorrektur braucht
+erneuten abgegrenzten Prüfumfang. Native Zeit-/OOM-/IRQ-Gates bleiben offen,
+kein Implementierungscommit/Queuewechsel oder OS-Fertigmeldung.
+[Gesicherter Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`d53f5b7a`): direkte Build-Prüferkorrektur durch explizite
+stdout/stderr-Weitergabe verifiziert. 26 Hosttests und vier Builds PASS; direkter
+Make-Prozess mit Exit 0, vollständigem Log und bytegleichen 43 Kernelartefakten/
+fünf Programmen. Keine OS-/Make-/Test-/Fristenänderung. Acht Buildgruppen genau
+einmal ausgeführt, 7/1/0 in 62,635s; Stopp am separaten i386-Referenzgate:
+`build/reist-os.img` hat Hash `2b58094b...`, erwartet `d6e77ebe...`. Herkunft der
+Abweichung nicht belegt, keine Image-/Sollhashänderung oder Gatewiederholung.
+Korrektur historischer Angaben: Die 207 erhaltenen Referenzpins sind native
+x86_64-Bootstrap-Artefakte, keine i386-Images; sie belegen keine i386-Integrität.
+Lesende Referenz-Herkunftsklärung als nächster eigener Umfang. Ursprüngliche
+Paket-/Zeit-/OOM-/IRQ-Nachweise bleiben offen, keine Gäste oder Gesamtwiederholung,
+Implementierungscommit oder Queueänderung; die OS-Version ist nicht fertig.
+[Gesicherter Stand und vollständige Hashes](../development/CURRENT_WORK.md).
+
+Historischer Stand (`18ff9a83`): Make-Defaults für Filesystem-/PIO-/Startup-Case vor
+ihre ersten Prüfungen verschoben. Tatsächliche Regression erst sieben Fehler,
+dann alle acht Defaultkombinationen grün; 26 Hosttests/drei Windows-Builds PASS,
+Binärdateien unverändert. Direkter Buildprüfer endet trotz bytegleicher 43
+Kernelartefakte/fünf Programme mit Code 2 und leerem Log. Kleiner Hostvergleich
+weist fehlende explizite stdout/stderr-Vererbung nach; kein Build-Retry oder
+nachträgliches PASS. Acht Buildgruppen stehen 6/1/1, Referenzgate nicht ausgeführt.
+Prüferkorrektur separat offen; ursprüngliche Paket-/Zeit-/OOM-Gates bleiben
+unabgenommen. Kein Kernel-/Gast-/Fristenumbau oder Implementierungscommit.
+[Gesicherter Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`d53ecf49`): gemeinsamer fest gebundener Case6-/FAT12-Diagnose-
+ablauf, 24 Hosttests PASS. Beide unveränderten FAT12-Kontrollen vollständig
+16,911/17,144s inklusive Cleanup, je 16 Reaps/zwei Runs. 75 Snapshots zeigen
+konsistente monotone Uhr/EOI und generationgebundene Peerfristen bis normalem
+Exit. Früherer Timeout nicht reproduziert; kein belegter neuer Kerneldefekt,
+keine Paketabnahme. Diagnosepaar verbraucht, ursprüngliche 23/1/6 Gates und
+OOM-Gastnachweis weiter offen. Kernel/Programme/Produktionsprüfer und Fristen
+unverändert. Direkter Make-Defaultbefund separat offen; kein Implementierungs-
+commit, Queuewechsel oder Push. [Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`f934a12d`): 20 Hostgruppen (144 Tests/ein bestehender Skip) und
+drei Builds PASS; erneute unveränderte Abnahme an Gate 24 gestoppt, sechs Gates
+NOT_RUN. Erster FAT12-Erfolgsfall: 22,565s inklusive Cleanup, 15/16 Reaps und
+1/2 Runs; die 20s-Frist bleibt unverändert. Programme und Roots enden korrekt,
+letzter Peer 10 fehlt. Kein protokollierter Fatal/Observerfehler, Gastartefakte
+bytegleich zum früher in 17,605s erfolgreichen Lauf; keine belegte Zeitursache.
+OOM-Gäste nicht erreicht, kein Retry, Implementierungscommit oder Queuewechsel.
+Statischer direkter Make-Default-Reihenfolgehinweis zusätzlich offen; nicht die
+Ursache dieses Gasttimeouts. Neue begrenzte FAT12-Diagnose benötigt eigenen
+Umfang; keine Paket- oder OS-Fertigmeldung. [Stand](../development/CURRENT_WORK.md).
+
+Historischer Stand (`cb254293`):22 Diagnosehosts und beide unveränderten case6-
+Kontrollen bestanden,16.215/16.512s inklusive Cleanup, jeweils14 Reaps/2 Runs.
+72 Snapshots zeigen konsistente monotone Uhr/EOI und korrekt fortschreitende
+45x100ms-Peerschleifen mit generationgebundenen Fristen. Der frühere Timeout ist
+nicht reproduziert, keine Reparatur oder Paketabnahme daraus ableitbar. Beide
+Diagnoseplätze verbraucht; ursprüngliche23/1/6 Gates nicht erneuert, OOM-Gäste
+weiter offen. Keine Kernel-/Programm-/Produktionsobserveränderung, Fristerhöhung,
+Queueänderung oder Push. [Stand und Grenzen](../development/CURRENT_WORK.md).
+
+Historischer Stand (`15f650f2`): OOM-Prüfergrenze nachgewiesen und hostgetestet
+korrigiert; alte Imagefreigabe und neue Allocation-Bilanz getrennt und exakt.
+20 Hostgruppen (142 Tests/ein bestehender Skip),3 Builds und elf vollständige
+Dateistartgäste bestanden. Gate24 stoppt in case6/Treiber-UD2 nach22.508s:
+20s-Frist überschritten,13/14 Reaps und1/2 Runs; letzter Peerabschluss fehlt.
+FS-Exit90 korrekt, Gast bytegleich zum vorher erfolgreichen Lauf. Keine belegte
+Zeitursache oder protokollierte Kernel-/Observerassertion. Die OOM-Gäste wurden
+nicht erreicht; noch kein realer Nachweis der neuen Prüfergrenze.23/1/6 Gates,
+keine Abnahme/Queueänderung oder Wiederholung. Begrenzte Capture-/Peer-Diagnose
+ist ein neuer freizugebender Umfang. [Belege](../development/CURRENT_WORK.md).
+
+Historischer Stand (`ffce1f2c`): fehlerhafte FS-Cancellation im Ring-3-Supervisor
+gezielt korrigiert; O0/O2 je89 echte C-Prüffälle und Treiber-UD2-Gast vollständig
+mit14 Reaps/2 Runs.13 Dateistartgäste,20 Hostgruppen (139 Tests/ein bestehender
+Skip) und3 Builds bestanden. Gate24 stoppt nach5.634s am ersten OOM-Rollback-
+Check: unterschiedliche Freizähler-Bezugsphasen laut Source, genaue Grenzwerte
+noch nicht protokolliert. Kein belegter Kernel-Fatal, Timeout oder Speicherleck.
+23/1/6 Gates; Paket nicht abgenommen, keine ungeprüfte Kernel-/Observerkorrektur.
+[Befunde und weiterer Nachweisumfang](../development/CURRENT_WORK.md).
+
+Historischer Stand (`55959eae`): Dateistartmatrix aktiviert den bestehenden
+Binärleser mit einem Logziel; Beobachter/Assertions/Fristen/Gastcode unverändert.
+20 Hostgruppen (138 Tests/ein bestehender Skip),3 Builds und elf vollständige
+Dateistartgäste PASS. Gate24 stoppt in Treiber-UD2 nach9.276s: FS-CANCEL kollidiert
+mit erwarteter normaler Beendigung90; Supervisorstatus221, Abschlussprüfung FAIL.
+Kein Timeout oder protokollierter Kernel-Fatal.23/1/6 Gates, keine Paketfreigabe.
+Eigenständige Ring-3-Lebenszykluskorrektur braucht einen neuen begrenzten Umfang.
+[Gesicherte Befunde](../development/CURRENT_WORK.md).
+
+Historische reguläre Abnahme (`3c72519b`):20 Hostgruppen und3 Builds PASS; Gate24
+stoppt im ersten FAT12-Dateistartgast nach15/16 Reaps mit Capture-/Detach-Fehler.
+Sechs Gates NOT_RUN, keine Paketfreigabe oder weitere Ausführung. Der frische
+FAT12-Kernel ist bytegleich zum bisherigen Diagnoseimage. Regulärer Prüfer hat
+noch keinen Binärleser-Opt-in. Normal-/FS-Artefakte enthalten die bereits
+zugeordnete gemeinsame IRQ-IF-Korrektur; ihre Gastabnahmen bleiben offen.
+[Gesicherter Abnahmestand](../development/CURRENT_WORK.md).
+
+Historische Diagnose (`4db9ec7f`): beide tatsächlichen Äquivalenzgäste vollständig
+18.554/17.196s,20 Hosttests PASS. Kernel-/High-RAM-Zusatzvergleiche über425984
+Byte brauchen zusammen156/110ms und bleiben byte-/hashgebunden korrekt.
+Kein belegter neuer Kernel-/Transportdefekt; historische Verzögerungsursache
+weiterhin nicht nachgewiesen. Keine Frist-/Masken-/Prüfänderung. Messpaar
+verbraucht, reguläre Paket-/IRQ-Abnahme nicht aus Diagnoseerfolg ableitbar.
+[Gesicherter Stand und weiterer Prüfbedarf](../development/CURRENT_WORK.md).
+
+Historische Diagnose (`5e04515b`): ursprüngliche Prüfer in beiden Fortsetzungs-
+Kontrollen vollständig18.291/18.721s; Host13/16 PASS. Je916 IRQ0 auf Vektor32,
+keine Zustellung in protokollierten Stop-/Einzelschrittphasen, Maske `0x7`.
+79 native Uhr-/Peeraufnahmen konsistent, kein belegter neuer Kerneldefekt.
+Frühere Äquivalenz-Zeitüberschreitung nicht reproduziert; keine Paketabnahme,
+Friständerung oder IRQ-/Originalgateerneuerung aus diesem verbrauchten Messpaar.
+[Stand, Zeitanteile und gesicherte Belege](../development/CURRENT_WORK.md).
+
+Historische Messung/Korrektur (`96a228f1`/`277405bc`): beide instrumentierten
+Kontrollgäste bestehen alle16 Lebensläufe bei17.294/18.102s. Host13/.223s.
+Letzte gezielte Korrektur teilt QMP-Verbindungen nur innerhalb eines angehaltenen
+Callbacks, nie über die Gastfortsetzung; alle Prüfungen bleiben pro Zugriff.
+Host14/.568s rot/grün, aber Äquivalenzgast weiterhin20s/15 von16 Reaps.
+Kein neuer Fatal/Prüfbytefehler und keine neue Kernel-/Gastprogrammänderung.
+Stoppregel aktiv; keine Paketabnahme oder IRQ-/Originalgateerneuerung.
+[Stand und gesicherte Belege](../development/CURRENT_WORK.md).
+
+Historischer Prüftransport (`aa6086a2`): optionaler lokaler QMP-Binärleser mit
+aktueller CR3-/RAM-/Stillstandsprüfung, exakten Bytes und erhaltenen Altprüfungen.
+Hostgruppen12/10/8/8 PASS. Kernel- und High-RAM im Gast bytegleich zu GDB;
+ein QMP-Ereignisstau ist durch strikt lesebegrenzte Verbindungen behoben.
+Der korrigierte Gast erreicht73 Exporte, aber nur15/16 Reaps vor20s. Keine
+vollständige Abnahme, Kernel-/Gaständerung oder erneuerte IRQ-/Gatematrix.
+Zwei von höchstens vier neuen Gästen genutzt; kein unveränderter Retry.
+[Aktueller Stand und Belege](../development/CURRENT_WORK.md).
+
+Historische Stop-/Timerdiagnose (`491443ac`): acht Hosttests bestanden;
+zwei20s-Gäste bleiben unvollständig.73 native Snapshots zeigen monotonen
+Tick-/EOI-Fortschritt und den zweiten Peer regulär in seiner100ms-Sleepschleife.
+Beim letzten gesicherten Zustand fehlen mindestens3220ms nominelle Gastzeit.
+Keine neue Kernel-/Programm-/Produktionsbeobachteränderung oder Abnahme.
+Beide Diagnoseplätze verbraucht, [Stand und Belege](../development/CURRENT_WORK.md).
+
+Historische begrenzte Transportdiagnose (`617832e1`/`af247388`/`6c59454d`):
+gezielte Seitentabellen- und RAM-Bündelung erhält sämtliche Prüfbytes und
+Rechte-/Löschoracles; Dateistart8, Diagnose4 und Transport10 Hosts PASS.
+Ein voller Diagnosegast besteht19.615s aktive Capturezeit, aber die beiden
+profilierten Korrekturläufe bleiben an20s vor dem zweiten Peerabschluss offen.
+Sechs Gäste ausgeschöpft, Stopregel nach zwei gezielten Korrekturen aktiv.
+Kein neuer Kernel-/Programm-/Quoten-/Friststand, keine neue IRQ-Matrix oder
+Paketabnahme; [aktueller Befund und Bindungen](../development/CURRENT_WORK.md).
+
+Historische begrenzte Legacy-Sleep-Diagnose (`9ebaf6a5`): Host9/.021s PASS;
+beide unveränderten FAT12-Gäste erreichen `DEADLINE_SLEEP_OK`, alle27 Ereignisse
+und korrekte Tick-/EOI-/Schlusswerte. Zweiter Lauf erfasst die Ereignisse samt
+Ticks. Kein Modus5/0x9F-Fatal reproduziert, deshalb keine Legacy-Kerneländerung.
+Beide Dateistartläufe bleiben später innerhalb ihrer20s-Capturefrist unvollständig.
+Diagnosepaar ausgeschöpft, keine neue IRQ-Matrix oder Paketabnahme.
+[Befunde und verbliebene Grenze](../development/CURRENT_WORK.md).
+
+Historie des vorausgegangenen Idle-Fixes und Legacy-Scope-Stopps:
+
+Aktueller R8.3am-Kandidat (`300cfbc2`/`eab12d16`): Ein beobachteter nativer
+IRQ-Wiedereintritt am Idle-CLI nach Wake wird durch Löschen allein des
+gespeicherten CPL0-IF im tatsächlichen IRQ-Tail verhindert. Echter O0/O2-
+Assemblerhost rot/grün und zwei Gastzeugen bestätigen den maskierten Rückweg.
+Keine gelockerte Zulassung, ABI, Quote oder Frist. Das ist noch keine
+vollständige Abnahme: zwei Kontrollgäste erreichen die20s-Frist vor dem
+letzten Peer, der letzte erlaubte Versuch scheitert bereits im Legacy-Sleep-
+Schlussprüfpfad Modus5/Stufe0x9F. Dessen genaue Ursache bleibt offen;
+`cooperative_scheduler.asm` liegt außerhalb des freigegebenen Kernelumfangs.
+Vier Versuche ausgeschöpft, keine weitere Wiederholung. Drei IRQ-Fehlergäste
+und die betroffenen ursprünglichen Build-/Gastgates bleiben offen.
+[Laufzeituhr und IF-Vertrag](NATIVE_RUNTIME_CLOCK_CONTRACT.md),
+[aktueller Stop und Belege](../development/CURRENT_WORK.md).
+
+Historische R8.3am-Befunde vor dieser Kernelkorrektur:
+
+Erneute kalte Diagnose `d0263b65`: sechs Hosttests bestehen; der unveränderte
+FAT12-Gast besteht den vollständigen Dateistartprüfer in17.547s einschließlich
+beider PROCESS_RUN,16 Lebenszyklen, Peerfortschritt und Schlussbilanz. Kein
+Timer-Fatal/IRQ-Snapshot; das ist keine Paketabnahme oder belegte Fehlerbehebung.
+Zusätzlicher Diagnoselauf ausgeschöpft, Kernel und20 Gates unverändert.
+
+Timerdiagnose-Supplement `5ad56853`: drei Hosttests bestanden; der einzige
+freigegebene FAT12-Gast stoppt nach7.742s früher an Treiber-CPU32/Status256 und
+der FS-Erfolgskontrolle. Keine IRQ-Aufzeichnung oder Reproduktion des alten
+Timer-Fatals; keine neue Laufzeitabnahme. Originale Kernel-/Programmbytes,
+Medien und20 Gates unverändert. Weiterer Diagnoseumfang muss neu freigegeben
+werden; der Fehler ist nicht als behoben oder als Beobachterursache erklärt.
+
+R8.3am-Kandidat: NativeFileLaunch liest eine begrenzte immutable ELF64-Datei
+über die vorhandenen Ring3-Dienste, prüft sie mit dem vorhandenen RNPGv2-Adapter
+und startet sie erst nach Fence/Reap des Dienstpaars mit reduziertem Profil.
+Max1536 Dateibytes/eine Frist/acht RPCs; keine interne Heapallokation, normale
+parallele Shell, neue Kernelautorität oder veränderte Quoten. Erster FAT12-Gast
+belegt beide Dateiprogramme82 und Supervisor83/CPU25, endet danach aber am
+fatalen Timer-IRQ0x20. Keine vollständige Laufzeit-/Paketabnahme; Kernelobjekte
+unverändert, genaue Ursache offen. Aktiver uncommitteter Kandidat gestoppt vor
+weiteren Gästen/Kerneländerungen. [Dateistartvertrag](NATIVE_FILE_LAUNCH_CONTRACT.md),
+[aktueller Stop und Belege](../development/CURRENT_WORK.md).
 
 R8.3al: `-NativeFilesystem` beziehungsweise
 `X86_64_NATIVE_FILESYSTEM=1` wählt den nativen Read-only-Dateisystemverbraucher

@@ -31,6 +31,8 @@ param(
     [switch]$NativeWide,
     [switch]$NativeBlockProfile,
     [switch]$NativeFilesystem,
+    [switch]$NativeFileLaunch,
+    [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
     [ValidateRange(0,7)] [int]$BlockProfileCase = 0,
@@ -48,6 +50,11 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeFileLaunch) {
+    if ($FilesystemCase -ne 0) { throw 'NativeFileLaunch excludes FilesystemCase.' }
+    $NativeFilesystem = [switch]$true
+}
+if ($FileLaunchCase -ne 0 -and -not $NativeFileLaunch) { throw 'FileLaunchCase requires NativeFileLaunch.' }
 if ($NativeFilesystem) {
     if ($BlockProfileCase -ne 0) { throw 'NativeFilesystem excludes BlockProfileCase.' }
     $NativeBlockProfile = [switch]$true
@@ -352,6 +359,8 @@ try {
         "X86_64_NATIVE_WIDE=$([int]$NativeWide.IsPresent)" `
         "X86_64_NATIVE_BLOCK_PROFILE=$([int]$NativeBlockProfile.IsPresent)" `
         "X86_64_NATIVE_FILESYSTEM=$([int]$NativeFilesystem.IsPresent)" `
+        "X86_64_NATIVE_FILE_LAUNCH=$([int]$NativeFileLaunch.IsPresent)" `
+        "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `
         "X86_64_BLOCK_PROFILE_CASE=$BlockProfileCase" `

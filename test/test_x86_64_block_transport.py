@@ -8,6 +8,51 @@ import diagnose_x86_64_block_transport as diagnostic
 
 
 class TransportTests(unittest.TestCase):
+    def test_continuation_trace_reader_is_bounded_and_fail_closed(self):
+        for raw,failed in ((b'one\ntwo\n',False),(b'x'*(8*1024*1024+1),True),
+                           (b'\n'*131073,True)):
+            sink=transport.ContinuationTrace();output=io.BytesIO()
+            sink.run(io.BytesIO(raw),output)
+            self.assertEqual(bool(sink.error),failed)
+            self.assertLessEqual(len(output.getvalue()),8*1024*1024)
+            self.assertLessEqual(output.getvalue().count(b'\n'),131072)
+            if failed:
+                with self.assertRaises(ValueError):sink.check()
+            else:self.assertEqual(output.getvalue(),raw);sink.check()
+        class Broken:
+            def read(self,n):raise OSError('read failure')
+        sink=transport.ContinuationTrace();sink.run(Broken(),io.BytesIO())
+        with self.assertRaisesRegex(ValueError,'read failure'):sink.check()
+
+    def test_continuation_options_are_explicit_and_defaults_unchanged(self):
+        for enabled in (False,True):
+            with patch.object(transport,'_capture_run',return_value=('s','t')) as run:
+                transport.capture(ROOT/'build/a.elf',self.folder(),'code',4096,trace_continuation=enabled)
+                self.assertEqual(run.call_args.kwargs.get('trace_continuation',False),enabled)
+                if not enabled:self.assertNotIn('trace_continuation',run.call_args.kwargs)
+        self.assertEqual(len(transport.CONTINUATION_EVENTS),8)
+        self.assertNotIn('gdbstub_io_command',transport.CONTINUATION_EVENTS)
+
+    def test_continuation_real_capture_closes_trace_even_on_debugger_failure(self):
+        class Process:
+            pid=123;returncode=None
+            def __init__(self):
+                self.stdin=io.BytesIO();self.stdout=io.BytesIO();self.stderr=io.BytesIO(b'[1@1.000000] gdbstub_op_continue \n')
+            def poll(self):return self.returncode
+        folder=self.folder();vm=Process();commands=[]
+        def popen(command,**kwargs):
+            commands.append(command)
+            if len(commands)>1:raise OSError('debugger launch')
+            self.assertEqual(kwargs['stderr'],transport.subprocess.PIPE);return vm
+        def terminate(process):process.returncode=0
+        with patch.object(transport.subprocess,'Popen',side_effect=popen),patch.object(transport,'resolve_qemu',return_value=Path('qemu.exe')),patch.object(transport,'terminate_bounded',side_effect=terminate):
+            with self.assertRaisesRegex(OSError,'debugger launch'):
+                transport._capture(ROOT/'build/a.elf',folder,'code',4096,trace_continuation=True)
+        self.assertTrue(vm.stdin.closed and vm.stdout.closed and vm.stderr.closed)
+        self.assertIn('enable=gdbstub_op_stepping',commands[0])
+        self.assertIn('timestamp=on',commands[0])
+        self.assertIn('gdbstub_op_continue',(folder/'stderr.log').read_text())
+
     def folder(self):
         base=ROOT/'build/codex-agent/r83ak-block-profile';base.mkdir(parents=True,exist_ok=True)
         # Retain diagnostic test evidence, including failures.
@@ -90,7 +135,8 @@ class TransportTests(unittest.TestCase):
             self.assertNotIn('Qqemu.sstep',code)
             if not kind.startswith('full'):self.assertNotIn('set $',code)
             else:self.assertIn('pio_retire(slot,gen)',code) # Full oracle retained; OOM=None.
-        base=diagnostic.profile.observer_body();scoped=diagnostic.profile.scope_pio_page_hooks(base)
+        # This test applies the adapter itself; the public default is already scoped.
+        base=diagnostic.profile.observer_body(scoped=False);scoped=diagnostic.profile.scope_pio_page_hooks(base)
         for line in base.splitlines():
             if line.strip().startswith('assert '):self.assertIn(line,scoped)
         self.assertIn("if not any(v['live'] for v in starts.values()):trace_before_hook.enabled=trace_after_hook.enabled=True",scoped)

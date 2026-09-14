@@ -1215,6 +1215,12 @@ process_run_irq_tail64:
     mov edx, TASK_FAULTED
     jmp process_run_retire64
 .idle:
+    ; Wake has changed the queues. IRETQ to the pre-CLI idle instruction must
+    ; not re-enable IRQs and admit a second IRQ against the old idle premise.
+    ; Only this validated CPL0 frame changes; dispatcher STI or the separately
+    ; admitted user context restores interruptibility after queue re-admission.
+    and qword [rdi+EXCEPTION_FRAME_RFLAGS],~0x200
+.idle_return:
     mov eax, 1
     ret
 

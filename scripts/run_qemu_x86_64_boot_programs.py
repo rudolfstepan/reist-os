@@ -262,9 +262,33 @@ def validate_rejection(serial,trace,kind):
     injections=re.findall(r'BOOT_PROGRAM_ALLOC_INJECT acquired=(\d+)',trace)
     if injections!=([str(kind)] if isinstance(kind,int) else []):raise ValueError('program exact allocation failure')
 
-def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False):
+CONTINUATION_EVENTS=('vm_state_notify','gdbstub_op_continue','gdbstub_op_continue_cpu',
+    'gdbstub_op_stepping','gdbstub_hit_break','pic_interrupt','pic_set_irq','pit_ioport_write')
+
+
+class ContinuationTrace:
+    """Opt-in stderr drain; fixed retained capacity, never blocks the main loop."""
+    def __init__(self):self.error='';self.bytes=0;self.lines=0
+
+    def run(self,stream,output):
+        try:
+            while chunk:=stream.read(4096):
+                if len(chunk)>4096 or self.bytes+len(chunk)>8*1024*1024 or self.lines+chunk.count(b'\n')>131072:
+                    raise ValueError('continuation trace capacity')
+                output.write(chunk);self.bytes+=len(chunk);self.lines+=chunk.count(b'\n')
+            output.flush()
+        except Exception as error:self.error=str(error)[:256] or type(error).__name__
+
+    def check(self):
+        if self.error:raise ValueError('continuation trace: '+self.error)
+
+
+def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False):
     options=dict(halt_witness=halt_witness)
+    if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
+    if trace_continuation:options['trace_continuation']=True
     if diagnostic_metrics:options['diagnostic_metrics']=True
+    if binary_memory is not None:options['binary_memory']=binary_memory
     if media is None:return _capture(image,folder,code,ram,**options)
     from run_qemu_x86_64_pio import Fixture
     if type(media) is not Fixture:raise ValueError('unsupported guest media')
@@ -293,10 +317,13 @@ def process_cpu_ns(pid):
     finally:api.CloseHandle(handle)
 
 
-def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False):
-    if not diagnostic_metrics:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness)
+def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False):
+    options={} if binary_memory is None else dict(binary_memory=binary_memory)
+    if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
+    if trace_continuation:options['trace_continuation']=True
+    if not diagnostic_metrics:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness,**options)
     started=time.monotonic();metrics=dict(version=1,spawned=False,pid=0,cpu=None,failed=False)
-    try:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness,metrics=metrics)
+    try:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness,metrics=metrics,**options)
     except BaseException as error:
         metrics.update(failed=True,error=str(error)[:1024]);raise
     finally:
@@ -304,20 +331,33 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagn
         (folder/'capture-metrics.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
 
 
-def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None):
+def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None,binary_memory=None,trace_continuation=False):
+    if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
+    binary_arguments=[]
+    if binary_memory is not None:
+        from qemu_binary_memory import configure
+        binary_arguments,code=configure(code,folder,ram,binary_memory)
     script=folder/'observe.gdb'
     script.write_text('set confirm off\nset pagination off\nset architecture i386:x86-64\ntarget remote 127.0.0.1:12491\n'+code,encoding='ascii')
     command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m',str(ram)+'M','-smp','1',
              '-display','none','-monitor','none','-nic','none','-serial','stdio','-no-reboot','-no-shutdown',
              '-kernel',str(image),'-S','-gdb','tcp:127.0.0.1:12491']
     command+=list(media_arguments)
+    command+=binary_arguments
+    if trace_continuation:
+        command+=['-msg','timestamp=on']
+        for event in CONTINUATION_EVENTS:command+=['-trace','enable='+event]
     (folder/'command.json').write_text(json.dumps(command),encoding='utf-8')
     output=queue.Queue(maxsize=128);overflow=threading.Event();data=bytearray();debugger=None;thread=None
+    observed_since=None
+    trace_sink=ContinuationTrace() if trace_continuation else None;trace_thread=None
     with (folder/'stderr.log').open('wb') as errors,(folder/'observer.log').open('wb') as log:
-        vm=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=errors,bufsize=0,
+        vm=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE if trace_sink else errors,bufsize=0,
                             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         if metrics is not None:metrics.update(spawned=True,pid=vm.pid)
         try:
+            if trace_sink:
+                trace_thread=threading.Thread(target=trace_sink.run,args=(vm.stderr,errors),daemon=True);trace_thread.start()
             debugger=subprocess.Popen([shutil.which('gdb') or 'gdb','-q','-nx','-batch','-x',str(script)],
                                       stdout=log,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
             def reader():
@@ -325,19 +365,30 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
                     try:output.put_nowait(chunk)
                     except queue.Full:overflow.set();return
             thread=threading.Thread(target=reader,daemon=True);thread.start();deadline=time.monotonic()+20
+            if metrics is not None:observed_since=deadline-20;metrics['progress']=[]
             while time.monotonic()<deadline:
                 try:data.extend(output.get(timeout=.01))
                 except queue.Empty:pass
+                if trace_sink:trace_sink.check()
                 if overflow.is_set() or len(data)>262144:raise ValueError('program serial capacity')
                 serial=data.decode('ascii',errors='replace')
+                if metrics is not None:capture_progress(metrics,serial,time.monotonic()-observed_since)
                 if halt_witness:
                     # A fatal serial prefix alone does not prove physical halt.
                     if vm.poll() is not None or debugger.poll() is not None:break
                 elif process.SUCCESS in serial or any(m in serial for m in FAILURES) or vm.poll() is not None or debugger.poll() not in (None,0):break
         finally:
             if metrics is not None:
+                cleanup_since=time.monotonic()
+                metrics['observe_seconds']=None if observed_since is None else round(cleanup_since-observed_since,6)
+                metrics['stop_reason']=capture_stop_reason(data.decode('ascii',errors='replace'),halt_witness,
+                    vm.poll(),debugger.poll() if debugger else None,
+                    observed_since is not None and cleanup_since>=deadline)
                 try:metrics['cpu']=process_cpu_ns(vm.pid)
                 except OSError as error:metrics['cpu_error']=str(error)[:256]
+                if debugger is not None:
+                    try:metrics['debugger_cpu']=process_cpu_ns(debugger.pid)
+                    except OSError as error:metrics['debugger_cpu_error']=str(error)[:256]
             vm.stdin.close();terminate_bounded(vm)
             if debugger is not None:
                 try:debugger.wait(timeout=2)
@@ -345,11 +396,37 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
             if thread is not None:thread.join(timeout=1)
             while not output.empty():data.extend(output.get_nowait())
             vm.stdout.close();(folder/'guest.log').write_bytes(data)
+            if trace_thread is not None:
+                trace_thread.join(timeout=1)
+                if trace_thread.is_alive():trace_sink.error='trace reader cleanup deadline'
+                vm.stderr.close()
             if metrics is not None:metrics.update(serial_bytes=len(data),debugger_exit=debugger.returncode if debugger else None)
+            if metrics is not None:metrics['cleanup_seconds']=round(time.monotonic()-cleanup_since,6)
+    if trace_sink:trace_sink.check()
     if overflow.is_set() or len(data)>262144 or debugger.returncode:raise ValueError('program capture/detach failure')
     for name in ('observer.log','frame-trace.log'):
         if (folder/name).stat().st_size>65536:raise ValueError('program observer capacity')
     return data.decode('ascii',errors='replace'),(folder/'frame-trace.log').read_text(encoding='utf-8')
+
+
+def capture_stop_reason(serial,halt_witness,vm_exit,debugger_exit,expired):
+    """Diagnostic classification only; never controls continuation or acceptance."""
+    if not halt_witness:
+        if process.SUCCESS in serial:return 'success_marker'
+        if any(marker in serial for marker in FAILURES):return 'failure_marker'
+    if vm_exit is not None:return 'vm_exit'
+    if debugger_exit is not None and (halt_witness or debugger_exit!=0):return 'debugger_exit'
+    return 'deadline' if expired else 'capture_error'
+
+
+def capture_progress(metrics,serial,elapsed):
+    """At most64 monotonic serial milestones; no guest or remote reads."""
+    row=dict(reaps=serial.count('REIST_X86_64_PROCESS_REAP_OK'),
+             runs=serial.count(process.DONE),sleep=int('REIST_X86_64_DEADLINE_SLEEP_OK' in serial))
+    rows=metrics['progress']
+    if rows and all(rows[-1][key]==value for key,value in row.items()):return
+    if len(rows)>=64:raise ValueError('capture diagnostic progress capacity')
+    rows.append(dict(row,elapsed_seconds=round(elapsed,6)))
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--image',type=Path,required=True);p.add_argument('--evidence',type=Path,required=True);a=p.parse_args()
