@@ -314,3 +314,18 @@ require32 table bytes, large reads still use bounded batched entry transfer.
 Real host negatives and page/PT-boundary cases precede this one changed profiled
 guest; same image,20s bound and all full oracles. One followup slot remains,
 only for a separately frozen evidence-directed change, never identical retry.
+
+Second and last directed followup, `full-batch-profile`: f5f1e66 still reaches
+20s despite reducing observed bytes to14,599,975. Its8036 reads cost5.632s;
+start reads account for1.15s, post-release reads for0.36s. Batch exactly the
+RAM required at those same paused boundaries. Fetch the64 native image leaf
+entries together after validating their three common parents. Validate every
+leaf and owned-frame condition before batching the requested payload pages;
+retain every existing content and startup assertion. Coalesce adjacent released
+frames for the complete zero proof, retaining the exact returned-frame ledger.
+At most69 fixed4KiB regions, no reads across gaps, each transfer at most270336
+bytes, exact transfer lengths, no cache across callbacks or guest execution.
+Host tests execute the real helpers and transformed observer, including short
+transfers and invalid entries/frames. This sixth diagnostic guest retains the
+same image, cost accounting,20s bound and all oracles. A repeated timeout stops
+this diagnosis; it does not authorize another retry or a looser acceptance gate.
