@@ -979,3 +979,31 @@ entry expires after180s; Windows still controls UAC consent. Any denial, missing
 identity or cleanup failure stops, no retry/bypass. No host/service/security/ACL
 change, unrelated process control, deletion, pin/gate change, implementation
 commit/queue transition, agent or push. Cleanup does not renew guest budgets.
+
+### Reuse builds and resume the complete reference proof (2026-09-14)
+
+Renewed continuation permits one reference-only pass in reference-resume/.
+The changed variable is the VMware worker's elevated execution context, not a
+claimed cause. Preserve39 sources/26469 immutable entries plus6 comparison
+files; owned cleanup passed. No production/test change or recompilation.
+
+Freeze seven ordered groups: (1)180s source/tool/profile/log-bound reuse of
+ten host groups (latest18 adapter tests plus51 unchanged others) and the two
+successful reference-metadata builds, with original signed-content admission;
+(2) one hidden RunAs VMware worker,180s entry expiry/360s envelope, original
+main/APIC then package/APIC copies,20s launch/60s guest and original cleanup;
+(3)180s original QEMU APIC/PIT pair on its cached matching image as regular user;
+(4) original EXT2 stat150s/outer180; (5) symlink/recovery180s/outer210;
+(6)180s complete direct review/admission; (7) original guard180s after only the
+five already-authorized reviewed literal pin/attribution changes. Original
+reference case selection, content checks, GTEST/recovery/timer oracles and
+VmwareCopy remain unchanged; helpers override only fixed evidence/build roots.
+
+First failure, denial, timeout, identity/source drift stops the remaining
+sequence: no retry, later guest or pin update. Elevated authority is limited
+to the fixed own VMware worker; QEMU/EXT2 stay regular-user. Refuse existing VMs,
+preserve all copies/logs and verify originals after every phase. No host/service/
+ACL/security change, kernel/test repair, assertion/deadline change or partial
+guest acceptance. Full reference success is not AM acceptance or a native30
+renewal. Historical guard-only archive exception unchanged. No implementation
+commit/queue advance, nested agent or push.
