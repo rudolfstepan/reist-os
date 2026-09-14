@@ -573,3 +573,34 @@ The shared earlier IF-bit correction changes cooperative_scheduler.o and the
 outer normal/FS ELFs; retain explicit review rather than claim full binary
 identity. No legacy repair or invented conditional legacy proof, no OS-complete
 claim, nested agent or push.
+
+### Failed-init FS retirement correction (2026-09-14)
+
+Renewed user approval covers the demonstrated case6 Ring-3 lifecycle failure:
+driver UD2, FS initialization reply -5, unconditional supervisor CANCEL followed
+by WAIT expecting natural exit90, actual FS status0/state3 and supervisor221.
+Preserve36 sources/2683 evidence hashes from verification-status-binary-integration
+and the entire previous evidence chain, raw snapshots and207 i386 pins. Resume
+the attributed unaccepted package, not a new clean implementation transaction.
+
+Only file_launch.c and its existing file-launch host test may implement changes.
+Compile the actual retirement statements at O0/O2 with explicit bounded host
+syscall adapters. Prove both reply-before-exit and already-exited ordering,
+normal/FS-fault/driver-fault/malformed-reply cases, exact fence/cancel/wait/reap/
+close order, fixed owner generations,1000ms wait/1ms stale probes, and error
+short-circuiting before further side effects. Record red before correction.
+Keep the existing fence first and bounded WAIT with exact expected status90;
+omit only the conflicting failed-init cancellation. No alternative accepted
+status, delay loop, deadline extension or kernel mechanism. Other retirement
+modes, shared FS implementation, observer/validator/transport, ABI and quotas stay.
+
+After the directed correction, freeze the same30 ordered qualification gates,
+all source/helper hashes and retirement-renewal/ output prefix. Original file
+matrix uses the integrated binary reader/single log sink; other defaults remain.
+Original18x20s/360s matrices, binary pair20s each/40s and four IRQ cases20s/80s
+including cleanup and full original assertions remain required. No diagnostic
+substitute, new guest profiling or reuse of old successful attempts as acceptance.
+Execute each once and stop at first failure/timeout/unrelated change; no repair
+or retry in this pass. All30 plus scope/ABI/cleanup/default/FS artifact identity
+and changed file-supervisor/catalog provenance before commit/queue transition.
+Queue/contract/status docs may record results. No nested agents or push.
