@@ -780,3 +780,46 @@ Build success does not renew the thirty-gate guest qualification or accept the
 package. No guest, deadline change, implementation commit, queue transition,
 nested agent or push. Original timing/OOM/runtime proof and budgets stay open;
 queue/contract/status documentation may record this bounded repair.
+
+### Source-bound i386 reference renewal (2026-09-14)
+
+Explicit renewed approval covers the later i386 build and its shared EXT2
+dependency, not an OS repair or another native qualification attempt. Resume
+36 attributed sources,19084 preserved evidence files and207 native bootstrap
+artifacts. Earlier reports calling those207 i386 pins were incorrect. Preserve
+all original images, signatures, programs and historical qualification records.
+
+Candidate main2b58094b/package9f2998be and historical framebufferac4b127e are
+fixed before tests. Exactly STORAGE changes from6450b474 to4cb46748; reviewed
+96-program digest7ba8d99a, common VMware kernel3be2b5c9 unchanged. Fresh separate
+VMware/QEMU builds must reproduce the reviewed program bytes and their correct
+platform kernels. Freeze non-document tracked build inputs, current sources,
+helpers, tools and original artifacts. No parser/kernel/source repair is allowed.
+
+Add only the reference-renewal consumer and its host regression, plus the old
+guard's literal pins/attribution after successful qualification. Reuse the actual
+existing content/signature/SBOM/image admissions and all platform-matched guest
+oracles and cleanup. Temporary fixed legacy consumer constants must restore in
+finally, never change originals or expose arbitrary image/profile inputs.
+
+Freeze17 ordered groups:10 hosts180s each (renewal, original reference, EXT2
+ranges, shadow EXT2/FAT32, symlink, EXT2 stat fixture, boot manifest/signature,
+EXT2 recovery), two fresh VGA builds900s each, original four reference guests
+under600s (two VMware APIC copies and QEMU APIC/PIT snapshots,60s per guest),
+existing EXT2 stat150s and symlink/recovery180s guests (outer180/210s), reviewed
+admission180s, then the original guard180s. Each runs once; first failure stops
+without repair, retry, later guest or pin change. Existing user VMs are never
+stopped; copies run headless, QEMU references use snapshots and only the unique
+EXT2 fixture is writable. No network or device authority expansion.
+
+Only after groups1..16 pass and direct review may guard image/program literals
+and qualification attribution change; group17 then verifies those exact pins.
+The previous guard source is already an external evidence entry. Preserve its
+raw bytes before edits at reference-renewal-source/
+scripts__verify_x86_64_reference_artifacts.py; historical evidence resolution
+may substitute only this one path with its exact prior SHA256, not change any
+historical manifest or log. No automatic learning or other evidence relocation.
+
+Reference success does not accept AM or renew its30 native groups. All prior
+timing/OOM/IRQ obligations and spent budgets remain. No implementation commit,
+queue transition, nested agent, push or claim of a finished64-bit OS.
