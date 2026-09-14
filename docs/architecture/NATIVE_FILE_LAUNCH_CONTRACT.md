@@ -695,3 +695,34 @@ artifact review before implementation commit or queue transition. Queue/contract
 and status docs may record results. After successful local package commit and
 clean worktree, continue the next cohesive native64 priority package under the
 interactive directive. No nested agent, push or full-OS completion claim.
+
+### Bounded FAT12 timing diagnosis (2026-09-14)
+
+Renewed user approval covers diagnosis of the first post-case6 qualification
+guest: success/case0/FAT12/4GiB,22.565s including cleanup,15/16 reaps and1/2 runs.
+Four programs exit82 and roots1/9 exit83; final peer10 receipt is absent.
+Its43 kernel artifacts and five programs match a17.605s successful guest, but
+the existing logs cannot distinguish host/debugger delay from guest progress.
+Preserve36 sources/731 latest and17712 total evidence files plus207 i386 pins.
+
+Reuse the existing timing mechanisms, consolidating case6 and FAT12 execution
+behind one fixed-profile dispatcher. Only the existing diagnostic/test files
+may change beyond queue/contract/status docs. Preserve the old case6 wrapper,
+selectors and budget. FAT12 uses only the queue-pinned failed image, no rebuild.
+Minimal records original callback intervals; profiled adds the existing fixed
+clock/peer snapshots and bounded read/QMP cost accounting. Neither changes the
+original observer/validator, capture, binary reader, guest or kernel. No new
+breakpoint, guest write, trace, stepmask, timer or authority change. Snapshot
+192x1280B, callback4096, timeline16384 and cost128 limits remain unchanged.
+
+Host regressions cover both actual fixed-profile dispatches, exact image/path,
+invalid selection and reservation order/budget. Freeze one180s host group and
+two45s diagnostic commands before execution; each runs once, reserve before
+launch. Keep20s active capture and existing bounded cleanup; full acceptance
+still requires the entire original oracle within20s including cleanup. A
+recorded deadline diagnosis is not oracle success or package acceptance.
+Unexpected guest/observer/measurement failures stop the pair. After the pair
+or non-reproduction, retain evidence and stop, with no speculative repair,
+extra guest, qualification retry, implementation commit, queue transition or
+push. The static direct-Make default-order finding remains pending and outside
+this diagnosis. Old attempts remain spent; no nested agent.
