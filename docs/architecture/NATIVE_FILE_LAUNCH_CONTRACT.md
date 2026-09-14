@@ -670,3 +670,28 @@ fatal/assertion/measurement failure stops the pair. After both measurements or
 non-reproduction, retain evidence and stop: no guessed repair or renewed
 qualification, extra guests, implementation commit, queue transition or push.
 Further implementation needs a demonstrated cause and its own bounded scope.
+
+### Complete qualification after case6 diagnosis (2026-09-14)
+
+Renewed user approval explicitly covers one complete qualification renewal.
+Resume36 sources/249 latest evidence from verification-status-case6-timing.json;
+preserve all16981 chain evidence files, raw snapshots and207 reference pins.
+Neither successful diagnostic control accepts the earlier failed package.
+No implementation, test, diagnostic, kernel or program source changes here.
+
+Freeze the same30 ordered commands and source/helper hashes, substituting only
+post-case6-renewal/ and an ordinary frozen supplementary guest bridge. Retain
+20 host groups,3 builds, original file/FS18-case matrices, normal/reference gates,
+binary equivalence/full and the four IRQ cases. Current file binary full/single
+logging adapter and exact OOM-retirement proof stay; other defaults unchanged.
+Matrices18x20s/360s each, binary pair20s/40s and IRQ4x20s/80s including cleanup;
+host180s/build90s/matrix orchestration1800s envelopes unchanged. No invented
+conditional legacy tests for a repair that was not made.
+
+Execute each exactly once. First failure, timeout or unrelated source change
+stops this whole pass: no repair, retry, extra profiling or diagnostic substitute.
+Old attempts remain spent. All30 plus direct scope/ABI/cleanup and normal/FS/file
+artifact review before implementation commit or queue transition. Queue/contract
+and status docs may record results. After successful local package commit and
+clean worktree, continue the next cohesive native64 priority package under the
+interactive directive. No nested agent, push or full-OS completion claim.
