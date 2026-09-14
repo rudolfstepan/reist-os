@@ -639,3 +639,34 @@ retain all obligations. No diagnostic substitute. All30 plus direct scope,
 ABI/cleanup and byte-identical guest-artifact review before implementation
 commit or queue transition. Queue/contract/status docs may record results.
 Old attempts remain spent; no nested agent, push or full-OS completion claim.
+
+### Case6 capture/peer timing diagnosis (2026-09-14)
+
+Renewed approval covers the proposed timing investigation after15f650f2 gate24:
+case6 exceeded20s (22.508s including cleanup),13/14 reaps and1/2 runs; both FS
+exits remained90, only peer9's final receipt absent. Preserve36 current sources,
+2737 latest/16732 total chain evidence hashes, raw snapshots and207 i386 pins.
+The case6 image is pinned in the queue to the failed attempt; its43 artifacts
+and five programs match the earlier16.624s complete guest. Neither identity nor
+the absence of a fatal proves the cause of timing variation. OOM is not reached.
+
+Only the existing transport diagnostic and its host test may change. Two finite
+controls share the original full case6/layout2/4GiB observer and validator:
+minimal reuses timeline_observer(stops); profiled reuses combined_observer with
+the existing fixed clock/peer snapshots and callback/read/QMP stage accounting.
+Both use the current binary full reader, one log sink and existing capture
+metrics. Snapshot192x1280B, callback4096, timeline16384 and cost128 limits remain.
+No new breakpoint address, guest write, trace/stepmask/clock mutation or rebuild;
+kernel, Ring3, production observer, binary reader and capture remain unchanged.
+
+Host regressions first exercise actual wrapper/dispatch identity, malformed
+selection/image rejection and exact pair reservation. Freeze source/helper
+hashes and the three commands before execution. Exactly one host group then
+minimal/profiled once each; reserve before launch,45s command envelope per guest.
+The existing20s capture plus bounded cleanup is not enlarged. A successfully
+recorded deadline diagnosis is distinct from the complete original oracle
+within20s including cleanup, and neither is package acceptance. Unexpected
+fatal/assertion/measurement failure stops the pair. After both measurements or
+non-reproduction, retain evidence and stop: no guessed repair or renewed
+qualification, extra guests, implementation commit, queue transition or push.
+Further implementation needs a demonstrated cause and its own bounded scope.
