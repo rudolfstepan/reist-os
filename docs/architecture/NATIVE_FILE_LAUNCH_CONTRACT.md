@@ -363,3 +363,44 @@ capacity bounds. Preserve default transport/source and complete file oracle.
 All earlier budgets remain spent. This new pair permits no correction, IRQ
 renewal, acceptance retry or implementation commit by itself; stop after two
 guests or an unknown new failure and retain every historical result.
+
+### Opt-in bounded binary RAM transport
+
+Renewed approval permits the queue's `binary_memory_files` supplement after
+matching34 sources/65 evidence from `verification-status-file-timeline.json`.
+The existing desktop/hotplug QMP clients own input/device commands and do not
+provide this RAM-only admission contract; keep those clients unchanged. Reuse
+the native capture's process/media cleanup and the original complete observer.
+
+Use documented QEMU QMP capability negotiation, query-name/query-status and
+[pmemsave](https://www.qemu.org/docs/master/interop/qemu-qmp-ref.html#command-pmemsave).
+Only an opt-in loopback endpoint and unique guest name are added. Validate
+identity, matching integer reply IDs, bounded JSON/event traffic and monotonic
+deadlines. No arbitrary monitor commands or guest state mutation. Every binary
+read requires a stopped guest, a canonical native kernel/direct alias, the
+actual current CR3 translation (4KiB and2MiB leaves), and a RAM-only physical
+extent. Native4/8GiB reference profiles only: kernel RAM1..128MiB or high RAM
+4GiB..(RAM+1GiB); no MMIO/low device hole. Reject unsupported mappings.
+
+Only reads32768..270336 bytes use binary transport; small GDB reads stay as-is.
+At most eight exact page-table spans per read, no cache across calls or stops.
+At most2048 freshly named files/128MiB total, no overwrite/deletion, exact
+length plus SHA256 journal, stopped-state validation before and after export.
+Failures propagate to the original observer rejection; never silently fallback.
+Keep original breakpoints, assertions, complete byte comparisons and lifecycle.
+
+Execute actual host regressions first (protocol fragmentation/error/ID/event
+bounds, running/wrong guest, mapping/size/range/short-file rejection, source
+wrapping and unchanged default capture/media cleanup). Then fixed-image
+`--binary equivalence` compares the first large kernel and high-RAM reads with
+the original GDB result byte-for-byte. `--binary full` retains the full oracle
+without duplicate reads. Both must pass the original20s capture-plus-cleanup
+admission and20s active limit, not just eventual completion. Two source-changed,
+evidence-directed corrections maximum, at most four guests/80s active total;
+no identical retry or reopening an earlier spent budget. Preserve all evidence.
+
+Only successful equivalence and full proof authorize the queue's fresh-output
+renewal of affected original20 gates and original four-case IRQ matrix. All
+required supplementary groups, final ABI/cleanup/default-path/scope review and
+all acceptance gates precede an implementation commit. No speculative legacy
+or kernel repair, no full-OS claim from a bootstrap or transport diagnostic.
