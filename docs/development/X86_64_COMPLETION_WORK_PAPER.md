@@ -4,6 +4,18 @@ Stand: 14. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
+## R8.3an: zusammenhängende native Prozesspool-Kapazität
+
+Nach vollständiger AM-Abnahme und sauberem lokalem Commit `0f4efd17` folgt
+das explizite Acht-Prozess-Profil: Identität, Queue, sechs dynamische
+Abbildbesitzer, IPC/Completion, Heap und vollständiges Retirement gemeinsam.
+Kein bloßes Erhöhen einer Slotkonstante. Private run-v4-/C-layout5-Zulassung,
+alte Vier-Slot-Profile bytegleich, unveränderte CPU-/Versuchs-/Zeitbudgets.
+24 eingefrorene Gruppen und zehn neue Gäste aus einem gemeinsamen Build;
+Details im [Prozesspoolvertrag](../architecture/NATIVE_TASK_POOL_CONTRACT.md).
+Gerätebesitz, langfristige Dienstbudgets und normale Shell bleiben eigene
+Grenzen; R3.6b weiterhin zurückgestellt. Noch keine Implementierungsabnahme.
+
 ## R8.3am: Datei, ELF64-Import und Programmlebensdauer
 
 Neuester Stand: vollständige R8.3am-Paketabnahme auf Vertrag `f979c9a6`.

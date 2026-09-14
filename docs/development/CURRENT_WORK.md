@@ -2,6 +2,18 @@
 
 Stand: 14. September 2026
 
+## R8.3an: nächster zusammenhängender Prozesspool-Schnitt
+
+R8.3am ist lokal mit `0f4efd17` abgeschlossen, Worktree an der Paketgrenze
+sauber; vollständiger Abschlussbeleg `verification-status-native-final.json`.
+Danach ist genau R8.3an aktiv: explizites Acht-Prozess-Profil mit zwei Wurzeln,
+sechs dynamischen Abbildbesitzern und gemeinsam erweiterten IPC-/Heap-/Queue-/
+Retirementgrenzen. Bestehende generische Identitäts-/Queuekerne werden genutzt;
+alte Profile bleiben bei vier, CPU-/Restartbudgets unverändert. Größeres exakt
+reserviertes Heapmetadata-Layout wird unabhängig innen/außen geprüft.
+[Vertrag](../architecture/NATIVE_TASK_POOL_CONTRACT.md):24 eingefrorene Gruppen,
+drei Builds, zehn Gäste aus einem neuen Build; keine Geräte-/Shell-/OS-Abnahme.
+
 ## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
 
 Auf eingefrorenem Vertrag `f979c9a6` sind alle30 Abnahmeverpflichtungen sowie
