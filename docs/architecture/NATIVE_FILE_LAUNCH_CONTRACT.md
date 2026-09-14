@@ -1037,3 +1037,17 @@ check,180s each, independently in parallel, once each. No builds or guests,
 kernel/program/ABI changes, native30 renewal, implementation commit or queue
 transition in this slice. Stop on unexpected verification failure; old evidence
 and the historical guard-source archive exception remain unchanged.
+
+The first native cache pair under `fe927896` has23 host tests PASS and real
+cache admission FAIL: the already-pinned WinGet make.EXE is an installation
+symlink, not a changed compiler. Preserve this result and39 source snapshots.
+One evidence-directed correction remains inside this build-reuse boundary:
+only the literal WinGet link to the ezwinports.make package bin/make.exe,
+SHA256 cc6dc291113dcbcc7735835acbfc23c52ed037e4e124ff2d7a0aeae6df563a9f,
+may be admitted. Bind link type/path, exact non-alias target and both hashes;
+recheck resolution after reading. No generic alias allowance or catalog change.
+Actual-file host regression first reproduces the failure with metadata-only
+adapters; retargeting, same-byte alternate targets, wrong bytes/type/hash and
+unknown aliases reject. Freeze the corrected host/cache pair under
+native-build-alias/,180s each, in parallel once. No build/guest or native
+acceptance renewal; first failure stops, no additional correction in this scope.
