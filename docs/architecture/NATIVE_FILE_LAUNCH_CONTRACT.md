@@ -202,3 +202,15 @@ gate before any queue transition or implementation commit. A diagnostic passing
 guest or deliberately matching fatal symptom does not explain past missing
 register evidence and cannot replace package acceptance. Stop on scope expansion
 or the same concrete failure after two focused corrections; no blind retry.
+
+The concrete-failure accounting distinguishes the captured pre-CLI IRQ reentry
+(`a0d4be69`) from the subsequent control-guest20s timeout (`d5d51087`). The
+first timeout correction uses one complete diagnostic log sink (`ebb4fd35`,
+still timeout). The second batches page-table reads only in the new file-launch
+observer: at most eight4KiB table snapshots per paused read, validating every
+requested entry and retaining all bytes, ranges and authority checks; no cache
+survives that read. Its actual host test proves full266336-byte data, five total
+transfers and fail-before-data behavior for invalid entries and bounds. One
+final changed matrix attempt is permitted under the already frozen two-focused-
+corrections rule; the two different failure classes yield at most four matrix
+attempts total, never a fifth. Guest deadlines and required proofs do not change.
