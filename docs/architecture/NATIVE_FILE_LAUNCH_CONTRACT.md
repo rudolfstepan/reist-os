@@ -475,3 +475,32 @@ Use only existing capture/diagnostic and their host paths plus queue/contract/
 status docs. Older budgets remain spent, last binary correction remains failed.
 The pair cannot renew gates, repair the kernel or accept a package. Stop after
 the pair or an unknown fault; pending original20 and IRQ obligations remain.
+
+### Bounded equivalence-read cost diagnosis (2026-09-14)
+
+Renewed user approval covers the two additional original GDB byte comparisons
+in the still-failed equivalence path. Preserve36 source/306 evidence hashes from
+verification-status-file-continuation.json and raw source snapshots. Only the
+existing transport diagnostic/host and queue/contract/status docs may change;
+binary reader, common capture, production observer and kernel/user code stay.
+
+Exactly two diagnostic controls, --equivalence-cost minimal then profiled,
+use the same3c79f8be FAT12/4GiB image and actual binary_memory=equivalence path.
+Both keep all original assertions and20s active capture,40s total plus existing
+separately bounded cleanup. Report the original20s including cleanup as well.
+No QEMU trace, new breakpoint, extra guest read, time/stepmask/quota or host
+setting changes. Time only the original two large GDB calls with entry and
+return/exception records, exact address/length/returned SHA, maximum4x1024 bytes,
+two32768..270336-byte calls, monotonic elapsed<24s. Small reads pass unchanged.
+Profiled additionally reuses unmodified Cost callback/read/register accounting
+and its4096 callback/64 function/1e6 read/128MiB/128x8192 checkpoint limits;
+no timeline or new RAM snapshots. Measurements include their own overhead.
+
+Host tests execute the binding and actual production Reader._read with bounded
+valid translation/stopped/export adapters: both byte comparisons, mismatch and
+exception propagation, no extra read, caps, observer identity and pair budget.
+Bind the two returned hashes to the immutable binary dump ledger; distinguish
+directly measured comparison cost from unmeasured historical timing variation.
+Stop after this pair or an unknown fault. Timeout is diagnostic, not accepted.
+All old budgets and original/IRQ obligations remain unchanged; no speculative
+repair, new acceptance/gate renewal, implementation commit, queue advance or push.
