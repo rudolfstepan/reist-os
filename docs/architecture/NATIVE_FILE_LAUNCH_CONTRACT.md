@@ -1083,3 +1083,43 @@ retry, additional guest, deadline/oracle weakening, host configuration change,
 implementation commit, queue transition, agent or push. Individual new passes
 do not replace the original full18-case/30-group obligations or explain the
 historical22.565s outlier. Preserve results even when this supplement fails.
+
+### Complete unchanged FS/boot regressions with incremental links (2026-09-14)
+
+Renewed execution resumes39 sources/28709 AM evidence entries,521 protected
+artifacts/207 native pins and the nine newly passed native fault guests. The
+original FS18 and normal-boot gates remain unrun on the corrected kernel.
+Accepted AL retains fourteen FS variants; their common objects differ from
+the current source-bound default FS build only in cooperative_scheduler.o.
+Default catalog and inner C core are byte-identical. Retain all5278 AL evidence
+entries; normalize only path separators with duplicate rejection, not hashes.
+
+Seven frozen sequential groups: admission/adapter negatives180s; original
+case0/layout0 full control build90s; incremental14 relinks180s, each10s;
+unchanged original FS18 matrix1800s; original normal boot180s; documentation
+host180s; direct complete review180s. Each FS guest retains20s including
+cleanup/360s total. No production/test source changes in this pass; only
+contract/queue/status and new frozen ignored ordinary helpers.
+
+Incremental linking copies the exact admitted ELF32 objects to fresh owned
+outputs, replacing only the current cooperative_scheduler.o, then executes
+the original Makefile GNU ld outer recipe with its exact flags/object order.
+The first entire outer ELF plus all objects/catalog/program payloads must
+match an independent full original control build before any further link or
+guest. No binary patch, alternate build/profile, guessed compiler identity,
+automatic cache learning or promotion of old runtime evidence.
+
+FS main, complete18-case matrix, media, GDB capture, observers and validators
+remain unchanged. A fixed adapter satisfies only its exact existing compile
+calls using the verified new relink outputs; all other subprocess calls
+delegate unchanged. Unknown commands/profiles, drift, aliases, repeated
+variants or pre-existing outputs reject before copy. Real-file negatives and
+full control equality precede the matrix. Report one full control build and
+fourteen incremental links, never label reuse as fresh compilation.
+
+The original reference guard is reused only by exact source/tool/artifact/
+successful-result binding. Preserve the twelve-variant file cache, every
+historical failed run and guard-source archive exception. First failed group
+stops, no repair/retry, extra guest, kernel/ABI/clock/quota/host configuration
+change, implementation commit, queue advance, agent or push. This closes only
+FS/boot regressions; original file18/native30 and22.565s timing remain open.
