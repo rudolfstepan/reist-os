@@ -214,3 +214,43 @@ transfers and fail-before-data behavior for invalid entries and bounds. One
 final changed matrix attempt is permitted under the already frozen two-focused-
 corrections rule; the two different failure classes yield at most four matrix
 attempts total, never a fifth. Guest deadlines and required proofs do not change.
+
+### Renewed bounded Legacy-Sleep diagnosis and demonstrated repair
+
+The user explicitly approved extending the early mode5/stage0x9F diagnosis to
+`cooperative_scheduler.asm` and regression tests. Match all29 source hashes and
+298 evidence hashes in `verification-status-timer-idle.json` before edits.
+`legacy_sleep_files` adds that scheduler source plus the actual O0/O2 host
+`test/test_x86_64_legacy_sleep.py` and `test/x86_64_legacy_sleep_host.c`.
+The attributed AM transaction now has32 allowed sources; no new package.
+
+Use the existing diagnostic runner for at most two distinct read-only guests
+from the unchanged fixed FAT12/4GiB image, each20s/40s total. `--legacy-sleep`
+captures the exact final-check state and, if reached, post-fence state (at most
+two16KiB records). If those records do not identify the failure, the distinct
+`--legacy-sleep-events` additionally records at most40 actual events only while
+mode5 is active. No guest writes, changed clocks/quotas, arbitrary launch
+options, hot native timer hooks or identical retry. Bind registers, all27 actual
+and expected events, timer/final tick/EOI, four task records, queues and counters.
+Original callbacks, complete file observer, media proof and cleanup remain.
+These diagnostic guests never count as acceptance. Stop on unresolved findings
+after this finite pair, not an unbounded repetition until a desired outcome.
+
+A demonstrated cause requires an actual production-assembly red/green test
+before correction. Keep every lifecycle event, generation/deadline/EOI check
+and exact terminal task/queue/resource cleanup. If a strict event total-order
+rejects a demonstrated valid interrupt interleaving, replace only the accidental
+timing assumption with a bounded exact lifecycle, FIFO and dependency proof.
+No wildcard events, count-only success, ignored mismatch or arbitrary permutation
+acceptance; mutate missing, duplicate, premature, stale and reordered events.
+No other scheduler redesign, public ABI, persistence or device authority change.
+
+Only after that demonstrated correction, rebuild the source-bound FAT12 image
+and run one new `--irq-regression-after-sleep` matrix (four cases, unchanged
+20s/80s bounds and all previous IRQ/file/fence/halt oracles). The old four-attempt
+directory remains spent and untouched. First new failure stops; no automatic
+new attempt budget. Renew the legacy host and queue groups, existing timer/
+clock/process/diagnostic groups and all affected original20 gates. Original
+unaffected results remain bound, stale builds cannot substitute for new ones.
+No implementation commit or queue advance until complete acceptance. Stop on
+unknown new failure, outside scope or the same failure after two focused fixes.
