@@ -138,3 +138,31 @@ Stop after the one run and report concrete captured findings or non-reproduction
 Kernel repair and additional guest attempts require a new explicitly bounded
 scope; neither is inferred from diagnostic authority. R8.3am stays active and
 unaccepted, R3.6b deferred, and no implementation commit or push is permitted.
+
+### Renewed authority: one cold-fatal diagnostic run
+
+After the first diagnostic guest stopped before the timer fatal on driver CPU32,
+the user explicitly renewed execution in response to the single further cold-
+fatal/Fencing diagnostic question. First match all24 current source hashes and
+15 diagnostic evidence hashes to `verification-status-timer-diagnostic.json`.
+Preserve the previous diagnostic source texts as ignored, hash-bound snapshots.
+Only the same two `diagnostic_files` may change, plus this contract/queue and
+already allowed status documentation. Freeze this renewal before implementation.
+
+Use `--cold` to run exactly one additional case0/layout0/4GiB guest from the
+unchanged19bf6f9b image. A separate single-use output directory retains the old
+attempt and manifest. No added debugger breakpoint or new executable address:
+wrap the existing `serial_init64` host callback, verify both CALL instructions
+on the exact `exception_fatal`/`native_pio_fail64` routes, and record at most one
+16KiB snapshot after physical emergency fencing. Always delegate to the original
+callback, including its unconditional native-PIO fatal rejection. Never skip an
+instruction or change guest registers/data. On the exact generic fatal route,
+the saved176-byte IRQ frame is at RSP+8; pointer/range bounds still apply.
+
+Renew the same host group with actual wrapper/route/frame regressions. All20
+acceptance groups, kernel and user program bytes, resources,20s guest deadline,
+media checks and existing observer/oracle semantics remain unchanged. This
+diagnostic can identify a captured rejection or report non-reproduction, never
+accept the package. No further guest or kernel repair is authorized by this
+renewal; stop after the one run. All historical causes remain open unless the
+new evidence directly supports them; do not infer breakpoint causality.
