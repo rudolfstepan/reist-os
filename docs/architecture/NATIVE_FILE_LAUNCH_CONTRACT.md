@@ -875,3 +875,34 @@ PASS/direct review, only previously approved guard literals/attribution may
 change, then gate17 once. Historical guard archive exception unchanged. No
 native30-gate renewal, implementation commit, queue transition, nested agent,
 visible VM, existing VM control, push or complete64-bit OS claim.
+
+### Windows source metadata views (2026-09-14)
+
+Renewed approval corrects only the demonstrated cross-view source-identity
+comparison in the existing adapter/test. Preserve39 sources,22743 evidence
+entries,117 originals,202 prior-build artifacts and207 native bootstrap pins.
+Previous0/1/16 and its8-success/2-error host result remain failed; the empty
+source regression passed but ordinary source positives failed before reading.
+The read-only inventory observed1300 stable path/handle differences, including
+1299ctime values and four CMD mode projections; no source omission is permitted.
+
+First execute one180s new actual CMD/rewrite positive against the unchanged old
+adapter, requiring source-changed-before-read as expected red; never execute
+the command file. Then compare shared device/inode/type/link/size/mtime/optional
+birthtime across views, and each view's full identity including ctime/mode with
+itself before/after reading. Keep zero-length sources,1GiB/1MiB bounds, exact
+reads/EOF, paths, links, missing/type checks and original nonempty artifact/log
+policy. Add real rewrite/CMD positives, cross-view mismatch and local-view
+ctime/mode negatives. Actual grow/shorten/mtime regressions must record their
+mutation, consume payload and require the exact rejection phase; a generic
+pre-read ValueError is not evidence of a mid-read fault being detected.
+
+Only adapter/test and fresh ignored command helpers change beyond docs; no
+kernel, OS, parser, build-script, guest, deadline or oracle correction. Use
+reference-metadata/ and its fixed authority, preserve all old helpers/logs,
+freeze all1516 inputs and the same17 commands/deadlines under the existing
+PowerShell7 pin. First unexpected red or frozen failure stops without repair,
+retry, later guest or pin change. First16PASS/direct review permits only the
+previously approved guard literals/attribution, then gate17 once. Historical
+guard archive exception unchanged. No native30-gate renewal, implementation
+commit, queue transition, agents, visible/existing VM control, push or OS claim.
