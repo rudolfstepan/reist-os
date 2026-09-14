@@ -758,3 +758,25 @@ change. No new guest or renewal of the thirty-gate qualification; the unresolved
 timing failure, OOM guest proof and remaining runtime gates stay open. Build-only
 success permits neither package acceptance nor implementation commit/queue
 transition. Preserve prior budgets/evidence; no nested agent, push or OS claim.
+
+### Direct-build stdio correction and build renewal (2026-09-14)
+
+Renewed approval covers the demonstrated helper defect and the same eight build
+groups. Preserve36 sources/553 latest and18525 total evidence files,207 pins and
+raw snapshots. The old pass stays6/1/1: direct Make returned2 with empty log,
+despite byte-identical binaries. The small stdout-only host comparison failed
+with implicit streams and passed with explicit streams; it is not acceptance.
+
+Keep every old frozen helper intact. The new make_stdio_build.py changes only
+the output prefix and adds stdout=sys.stdout,stderr=sys.stderr to the existing
+bounded subprocess invocation. No OS, Makefile, test, observer or capture change.
+Freeze source/helper/tool hashes and the same eight commands with fresh outputs:
+three180s hosts, four90s builds (direct child80s), reference guard180s. Execute
+each once; first failure stops without retry. Direct exit0, nonempty completion
+log and unchanged43 kernel/five program comparison are all required, alongside
+the original reference guard and normal/FS/file artifact identity review.
+
+Build success does not renew the thirty-gate guest qualification or accept the
+package. No guest, deadline change, implementation commit, queue transition,
+nested agent or push. Original timing/OOM/runtime proof and budgets stay open;
+queue/contract/status documentation may record this bounded repair.
