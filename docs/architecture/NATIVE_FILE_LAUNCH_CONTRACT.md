@@ -1126,3 +1126,49 @@ historical failed run and guard-source archive exception. First failed group
 stops, no repair/retry, extra guest, kernel/ABI/clock/quota/host configuration
 change, implementation commit, queue advance, agent or push. This closes only
 FS/boot regressions; original file18/native30 and22.565s timing remain open.
+
+### Consolidated stronger native qualification (2026-09-14)
+
+Renewed continuous completion resumes39 sources/31142 immutable entries after
+FS18/boot and all four IRQ obligations passed. Freeze all original30 logical
+obligations plus common admission and direct review. Explicit REUSED entries
+must bind unchanged host commands/bodies/dependencies, tool identities, three
+baseline build profiles/outputs, complete FS18, normal boot, reference guard
+and each original IRQ case to successful receipts. Changed documentation runs
+once. No production/test source changes in this pass, only contract/queue/status
+and new frozen ignored ordinary helpers. Failed historical gates never become
+successful by changing their receipts.
+
+The complete original file18 matrix runs once with a stronger existing observer:
+binary equivalence adds an independent same-stop GDB byte comparison for the
+first kernel/high physical payloads of every guest. All full binary reads,
+original observer/validator assertions, case order, media and4/8GiB profiles
+remain intact; no guest write or clock/step-mask change. Every guest retains20s
+including cleanup/360s total. Existing read-only host capture metrics are saved.
+This changed stronger acceptance proof is neither an identical failed capture
+nor a claimed correction of the unobserved timing cause.
+
+Retain the literal twelve-variant cache. Only exact compile requests for9/10
+receive source/profile/artifact-bound copies of the two successful retained
+native-pending builds. Report them REUSED, never fresh compilation. No new
+compiler/linker execution or learned catalog pin. Actual-file adapter negatives
+and exact stronger-capture forwarding checks precede guests; malformed flags,
+profiles, sources, tools, aliases, objects or occupied outputs fail closed.
+
+Logical binary-equivalence separately revalidates the fresh FAT12 matrix guest,
+its complete original file oracle and exact kernel/high comparison ledger;
+it does not invent a second guest. Logical binary-full is one fresh independent
+original full-observer FAT12/4GiB control with existing capture metrics,20s
+including cleanup/45s outer. All four IRQ proofs stay mandatory and are reused
+only with exact source/frame/injection/fence/halt/cleanup binding.
+
+Sequential bounded execution: admission180s, hosts180s, complete matrix1800s
+outer without any per-guest expansion, final review180s. Exactly once per
+logical group; first failure stops with no later guest, repair or retry.
+Only all30 PASS/REUSED and complete scope/ABI/cleanup/default-object review
+plus immutable outcome binding permit the existing direct local implementation
+commit and queue transition. Preserve all evidence and the guard-only archive
+exception. The old22.565s attempt remains failed/unexplained: successful current
+qualification demonstrates the stronger tested configuration, not a causal
+repair, guaranteed host latency, certification or complete64-Bit OS. No kernel,
+ABI/quota/clock/host change, weakened gate, agent, unrelated edit or push.
