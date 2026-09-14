@@ -254,3 +254,47 @@ clock/process/diagnostic groups and all affected original20 gates. Original
 unaffected results remain bound, stale builds cannot substitute for new ones.
 No implementation commit or queue advance until complete acceptance. Stop on
 unknown new failure, outside scope or the same failure after two focused fixes.
+
+### Bounded common-transport cost diagnosis
+
+Renewed user approval explicitly includes the common QEMU/GDB transport and
+bounded cost measurement. First match30 existing sources and32 evidence files
+in `verification-status-legacy-sleep.json`; the two unused Legacy-Sleep host
+paths stay pending, without a speculative kernel correction. The queue's
+`file_transport_files` adds the common capture runner, a dedicated file-transport
+diagnostic and host test, and the existing block-transport regression. The
+allowed union is36 paths, one unfinished AM transaction, no new package.
+
+Reuse the optional documented child-process CPU counters. Record capture/cleanup
+phases, actual stop reason, bounded serial progress, QEMU/GDB CPU and debugger
+callback/read/register time. Default capture and every existing assertion,
+20s active capture, serial/observer limits and media/finally cleanup remain.
+No systemwide tuning, timer resolution, power policy, clock, single-step mask,
+guest quota, guest writes or arbitrary QEMU/GDB options. Do not confuse time
+spent in a debugger callback with guest execution time or assume causality from
+one timing sample.
+
+Four fixed controls use the exact previously built FAT12/4GiB image: detached,
+finish-only, full observer, full observer with cost wrappers. Only the full
+variants carry the complete existing file proof; none is package acceptance.
+Costs are bounded by4096 callbacks,64 names,1e6 reads/registers and128MiB observed
+bytes. At most128 private8KiB JSON cost checkpoints survive a timeout; these
+are separate from the unchanged64KiB observer-log bound. Reuse existing
+callbacks, never extra hot timer probes for measurement. Full completion still
+requires both real process runs and all16 lifetimes, bytes, fencing and cleanup.
+
+At most two evidence-directed changed followups may be frozen separately before
+execution. Total at most six20s active captures/120s, plus separately recorded
+existing bounded cleanup; no identical retry or extension to wait for success.
+Old four-attempt IRQ and two-guest legacy directories remain spent and untouched.
+Stop on unknown new fault, outside scope, exhausted diagnosis or the same
+concrete failure after two targeted corrections. Preserve all historical evidence.
+
+A demonstrated transport/observer correction within these paths requires an
+actual host regression and retains every check. It may then renew affected
+original gates plus one `--irq-regression-after-transport` four-case matrix
+(20s/80s; original idle, expired-lease, invalid-SS, EOI, fence and halt proofs).
+That conditional renewal is independent of the unproven legacy repair, not a
+retroactive explanation of its historical fatal. No speculative kernel change.
+Complete all original20 and required supplementary groups before a local
+implementation commit/queue advance; no agents or push.
