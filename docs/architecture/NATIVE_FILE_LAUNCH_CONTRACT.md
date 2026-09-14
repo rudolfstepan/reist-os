@@ -604,3 +604,38 @@ Execute each once and stop at first failure/timeout/unrelated change; no repair
 or retry in this pass. All30 plus scope/ABI/cleanup/default/FS artifact identity
 and changed file-supervisor/catalog provenance before commit/queue transition.
 Queue/contract/status docs may record results. No nested agents or push.
+
+### OOM observer transaction boundary correction (2026-09-14)
+
+The renewed user approval resumes the attributed36 sources/3063 evidence from
+verification-status-retirement.json, not a clean or accepted new package.
+All prior evidence and207 reference pins are preserved and raw sources saved.
+The failed case8/first observer samples free frames at CREATE.found, before
+CREATE-v5 retires the old selected image; the kernel deliberately resets its
+allocation baseline after that retirement. No measured leak or kernel repair
+is inferred from the compound assertion. Host-execute actual generated callbacks
+with deterministic memory/allocator boundaries to reproduce the mismatch first.
+
+Only the file observer and existing file-launch test may change. For each of the
+two injected program CREATEs, arm cold hooks for old-image release entry, actual
+frame frees and the existing cached_entry boundary. Bind owner, slot, selector
+and last retired driver generation; validate all64 ownership/flag entries,
+unique high frames, exact free order, full zeroed pages, cleared metadata and
+exact free-counter delta. No new allocation may precede the completed proof.
+Only then replace the observer allocation baseline. ENOMEM must still return
+exactly that baseline, with unchanged acquired count, no published child and
+the original complete final cleanup. Missing/duplicate/wrong frees, dirty bytes,
+wrong generation, stale metadata, leaks and unexpected callback order fail.
+Emit and independently validate the separate retirement receipt before OOM and
+rollback. Hooks remain disabled outside these two CREATE operations; existing
+callback/page capacities, original small reads and binary adapter remain intact.
+
+No guest kernel, userspace ABI, shared observer, capture, quota, timeout, clock,
+media or legacy change. After host red/green, freeze all36 source hashes and the
+same30 ordered gates with oom-boundary-renewal/ and ordinary frozen helpers.
+Execute each once; the first failure stops this pass without repair or retry.
+Both18x20s/360s matrices, binary pair20s/40s and IRQ4x20s/80s including cleanup
+retain all obligations. No diagnostic substitute. All30 plus direct scope,
+ABI/cleanup and byte-identical guest-artifact review before implementation
+commit or queue transition. Queue/contract/status docs may record results.
+Old attempts remain spent; no nested agent, push or full-OS completion claim.
