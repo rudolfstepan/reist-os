@@ -963,3 +963,19 @@ Subsequent user instruction requests parallel tasks: after the common freeze,
 the independent host and read-only reuse checks may run concurrently, once each,
 with separate logs and180s limits. No shared build output or source writers.
 On failure start no further work; retain already-started bounded check results.
+
+### Exact elevated cleanup of the owned test VM (2026-09-14)
+
+Renewed continuation follows the explicit pending Windows-elevation request.
+It permits one hidden RunAs cleanup helper for the reference-user test VM only,
+not host repair. Preserve39 sources/26401 old immutable entries,521 artifacts
+and207 native pins. No production/test change, build, VM start or new acceptance.
+Require elevated asusnb/oe3sr and fresh exact CIM command line, executable and
+creation identity (observed PID248,1789398624820ms UTC) before using the unchanged
+original VmwareCopy.stop. Keep its bounded commands, creation recheck before
+kill and final inventory/process absence proof. New receipts go to a separate
+fresh folder; old failures and raw snapshots remain untouched. The reserved
+entry expires after180s; Windows still controls UAC consent. Any denial, missing
+identity or cleanup failure stops, no retry/bypass. No host/service/security/ACL
+change, unrelated process control, deletion, pin/gate change, implementation
+commit/queue transition, agent or push. Cleanup does not renew guest budgets.
