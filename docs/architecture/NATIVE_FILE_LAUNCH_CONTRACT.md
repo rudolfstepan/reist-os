@@ -404,3 +404,31 @@ renewal of affected original20 gates and original four-case IRQ matrix. All
 required supplementary groups, final ABI/cleanup/default-path/scope review and
 all acceptance gates precede an implementation commit. No speculative legacy
 or kernel repair, no full-OS claim from a bootstrap or transport diagnostic.
+
+### Joint transport and peer-clock measurement
+
+Renewed approval resumes36 sources/319 evidence from the binary manifest.
+Only the existing transport diagnostic/host test and queue/contract/status docs
+change. Production capture, binary reader, full observer, kernel and guest bytes
+remain unchanged. Two newly instrumented controls, `--combined binary` then
+`--combined gdb`, use the same3c79f8be FAT12/4GiB image and full assertions.
+Only the large-read backend differs; no new breakpoint, write or clock option.
+Each20s active capture, total40s plus existing bounded cleanup, no repeat.
+
+Reuse Cost, Timeline and the fixed timeline_sample decoder. Measure raw GDB
+reads/registers, virtual translation, binary read, QMP connection/status/export/
+request/close and snapshot cost with nested inclusive/exclusive intervals.
+Fixed16 names,8 stack frames,1e6 calls; at most128 checkpoints of16384 bytes.
+Retain4096 callback/16384 timeline record and192 fixed1280-byte snapshot limits;
+snapshots are paced200ms plus existing retirement/finish boundaries. Include
+measurement overhead in callback time, do not subtract an estimated correction.
+Guest clock/RBX state gives nominal pending Sleep time, not measured host wait.
+Unobserved gaps contain guest execution and debugger/transport work.
+
+Host tests execute wrappers and validators including exceptions, nesting,
+monotonicity, capacities and unchanged original observer functions. No package
+acceptance from measurements. All previous budgets and failed evidence remain;
+binary2/4 and one correction are used. This pair adds no correction or gate
+authority: a demonstrated in-scope repair may use only the earlier remaining
+conditional authority. Stop after the pair or an unknown new fault; preserve
+sources and evidence, no implementation commit or push.
