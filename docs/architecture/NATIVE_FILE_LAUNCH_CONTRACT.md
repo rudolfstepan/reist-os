@@ -166,3 +166,39 @@ diagnostic can identify a captured rejection or report non-reproduction, never
 accept the package. No further guest or kernel repair is authorized by this
 renewal; stop after the one run. All historical causes remain open unless the
 new evidence directly supports them; do not infer breakpoint causality.
+
+### Timer/idle deterministic regression and demonstrated-cause repair
+
+The renewed user instruction explicitly authorizes investigating the timer/idle
+path with deterministic regression tests and correcting a thereby demonstrated
+cause. Match the24-source cold manifest before edits, retain all source/evidence
+snapshots, and freeze this supplement before implementation. One AM transaction
+remains active; this does not accept the unfinished candidate or start a package.
+
+`timer_repair_files` explicitly supplements the allowed scope with only
+`arch/x86_64/cpu/timer_interrupt.asm`, `arch/x86_64/proc/process_run.inc`,
+`test/test_x86_64_timer_idle.py`, `test/x86_64_timer_idle_host.c` and
+`NATIVE_RUNTIME_CLOCK_CONTRACT.md`. The existing two diagnostic files may supply
+the fixed guest observer and its regression. A kernel correction requires a
+deterministically failing production-behavior test, not a speculative policy
+change. No quota, deadline, public ABI, device authority or persistence expansion.
+
+The new host group executes actual native IRQ/idle/tick assembly at O0/O2 with
+explicit host-only adapters for privileged CR3/RDTSC/PIO. Fixed fixtures check
+valid idle, heap-retirement work, frame/selector/queue/stack errors, full-width
+clock boundaries, fail-before-publication and exact EOI/tail ordering. Existing
+runtime-clock and process-run host groups remain required. Four finite generated
+FAT12/4GiB guests under `--irq-regression` qualify last-peer idle and injected
+expired lease, bad saved SS and tick/EOI mismatch, each20s/total80s. Arm the IRQ
+probe only after the first root's complete retirement; never add a hot timer
+breakpoint during file/driver work. Keep actual immutable media, old observer
+proofs, exact clock reason and admission state, physical fence before fatal
+diagnosis, unchanged damaged metadata and terminal halt. No effects are injected
+into an acceptance guest. Missing injection or missing evidence is failure.
+
+Preserve original20 acceptance groups and all history. After a demonstrated
+in-scope correction, renew the affected frozen gates and complete every remaining
+gate before any queue transition or implementation commit. A diagnostic passing
+guest or deliberately matching fatal symptom does not explain past missing
+register evidence and cannot replace package acceptance. Stop on scope expansion
+or the same concrete failure after two focused corrections; no blind retry.
