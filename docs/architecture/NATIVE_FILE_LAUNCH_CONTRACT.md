@@ -906,3 +906,29 @@ retry, later guest or pin change. First16PASS/direct review permits only the
 previously approved guard literals/attribution, then gate17 once. Historical
 guard archive exception unchanged. No native30-gate renewal, implementation
 commit, queue transition, agents, visible/existing VM control, push or OS claim.
+
+### Regular-user VMware startup comparison (2026-09-14)
+
+Renewed approval permits one diagnostic comparison in the regular user account,
+not another reference acceptance pass. Preserve39 attributed sources,26272
+earlier evidence entries,117 originals,404 build artifacts and207 native pins.
+The prior17-group result remains12/1/4: source and signed-content admission
+completed, but sandbox vmrun failed Unknown error before any serial output.
+
+Freeze the original1516 inputs/tools and an ignored ordinary-command helper
+under reference-user/. Run once through reviewed regular-user escalation as
+asusnb/oe3sr, using the unchanged original VmwareCopy main/APIC case and a new
+exclusive copy of the same reviewed build/reist-os.img (2b58094b7bc68eb261f18ab0cf053b4815f8528bc6e33ed6ca68e73232353bc7).
+Temporarily override only the evidence root. Keep all VM settings, original
+GTEST/recovery/timer checks,20s launch,60s guest and owned-copy cleanup unchanged.
+The child envelope is180s; exhaustion fails and permits only original cleanup
+of this exact fresh VM path. Existing VMs or VMX processes prevent launch.
+
+Preserve the fresh copy, serial/VM logs and command/cleanup receipts; verify
+sources, original artifacts and earlier evidence again. Only bounded relevant
+read-only host diagnosis may follow. No production/test/guard change, new
+builds or acceptance gates, retry, pin update, ACL/service/security/hypervisor
+change, visible/existing VM control, nested agent or push. Stop after the
+single comparison. A successful diagnostic is not reference/package acceptance,
+does not renew native30 gates and permits no implementation commit or queue
+transition. Different execution context alone is not a proven internal cause.
