@@ -823,3 +823,25 @@ historical manifest or log. No automatic learning or other evidence relocation.
 Reference success does not accept AM or renew its30 native groups. All prior
 timing/OOM/IRQ obligations and spent budgets remain. No implementation commit,
 queue transition, nested agent, push or claim of a finished64-bit OS.
+
+### Reference interpreter correction (2026-09-14)
+
+Renewed approval changes only the two build-command interpreter selections to
+the installed absolute PowerShell7 executable, SHA-bound before execution.
+The previous10/1/6 result remains failed: our WindowsPowerShell5.1 invocation
+lacked ProcessStartInfo.ArgumentList, while installed Core7.6.6 supports it.
+Preserve39 attributed sources,19168 evidence entries,117 original artifacts
+and207 native bootstrap pins; archive current source bytes before edits.
+
+Keep the old frozen helper and logs. A new ordinary-command helper delegates
+its unchanged execution, checks and first-failure handling. It substitutes
+only the two interpreters and a fresh reference-pwsh/ output prefix. The existing
+renewal adapter changes only fixed output-prefix and contract-commit literals;
+no logic, production build-script, OS, parser, test, guest, timeout or oracle
+change. Freeze all1516 inputs and the same17 ordered groups with their original
+deadlines once. First failure stops without another repair, retry, guest or
+pin change. Only after first16PASS and direct review may the previously approved
+guard literals/attribution change, then gate17 runs once. The historical guard
+archive exception is unchanged. No native30-gate renewal, implementation commit,
+queue transition, nested agent, push or full64-bit OS acceptance follows from
+reference-only success.
