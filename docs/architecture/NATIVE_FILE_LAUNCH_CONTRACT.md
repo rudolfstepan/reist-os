@@ -537,3 +537,39 @@ No retroactive acceptance of a diagnostic control. All30 gates and final direct
 scope/ABI/cleanup/default/FS artifact review are required before implementation
 commit and queue transition. Otherwise remain active with complete evidence.
 No push or claim that this bounded file-launch package completes the native OS.
+
+### Regular file-profile binary capture integration (2026-09-14)
+
+The renewed user approval covers the proposed concrete integration after gate24
+of 3c72519b failed with15/16 reaps. Match36 sources/648 evidence hashes from
+verification-status-qualification.json and preserve raw snapshots first. This
+resumes the attributed unaccepted candidate, not a fresh clean transaction.
+Only the existing file-launch runner and its host test may implement changes;
+queue, this contract and status docs record the boundary. No kernel repair.
+
+One file-profile adapter inserts the existing single GDB logging sink and
+explicitly selects the existing binary_memory=full capture option for all18
+regular matrix cases. Original observer generation, callbacks, byte assertions,
+validators, binary reader, common capture defaults and diagnostics remain exact.
+No public CLI extension or silent fallback. Other profiles retain their default
+GDB path. Keep stopped-state/translation checks, complete bytes and dump hashes,
+bounded cleanup and every20s/360s matrix admission check. No extra guest reads,
+breakpoints, tracing, profiling, timeout/quota/clock/stepmask or guest changes.
+
+Host red/green proves actual matrix call dispatch, exact argument propagation,
+single logging sink with identical original observer body, malformed logging
+shape rejection before capture and original transport exception propagation.
+Then freeze the same30 ordered qualification gates with the binary-integration/
+evidence prefix and all source/helper hashes. Ordinary ignored helpers may reuse
+the previous deterministic gate and supplementary guest functions; no agents.
+Binary equivalence/full and original four IRQ cases remain independent required
+gates on the fresh matrix FAT12 image, with unchanged20s including cleanup,
+40s/80s totals and full existing validators. Previous attempts stay spent.
+
+Execute each gate once, stopping the pass at first failure, timeout or unrelated
+change. No correction/retry loop in the pass. All30 and direct scope/ABI/cleanup/
+default/FS artifact review must pass before implementation commit/queue advance.
+The shared earlier IF-bit correction changes cooperative_scheduler.o and the
+outer normal/FS ELFs; retain explicit review rather than claim full binary
+identity. No legacy repair or invented conditional legacy proof, no OS-complete
+claim, nested agent or push.
