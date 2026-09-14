@@ -932,3 +932,34 @@ change, visible/existing VM control, nested agent or push. Stop after the
 single comparison. A successful diagnostic is not reference/package acceptance,
 does not renew native30 gates and permits no implementation commit or queue
 transition. Different execution context alone is not a proven internal cause.
+
+### Eliminate unchanged reference rebuilds (2026-09-14)
+
+User explicitly requires reducing builds. Reuse successful, unchanged builds
+per exact source/tool/profile identity; do not repeatedly compile because only
+the verifier, its test, queue or status text changed. The two reference-metadata
+builds cost144.444s and143.790s; their receipts and202 artifacts are retained.
+Add fixed read-only --check-builds to the existing renewal adapter and actual
+host regressions to its existing test. Bind the old frozen/result/content JSON
+by literal SHA256, exact build argv/deadline/profile, successful receipts/logs,
+recorded tools, every build input and artifact. Only seven explicitly enumerated
+non-build control/test/status paths are exempt from build invalidation; signing
+fixtures and every other test/source remain bound. No mtime-only cache, silent
+rebuild, learned pins or mixing VMware/QEMU or native case/layout variants.
+
+First a selected positive proves the missing API; after implementation run one
+full adapter host group and one real reuse check,180s each, zero builds/guests.
+Report REUSED with original provenance, never a new build or runtime PASS.
+Future frozen qualification uses valid matching build receipts instead of
+recompiling; missing/corrupt/changed inputs, outputs, tools or options reject.
+All guest, recovery, timing/OOM/IRQ and cleanup obligations remain. Existing
+native in-matrix case/layout deduplication is unchanged. No OS/observer/guest
+or deadline change, acceptance renewal, implementation commit or queue advance.
+Only adapter/test plus docs/ignored helpers change; preserve39 sources/26338
+old immutable entries and the separately recorded still-running test VM.
+First unexpected failure stops; no VM control, nested agent or push.
+
+Subsequent user instruction requests parallel tasks: after the common freeze,
+the independent host and read-only reuse checks may run concurrently, once each,
+with separate logs and180s limits. No shared build output or source writers.
+On failure start no further work; retain already-started bounded check results.
