@@ -1103,7 +1103,10 @@ contract/queue/status and new frozen ignored ordinary helpers.
 
 Incremental linking copies the exact admitted ELF32 objects to fresh owned
 outputs, replacing only the current cooperative_scheduler.o, then executes
-the original Makefile GNU ld outer recipe with its exact flags/object order.
+the original Makefile ld-style outer recipe with its exact flags/object order.
+The Windows wrapper selects the already-pinned `zig.exe ld.lld`, not the
+unrelated GNU ld on PATH. Bind that exact two-token linker invocation. The
+pre-freeze linker-identity rejection started no gate, build or guest.
 The first entire outer ELF plus all objects/catalog/program payloads must
 match an independent full original control build before any further link or
 guest. No binary patch, alternate build/profile, guessed compiler identity,
