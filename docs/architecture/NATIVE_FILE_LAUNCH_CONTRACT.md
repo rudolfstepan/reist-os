@@ -447,3 +447,31 @@ Only existing binary-reader/host files change. This consumes the last directed
 correction and remaining two original binary controls, equivalence then full,
 each20s including cleanup. First failure stops; no third correction or new retry.
 Only full success enables the earlier conditional original/IRQ gate renewal.
+
+### Bounded debugger-continuation diagnosis (2026-09-14)
+
+Renewed user approval covers measurement, not another transport repair or
+acceptance retry. Preserve the36-source/375-evidence combined manifest and raw
+source snapshots. Exactly two controls, plain then measured, retain the same
+immutable3c79f8be FAT12/4GiB image, current stop-scoped binary full reader and
+full original assertions. Measured reuses the unchanged combined observer;
+plain has no callback/snapshot/stage instrumentation. Each has20s active capture
+plus existing separately accounted bounded cleanup. No new breakpoint or guest
+state, clock, stepmask, quota, host timer/power or security setting change.
+
+Both read qqemu.sstepbits/qqemu.sstep once and enable only fixed QEMU log events:
+vm_state_notify, gdbstub_op_continue, gdbstub_op_continue_cpu,
+gdbstub_op_stepping, gdbstub_hit_break, pic_interrupt, pic_set_irq,
+pit_ioport_write. No remote-packet/payload logging. The opt-in common capture
+drains stderr in4096-byte chunks, retaining at most8MiB/131072 lines, failing
+closed on overflow/read failure; all default capture paths remain unchanged.
+Bounded host tests exercise reader capacity, failures/cleanup, option forwarding,
+trace decoding and unchanged observer assertions before the two guests.
+Bind installed QEMU version/hash/event inventory and preserve failed evidence.
+QEMU trace timestamps describe emulator events, not proof of guest acceptance;
+mixed callback gaps are not pure debugger cost or host waiting time.
+
+Use only existing capture/diagnostic and their host paths plus queue/contract/
+status docs. Older budgets remain spent, last binary correction remains failed.
+The pair cannot renew gates, repair the kernel or accept a package. Stop after
+the pair or an unknown fault; pending original20 and IRQ obligations remain.
