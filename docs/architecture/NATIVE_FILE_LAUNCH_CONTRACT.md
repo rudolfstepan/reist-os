@@ -726,3 +726,35 @@ or non-reproduction, retain evidence and stop, with no speculative repair,
 extra guest, qualification retry, implementation commit, queue transition or
 push. The static direct-Make default-order finding remains pending and outside
 this diagnosis. Old attempts remain spent; no nested agent.
+
+### Direct Make default ordering correction (2026-09-14)
+
+Renewed user approval covers the recorded direct-Make finding and its regression,
+not another timing diagnosis. Preserve36 current sources,260 latest/17972 total
+evidence files and207 i386 reference pins. This is the same attributed R8.3am
+candidate, not a new accepted package. Only Makefile and its existing file-launch
+host test may change beyond queue/contract/status documentation.
+
+GNU Make conditional evaluation consumes FILESYSTEM_CASE, PIO_CASE and
+STARTUP_CASE before their existing ?=0 assignments. The Windows wrapper passes
+these values explicitly. Test actual direct Make plans with all eight combinations
+of omitted/explicit zeros against the all-explicit plan. Run this selected new
+test once before correction; require the measured expected-red default errors.
+Then relocate only the three assignments before their first consumers. Preserve
+all guards, explicit overrides, prerequisite enables, recipes and image layouts.
+Keep all existing tests and cover all five filesystem layouts, eleven file cases
+and incompatible configurations rejected before any build-output publication.
+
+Freeze eight green groups before executing them once: file-launch/boot-producer/
+media hosts180s each; normal/FS/file Windows builds90s each; one direct Make file
+build90s using explicit profile enables but omitted case defaults; original i386
+reference guard180s. The direct build uses the same discovered native tools and
+workspace caches, not another agent. Review exact normal/FS/file binary identity
+to the pre-fix build, and direct-Make versus Windows file-program/catalog/kernel
+identity. First unexpected red cause or green failure stops without retry.
+
+No kernel, Ring3, ABI, observer, capture, diagnostic, timeout, quota or authority
+change. No new guest or renewal of the thirty-gate qualification; the unresolved
+timing failure, OOM guest proof and remaining runtime gates stay open. Build-only
+success permits neither package acceptance nor implementation commit/queue
+transition. Preserve prior budgets/evidence; no nested agent, push or OS claim.
