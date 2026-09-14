@@ -1007,3 +1007,33 @@ ACL/security change, kernel/test repair, assertion/deadline change or partial
 guest acceptance. Full reference success is not AM acceptance or a native30
 renewal. Historical guard-only archive exception unchanged. No implementation
 commit/queue advance, nested agent or push.
+
+### Native variant build reuse after complete reference proof (2026-09-14)
+
+Renewed continuation admits one cache-consumer slice in the existing file
+matrix and its host tests, not another native guest attempt. Preserve39 sources,
+26579 historical evidence entries,521 protected artifacts and207 native pins.
+The pinned native-build-reuse/catalog.json binds twelve previously built
+retirement variants. Prior output/log hashes and original source snapshot are
+verified; only the three Make default declarations moved, all other producer
+and kernel sources match. Current tool hashes govern reuse invalidation; no
+unrecorded historical compiler identity is inferred.
+
+Bind1509 inputs and every selected artifact, profile and log to literal catalog
+SHA256 2d1b0e679afff17715c107651e2f83ebb1e65188ff92ffcc29d2f66b23f52ade.
+Only the queue, this contract, three status docs, file runner and its host test
+are non-build inputs. Admit the entire retained set before side effects.
+Unknown/malformed versions, profiles, paths, aliases, duplicate keys, missing
+payloads and source/tool/output drift reject; no rebuild fallback on corruption.
+A fresh checkout without this optional ignored catalog retains original builds.
+The fixed --check-builds requires it. Never learn a new pin automatically.
+
+The provided case0/layout2 image and original matrix, guest deadlines, observers,
+validators, media and original build command for uncached variants stay intact.
+Only12 variant compilations become REUSED; no runtime result is promoted.
+First one selected positive admission regression fails on the absent API.
+Then freeze and execute the full file-launch host group and real fixed cache
+check,180s each, independently in parallel, once each. No builds or guests,
+kernel/program/ABI changes, native30 renewal, implementation commit or queue
+transition in this slice. Stop on unexpected verification failure; old evidence
+and the historical guard-source archive exception remain unchanged.
