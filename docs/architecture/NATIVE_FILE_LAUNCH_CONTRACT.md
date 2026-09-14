@@ -108,3 +108,33 @@ corrections. No unchanged guest retry, diagnostic-only acceptance or weakened
 oracle. All20 groups must pass before queue transition/local implementation
 commit. R3.6b stays explicitly deferred; continue the next native transaction
 only after a clean accepted boundary.
+
+## 2026-09-14: authorized timer/idle diagnostic supplement
+
+The user renewed execution after the explicit bounded timer/idle register
+diagnosis question. Resume only the attributed candidate whose22 source hashes
+and469 evidence hashes match the blocked manifest. This is not a fresh package
+or a clean accepted implementation boundary. Keep the original20 gates frozen.
+
+The queue's explicit `diagnostic_files` supplement permits only the host-side
+`scripts/diagnose_x86_64_file_timer.py` and its bounded host regression
+`test/test_x86_64_file_timer_diagnostic.py`. No kernel, guest, ABI, quota,
+timeout, acceptance oracle or original observer changes. Freeze this contract
+before instrumentation. The supplement runs one host group, then exactly one
+case0/layout0/4GiB guest using the already built failed attempt
+`19bf6f9b71af490786906d4dc0c079be` image and its exact program/catalog bytes.
+Reuse the unchanged observer and immutable generated FAT12/COW fixture.
+
+Add rejection-only debugger hooks to capture registers, the176-byte IRQ frame,
+clock/queue metadata and four fixed task records, at most eight bounded records.
+No register/data writes, forced clock advance, instruction skipping, IRQ mask
+change or recovery injection. Existing observer behavior remains unchanged.
+Use the existing20-second guest bound and hidden single-CPU capture cleanup.
+Keep every prior image/log/manifest unchanged; place new evidence under
+`build/codex-agent/r83am-file-launch/timer-diagnostic` with a unique attempt.
+
+The diagnostic result is never acceptance, even if the guest happens to pass.
+Stop after the one run and report concrete captured findings or non-reproduction.
+Kernel repair and additional guest attempts require a new explicitly bounded
+scope; neither is inferred from diagnostic authority. R8.3am stays active and
+unaccepted, R3.6b deferred, and no implementation commit or push is permitted.
