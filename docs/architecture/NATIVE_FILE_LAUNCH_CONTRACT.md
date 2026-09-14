@@ -1051,3 +1051,35 @@ adapters; retargeting, same-byte alternate targets, wrong bytes/type/hash and
 unknown aliases reject. Freeze the corrected host/cache pair under
 native-build-alias/,180s each, in parallel once. No build/guest or native
 acceptance renewal; first failure stops, no additional correction in this scope.
+
+### Finish the missing native fault guests with retained builds (2026-09-14)
+
+Renewed continuous execution resumes39 attributed sources/27714 immutable
+evidence entries,521 protected artifacts and207 native pins. Preserve all raw
+source snapshots and the old guard-source archive exception. No production or
+test edits in this pass; only contract/queue/status records and a frozen ignored
+ordinary helper under native-pending/. This is not an identical full-matrix
+retry, retrospective timing acceptance or permission to renew native30.
+
+Freeze13 sequential groups: source/tool/cache and relevant unchanged host-receipt
+admission180s; case8/layout2/4096MiB first/middle/last OOM; original build9 then
+case9 guest; original build10 then case10 guest; IRQ idle/expired/context/eoi;
+complete source/artifact/receipt review180s. Reuse admitted cached(8,2)/(0,0).
+Only never-built(9,2)/(10,2) compile, each once with original command and90s.
+No cache catalog mutation or automatic admission of those fresh outputs.
+
+Every guest retains20s capture including cleanup and45s outer process bound;
+five file guests total100s and four IRQ guests total80s. File proofs delegate
+the unchanged fixture, observer, capture and complete validator. IRQ delegates
+the original observer/fault injections/frame/fence/halt validator and full file
+validator for idle, using the already proved binary-full single-log transport;
+halt_witness is true only for the three fatal cases. The known old expensive
+IRQ memory transport changes, never kernel clocks, quotas or guest policy.
+Bind complete ELF/catalog/prepared-file/object provenance and every binary
+ledger payload. Reuse source-bound host receipts, do not rerun their suites.
+
+One attempt per group, first failure stops all remaining groups. No repair,
+retry, additional guest, deadline/oracle weakening, host configuration change,
+implementation commit, queue transition, agent or push. Individual new passes
+do not replace the original full18-case/30-group obligations or explain the
+historical22.565s outlier. Preserve results even when this supplement fails.
