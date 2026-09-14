@@ -845,3 +845,33 @@ guard literals/attribution change, then gate17 runs once. The historical guard
 archive exception is unchanged. No native30-gate renewal, implementation commit,
 queue transition, nested agent, push or full64-bit OS acceptance follows from
 reference-only success.
+
+### Source-only reference digest correction (2026-09-14)
+
+Renewed approval covers the demonstrated empty-source admission defect in the
+existing renewal adapter and test. Preserve39 attributed sources,22679 evidence
+entries,117 original artifacts,202 prior-build artifacts and207 native bootstrap
+pins. The previous12/1/4 remains failed before every guest; neither the committed
+empty syscall.c placeholder nor any other source is removed from the inventory.
+
+First execute one selected empty-source regression against the unchanged old
+adapter,180s maximum; require the original invalid-artifact-size error. Then
+introduce a source-only SHA256 reader: allow zero through the existing1GiB
+maximum,1MiB chunks, fixed size-derived read count and one EOF byte. Require
+regular single-link files, existing path/alias checks and stable path/open-file
+identity, size and timestamps before/after. Reject missing, directory, link,
+oversize, shortened, grown, changed or wrong-hash inputs. Images, programs and
+logs retain the original nonempty artifact hasher; original_artifacts calls
+select that policy explicitly. Actual regression tests cover the empty/source
+distinction, size/type/link bounds and mutations during reads; old tests stay.
+
+Only adapter/test and new ignored command helper change beyond documentation;
+no OS, parser, build-script, platform oracle, guest, time or resource-budget
+correction. Keep old helpers/results and use reference-source/ plus the fixed
+new authority literal. Freeze all1516 inputs and the same17 groups, order and
+deadlines under the existing PowerShell7 pin. Unexpected red or first frozen
+failure stops without repair, retry, later guest or pin change. After first16
+PASS/direct review, only previously approved guard literals/attribution may
+change, then gate17 once. Historical guard archive exception unchanged. No
+native30-gate renewal, implementation commit, queue transition, nested agent,
+visible VM, existing VM control, push or complete64-bit OS claim.
