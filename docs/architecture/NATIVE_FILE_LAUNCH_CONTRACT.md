@@ -432,3 +432,18 @@ binary2/4 and one correction are used. This pair adds no correction or gate
 authority: a demonstrated in-scope repair may use only the earlier remaining
 conditional authority. Stop after the pair or an unknown new fault; preserve
 sources and evidence, no implementation commit or push.
+
+Last already-authorized binary correction, after the completed measurement pair:
+both controls pass all16 lifetimes and original assertions at17.294/18.102s,
+but are not acceptance.75 QMP connections cost1.0725s including requests;
+source opens separately for adjacent reads in the same stopped callback.
+Reuse only the connection within one original Hook.stop/ReleaseEnd.stop call.
+Close in finally before returning to GDB/resuming and immediately on any error;
+reject nested/failed scopes. Keep per-read behavior outside explicit stop scope.
+No byte/mapping cache or skipped validation: each read retains current CR3,
+RAM bounds, pre/post stopped-state, exact file size/hash and original oracle.
+Host red/green covers success, exception, corruption and no cross-stop reuse.
+Only existing binary-reader/host files change. This consumes the last directed
+correction and remaining two original binary controls, equivalence then full,
+each20s including cleanup. First failure stops; no third correction or new retry.
+Only full success enables the earlier conditional original/IRQ gate renewal.
