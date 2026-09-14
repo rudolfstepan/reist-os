@@ -298,3 +298,19 @@ That conditional renewal is independent of the unproven legacy repair, not a
 retroactive explanation of its historical fatal. No speculative kernel change.
 Complete all original20 and required supplementary groups before a local
 implementation commit/queue advance; no agents or push.
+
+First directed followup, `full-span-profile`: initial288fc570 completes detached
+and finish controls in9.825/9.824s active capture. Full observation19.615s passes
+its byte/lifecycle oracle; the profiled counterpart reaches20s before last peer.
+The last checkpoint attributes6.407 of6.634 callback seconds to8109 reads of
+23,548,535 bytes; IPC reads account for3.243s. This identifies a concrete
+overfetch introduced by full-table snapshots for tiny `user` requests.
+
+Read exactly the needed contiguous entry span per visited table: at most eight
+spans of at most4KiB, computed from the remaining validated virtual extent.
+Keep every requested entry and payload check, exact transfer lengths, no
+cross-call cache, and fail before payload on any invalid entry/span. Tiny reads
+require32 table bytes, large reads still use bounded batched entry transfer.
+Real host negatives and page/PT-boundary cases precede this one changed profiled
+guest; same image,20s bound and all full oracles. One followup slot remains,
+only for a separately frozen evidence-directed change, never identical retry.
