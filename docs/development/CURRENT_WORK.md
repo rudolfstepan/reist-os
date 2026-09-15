@@ -2,6 +2,19 @@
 
 Stand: 15. September 2026
 
+## R8.3ap: periodische CPU-Zulassung eingegrenzt
+
+PIO-Pool abgeschlossen als `30b8046e`, finaler Abnahmebeleg2932 Hashes,
+alle20 Gates bestanden und sauberer Arbeitsstand. Nächster zusammenhängender
+Schnitt: explizite CPU-Zulassung für länger laufende native Prozesse, siehe
+[Dienst-CPU-Vertrag](../architecture/NATIVE_SERVICE_CPU_CONTRACT.md).
+Run-v5/CREATE-v6, Abrechnung, Rechteabschwächung und vollständiges Retirement
+werden gemeinsam geprüft. Alte Profile behalten32 Lifetime-Samples; keine
+stille Erneuerung durch Schlafen, Warten oder Neustart. Device-freies Profil,
+noch keine Kerneländerung oder Laufzeitabnahme für diesen neuen Schnitt.
+24 Gates eingefroren; ein neues Abbild für alle14 Gastfälle, Referenzbuilds
+nur für die betroffenen bisherigen Profile. Kein kompletter OS-Abschluss.
+
 ## R8.3ao: PIO-Acht-Task-Paket vollständig qualifiziert
 
 Alle20 Verpflichtungen auf Vertrag `858eb3df` bestanden:18 ausgeführt,
