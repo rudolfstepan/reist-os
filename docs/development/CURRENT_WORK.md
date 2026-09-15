@@ -2,6 +2,21 @@
 
 Stand: 15. September 2026
 
+## R8.3ao: gezielte Debug-Metadaten-Korrektur freigegeben
+
+Kandidat01: zwölf Hostgruppen und drei Builds bestanden, Vergleichsgate16
+gestoppt; keine Gäste gestartet. Nur zwei Pool-Zwischenobjekte enthalten
+abweichende generierte Build-Verzeichnisse in Debug-Zeilentabellen. Alle
+verlinkten Kernel-/Programmabbilder und Kataloge stimmen exakt überein,
+FileLaunch69/69 Artefakte ebenfalls. Original15 PASS /1 FAIL /4 NOT_RUN und
+875 Belege bleiben in verification-status-pool-pio-stopped.json erhalten.
+
+Die erneute Nutzeranweisung genehmigt die eng begrenzte DWARF4-Prüfkorrektur
+mit echten Negativtests und Wiederverwendung der drei fertigen Builds.
+Kein Neubau, keine Änderung von Kernel, Gastprogramm, Observer, Zeitgrenze
+oder Referenzpin. Alle20 Verpflichtungen bleiben; erst vollständige
+QEMU-/Fehlerabnahme und Review erlauben den Implementierungscommit.
+
 ## R8.3ao: Gerätezuordnung für den abgenommenen Acht-Task-Pool
 
 R8.3an ist mit `4f4e1df4` lokal abgeschlossen, sauberer Worktree und
@@ -14,6 +29,14 @@ Kein zweiter Treiber oder Gerät, keine höheren CPU-/Zeit-/Restartbudgets.
 20 Gategruppen, drei Builds und eine gemeinsame neue Binärdatei für alle Fälle;
 keine Builds je Gastvariante. Normale Shell und langfristige Dienste bleiben
 separate Grenzen; R3.6b weiterhin zurückgestellt. Noch keine AO-Abnahme.
+
+AO-Implementierung im sichtbaren Worktree: expliziter Buildadapter,
+Slot-/Generationseinlass in vorhandenem PIO-Kern und Ring3-Bibliothek,
+gemeinsames Programm mit bis zu fünf begrenzten Fülltasks, Treiber und Ersatz.
+Originaler Slot7-Zulassungstest erwartungsgemäß rot gesichert (0,695s), noch
+kein Akzeptanznachweis. Die Auswertung bindet vollständige Kopien/Heaps,
+physische ATA-Daten, RPC, Fencing und alle Abschlusszustände. Erst nach dem
+Quellenfreeze folgen zwölf Hostgruppen, drei Builds und18 Same-Image-Gäste.
 
 ## R8.3an: Acht-Prozess-Paket vollständig qualifiziert
 

@@ -130,3 +130,59 @@ scope, user overlap, pre-existing source failure, default byte drift or need
 for a different authority/persistence/platform boundary. All20 groups plus
 direct ABI/authority/bounds/cleanup review precede local commit/queue advance.
 Then continue the next in-priority package; R3.6b stays deferred.
+
+## Candidate implementation bindings (not acceptance)
+
+The new selector defines REIST_NATIVE_POOL_PIO only for the existing PIO
+assembly and Ring3 compilation. Every old four-slot instruction branch stays
+literal-identical. The Ring3 common predicate only changes target capacity;
+the kernel still validates actual live root0 parent/generation authority.
+The root prepares the imported ELF once, copies the complete record for each
+CREATE and overwrites the source before an explicit GETPID observer boundary.
+The eight syscall/profile/heap owners and CPU32 budget are unchanged.
+
+One same-image runner derives the accepted pool frame/context/zero proof and
+the existing diagnostic decoder, changing only the two explicit slot bounds.
+Old observers remain unchanged. Cold release/fatal routes keep their actual
+machine-code branch checks. Lifecycle writes are two root0 mode words and
+the three-register OOM return adapter, solely at the first driver construction
+after fillers. Actual-source host tests mutate every required event and receipt.
+
+Fatal snapshots bind64-byte PIO state,8192-byte tasks,512-byte family records,
+256-byte profiles,128-byte extended masks and192-byte IPC completions before
+the exact16-byte owner/inverse or8-byte slot7-state injection and after OUT,
+diagnosis and halt. Diagnostic trace storage is excluded from immutable corrupt
+state because it can record its own rejected metadata. The retirement case
+allows exactly four already completed first-run receipts before injection;
+no subsequent reap/resume/cleanup or PROCESS_RUN_DONE is allowed. These small
+snapshots use ordinary paused GDB reads, not a second binary RAM transport.
+
+## 15 September: approved debug-metadata correction and build reuse
+
+Candidate01 remains15 PASS /1 FAIL /4 NOT_RUN: all twelve host groups and the
+three builds succeeded; default byte comparison rejected only the two pool
+root objects. The54 other pool artifacts (including every linked executable,
+catalog and kernel) and all69 FileLaunch artifacts match exactly. The two
+objects differ in a generated include-directory path inside non-allocated
+.debug_line and the resulting relocation offset; no guest has run.
+
+The renewed user instruction after the explicit exception request permits a
+strict comparison adapter only for pool programs/program0.o and program1.o.
+Use ELF64 ET_REL section/relocation semantics and
+[DWARF4 section6.2.4](https://dwarfstd.org/doc/DWARF4.pdf): one exact directory
+bound to each producer manifest, corresponding unit/header lengths and
+.rela.debug_line address-operand offset. Bounded parsing must preserve every
+other byte, debug opcode, relocation symbol/addend, section attribute and
+loadable section. Gaps must be zero, extents disjoint and fully bounded.
+Do not discard debug sections, normalize arbitrary directories or accept
+symbol/address/code changes. Linked ELF/PRG/catalog remain raw byte-identical.
+Retain original objects, raw hashes and the original failed receipt.
+
+Before changing the verifier, retain one real two-object expected-red test.
+Then freeze unchanged20 obligations with only the five queue-listed metadata
+files changed from candidate01. Preserve three successful builds: gates13..15
+are explicitly REUSED after exact source/tool/profile/command/log/artifact
+validation, not rerun or relinked. All twelve host groups and the remaining
+default, sixteen lifecycle/two fatal guests, reference and review gates remain.
+Original candidate/guest/time bounds are not reset. This is verification-only
+authority, not runtime acceptance, reference-pin renewal or OS completion.
