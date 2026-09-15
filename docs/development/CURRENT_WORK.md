@@ -2,6 +2,38 @@
 
 Stand: 15. September 2026
 
+## R8.3ap: zusätzliche historische Testbindung freigegeben
+
+Erneute Fortsetzung nach der konkreten Ein-Datei-Rückfrage: Scope enthält nun
+auch test/test_x86_64_pool_pio.py.1537 Eingaben/58 Belege und521 geschützte
+Artefakte unverändert zugelassen. Der historische Test verwendet künftig
+seine eingefrorenen AO-Snapshots; keine Abschwächung oder Wiederholung eines
+Gates. Attribution der vorhandenen unqualifizierten Umsetzung bleibt erhalten.
+Alle24 AP-Gates und ursprünglichen Kandidaten-/Gastgrenzen bleiben bestehen.
+
+## R8.3ap: vor Abnahme an historischer Testbindung gestoppt
+
+Vertragscommit `11032d65`; noch kein Implementierungscommit. Neue periodische
+CPU-Kernroutine, Run-v5, CREATE-v6 samt SDK/Kopiergrenze/Rechteabschwächung,
+Metadaten-Retirement und Buildauswahl sind teilweise angelegt, unqualifiziert.
+Fixture, Observer, vollständige Hostprüfung und Abnahme fehlen weiterhin.
+Ein echter vorheriger Run-v5-Admissiontest scheitert wie erwartet nach gültigem
+Run-v4; sein vorhandenes Ergebnis ist ohne Wiederholung gebunden. Die erste
+Belegauswertung erwartete fälschlich Zeile23 statt der tatsächlichen Zeile22;
+Originalhelfer und Log bleiben unverändert erhalten.
+
+Read-only-Scopeprüfung zeigt eine notwendige weitere Datei:
+`test/test_x86_64_pool_pio.py`, Test `test_runtime_reference_reuse_is_exact`.
+Er vergleicht den historischen AO-Produzenten mit dem laufenden Quelltext und
+nimmt `packages[0]` sowie heutige Quellhashes als historischen Kandidaten03.
+Neue Queue/Buildauswahl verletzen diese absichtlich exakte alte Bindung.
+Der Test muss dieselben Prädikate/Mutationen gegen die gesicherten damaligen
+Snapshots ausführen; keine Lockerung des Verifiers oder Referenzpins.
+Die Datei fehlt in allowed_files: gemäß Paketregel keine stillschweigende
+Erweiterung. Noch kein Abnahmegate, neuer Kernelbuild oder Gast in R8.3ap.
+Beleg: `build/codex-agent/r83ap-service-cpu/verification-status-scope-stopped.json`.
+AO bleibt vollständig abgenommen, AP bleibt aktiv und ausdrücklich unfertig.
+
 ## R8.3ap: periodische CPU-Zulassung eingegrenzt
 
 PIO-Pool abgeschlossen als `30b8046e`, finaler Abnahmebeleg2932 Hashes,

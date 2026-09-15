@@ -1,5 +1,18 @@
 # Native periodic CPU admission — R8.3ap
 
+## 15 September: historical regression scope admission
+
+Renewed user continuation after the explicit one-file question admits
+test/test_x86_64_pool_pio.py. Resume the retained unqualified source on11032d65,
+1537 inputs/58 evidence and521 protected artifacts. Its historical AO test
+must use the already frozen candidate/source snapshots, not today's first
+queue package or producer. Preserve all predicates and mutations; no change
+to the historical verifier, reference pins, CPU/IRQ limits or24 AP gates.
+No AP qualification, new kernel build or guest has run. The existing actual
+run-v5 expected-red remains evidence, not permission to rerun it. All three
+candidate/42-guest840s bounds remain unspent and unchanged. This adds one test
+file to the same transaction, not another package or a gate waiver.
+
 Frozen after accepted `30b8046e`, 15 September 2026, under the continuous
 interactive native-completion directive. One visible-worktree transaction;
 no agent, push, device, media write or host-policy change. This closes CPU
