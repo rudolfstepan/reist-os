@@ -2,6 +2,19 @@
 
 Stand: 15. September 2026
 
+## R8.3ao: Gerätezuordnung für den abgenommenen Acht-Task-Pool
+
+R8.3an ist mit `4f4e1df4` lokal abgeschlossen, sauberer Worktree und
+`verification-status-task-pool-final.json` gesichert:24 Verpflichtungen,
+zehn Gäste bestanden, keine neuen Builds in der letzten Qualifikation.
+Jetzt wird genau der nächste [PIO-Poolschnitt](../architecture/NATIVE_POOL_PIO_CONTRACT.md)
+eingefroren: vorhandener einzelner ATA-Lesetreiber in Slots2..7, gemeinsame
+Kernel-/Ring3-Besitzzulassung und vollständiger Fence-/Restartnachweis.
+Kein zweiter Treiber oder Gerät, keine höheren CPU-/Zeit-/Restartbudgets.
+20 Gategruppen, drei Builds und eine gemeinsame neue Binärdatei für alle Fälle;
+keine Builds je Gastvariante. Normale Shell und langfristige Dienste bleiben
+separate Grenzen; R3.6b weiterhin zurückgestellt. Noch keine AO-Abnahme.
+
 ## R8.3an: Acht-Prozess-Paket vollständig qualifiziert
 
 Alle24 eingefrorenen Verpflichtungen auf `d5764fb9` bestanden:21 ausgeführt,
