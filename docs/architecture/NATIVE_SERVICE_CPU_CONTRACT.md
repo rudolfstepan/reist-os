@@ -1,5 +1,40 @@
 # Native periodic CPU admission — R8.3ap
 
+## Owner-test renewal admitted on15 September
+
+The renewed user continuation after the explicit test-only scope/bounded
+qualification request admits test/test_x86_64_owner_terminal.py. Preserve the
+exact1539 inputs/542 evidence/521 protected artifacts from the host stop.
+The actual failed assembly is the regression red; do not execute it again.
+Repair extraction by retaining the production preamble's conditional profile
+selection and macro imports; keep every actual admission/fault/nonmutation
+predicate and all existing O0/O2 C tests. No production owner workaround.
+
+The original three candidates remain spent and immutable. This expressly
+renewed transaction uses owner-renewal/candidate-01..03, at most two directed
+in-scope corrections. It runs the same24 commands and every frozen deadline;
+the cumulative42 guests/840s budget stays unchanged (zero guests spent).
+Initial changes are the named test and AP evidence/regression plumbing plus
+contract/status metadata; the retained implementation is not yet accepted.
+No automatic future budget renewal or outside-scope fix. A complete passing
+transaction and direct review are still required before an implementation
+commit. This renewal supersedes only the prior scope/budget stop below.
+
+## Candidate03 host stop — no runtime acceptance
+
+New CPU host14 tests passes in21.339185s; Busy passes in1.632034s. Frozen
+OwnerTerminal gate3 fails in2.007382s before execution: its unchanged harness
+flattens both conditional equ branches and omits memory/layout macros. The
+actual assembler log includes duplicate TASK_RECORD_SIZE/TASK_RIP and missing
+MEMORY_COMPARE_LIMIT. Read-only baseline comparison binds the pre-existing
+cause; no historical test rerun. Already-started clock/process-run commands
+return0, but their gate receipts remain unaccepted after the stop. Exactly
+two of24 gates pass; no kernel build/guest/implementation commit. All three
+candidate slots are spent. The required test/test_x86_64_owner_terminal.py is
+outside allowed_files. Stop until that test-only scope and a bounded renewed
+qualification are expressly admitted; preserve every original24 gate and
+failed receipt. No production workaround for a defective test extractor.
+
 ## 15 September: historical regression scope admission
 
 Renewed user continuation after the explicit one-file question admits
@@ -115,6 +150,38 @@ three-register allocator-return adapter. Fatal writes are separately bounded
 to the exact documented metadata word, original bytes retained.
 
 ## Frozen gates and bounds
+
+Candidate01 gate1 exposed test-harness binding defects before any build/guest:
+the legacy test class name, two unused SDK wrapper probes, the inherited
+shadowed allocator adapter, and a pool-only ELF container assumption used
+for the PIO reference. The new AP container admission accounts for
+[gABI SHT_NOBITS](https://gabi.xinuos.com/elf/03-sheader.html): no file bytes,
+conceptual offset exactly at the preceding file end. It still compares every
+section header, flag, size and symbol; no additional difference is normalized.
+The historical parser remains untouched. FileLaunch objects have no debug
+line section and require raw equality. Actual budget/snapshot/slot mechanisms
+passed this first host invocation; this is not a package acceptance. Retain
+candidate01 receipts and source snapshots; the first evidence-directed
+correction changes only test/observer/container admission within AP scope.
+
+Candidate02 gate1 passes13/14 tests, including actual O0/O2 retirement/SDK
+and all new evidence mutations. The remaining observer-generation error is
+the generic replacement helper rejecting the two known allocation definitions.
+Correction2 selects exactly those two AST functions, replaces only the first
+shadowed definition, and preserves the installed OOM adapter. Candidate03 is
+the last permitted changed candidate; no fourth qualification is authorized.
+
+The service-only observer retains every first-entry isolation witness and
+disables that breakpoint once all published generations have been witnessed;
+CREATE publication and the next run re-arm it. MONOTONIC_MS is not itself a
+debugger stop. CPU snapshots bracket actual charge operations only, not every
+read-only validation. Its fixed callback capacity is8192, with at most2048
+charge records; binary capture remains2048 dumps/128MiB. Fatal observation arms
+only after real slot7 publication, then corrupts at a subsequent pre-validation
+entry (operation0), before any admitted operation can write metadata. The
+device-free diagnostic is PROCESS_SCHEDULER_STAGE plus the actual CLI/HLT
+witness, not a PIO fence or an exception-handler claim. These bounds and probe
+locations are specified before the first qualification, not after a timeout.
 
 The queue freezes all commands before implementation. Run independent host
 groups in parallel where safe, never timed guests concurrently. Each group

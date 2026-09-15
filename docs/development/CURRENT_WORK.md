@@ -2,6 +2,53 @@
 
 Stand: 15. September 2026
 
+## R8.3ap: gezielte Owner-Testreparatur und Abnahme erneuert
+
+Die erneute Fortsetzung gibt ausschließlich die zuvor angefragte zusätzliche
+test/test_x86_64_owner_terminal.py und einen begrenzten neuen Abnahmelauf frei.
+1539 Eingaben/542 Belege/521 geschützte Artefakte vor Änderung bestätigt.
+Das bereits fehlgeschlagene Assemblieren bleibt der echte Red-Nachweis.
+Reparatur übernimmt die bedingte Produktionspräambel/Makrodefinitionen, ohne
+Kernelpfade oder bestehende Prüfprädikate zu ändern. Dieselben24 Gates;
+höchstens drei neue veränderte Kandidaten unter owner-renewal, keine
+automatische Verlängerung. Das ursprüngliche42-Gäste-/840s-Gesamtbudget bleibt
+unverändert und unbenutzt. Noch kein neuer Kernel-Build, Gast oder
+Implementierungscommit; alle früheren Stop-Belege bleiben erhalten.
+
+## R8.3ap: neuer CPU-Host besteht, Abnahme an altem Testgerüst gestoppt
+
+Kandidat03 `aad54072`: neuer CPU-Host mit14 Tests/O0/O2 bestanden (21,339s),
+Busy-Gate bestanden (1,632s). Owner-Terminal-Gate scheitert beim Assemblieren
+seines Testgerüsts (2,007s): Regex übernimmt beide bedingten TASK-Konstanten
+und lässt die ursprünglichen Speicher-/Layout-Makros weg. Read-only-Vergleich
+belegt identische Konstanten/Makro-Aufrufstelle bereits vor AP und unveränderte
+test/test_x86_64_owner_terminal.py. Keine ausgeführte Wiederholung zur Diagnose.
+Parallel bereits gestartete Clock-/Process-Run-Tests enden mit Exit0, werden
+nach dem Paketstopp aber ausdrücklich nicht als bestandene Gates gewertet.
+
+Zwei frühere Kandidaten bleiben mit ihren Testanbindungsfehlern erhalten.
+Das ursprüngliche Drei-Kandidaten-Budget ist ausgeschöpft. Kein Kernel-Build,
+kein echter QEMU-Gast und kein AP-Implementierungscommit; nur2/24 Gates gelten
+als bestanden. Umsetzung und sämtliche Belege bleiben sichtbar erhalten.
+Fortsetzung benötigt gezielte Aufnahme von test/test_x86_64_owner_terminal.py
+und eine ausdrücklich begrenzte neue Abnahmefreigabe mit unveränderten24 Gates.
+Keine stillschweigende Scope-Erweiterung, Referenzänderung oder Fertigmeldung.
+Diagnose: build/codex-agent/r83ap-service-cpu/owner-harness-diagnosis.json.
+Abschlussbeleg: build/codex-agent/r83ap-service-cpu/verification-status-host-stopped.json.
+
+## R8.3ap: vollständiger Kandidat in Vorbereitung
+
+Vertrags-/Scopebasis `6aca7f69`; weiterhin kein AP-Implementierungscommit.
+Periodischer Budgetkern, acht Slotbindungen, Run-v5/CREATE-v6, SDK und getrennt
+ausgewählte Ring3-Fixture sind angelegt. Die Hostprüfungen führen die echten
+Assemblerpfade einschließlich80-Byte-Snapshot aus. Der neue Observer behält
+die Pool-Isolations-/Retirementnachweise und ergänzt tatsächliche CPU-Samples,
+zwölf Lebenszyklus- und zwei Metadaten-Korruptionsfälle. Alte Profile behalten
+ihren bisherigen Programmtext und vollständige Objekt-/Abbildvergleiche.
+Die nachfolgenden Stop-Berichte sind historische Belege; die zusätzliche
+Testdatei ist inzwischen ausdrücklich zugelassen. Noch keine Abnahmebehauptung:
+alle24 eingefrorenen Gates müssen auf einem unveränderten Kandidaten bestehen.
+
 ## R8.3ap: zusätzliche historische Testbindung freigegeben
 
 Erneute Fortsetzung nach der konkreten Ein-Datei-Rückfrage: Scope enthält nun
