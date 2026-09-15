@@ -194,3 +194,19 @@ pass, stop at its first failure with no further correction/retry in this renewal
 Host300s/build-verifier180s/runtime600s, three builds and ten20s guests/200s
 including cleanup remain. No source change during qualification. Only all24
 successful gates and scope/ABI/cleanup review authorize implementation commit.
+
+## 15 September: exact negative-test output renewal
+
+The renewed user continuation after the explicit request authorizes candidate05
+for the demonstrated output-counter defect only. Candidate04 remains stopped:
+the layout group passed14 tests; the task-pool group passed8/9 and failed when
+the marker occurred once on stdout and once inside the stderr assertion text.
+The child correctly exited1. Bind307 new plus441 earlier evidence files and
+all40 source/1525 input/521 protected artifact hashes before changes.
+
+Count complete marker lines, retaining exit1, exactly one side effect, the
+diagnostic, no bypass and O2 NDEBUG evidence. The C fixture stays unchanged.
+Only this Python test and the fifth-candidate verifier binding may change,
+besides queue/contract/status documentation. Freeze the original24 commands
+once more; one candidate/pass, first failure stops without repair/retry.
+All previous criteria, deadlines, three-build and ten-guest bounds remain.

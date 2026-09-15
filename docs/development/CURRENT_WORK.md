@@ -27,6 +27,13 @@ die durch NDEBUG entfernten IPC-Testprüfungen samt deren Regression und
 Beleganbindung. Genau ein erneuter24-Gruppen-Lauf, keine weiteren Korrekturen
 oder Wiederholungen innerhalb dieser Abnahme; alle alten Belege bleiben.
 
+Diese Erneuerung stoppt mit1PASS/1FAIL/22NOT_RUN: alle14 Layouttests bestehen;
+die neue Negativtestauswertung zählt ihren Marker auch im ausgegebenen
+Prüfausdruck. Der nachfolgend freigegebene Kandidat05 ändert ausschließlich
+diese vollständige Zeilenzählung und die Beleganbindung. Wieder dieselben24
+Gruppen, ein begrenzter Lauf ohne weitere Korrektur/Wiederholung; bisher keine
+Kernelbuilds/Gäste dieses Pakets und weiterhin keine Implementierungsabnahme.
+
 ## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
 
 Auf eingefrorenem Vertrag `f979c9a6` sind alle30 Abnahmeverpflichtungen sowie
