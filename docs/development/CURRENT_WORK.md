@@ -2,6 +2,51 @@
 
 Stand: 15. September 2026
 
+## R8.3ap: kompakte CPU-Belege und begrenzte Abnahme freigegeben
+
+Die erneute Fortsetzung gibt die angefragte Observer-/Test-/Verifier-Korrektur
+frei.1539 Eingaben/2068 Belege/521 geschützte Artefakte vor Änderung bestätigt.
+Vollständige CPU-Datensätze werden versioniert und begrenzt binär gespeichert;
+das Textprotokoll bindet Reihenfolge, Anzahl und SHA256. Keine Datenreduktion,
+unveränderte64KiB-/20s-/CPU-Grenzen. Binärdaten bleiben zusammen innerhalb des
+bisherigen128MiB-/2048-Datei-Limits. Vier vorhandene erfolgreiche Builds werden
+nur mit vollständiger Identitätsbindung wiederverwendet; keine Kernel-Builds.
+Höchstens zwei veränderte Kandidaten, gleiche24 Gates. Die zwei alten Fehlgäste
+und41,888588s bleiben im unveränderten42-Gäste-/840s-Gesamtbudget. Noch keine
+neue Abnahme oder Implementierungscommit; Kernel und Fixture bleiben identisch.
+
+## R8.3ap:20/24 Gates, normaler Gast vollständig, Belegkapazität blockiert
+
+Letzter freigegebener Kandidat37eccff9:15 Hostgruppen einschließlich16 neuer
+CPU-Tests, vier Builds und exakter Referenzvergleich bestanden. Der4GiB-Gast
+beendet beide Durchläufe mit16 Reaps in19,735022s; alle16 Generationen zeigen
+43..75 echte CPU-Samples. Trotzdem korrekt als fehlgeschlagen gewertet:
+frame-trace.log hat150704 Bytes bei unveränderter65536-Byte-Grenze. Die reine
+Auswertung bereits vorhandener Bytes besteht den vollständigen Oracle, ist
+aber keine nachträgliche Gate-Abnahme. Keine weitere Gast-/Gate-Wiederholung.
+
+Alle drei erneuerten Kandidaten sind verbraucht. Gates22..24 und weitere
+Gastfälle bleiben offen; kein Implementierungscommit und keine64-Bit-OS-
+Fertigmeldung. Umsetzung und sämtliche Belege gesichert. Nächster eng
+abgegrenzter Vorschlag: kompakte versionierte CPU-Belege ohne Datenverlust,
+Kapazitäts-/Negativtests und begrenzt erneuerte Abnahme; bestehende vier Builds
+nur bei vollständiger identischer Build-Eingangsbindung wiederverwenden.
+Keine automatische vierte Abnahme oder gelockerte Grenze. Diagnose und
+Abschluss: owner-capacity-diagnosis.json/verification-status-owner-stopped.json
+unter build/codex-agent/r83ap-service-cpu.
+
+## R8.3ap:20 Gates bestanden, Laufzeitkorrektur in letzter Abnahme
+
+Owner-Erneuerung Kandidat02:15 Hostgruppen, vier Builds und unveränderte
+Referenzbytes bestanden. Erster4GiB-Gast scheitert am20s-Limit; ein gesundes
+Kind zeigt nur34 statt mindestens40 tatsächliche CPU-Samples. Ursache der
+Fixture: MONOTONIC-Abfragen stellen den Aufrufer erneut in die Laufwarteschlange;
+globale Uhrfortschritte sind daher keine eigenen CPU-Samples. Letzte erlaubte
+Korrektur trennt kalibrierte syscallfreie Testlast von der echten IRQ-Abrechnung
+und bündelt Debugger-Lesezugriffe ohne entfernte Prüfungen. Bisheriger Gast und
+Builds bleiben erhalten; gleiche24 Gates, gleiche Grenzwerte. Noch keine
+Laufzeitabnahme und kein Implementierungscommit.
+
 ## R8.3ap: gezielte Owner-Testreparatur und Abnahme erneuert
 
 Die erneute Fortsetzung gibt ausschließlich die zuvor angefragte zusätzliche

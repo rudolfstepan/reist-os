@@ -1,5 +1,107 @@
 # Native periodic CPU admission — R8.3ap
 
+## Compact-evidence renewal,15 September
+
+Renewed user continuation after the explicit bounded compact-evidence request
+admits only the AP observer, verifier, regression and contract/status files.
+Resume1539 inputs/2068 evidence/521 protected artifacts on743e82ab; preserve
+all six spent candidates, both failed guests and41.888588s already spent.
+Their actual capacity failure is red evidence, not a repeated guest or PASS.
+This renewal permits at most two changed candidates/one directed correction,
+same24 gate commands and all limits, no automatic further renewal. At most
+two new lifecycle/two fatal matrices; cumulative42 guests/840s still includes
+the historical attempts. Kernel, fixture, SDK and build inputs stay exact.
+
+Reuse the four successful owner-renewal/candidate03 builds only with complete
+source/tool/profile/command/log/artifact binding and negative tests. No kernel
+builds in this renewal. Host groups, defaults, guests and final review run
+fresh once per changed candidate; no reinterpretation of a failed capture.
+
+REIST debugger CPU-ledger-v1 is private host evidence, not an OS ABI or device
+protocol. Use fixed-width little-endian integers and explicit version1:
+four u32 fields(version,kind,sequence,slot), then u64 generation,tick,result
+and sixteen u64 words. Charge rows retain all eight before/eight after words;
+start/final rows retain their eight words plus eight reserved zero words.
+Kind0=start,1=charge,2=final; result0 for start/final,1/2 for charge. Exactly
+168 bytes/row; at most2048 charges plus36 lifecycle rows=2084 rows/350112 bytes.
+Ordered text references identify every row; one final count/SHA256 binds all
+bytes. Reject missing, duplicate, reordered, extra, malformed or unbound data.
+The original full lifecycle/CPU oracle consumes losslessly decoded events.
+
+Keep the65536-byte trace bound. Account the ledger together with RAM dumps
+under the original2048-file/128MiB aggregate; no larger capture allowance.
+Host tests use actual failed bytes, full round-trip/negative mutations,
+max-capacity encoding and the actual buffered writer. The complete new guest
+matrix and fatal proofs remain mandatory. No kernel/fixture/timing workaround.
+This supersedes only the prior exhausted-candidate authority stop below.
+
+## Final owner-renewal stop: observer capacity, not accepted
+
+Candidate03 37eccff9 passes all15 host groups (new CPU16 tests), four builds
+and exact defaults:20/24 gates. Gate21's first4GiB guest completes both runs,
+all16 reaps and normal markers, debugger exit0 and cleanup0.022029s; whole
+case19.735022s. Capture nevertheless fails its unchanged65536-byte trace
+limit: frame-trace.log is150704 bytes. It has828 actual charge records and
+all16 final generations with43..75 samples. A read-only diagnostic applies
+the unchanged full oracle to these already captured bytes successfully, but
+does NOT promote the rejected capture or rerun any gate. Gates22..24 and all
+remaining cases are not executed. No runtime/package acceptance or commit.
+
+The expressly renewed three-candidate/two-correction budget is exhausted.
+Stop; retain all source, hashes, prior failures and archived build trees.
+Both failed guests consume41.888588s cumulatively. Do not raise the64KiB
+capacity,20s deadline or weaken any full-ledger/fatal/isolation predicate.
+The concrete next proposal is a versioned compact CPU evidence encoding with
+full before/after words and capacity/negative host tests inside the current
+AP observer/test/verifier scope, followed by expressly renewed bounded gates.
+Its unchanged kernel/fixture/build inputs should permit exact four-build
+reuse with source/tool/command/artifact binding; no inferred PASS or new
+kernel change. This proposal is NOT an admitted fourth candidate.
+See owner-capacity-diagnosis.json and verification-status-owner-stopped.json
+under build/codex-agent/r83ap-service-cpu.
+
+## Owner-renewal candidate02 runtime stop and final directed correction
+
+All15 host groups, all four builds (32.011223s total) and the exact old-profile
+comparison pass. First real4GiB guest times out:20.010924s observation plus
+2.053533s cleanup,22.153566s whole case. It is failed, not a20s acceptance.
+Its raw first-run ledger has eight reaps and a healthy child with34 actual
+samples. Every MONOTONIC_MS resumes through requeue: a wall-clock polling
+iteration is not evidence of the caller consuming a scheduled sample.
+
+Correction2 replaces that fixture loop with bounded syscall-free user TSC
+bursts, conservatively calibrated against the actual monotonic clock (three
+bounded80ms observations, minimum estimate,1.25 ticks/burst,40ms sleep).
+This is workload calibration only, not CPU accounting authority or a new
+hardware guarantee. Unchanged actual IRQ receipts must still prove >=40 for
+every healthy generation. Root work overlaps released child work; no initial
+one-second cooldown. Capacity-only coordination uses2.5s/3s finite sleeps;
+all production limits,40-sample oracle,12+2 cases and20s deadlines remain.
+The CPU observer reads the same before/after records, mode and tick in one
+bounded<=1024-byte same-stop read; task-generation/IF/continuity checks stay.
+Actual extracted host tests cover the batch and syscall-free workload loop.
+
+Keep failed candidate02 and its sole guest immutable. Preserve each of its
+four generated build trees under candidate02/build-archive with an explicit
+old-path/new-path/raw-hash manifest before fresh builds at the frozen paths.
+No artifact is deleted or substituted as a passing runtime result. Reuse is
+not inferred: the final candidate executes all24 original commands once.
+This is the last renewed candidate; no fourth retry. Cumulative spent guest
+time includes22.153566s and remains inside the original42-guest840s bound.
+
+## Owner-renewal candidate01 SDK stop and directed correction
+
+Owner admission now passes actual O0/O2 with its original predicates; CPU14
+and all other started mechanism tests return0. Gate14 detects that the new
+CREATE-v6 declaration was placed in the generated common SDK header. Keep
+that installed header byte-identical to include/reist/abi/syscall.h; move the
+native-only append-only declaration next to its wrapper in x86_64/task.h.
+No number, layout, wrapper, production instruction or gate changes. Add a raw
+header equality assertion to the new SDK regression. Twelve gates accepted;
+already-started gates13/15 return0 but remain unaccepted after the stop.
+No kernel build/guest. This uses correction1 of the expressly renewed budget;
+retain the exact failed candidate and all receipts, then freeze candidate02.
+
 ## Owner-test renewal admitted on15 September
 
 The renewed user continuation after the explicit test-only scope/bounded
