@@ -186,3 +186,33 @@ validation, not rerun or relinked. All twelve host groups and the remaining
 default, sixteen lifecycle/two fatal guests, reference and review gates remain.
 Original candidate/guest/time bounds are not reset. This is verification-only
 authority, not runtime acceptance, reference-pin renewal or OS completion.
+
+## 15 September: approved final runtime correction
+
+The renewed instruction after the explicit runtime-correction request admits
+the unchanged stopped candidate02:16 PASS (including three REUSED builds),
+one FAIL, three NOT_RUN. Its six4GiB guests passed; the8GiB guest failed at
+root0 generation1 CPU32/status256/RIP410831 after FREE(record). Both reads,
+driver retirements, peer progress and full zero/free succeeded, but none of
+that converts the failed workload to acceptance. Preserve all1474 files and
+the seven-guest100.944622s ledger. Accumulated CPU cost is not causally
+attributed to8GiB, host timing, observer or compiler from this single run.
+
+Candidate03, the last original attempt, changes only the four explicit
+PoolPIO fixture compiler selections from-Oz to-O2, matching the existing
+plain TaskPool optimization. The generated machine code shows scalar large
+copy/poison loops under-Oz; reducing that work is a proposed correction,
+not a proven explanation. No source/ABI, library optimization, work item,
+record size, syscall, quota, timer, driver, observer or expected outcome changes.
+First execute and preserve an expected-red compiler-command regression, then
+test actual producer command assembly for all affected and default profiles.
+
+Reuse gates13/14 only with exact original inputs, tools, profiles, logs and
+outputs and a byte-exact producer adapter admitting solely this conditional
+optimization expression. Old pool/FileLaunch commands remain identical.
+Gate15 runs once in fresh runtime-correction/native, never overwriting the
+old image. Only its output directory and the corresponding image argument of
+gates17/18 change; all20 logical obligations and original deadlines remain.
+The verifier may adapt these provenance/image bindings, not the guest oracle.
+The full16+2 matrix remains mandatory; historical guests are not substituted.
+No fourth candidate, unchanged retry, larger CPU budget or reference pin change.

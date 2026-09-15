@@ -2,6 +2,21 @@
 
 Stand: 15. September 2026
 
+## R8.3ao: letzter Korrekturversuch nach CPU32-Abbruch
+
+Kandidat02 ist unverändert gesichert:12 Hostgruppen, Binärvergleich und drei
+wiederverwendete Builds bestanden; sechs4GiB-Gäste grün,8GiB-Gast wegen
+Root0/Generation1 CPU32 beim FREE(record) fehlgeschlagen.100,944622s für sieben
+Gäste, kein Neubau.1474 Belege in verification-status-pool-pio-debug-stopped.json.
+Die Ursache der aufgelaufenen CPU-Samples ist noch nicht nachgewiesen.
+
+Erneute Nutzerfreigabe: Kandidat03 optimiert ausschließlich die vier neuen
+PoolPIO-Programmkompilierungen mit-O2 statt-Oz. Keine Workload-/Observer-/
+Kerneländerung und kein größeres Budget. Referenzbuilds bleiben exakt gebunden
+wiederverwendbar; genau ein neuer PoolPIO-Build in einem frischen Verzeichnis.
+Alle20 Gates einschließlich vollständiger16+2-Gastmatrix bleiben Pflicht.
+Dies ist der letzte ursprüngliche Kandidat, noch keine Abnahme oder OS-Fertigmeldung.
+
 ## R8.3ao: gezielte Debug-Metadaten-Korrektur freigegeben
 
 Kandidat01: zwölf Hostgruppen und drei Builds bestanden, Vergleichsgate16
