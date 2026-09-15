@@ -1,5 +1,12 @@
 # Native read-only PIO domain contract
 
+The original four-slot targets remain unchanged. The explicit subsequent
+[NativePoolPIO profile](NATIVE_POOL_PIO_CONTRACT.md) admits dynamic owners2..7
+using the same request/state/retirement/trace gates and Ring3 service. It adds
+no port, operation, syscall layout or restart budget. R8.3ao qualification
+passed all six owner positions and both corrupt-metadata fatal paths; the
+linked contract records the finite profile and preserved historical failures.
+
 R8.3ah, frozen on acceptedabd9edb4, 12 September2026. This contract is not
 runtime acceptance. Original14 groups plus the two approved Startup reference
 groups remain mandatory (16 total).

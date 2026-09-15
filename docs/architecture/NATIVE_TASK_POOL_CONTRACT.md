@@ -1,5 +1,11 @@
 # Native bounded task pool — R8.3an
 
+The accepted plain profile remains device-free. The subsequent explicit
+[NativePoolPIO adapter](NATIVE_POOL_PIO_CONTRACT.md) composes its unchanged
+eight-owner lifecycle with the existing PIO domain; it does not silently enable
+device combinations on NativeTaskPool. That separate20-gate qualification
+has passed, with16 lifecycle and two fatal guests; see its own contract.
+
 Frozen after accepted `0f4efd17`, 14 September2026. Continuous interactive
 native completion authorizes this next cohesive process-capacity transaction,
 not a change to R8.3am's closed gates or its historical failed evidence.

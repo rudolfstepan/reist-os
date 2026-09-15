@@ -1,5 +1,14 @@
 # Native eight-task PIO ownership — R8.3ao
 
+Qualified15 September2026: all20 frozen obligations passed on candidate03
+`cee607c0`, including both corruption/fencing guests and the complete16-case
+lifecycle matrix. Two reference builds reused, one new PoolPIO build;18 guests
+238.398675s, all below20s. Immutable qualification binds24 sources/1532 inputs/
+2922 evidence/521 protected artifacts. Queue/documentation finalization and
+local commit receive a separate final binding. Historical failures below are
+preserved, not reclassified; this is finite-profile acceptance, not full OS
+or physical-platform assurance. The following freeze history remains intact.
+
 Frozen after clean accepted `4f4e1df4`, 15 September2026, under continuous
 interactive native completion. One visible-main-worktree package; no agent,
 push, physical device or host configuration change. This is not acceptance.
@@ -216,3 +225,12 @@ gates17/18 change; all20 logical obligations and original deadlines remain.
 The verifier may adapt these provenance/image bindings, not the guest oracle.
 The full16+2 matrix remains mandatory; historical guests are not substituted.
 No fourth candidate, unchanged retry, larger CPU budget or reference pin change.
+
+The final matrix passed without changing the original runtime oracle. Root0
+in the8GiB case completed with30 and25 CPU samples; the32 limit is unchanged.
+This establishes the tested outcomes, not a guaranteed timing margin or a
+causal explanation for the historical CPU32 exhaustion. The eighteen guest
+captures include independent same-stop kernel/high byte comparisons for each
+lifecycle case, physical ATA fence before diagnosis in both fatal cases,
+unchanged generated media and completed owned-process cleanup. Reference
+guard and full evidence review passed; R3.6b remains explicitly deferred.

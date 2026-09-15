@@ -65,7 +65,11 @@ int reist_native_service_dispatch(reist_native_service *s,const x86os_ipc_messag
 int reist_native_service_init_profile(reist_native_profile_service *s,uint64_t owner,
     const reist_pio_ops *upstream,const reist_block_profile_v1 *profile){
     if(!s || !upstream || !upstream->clock || !upstream->sleep || !upstream->call ||
+#if REIST_NATIVE_POOL_PIO
+       !reist_pio_pool_owner_valid(owner) ||
+#else
        (uint32_t)owner<2 || (uint32_t)owner>3 || !(owner>>32) || owner>>32>0x7fffffff ||
+#endif
        (owner>>32)<=(s->service.owner>>32) || !profile)return -22;
     reist_pio_ops upstream_snapshot=*upstream;
     reist_block_profile_v1 snapshot=*profile;

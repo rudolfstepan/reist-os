@@ -2,6 +2,24 @@
 
 Stand: 15. September 2026
 
+## R8.3ao: PIO-Acht-Task-Paket vollständig qualifiziert
+
+Alle20 Verpflichtungen auf Vertrag `858eb3df` bestanden:18 ausgeführt,
+zwei Referenzbuilds exakt gebunden wiederverwendet. Zwölf Hostgruppen,
+genau ein neuer PoolPIO-Build (7,711s),16 Laufzeitfälle und zwei Fatalfälle
+bestanden.18 Gäste238,398675s, jeweils unter20s; Gatesumme387,917643s ist
+wegen paralleler Hosttests keine Wandzeit.24 Quellen/1532 Eingaben/2922 Belege
+und521 geschützte Artefakte in verification-status-pool-pio-qualified.json.
+
+Der8GiB-Fall erreicht jetzt normalen Abschluss bei30/25 CPU-Samples;
+CPU32, Workload und alle Observer bleiben unverändert. Das ist kein Beleg
+für eine bestimmte Ursache des früheren Abbruchs oder garantierte Laufzeiten.
+Die früheren Debug-/CPU32-Fehler bleiben erhalten. Kein QEMU/GDB/NASM/Zig
+verblieben, kein Push. Queue und Status werden nach der Qualifikation
+abgeschlossen; lokaler Commit und sauberer Worktree separat gebunden.
+Normale gleichzeitige Shell-/Dateidienste und langfristige Dienstbudgets
+bleiben offen. Keine Fertigmeldung für das64-Bit-OS; R3.6b bleibt zurückgestellt.
+
 ## R8.3ao: letzter Korrekturversuch nach CPU32-Abbruch
 
 Kandidat02 ist unverändert gesichert:12 Hostgruppen, Binärvergleich und drei

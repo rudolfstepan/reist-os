@@ -1,6 +1,13 @@
 # REIST x86_64 bootstrap contract
 
-Stand: 14. September 2026
+Stand: 15. September 2026
+
+R8.3an ist mit `4f4e1df4` und24 geprüften Verpflichtungen abgeschlossen.
+Der anschließende explizite [PIO-Pooladapter](NATIVE_POOL_PIO_CONTRACT.md)
+(`-NativePoolPIO` / `X86_64_NATIVE_POOL_PIO=1`) verbindet diesen Acht-Task-Pool
+mit dem vorhandenen einzelnen ATA-Lesedienst. Seine20 Prüfgruppen einschließlich
+16 Laufzeit- und zwei Fatalfällen sind qualifiziert. Normale Shell, langfristige Dienste und Hardwareabnahme
+bleiben offen; weder Paket ist eine Fertigmeldung für die64-Bit-Version.
 
 R8.3an ergänzt das explizite [Acht-Prozess-Profil](NATIVE_TASK_POOL_CONTRACT.md)
 (`-NativeTaskPool` bzw. `X86_64_NATIVE_TASK_POOL=1` mit den dortigen Voraussetzungen).

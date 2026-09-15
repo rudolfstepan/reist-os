@@ -5,8 +5,12 @@ static int64_t io(const reist_pio_ops *o,uint64_t owner,unsigned op,unsigned por
     return o->call(o->context,&q);
 }
 static int valid(const reist_pio_ops *o,uint64_t owner) {
+#if REIST_NATIVE_POOL_PIO
+    return o && o->call && o->clock && o->sleep && reist_pio_pool_owner_valid(owner);
+#else
     return o && o->call && o->clock && o->sleep && (uint32_t)owner>=2 &&
         (uint32_t)owner<=3 && (owner>>32) && (owner>>32)<=0x7fffffff;
+#endif
 }
 static int wait_status(const reist_pio_ops *o,uint64_t owner,int data) {
     uint64_t last=o->clock(o->context);if(last>UINT64_MAX-200) return -84;

@@ -4,13 +4,16 @@ Stand: 15. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
-## R8.3ao: anschließende Gerätebesitzgrenze
+## R8.3ao: Gerätebesitzgrenze vollständig qualifiziert
 
 Nach sauberem AN-Commit `4f4e1df4` folgt die gekoppelte PIO-/Ring3-Treiber-
 Besitzzulassung für Slots2..7. Der einzelne bestehende ATA-Lesetreiber bleibt
 bei denselben Rechten, Fristen und Restartgrenzen. Drei Builds, ein gemeinsames
 neues Abbild für alle Slot-/Fehlerfälle, vollständiges Fencing/Reap/Selftest;
 Details im [PIO-Poolvertrag](../architecture/NATIVE_POOL_PIO_CONTRACT.md).
+Alle20 Verpflichtungen bestanden, zwölf Hostgruppen und18 Gäste238,399s;
+letzter Kandidat mit zwei wiederverwendeten Referenzbuilds und genau einem
+neuen PoolPIO-Build. Alte Fehlerbelege erhalten, CPU32 und Observer unverändert.
 Dies ist die Geräte-Voraussetzung für spätere gleichzeitige Shell-/Dateidienste,
 keine fertige normale Shell und keine CPU-Budgeterneuerung.
 

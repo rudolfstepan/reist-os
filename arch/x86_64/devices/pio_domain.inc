@@ -27,7 +27,11 @@ native_pio_admit64:
     mov rax,[rdi+16]
     cmp eax,2
     jb .bad
+%ifdef REIST_NATIVE_POOL_PIO
+    cmp eax,NATIVE_POOL_TASKS-1
+%else
     cmp eax,3
+%endif
     ja .bad
     shr rax,32
     dec rax
@@ -160,7 +164,11 @@ native_pio_state_admit64:
 .owner:
     cmp eax,2
     jb .bad
+%ifdef REIST_NATIVE_POOL_PIO
+    cmp eax,NATIVE_POOL_TASKS-1
+%else
     cmp eax,3
+%endif
     ja .bad
     shr rax,32
     dec rax
@@ -417,7 +425,11 @@ native_pio_syscall64:
     jz .old_reaped
     mov ecx,eax
     sub ecx,2
+%ifdef REIST_NATIVE_POOL_PIO
+    cmp ecx,NATIVE_POOL_TASKS-3
+%else
     cmp ecx,1
+%endif
     ja native_pio_fail64
     add ecx,2
     shl ecx,NATIVE_TASK_SHIFT
@@ -532,10 +544,20 @@ native_pio_finish64:
     jne native_pio_fail64
     cmp qword [rel native_pio_state+16],1
     jne native_pio_fail64
+%ifdef REIST_NATIVE_POOL_PIO
+    lea rdx,[rel scheduler_tasks+2*NATIVE_TASK_BYTES+TASK_STATE]
+    mov ecx,NATIVE_POOL_TASKS-2
+.children_free:
+    cmp qword [rdx],TASK_FREE
+    jne native_pio_fail64
+    add rdx,NATIVE_TASK_BYTES
+    loop .children_free
+%else
     cmp qword [rel scheduler_tasks+2*NATIVE_TASK_BYTES+TASK_STATE],TASK_FREE
     jne native_pio_fail64
     cmp qword [rel scheduler_tasks+3*NATIVE_TASK_BYTES+TASK_STATE],TASK_FREE
     jne native_pio_fail64
+%endif
 %ifdef REIST_NATIVE_PIO_TRACE
 .trace_before_clear:
 %endif
@@ -605,7 +627,11 @@ native_pio_trace_capture64:
     jae .error
     ; Bounds BEFORE either diagnostic task/family indexing, including fatal OUT.
     mov ecx,[rel scheduler_current_slot]
+%ifdef REIST_NATIVE_POOL_PIO
+    cmp ecx,NATIVE_POOL_TASKS-1
+%else
     cmp ecx,3
+%endif
     ja .error
     shl ecx,NATIVE_TASK_SHIFT
     lea rdi,[rel scheduler_tasks]
@@ -615,7 +641,11 @@ native_pio_trace_capture64:
     ja .error
     mov eax,[rel native_pio_state]
     sub eax,2
+%ifdef REIST_NATIVE_POOL_PIO
+    cmp eax,NATIVE_POOL_TASKS-3
+%else
     cmp eax,1
+%endif
     ja .error
     cmp r10d,2
     jne .reserve
