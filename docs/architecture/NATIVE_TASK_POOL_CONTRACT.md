@@ -210,3 +210,23 @@ Only this Python test and the fifth-candidate verifier binding may change,
 besides queue/contract/status documentation. Freeze the original24 commands
 once more; one candidate/pass, first failure stops without repair/retry.
 All previous criteria, deadlines, three-build and ten-guest bounds remain.
+
+## 15 September: task-family data-fragment include renewal
+
+The renewed user continuation approves the demonstrated include-order repair
+and one candidate06 qualification. Candidate05 remains4PASS/1FAIL/19NOT_RUN:
+all nine pool tests passed, but the unchanged task-family extractor puts the
+production BSS declarations before the pure-code native_layout include.
+The four capacity-dependent RESB/RESD declarations therefore fail assembly.
+Bind40 sources/1525 inputs/398 new plus307/441 prior evidence and521 protected
+artifacts from verification-status-output-check-renewal.json before changes.
+
+Only task_family.inc and the verifier's exact sixth-candidate binding may
+change, besides queue/contract/status docs. Include the existing guarded
+native_layout inside the extracted data fragment before declarations; do not
+duplicate constants or emit bytes. Preserve default four-owner layouts,
+opt-in eight-owner backing and every unchanged regression/oracle/ABI/budget.
+The recorded failed original host gate supplies the red regression evidence.
+Freeze the same24 commands and all sources/helpers/tools, one pass, stop at
+first failure without another repair/retry. Three builds and ten same-image
+20s guests/200s including cleanup remain maxima; all previous attempts stay.

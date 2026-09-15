@@ -34,6 +34,14 @@ diese vollständige Zeilenzählung und die Beleganbindung. Wieder dieselben24
 Gruppen, ein begrenzter Lauf ohne weitere Korrektur/Wiederholung; bisher keine
 Kernelbuilds/Gäste dieses Pakets und weiterhin keine Implementierungsabnahme.
 
+Kandidat05 stoppt mit4PASS/1FAIL/19NOT_RUN: alle9 Pooltests sowie Layout-,
+Programmspeicher- und Process-Run-Gruppen bestehen. Der unveränderte Family-
+Hosttest zieht die BSS-Deklarationen vor den Layout-Include; vier neue
+Kapazitätsausdrücke sind dort undefiniert. Die erneute Freigabe umfasst nur
+den geschützten Include im extrahierten Datenfragment und Kandidat06-Belege.
+Gleiche24 Gruppen, höchstens drei Builds/zehn Gäste; alle früheren Fehler
+bleiben erhalten. Abnahme und Implementierungscommit stehen weiterhin aus.
+
 ## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
 
 Auf eingefrorenem Vertrag `f979c9a6` sind alle30 Abnahmeverpflichtungen sowie
