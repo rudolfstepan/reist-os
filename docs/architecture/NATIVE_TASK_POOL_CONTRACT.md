@@ -133,3 +133,64 @@ All24 groups plus direct scope/ABI/cleanup review precede done and local commit.
 After the clean commit continue the next in-priority slice; R3.6b stays deferred.
 Eight finite processes are a prerequisite, not long-lived services, SMP,
 ordinary shell, desktop/browser or complete native OS acceptance.
+
+## Implementation bindings (not an acceptance claim)
+
+The profile uses `proc/native_pool.h` and `mm/native_layout.inc`; backing8,
+legacy active4 and roots2 remain separate constants. Layout5 heap state is
+`232 + 8*99368 = 795176` bytes at high+0x653000. Rounded state plus the existing
+529 page-table pages gives a7499776-byte outer arena at0x200000, ending0x927000.
+The inner read-only eight-byte `native_task_pool_capacity=8` witness is paired
+with the exact state/export and independently admitted outer wide boot areas.
+
+The common `user/task_pool.c` fixture has private initialized root data-v1:
+72 bytes, magic0x31544f4f524c4f50, mode, owner generation, phase, three child
+handles, prepared-buffer address and OOM count (all QWords). Only the mode word
+at data+8 is debugger-writable, once before each root's first instruction,
+after verifying every original byte and its private RW/NX mapping. Writes use
+the validated direct-map alias of that exact Ring3 word; they never modify
+kernel metadata. Four writes per guest, including writing0 to the initial0.
+The modes follow the frozen matrix order0..9; mode1 uses8GiB and otherwise
+the normal workload,7/8/9 select first/middle/last child acquisition failures.
+
+Each root owns three distinct IPC release channels and imports the same child
+ELF into three slot-private contexts. Children have explicit six-string startup
+data, individual heap/private-byte witnesses and bounded receives. Parents
+overwrite the source buffer after synchronous import. The observer independently
+checks the admitted original image, private mappings and unchanged executable
+bytes after that overwrite. The full-pool case retains a terminal receipt,
+then collects and replaces its slot without restoring the old handle's rights.
+
+Unknown scheduler invariants in this no-device profile preserve owner metadata
+and enter the bounded diagnostic/halt path; they never traverse force-cleanup
+or return to C. Ordinary child faults still take the existing family/IPC/heap
+fence and reap path. Host fatal-boundary tests adapt privileged CLI/halt and
+serial hardware only; they are not a claim of a kernel-corruption guest proof.
+
+New receipts live under `build/codex-agent/r83an-task-pool/`. Candidate directories
+are immutable numbered qualifications, never unchanged retries. Default byte
+comparison excludes only logs/linker maps/path metadata, not any executable,
+object, catalog or generated payload binding. Historical AM binaries and failed
+receipts stay untouched; its old22.565s timeout remains unexplained.
+
+## 15 September: bounded IPC host-check renewal
+
+The user's renewed continuation after the explicit approval request authorizes
+one candidate04, not resetting the original three spent candidates. The saved
+`verification-status-task-pool-stopped.json` binds40 sources,1525 inputs,441
+evidence files and521 protected artifacts. No kernel build or guest ran in
+those failed qualifications; eight of nine tests in the last group passed.
+
+The remaining defect is the new IPC host fixture's standard assert: Zig O2
+defines NDEBUG, removing both checks and mechanism calls. Restore the existing
+always-on host-check semantics without changing any predicate or optimization.
+Add an actual deliberately-false/side-effect check under NDEBUG. No production,
+guest observer, ABI, quota, compiler-warning or reference change. The verifier
+may only append the exact fourth-candidate/renewal-baseline binding; historical
+receipts and all admission/oracle predicates stay unchanged.
+
+Freeze the same24 commands and all inputs after this correction. One complete
+pass, stop at its first failure with no further correction/retry in this renewal.
+Host300s/build-verifier180s/runtime600s, three builds and ten20s guests/200s
+including cleanup remain. No source change during qualification. Only all24
+successful gates and scope/ABI/cleanup review authorize implementation commit.

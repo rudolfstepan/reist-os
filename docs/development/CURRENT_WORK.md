@@ -1,6 +1,6 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 14. September 2026
+Stand: 15. September 2026
 
 ## R8.3an: nächster zusammenhängender Prozesspool-Schnitt
 
@@ -13,6 +13,19 @@ alte Profile bleiben bei vier, CPU-/Restartbudgets unverändert. Größeres exak
 reserviertes Heapmetadata-Layout wird unabhängig innen/außen geprüft.
 [Vertrag](../architecture/NATIVE_TASK_POOL_CONTRACT.md):24 eingefrorene Gruppen,
 drei Builds, zehn Gäste aus einem neuen Build; keine Geräte-/Shell-/OS-Abnahme.
+
+Der Kandidat umfasst jetzt die zusammengehörigen Speicher-, Scheduler-,
+Abbild-, IPC- und Heapbesitzer samt Layout5-Zulassung. Gemeinsames Ring3-
+Testprogramm, reale O0/O2-Mechanismustests und unveränderte20s-Gastgrenzen sind
+Teil der Qualifikation. Belege unter `build/codex-agent/r83an-task-pool/`;
+Abnahme und Commit erst nach allen24 Gruppen. Kein Zwischenbuild pro Gastfall.
+
+Die drei bisherigen Kandidaten stoppten jeweils in der ersten Hostgruppe;
+kein Kernelbuild/Gast lief. Letzter Stand8/9 Tests, keine Paketabnahme.
+Die am15.September freigegebene gezielte Erneuerung korrigiert ausschließlich
+die durch NDEBUG entfernten IPC-Testprüfungen samt deren Regression und
+Beleganbindung. Genau ein erneuter24-Gruppen-Lauf, keine weiteren Korrekturen
+oder Wiederholungen innerhalb dieser Abnahme; alle alten Belege bleiben.
 
 ## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
 
