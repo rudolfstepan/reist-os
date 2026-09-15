@@ -14,7 +14,7 @@ process_heap_service64:
     push r11
     sub rsp,80
     and rsp,-16
-    cmp esi,TASK_SLOT_CAPACITY
+    cmp esi,NATIVE_POOL_TASKS
     jae scheduler_fail
     mov eax,edi
     mov [rsp],rax
@@ -139,10 +139,10 @@ process_heap_reapers64:
     push rbx
     push r12
     mov ebx,[rel process_heap_reaper_cursor]
-    mov ecx,4
+    mov ecx,NATIVE_POOL_TASKS
 .find:
     inc ebx
-    and ebx,3
+    and ebx,NATIVE_POOL_TASKS-1
     bt dword [rel process_heap_retire_mask],ebx
     jc .found
     loop .find
@@ -190,5 +190,5 @@ process_heap_pending_mask: resd 1
 process_heap_retire_mask: resd 1
 process_heap_reaper_cursor: resd 1
 alignb 8
-process_heap_receipts: resb 4*32
+process_heap_receipts: resb NATIVE_POOL_TASKS*32
 section .text

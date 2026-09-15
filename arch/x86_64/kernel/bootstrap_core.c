@@ -14,7 +14,11 @@
 #define X86_64_NATIVE_PROCESSES 0
 #endif
 #if X86_64_NATIVE_PROCESSES
+#if REIST_NATIVE_TASK_POOL
+extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v4 *plan);
+#else
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
+#endif
 #if X86_64_NATIVE_IPC
 #define NATIVE_RUN_MASK (REIST_X64_RUN_SYSCALLS | (0x7fULL<<49) | (1ULL<<58) | NATIVE_HEAP_MASK)
 #define NATIVE_RUN_BUDGET(original) 32
@@ -23,6 +27,23 @@ extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 #define NATIVE_RUN_BUDGET(original) original
 #endif
 /* Trusted boot admission, not automatic restart or runtime process policy. */
+#if REIST_NATIVE_TASK_POOL
+#if !X86_64_NATIVE_LIFECYCLE || !X86_64_NATIVE_HEAP || !X86_64_NATIVE_IPC || !X86_64_NATIVE_RAM
+#error "NativeTaskPool requires lifecycle, heap, IPC and RAM"
+#endif
+/* Independent payload admission binds this exact read-only profile witness. */
+const reist_u64 native_task_pool_capacity=8;
+static const struct reist_x64_run_v4 native_runs[2] = {
+    {4,272,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+                {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
+                {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
+                {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}}},
+    {4,272,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+                {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
+                {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
+                {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}}}
+};
+#else
 static const struct reist_x64_run_v1 native_runs[2] = {
 #if X86_64_NATIVE_LIFECYCLE
     {3,144,4,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
@@ -45,6 +66,7 @@ static const struct reist_x64_run_v1 native_runs[2] = {
                {0x10103,NATIVE_RUN_MASK,NATIVE_RUN_BUDGET(32),0}}}
 #endif
 };
+#endif
 #endif
 
 #define REIST_HIGHER_HALF_BASE 0xFFFFFFFF80000000ULL

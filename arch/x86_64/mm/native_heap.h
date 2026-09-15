@@ -1,6 +1,7 @@
 #ifndef REIST_NATIVE_HEAP_H
 #define REIST_NATIVE_HEAP_H
 #include "include/kernel/critical_object.h"
+#include "../proc/native_pool.h"
 #define NATIVE_HEAP_BASE UINT64_C(0x100000000)
 #define NATIVE_HEAP_LIMIT UINT64_C(0x20000000)
 #define NATIVE_HEAP_PENDING INT64_C(-4095)
@@ -30,12 +31,17 @@ typedef struct {
     volatile uint32_t initialized, inverse, entered;
     uint32_t reserved;
     critical_object_t guard;
-    NativeHeapTask tasks[4];
+    NativeHeapTask tasks[REIST_NATIVE_TASKS];
 } NativeHeapState;
 _Static_assert(sizeof(NativeHeapCall)==64 && sizeof(NativeHeapControl)==128,
                "private heap request/control binding");
+#if REIST_NATIVE_TASK_POOL
+_Static_assert(sizeof(NativeHeapState)==795176,"private layout5 state binding");
+_Static_assert(sizeof(NativeHeapState)<1024*1024,"fixed native pool heap metadata");
+#else
 _Static_assert(sizeof(NativeHeapState)<512*1024,"fixed native heap metadata");
 _Static_assert(sizeof(NativeHeapState)==397704,"private layout4 state binding");
+#endif
 extern NativeHeapState native_heap_state;
 uint64_t reist_native_heap(NativeHeapCall *call);
 uint64_t reist_native_heap_frame(bool user);

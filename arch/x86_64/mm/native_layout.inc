@@ -1,6 +1,34 @@
 ; Private compile-time layouts. Old profiles remain byte-for-byte layouts.
 %ifndef REIST_NATIVE_LAYOUT_INC
 %define REIST_NATIVE_LAYOUT_INC 1
+; Physical backing differs only in the explicit new profile. Legacy active
+; pools remain four; native run-v4 separately admits all eight owners.
+%ifdef REIST_NATIVE_TASK_POOL
+%define NATIVE_POOL_TASKS 8
+%define NATIVE_POOL_RUN_VERSION 4
+%define NATIVE_POOL_RUN_BYTES 272
+%else
+%define NATIVE_POOL_TASKS 4
+%define NATIVE_POOL_RUN_VERSION 3
+%define NATIVE_POOL_RUN_BYTES 144
+%endif
+%define NATIVE_POOL_MASK ((1 << NATIVE_POOL_TASKS)-1)
+%define NATIVE_POOL_CHILD_MASK (NATIVE_POOL_MASK & ~3)
+; Compare without clobbering registers. Only admitted native run-v4 activates
+; the larger pool; all legacy bootstrap modes retain four active entries.
+%macro NATIVE_ACTIVE_CMP 1
+%ifdef REIST_NATIVE_TASK_POOL
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne %%legacy
+    cmp %1,NATIVE_POOL_TASKS
+    jmp %%done
+%%legacy:
+    cmp %1,4
+%%done:
+%else
+    cmp %1,4
+%endif
+%endmacro
 %ifdef REIST_NATIVE_WIDE
 %define NATIVE_IMAGE_PAGES 64
 %define NATIVE_IMAGE_VECTOR_SHIFT 9

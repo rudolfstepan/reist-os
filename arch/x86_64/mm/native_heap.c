@@ -325,7 +325,7 @@ uint64_t reist_native_heap(NativeHeapCall *call) {
     if(call->operation==NATIVE_HEAP_BOOT) {
         need(!H.initialized && !H.inverse && !H.reserved && !call->slot && !call->generation &&
              !call->root && !call->pdpt && !call->first && !call->second);
-        for(unsigned slot=0;slot<4;slot++) {
+        for(unsigned slot=0;slot<REIST_NATIVE_TASKS;slot++) {
             NativeHeapTask *t=&H.tasks[slot];
             const unsigned char *raw=(const unsigned char*)t;
             for(size_t i=0;i<sizeof(*t);i++)need(!raw[i]);
@@ -336,7 +336,7 @@ uint64_t reist_native_heap(NativeHeapCall *call) {
         H.initialized=1;H.inverse=~UINT32_C(1);protect(&H.guard,(const void*)&H.initialized,8,true);
     } else {
         check(&H.guard,(const void*)&H.initialized,8);need(H.initialized==1 && H.inverse==~UINT32_C(1));
-        need(call->slot<4);NativeHeapTask *t=&H.tasks[call->slot];control(t);NativeHeapControl *c=&t->control;
+        need(call->slot<REIST_NATIVE_TASKS);NativeHeapTask *t=&H.tasks[call->slot];control(t);NativeHeapControl *c=&t->control;
         if(call->operation==NATIVE_HEAP_BIND) {
             need(!c->generation && !c->used && c->phase==IDLE && !call->first && !call->second);
             need(call->generation>c->last_generation && call->generation<=UINT32_MAX);

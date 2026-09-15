@@ -1,5 +1,11 @@
 # Native task family boundary
 
+Opt-in capacity extension: [native task pool](NATIVE_TASK_POOL_CONTRACT.md).
+NativeTaskPool uses private run-v4/eight slots, roots0/1 and dynamic slots2..7
+with slot-private imported IDs7..12. The four-slot run-v3 profile and public
+CREATE/WAIT/CANCEL adapters below remain unchanged. CPU32 and eight attempts
+per root are still hard limits; the larger pool is not budget replenishment.
+
 R8.3ae, frozen on cbe5b956, 12 September 2026. This is an implementation
 contract, not accepted runtime evidence. Queue gates are authoritative.
 

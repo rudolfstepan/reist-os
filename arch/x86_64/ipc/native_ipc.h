@@ -1,6 +1,7 @@
 #ifndef REIST_NATIVE_IPC_H
 #define REIST_NATIVE_IPC_H
 #include <stdint.h>
+#include "../proc/native_pool.h"
 #include "include/kernel/ipc.h"
 
 /* Private SysV AMD64 binding v2. The scheduler owns the pinned request,

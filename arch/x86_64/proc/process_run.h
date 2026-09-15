@@ -1,5 +1,6 @@
 #ifndef REIST_X64_PROCESS_RUN_H
 #define REIST_X64_PROCESS_RUN_H
+#include "native_pool.h"
 /* Private trusted bootstrap contract, not a userspace ABI or a POSIX API. */
 #define REIST_X64_RUN_SYSCALLS ((1ULL<<9)|(1ULL<<22)|(1ULL<<40)|(1ULL<<41)|(1ULL<<42))
 struct reist_x64_run_task_v1 {
@@ -16,4 +17,11 @@ struct reist_x64_run_v1 {
     struct reist_x64_run_task_v1 tasks[4];
 };
 _Static_assert(sizeof(struct reist_x64_run_v1)==144, "native run descriptor size");
+/* Explicit private v4, never reinterpret the v1/v2/v3 four-task layout.
+ * The trusted caller admits two roots and six generation-owned dynamic slots. */
+struct reist_x64_run_v4 {
+    unsigned int version, size, count, reserved;
+    struct reist_x64_run_task_v1 tasks[8];
+};
+_Static_assert(sizeof(struct reist_x64_run_v4)==272, "native run-v4 descriptor size");
 #endif

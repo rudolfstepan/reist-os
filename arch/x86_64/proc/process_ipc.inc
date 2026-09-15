@@ -4,7 +4,7 @@
 ; capabilities; this adapter alone admits user memory and scheduler effects.
 ; All calls are serialized IF0; no suspended C frame or second wait node.
 
-; RDI four24-byte records; RSI query/bind/wait/ready/consume/reap/end/audit;
+; RDI pool of 24-byte records; RSI query/bind/wait/ready/consume/reap/end/audit;
 ; RDX slot, RCX generation. Return0 invalid,1 success/no-work,2 ready query.
 ; A value, complement and rotated-XOR word detect one/two-word corruption.
 ; No writes precede validation of the entire pool and requested transition.
@@ -15,13 +15,13 @@ process_ipc_completion_apply64:
     jnz .bad
     cmp rsi,7
     ja .bad
-    cmp rdx,3
+    cmp rdx,NATIVE_POOL_TASKS-1
     ja .bad
     cmp rcx,0x7fffffff
     ja .bad
     mov r11,0x936da17cb852e40f
     mov r8,rdi
-    lea rax,[rdi+96]
+    lea rax,[rdi+NATIVE_POOL_TASKS*24]
 .verify:
     mov r9,[r8]
     mov r10,r9
@@ -237,7 +237,7 @@ process_ipc_ready64:
     push r14
     push r15
     mov r15, [r13+56]
-    test r15, ~15
+    test r15, ~NATIVE_POOL_MASK
     jnz scheduler_fail
     xor ebx, ebx
 .next:
@@ -260,7 +260,7 @@ process_ipc_ready64:
     je .found
     add r14, 16
     inc ecx
-    cmp ecx, 4
+    cmp ecx, NATIVE_POOL_TASKS
     jb .find
     jmp scheduler_fail
 .found:
@@ -285,7 +285,7 @@ process_ipc_ready64:
     jz scheduler_fail
 .skip:
     inc ebx
-    cmp ebx, 4
+    cmp ebx, NATIVE_POOL_TASKS
     jb .next
     pop r15
     pop r14
@@ -521,5 +521,5 @@ process_ipc_validate64:
 section .data
 align 8
 process_ipc_completions:
-    times 4 dq 0,-1,0x936da17cb852e40f
+    times NATIVE_POOL_TASKS dq 0,-1,0x936da17cb852e40f
 section .text

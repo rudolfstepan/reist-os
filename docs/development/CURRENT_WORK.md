@@ -2,7 +2,32 @@
 
 Stand: 15. September 2026
 
-## R8.3an: nächster zusammenhängender Prozesspool-Schnitt
+## R8.3an: Acht-Prozess-Paket vollständig qualifiziert
+
+Alle24 eingefrorenen Verpflichtungen auf `d5764fb9` bestanden:21 ausgeführt,
+drei frühere Builds vollständig quell-/werkzeug-/profil-/artefaktgebunden
+wiederverwendet.17 Hostgruppen, alte Profile bytegleich, Referenzschutz und
+Abschlussprüfung grün. Alle zehn Gäste bestehen aus demselben unveränderten
+Abbild:4/8GiB, UD2, CPU32, CANCEL, Besitzerverlust, volle Slots mit Wieder-
+verwendung sowie OOM erste/mittlere/letzte Allokation. Matrix89,245s; jeder
+Gast inklusive Cleanup unter20s. Null neue Kernelbuilds in Kandidat07.
+
+Direkter Gesamtvergleich von ABI, Grenzen, Besitz, Fencing und Aufräumen
+abgeschlossen;40 Quellen/1525 Eingaben,1885 neue Belege und historische Kette
+samt521 geschützten Artefakten gebunden. Keine verbliebenen QEMU-/GDB-/NASM-/
+Zig-Prozesse. Unveränderlicher Vorababschluss:
+`build/codex-agent/r83an-task-pool/verification-status-context-owner-qualified.json`.
+Queue und Status werden erst danach abgeschlossen; lokaler Commit und sauberer
+Worktree erhalten `verification-status-task-pool-final.json` als separaten Beleg.
+Die nachträglichen Statuszeilen sind keine erneut getesteten Quelländerungen.
+
+Alle früheren Fehler bleiben erhalten, insbesondere der erste6,501s-Gast.
+Die Korrektur betraf dessen Prüfer-Kontextzuordnung, nicht Kernel/Gastprogramm.
+Langfristige Dienstbudgets, Geräteintegration und normale Shell/Systemabnahme
+bleiben offen. Nach sauberem Commit folgt der nächste priorisierte Schnitt;
+R3.6b bleibt zurückgestellt. [Vertrag](../architecture/NATIVE_TASK_POOL_CONTRACT.md).
+
+### Historie: Prozesspool-Implementierung und begrenzte Erneuerungen
 
 R8.3am ist lokal mit `0f4efd17` abgeschlossen, Worktree an der Paketgrenze
 sauber; vollständiger Abschlussbeleg `verification-status-native-final.json`.

@@ -232,6 +232,70 @@ class CPayloadTests(unittest.TestCase):
         for off,fmt,value in mutations:
             with self.subTest(offset=off):self.reject(self.changed(off,fmt,value,raw))
 
+    def test_native_task_pool_layout5_exact_inner_outer(self):
+        names=[]
+        for source,name in (('arch/x86_64/kernel/bootstrap_core.c','pool-core'),
+                            ('arch/x86_64/mm/native_memory.c','pool-memory'),
+                            ('arch/x86_64/mm/native_heap.c','pool-heap'),
+                            ('arch/x86_64/ipc/native_ipc.c','pool-ipc'),
+                            ('kernel/ipc/ipc.c','pool-ipc-core'),
+                            ('kernel/init/critical_object.c','pool-integrity')):
+            names.append(name)
+            result=self.run_command([self.zig,'cc',*self.flags,'-I.','-DREIST_NATIVE_TASK_POOL=1',
+                '-DX86_64_NATIVE_PROCESSES=1','-DX86_64_NATIVE_RAM=1','-DX86_64_NATIVE_HEAP=1',
+                '-DX86_64_NATIVE_IPC=1','-DX86_64_NATIVE_PROGRAMS=1','-DX86_64_NATIVE_LIFECYCLE=1',
+                '-DREIST_NATIVE_IPC','-DREIST_NATIVE_RUNTIME','-c',source,'-o',self.folder/(name+'.o')],name)
+            self.assertEqual(result.returncode,0,result.stderr[-2000:])
+        result=self.run_command([self.zig,'cc',*self.flags,'-I.','-ffunction-sections',
+            '-c','lib/libc/string.c','-o',self.folder/'pool-string-full.o'],'pool-string')
+        self.assertEqual(result.returncode,0,result.stderr)
+        result=self.run_command([self.zig,'ld.lld','-m','elf_x86_64','-r','--gc-sections',
+            '--undefined=memcpy','--undefined=memset','-o',self.folder/'pool-string.o',
+            self.folder/'pool-string-full.o'],'pool-string-select')
+        self.assertEqual(result.returncode,0,result.stderr)
+        result=self.run_command([*self.link,'-T','config/x86_64_c_payload.ld','-o',self.folder/'pool.elf',
+            *[self.folder/(n+'.o') for n in names+['pool-string']]],'pool-link')
+        self.assertEqual(result.returncode,0,result.stderr)
+        raw=p.read_bounded(self.folder/'pool.elf');parsed=p.validate(raw)
+        self.assertEqual(parsed['layout_version'],5)
+        self.assertEqual(parsed['sections']['.heap_state']['size'],232+8*99368)
+        self.assertEqual(parsed['sections']['.heap_state']['address'],p.HIGH+0x653000)
+        self.assertEqual(p.POOL_HEAP_ARENA_BYTES,(((4531096+4095)&~4095)+795176+4095&~4095)+529*4096)
+        marker=parsed['symbols']['native_task_pool_capacity'];ro=parsed['sections']['.rodata']
+        at=ro['offset']+marker['value']-ro['address']
+        for value in (0,4,7,9,1<<32):self.reject(self.changed(at,'Q',value,raw))
+        table=parsed['sections']['.symtab'];strings=parsed['sections']['.strtab']['data']
+        for pos in range(table['offset'],table['offset']+table['size'],24):
+            offset=struct.unpack_from('<I',raw,pos)[0];name=strings[offset:strings.find(b'\0',offset)].decode('ascii')
+            if name in ('native_task_pool_capacity','native_heap_state'):
+                for off,fmt,value in ((4,'B',0),(5,'B',1),(6,'H',0xfff1),(8,'Q',0),(16,'Q',0)):
+                    self.reject(self.changed(pos+off,fmt,value,raw))
+            if name=='native_task_pool_capacity':
+                self.reject(self.changed(parsed['sections']['.strtab']['offset']+offset,'B',ord('x'),raw))
+        section=parsed['sections']['.heap_state'];sh=struct.unpack_from('<Q',raw,40)[0]+section['index']*64
+        for off,fmt,value in ((4,'I',1),(8,'Q',7),(16,'Q',p.HIGH+0x654000),
+                              (32,'Q',397704),(32,'Q',795175),(32,'Q',795177),(48,'Q',8192)):
+            self.reject(self.changed(sh+off,fmt,value,raw))
+        published=self.folder/'pool-publication';p.publish(raw,published)
+        asm=(self.folder/'outer.asm').read_text().replace(self.folder.as_posix()+'/bootstrap_core_',published.as_posix()+'/bootstrap_core_')
+        asm=asm.replace('x86_64_c_bss_state: resb '+str(self.parsed['sections']['.bss']['size']),
+                        'x86_64_c_bss_state: resb '+str(parsed['sections']['.bss']['size']))
+        asm+='section .memory_state nobits alloc noexec write align=4096\nresb 7499776\n'
+        asm+='section .native_catalog progbits alloc noexec nowrite align=4096\ncatalog: times 1065344 db 0x5a\n'
+        asm+='global native_catalog_used\nnative_catalog_used equ $-catalog\nalign 4096, db 0\n'
+        asm+='section .native_scratch nobits alloc noexec write align=4096\nscratch: resb 266336\n'
+        asm+='global native_scratch_used\nnative_scratch_used equ $-scratch\nalignb 4096\n'
+        (self.folder/'pool-outer.asm').write_text(asm,encoding='ascii')
+        result=self.run_command([self.nasm,'-f','elf32',self.folder/'pool-outer.asm','-o',self.folder/'pool-outer.o'],'pool-outer-asm')
+        self.assertEqual(result.returncode,0,result.stderr)
+        result=self.run_command([self.zig,'ld.lld','-m','elf_i386','-T','config/x86_64_bootstrap.ld',
+            '-o',self.folder/'pool-outer.elf',self.folder/'pool-outer.o'],'pool-outer-link')
+        self.assertEqual(result.returncode,0,result.stderr)
+        outer=p.read_bounded(self.folder/'pool-outer.elf',bits=32);p.verify_outer(raw,outer)
+        section=p.elf(outer,32)['sections']['.memory_state'];sh=struct.unpack_from('<I',outer,32)[0]+section['index']*40
+        for off,value in ((4,1),(8,7),(12,0x201000),(20,7102464),(20,7499776-4096),(20,7499776+4096),(32,8192)):
+            with self.assertRaises(ValueError):p.verify_outer(raw,self.changed(sh+off,'I',value,outer))
+
     def changed(self,offset,fmt,value,data=None):
         result=bytearray(self.inner if data is None else data);struct.pack_into(fmt,result,offset,value);return bytes(result)
 

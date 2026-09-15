@@ -1,5 +1,11 @@
 # Native program and stack memory — R8.3aj
 
+The explicit [eight-task profile](NATIVE_TASK_POOL_CONTRACT.md) extends owner
+backing only: six private imported contexts and exact private C-layout5 heap
+metadata. RNPGv2, per-task image/stack ranges, W^X, startup and frame-claim
+limits below are unchanged. C-layouts2/3/4 and other native profiles retain
+their original byte layouts and default binaries.
+
 Frozen after accepted `a1f17276`, 13 September2026, with explicit renewed user
 approval of the program/stack boundary, subsequently extended by renewed user
 approval to the boot-memory dependency. Eighteen mandatory queue gate groups.

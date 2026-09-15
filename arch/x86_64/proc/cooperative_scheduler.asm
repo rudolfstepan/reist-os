@@ -26,6 +26,10 @@ extern reist_x64_context_apply
 extern reist_x64_budget_apply
 extern reist_x64_terminal_status
 extern reist_x64_startup_stack
+%ifdef REIST_NATIVE_TASK_POOL
+extern serial_init64
+extern halt64
+%endif
 %ifdef REIST_NATIVE_PROGRAMS
 extern x86_64_boot_program_stack64
 %endif
@@ -1038,6 +1042,12 @@ scheduler_queue_apply64:
     and rsp, -16
     mov [rsp + 28], r9d
     mov dword [rsp + 24], TASK_SLOT_CAPACITY
+%ifdef REIST_NATIVE_TASK_POOL
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .capacity_ready
+    mov dword [rsp+24],NATIVE_POOL_TASKS
+.capacity_ready:
+%endif
     mov r10d, eax
     test r9d, r9d
     jnz .deadline
@@ -1086,7 +1096,11 @@ scheduler_runqueue_enqueue64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .fail
 .mode_valid:
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP edi
+%else
     cmp edi, TASK_SLOT_CAPACITY
+%endif
     jae .fail
     test esi, esi
     jz .fail
@@ -1105,7 +1119,11 @@ scheduler_runqueue_enqueue64:
     cmp byte [rdx + rdi], 0
     jne .fail
     movzx ecx, byte [rel scheduler_runqueue_count]
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP ecx
+%else
     cmp ecx, RUNQUEUE_CAPACITY
+%endif
     jae .fail
     mov eax, 1
     xor r9d, r9d
@@ -1132,10 +1150,18 @@ scheduler_runqueue_dequeue64:
     movzx ecx, byte [rel scheduler_runqueue_count]
     test ecx, ecx
     jz .fail
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP ecx
+%else
     cmp ecx, RUNQUEUE_CAPACITY
+%endif
     ja .fail
     movzx ecx, byte [rel scheduler_runqueue_head]
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP ecx
+%else
     cmp ecx, RUNQUEUE_CAPACITY
+%endif
     jae .fail
     lea r12, [rel scheduler_runqueue_entries]
     mov rax, qword [r12 + rcx * 8]
@@ -1144,7 +1170,11 @@ scheduler_runqueue_dequeue64:
     mov r8d, eax
     shr rax, 32
     mov r9d, eax
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP r8d
+%else
     cmp r8d, TASK_SLOT_CAPACITY
+%endif
     jae .fail
     test r9d, r9d
     jz .fail
@@ -1176,7 +1206,11 @@ scheduler_runqueue_dequeue64:
 
 scheduler_runqueue_dispatch64:
     call scheduler_runqueue_dequeue64
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP eax
+%else
     cmp eax, TASK_SLOT_CAPACITY
+%endif
     jae scheduler_fail
     mov edi, eax
     mov eax, edi
@@ -1695,7 +1729,11 @@ scheduler_enter_task64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne scheduler_fail
 .extended_slot:
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP edi
+%else
     cmp edi, TASK_SLOT_CAPACITY
+%endif
     jae scheduler_fail
 .slot_valid:
     mov dword [rel scheduler_current_slot], edi
@@ -1898,7 +1936,11 @@ scheduler_syscall_entry64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_DYNAMIC
     jne scheduler_fail
 .syscall_extended_slot:
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP edi
+%else
     cmp edi, TASK_SLOT_CAPACITY
+%endif
     jae scheduler_fail
 .syscall_slot_valid:
     mov eax, edi
@@ -2523,7 +2565,11 @@ scheduler_context_apply64:
 
 ; EAX op, EDI slot, RSI generation, RDX argument; RAX result only.
 scheduler_budget_apply64:
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP edi
+%else
     cmp edi, TASK_SLOT_CAPACITY
+%endif
     jae .fail
     push rbp
     mov rbp, rsp
@@ -2795,7 +2841,7 @@ scheduler_profile_apply64:
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
     jne .legacy
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     je family_profile_apply64
 .legacy:
 %endif
@@ -4289,7 +4335,11 @@ scheduler_validate_shell_range64:
     and rsp,-16
     mov rsi,rax
     mov eax,[rel scheduler_current_slot]
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP eax
+%else
     cmp eax,TASK_SLOT_CAPACITY
+%endif
     jae .corrupt
     mov r10,rax
     shl r10, NATIVE_TASK_SHIFT
@@ -6557,11 +6607,11 @@ scheduler_task_frame_alloc64:
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
     jne .legacy
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne scheduler_fail
     cmp ebx,2
     jb scheduler_fail
-    cmp ebx,4
+    cmp ebx,NATIVE_POOL_TASKS
     jae scheduler_fail
     jmp .claimed
 .legacy:
@@ -6655,7 +6705,11 @@ scheduler_build_task64:
     cmp byte [rel scheduler_mode], SCHEDULER_MODE_SHELL
     jne .invalid
 .extended_slot:
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP edi
+%else
     cmp edi, TASK_SLOT_CAPACITY
+%endif
     jae .invalid
 .slot_valid:
     mov ebx, edi
@@ -7291,7 +7345,7 @@ scheduler_release_task_frames64:
     lea rax, [rel scheduler_tasks]
     cmp r12, rax
     jb .fail
-    lea rdx, [rel scheduler_tasks + (TASK_SLOT_CAPACITY * TASK_RECORD_SIZE)]
+    lea rdx, [rel scheduler_tasks + (NATIVE_POOL_TASKS * TASK_RECORD_SIZE)]
     cmp r12, rdx
     jae .fail
     mov rdx, r12
@@ -7348,14 +7402,14 @@ scheduler_append_event64:
 x86_64_process_table_metadata_clear64:
     cld
     lea rsi, [rel scheduler_table_frames]
-    mov ecx, TASK_SLOT_CAPACITY * TASK_TABLE_LEVELS
+    mov ecx, NATIVE_POOL_TASKS * TASK_TABLE_LEVELS
 .metadata_loop:
     cmp qword [rsi], 0
     jne .fail
     add rsi, 8
     loop .metadata_loop
     lea rsi, [rel scheduler_tasks]
-    mov ecx, TASK_SLOT_CAPACITY
+    mov ecx, NATIVE_POOL_TASKS
 .task_loop:
     cmp qword [rsi + TASK_CR3], 0
     jne .fail
@@ -7810,7 +7864,11 @@ scheduler_fp_save64:
     push rax
     push rdi
     mov eax, dword [rel scheduler_current_slot]
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP eax
+%else
     cmp eax, TASK_SLOT_CAPACITY
+%endif
     jae scheduler_fail
     shl eax, 9
     lea rdi, [rel scheduler_fp_states]
@@ -7824,7 +7882,11 @@ scheduler_fp_restore64:
     push rax
     push rdi
     mov eax, dword [rel scheduler_current_slot]
+%ifdef REIST_NATIVE_TASK_POOL
+    NATIVE_ACTIVE_CMP eax
+%else
     cmp eax, TASK_SLOT_CAPACITY
+%endif
     jae scheduler_fail
     shl eax, 9
     lea rdi, [rel scheduler_fp_states]
@@ -7924,11 +7986,11 @@ scheduler_force_cleanup64:
     add r12, rax
     call scheduler_release_task_frames64
     inc ebx
-    cmp ebx, TASK_SLOT_CAPACITY
+    cmp ebx, NATIVE_POOL_TASKS
     jb .task_loop
     xor eax, eax
     lea rdi, [rel scheduler_syscall_profiles]
-    mov ecx, (TASK_SLOT_CAPACITY * SYSCALL_PROFILE_SIZE) / 8
+    mov ecx, (NATIVE_POOL_TASKS * SYSCALL_PROFILE_SIZE) / 8
     rep stosq
     lea rdi, [rel scheduler_shell_ipc_begin]
     mov ecx, (scheduler_shell_ipc_end - scheduler_shell_ipc_begin) / 8
@@ -7940,6 +8002,20 @@ scheduler_fail:
 %ifdef REIST_NATIVE_PIO
     ; Unknown kernel state must not be repaired or returned to its caller.
     jmp native_pio_fail64
+%endif
+%ifdef REIST_NATIVE_TASK_POOL
+    ; No device authority in this profile. Preserve uncertain owner records;
+    ; never traverse/release them or return to C after an invariant failure.
+    cli
+    mov byte [rel scheduler_active],0
+    call serial_init64
+    lea rsi,[rel scheduler_stage_message]
+    call serial_write64
+    mov al,byte [rel scheduler_failure_stage]
+    call scheduler_hex8_local64
+    lea rsi,[rel scheduler_newline]
+    call serial_write64
+    jmp halt64
 %endif
     mov byte [rel scheduler_active], 0
     call scheduler_force_cleanup64
@@ -8282,9 +8358,9 @@ scheduler_spawn_transaction_active:
     resb 1
 alignb 8
 scheduler_identity_retired:
-    resd TASK_SLOT_CAPACITY
+    resd NATIVE_POOL_TASKS
 scheduler_cpu_budgets:
-    resb TASK_SLOT_CAPACITY * 32
+    resb NATIVE_POOL_TASKS * 32
 scheduler_syscall_context:
     resq 2
 scheduler_original_cr3:
@@ -8324,17 +8400,17 @@ scheduler_runqueue_tail:
 scheduler_runqueue_count:
     resb 1
 scheduler_runqueue_membership:
-    resb TASK_SLOT_CAPACITY
+    resb NATIVE_POOL_TASKS
 alignb 8
 scheduler_runqueue_entries:
-    resq RUNQUEUE_CAPACITY
+    resq NATIVE_POOL_TASKS
 scheduler_deadline_count:
     resb 1
 scheduler_deadline_membership:
-    resb TASK_SLOT_CAPACITY
+    resb NATIVE_POOL_TASKS
 alignb 16
 scheduler_deadline_entries:
-    resb TASK_SLOT_CAPACITY * 16
+    resb NATIVE_POOL_TASKS * 16
 scheduler_last_tick:
 %ifdef REIST_NATIVE_RUNTIME
     resq 1
@@ -8393,7 +8469,7 @@ scheduler_owner_cpu_ticks: resq 1
 scheduler_owner_receipt_end:
 alignb 16
 scheduler_syscall_profiles:
-    resb TASK_SLOT_CAPACITY * SYSCALL_PROFILE_SIZE
+    resb NATIVE_POOL_TASKS * SYSCALL_PROFILE_SIZE
 alignb 8
 scheduler_shell_ipc_last_handle: resq 1
 scheduler_shell_ipc_begin:
@@ -8430,7 +8506,7 @@ scheduler_shell_ipc_send_generation:
 scheduler_shell_ipc_send_phase:
     resq 1
 scheduler_shell_ipc_capabilities:
-    resb TASK_SLOT_CAPACITY * IPC_CAPABILITY_SIZE
+    resb NATIVE_POOL_TASKS * IPC_CAPABILITY_SIZE
 scheduler_shell_ipc_end:
 scheduler_event_count:
     resb 1
@@ -8463,8 +8539,8 @@ process_run_generation: resd 1
 process_run_live: resd 1
 process_run_build_slot: resd 1
 alignb 8
-process_run_plan: resb 144
-process_run_generations: resd TASK_SLOT_CAPACITY
+process_run_plan: resb NATIVE_POOL_RUN_BYTES
+process_run_generations: resd NATIVE_POOL_TASKS
 process_run_receipt: resb 32
 
 scheduler_caller_rsp:
@@ -8472,15 +8548,15 @@ scheduler_caller_rsp:
 
 alignb 256
 scheduler_tasks:
-    resb TASK_SLOT_CAPACITY * TASK_RECORD_SIZE
+    resb NATIVE_POOL_TASKS * TASK_RECORD_SIZE
 
 alignb 16
 scheduler_fp_states:
-    resb TASK_SLOT_CAPACITY * 512
+    resb NATIVE_POOL_TASKS * 512
 
 alignb 32
 scheduler_table_frames:
-    resq TASK_SLOT_CAPACITY * TASK_TABLE_LEVELS
+    resq NATIVE_POOL_TASKS * TASK_TABLE_LEVELS
 
 alignb 16
 scheduler_kernel_stack_bottom:

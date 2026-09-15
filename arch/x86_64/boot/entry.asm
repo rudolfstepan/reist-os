@@ -5,8 +5,20 @@
 BITS 32
 %include "arch/x86_64/mm/memory_profile.inc"
 %include C_CORE_LAYOUT_PATH
+%ifdef REIST_NATIVE_TASK_POOL
+%ifndef REIST_NATIVE_WIDE
+%error "native task pool requires wide boot areas"
+%endif
+%if C_CORE_LAYOUT_VERSION != 5 || !X86_64_NATIVE_RAM
+%error "native task pool requires exact C layout5"
+%endif
+%if C_NATIVE_TASK_POOL_CAPACITY != 8 || C_NATIVE_HEAP_STATE_BYTES != 795176
+%error "native task pool metadata binding"
+%endif
+%else
 %if C_CORE_LAYOUT_VERSION != (2 + X86_64_NATIVE_RAM) && !(X86_64_NATIVE_RAM && C_CORE_LAYOUT_VERSION == 4)
 %error "unsupported native C layout"
+%endif
 %endif
 
 MULTIBOOT_MAGIC     equ 0x1BADB002
@@ -1101,7 +1113,7 @@ x86_64_c_process_run64:
     cmp rdi, rax
     jb .fail
     mov rax, rdi
-    add rax, 144
+    add rax, NATIVE_POOL_RUN_BYTES
     jc .fail
     lea rdx, [rel _c_core_rodata_end]
     cmp rax, rdx

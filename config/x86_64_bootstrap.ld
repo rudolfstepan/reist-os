@@ -141,4 +141,7 @@ SECTIONS
   ASSERT(_x86_64_bootstrap_legacy_end <= 0x00200000,
          "x86_64 bootstrap exceeds its single 2 MiB identity map")
   ASSERT(SIZEOF(.memory_state) <= 8388608, "native memory arena capacity")
+  ASSERT(SIZEOF(.memory_state) != 7499776 ||
+         (SIZEOF(.native_catalog) == 1069056 && SIZEOF(.native_scratch) == 270336),
+         "native eight-owner arena requires exact wide boot pair")
 }

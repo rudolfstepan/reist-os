@@ -263,6 +263,19 @@ X86_64_NATIVE_FILESYSTEM ?= 0
 X86_64_FILESYSTEM_CASE ?= 0
 X86_64_NATIVE_FILE_LAUNCH ?= 0
 X86_64_FILE_LAUNCH_CASE ?= 0
+X86_64_NATIVE_TASK_POOL ?= 0
+ifneq ($(words $(X86_64_NATIVE_TASK_POOL)),1)
+$(error NativeTaskPool selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_TASK_POOL),0 1),$(X86_64_NATIVE_TASK_POOL))
+$(error NativeTaskPool selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_TASK_POOL),1)
+ifneq ($(X86_64_NATIVE_WIDE)$(X86_64_NATIVE_PIO)$(X86_64_NATIVE_BLOCK)$(X86_64_NATIVE_BLOCK_PROFILE)$(X86_64_NATIVE_FILESYSTEM)$(X86_64_NATIVE_FILE_LAUNCH)$(X86_64_MEMORY_CASE)$(X86_64_PIO_CASE)$(X86_64_STARTUP_CASE)$(X86_64_FAMILY_CASE)$(X86_64_BLOCK_PROFILE_CASE)$(X86_64_FILESYSTEM_CASE)$(X86_64_FILE_LAUNCH_CASE),1000000000000)
+$(error NativeTaskPool requires plain NativeWide and excludes device and fault selectors)
+endif
+endif
+X86_64_POOL_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),-DREIST_NATIVE_TASK_POOL=1,)
 ifeq ($(X86_64_NATIVE_FILE_LAUNCH),1)
 ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_FILESYSTEM_CASE),10)
 $(error NativeFileLaunch requires plain NativeFilesystem)
@@ -337,6 +350,7 @@ endif
 endif
 X86_64_PROGRAM_ASM = $(if $(filter 1,$(X86_64_NATIVE_PROGRAMS)),-DREIST_NATIVE_PROGRAMS=1,) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),-DREIST_NATIVE_LIFECYCLE=1,)
 X86_64_PROGRAM_ASM += $(X86_64_WIDE_ASM) $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,)
+X86_64_PROGRAM_ASM += $(X86_64_POOL_FLAGS)
 X86_64_RUNTIME_ASM = $(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),-DREIST_NATIVE_RUNTIME=1,)
 ifeq ($(X86_64_NATIVE_RUNTIME),1)
 ifneq ($(filter x86_64-native-image,$(MAKECMDGOALS)),)
@@ -532,7 +546,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
@@ -581,7 +595,7 @@ endif
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROGRAMS=$(X86_64_NATIVE_PROGRAMS) \
-		-DX86_64_NATIVE_LIFECYCLE=$(X86_64_NATIVE_LIFECYCLE) \
+		-DX86_64_NATIVE_LIFECYCLE=$(X86_64_NATIVE_LIFECYCLE) $(X86_64_POOL_FLAGS) \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) \
@@ -603,13 +617,13 @@ endif
 endif
 ifeq ($(X86_64_NATIVE_IPC),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC -c kernel/ipc/ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o
-	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC $(X86_64_RUNTIME_ASM) -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_IPC $(X86_64_RUNTIME_ASM) $(X86_64_POOL_FLAGS) -c arch/x86_64/ipc/native_ipc.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o
 endif
 ifeq ($(X86_64_NATIVE_RAM),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_memory.c -o $(X86_64_BOOTSTRAP_DIR)/native_memory.o
 endif
 ifeq ($(X86_64_NATIVE_HEAP),1)
-	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c arch/x86_64/mm/native_heap.c -o $(X86_64_BOOTSTRAP_DIR)/native_heap.o
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. $(X86_64_POOL_FLAGS) -c arch/x86_64/mm/native_heap.c -o $(X86_64_BOOTSTRAP_DIR)/native_heap.o
 endif
 ifneq ($(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -c kernel/init/critical_object.c -o $(X86_64_BOOTSTRAP_DIR)/native_ipc_integrity.o
@@ -632,10 +646,10 @@ endif
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
-		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) $(X86_64_WIDE_ASM) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
+		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) $(X86_64_WIDE_ASM) $(X86_64_POOL_FLAGS) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
 	@$(AS) -f elf32 $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,) arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
 	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
-	@$(AS) -f elf32 -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
+	@$(AS) -f elf32 $(X86_64_POOL_FLAGS) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
 	@$(AS) -f elf32 -DUSER_PROBE_PATH=\"$(X86_64_USER_PROBE_ELF)\" \
 		$(X86_64_PROGRAM_ASM) -DBOOT_PROGRAM_CATALOG_PATH=\"$(X86_64_BOOTSTRAP_DIR)/boot-programs.bin\" \
 		-DUSER_SHELL_PATH=\"$(X86_64_USER_SHELL_ELF)\" \

@@ -5,8 +5,21 @@
 %include "arch/x86_64/mm/memory_profile.inc"
 %if X86_64_NATIVE_RAM
 %include C_CORE_LAYOUT_PATH
-%if (C_CORE_LAYOUT_VERSION != 3 && C_CORE_LAYOUT_VERSION != 4) || C_NATIVE_MEMORY_ENTRY == 0
+%ifdef REIST_NATIVE_TASK_POOL
+%if C_CORE_LAYOUT_VERSION != 5
+%error "native task pool requires exact layout5"
+%endif
+%endif
+%if (C_CORE_LAYOUT_VERSION != 3 && C_CORE_LAYOUT_VERSION != 4 && C_CORE_LAYOUT_VERSION != 5) || C_NATIVE_MEMORY_ENTRY == 0
 %error "native memory requires validated layout3"
+%endif
+%if C_CORE_LAYOUT_VERSION == 5
+%ifndef REIST_NATIVE_TASK_POOL
+%error "layout5 requires explicit native task pool"
+%endif
+%if C_NATIVE_TASK_POOL_CAPACITY != 8 || C_NATIVE_HEAP_STATE_BYTES != 795176
+%error "layout5 requires exact eight-owner backing"
+%endif
 %endif
 %endif
 
@@ -855,7 +868,7 @@ managed_frame_count equ native_memory_arena
 free_frame_count equ native_memory_arena + 4
 usable_bitmap equ native_memory_arena + 64
 allocation_bitmap equ usable_bitmap + FRAME_BITMAP_BYTES
-%if C_CORE_LAYOUT_VERSION == 4
+%if C_CORE_LAYOUT_VERSION == 4 || C_CORE_LAYOUT_VERSION == 5
 alignb 4096
 native_heap_arena: resb C_NATIVE_HEAP_STATE_BYTES
 %endif

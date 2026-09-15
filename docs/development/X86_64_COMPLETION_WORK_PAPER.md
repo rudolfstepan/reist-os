@@ -1,6 +1,6 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-Stand: 14. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
+Stand: 15. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.
 
@@ -11,10 +11,16 @@ das explizite Acht-Prozess-Profil: Identität, Queue, sechs dynamische
 Abbildbesitzer, IPC/Completion, Heap und vollständiges Retirement gemeinsam.
 Kein bloßes Erhöhen einer Slotkonstante. Private run-v4-/C-layout5-Zulassung,
 alte Vier-Slot-Profile bytegleich, unveränderte CPU-/Versuchs-/Zeitbudgets.
-24 eingefrorene Gruppen und zehn neue Gäste aus einem gemeinsamen Build;
+24 eingefrorene Verpflichtungen bestanden:21 ausgeführt, drei erfolgreiche
+Builds exakt gebunden wiederverwendet, null Neubauten in Kandidat07.
+Alle zehn Gäste aus einem gemeinsamen Abbild PASS, Matrix89,245s bei
+unveränderten20s-Grenzen einschließlich Cleanup. Direkter ABI-/Grenz-/Cleanup-
+Vergleich und unveränderlicher Qualifikationsbeleg abgeschlossen;
 Details im [Prozesspoolvertrag](../architecture/NATIVE_TASK_POOL_CONTRACT.md).
 Gerätebesitz, langfristige Dienstbudgets und normale Shell bleiben eigene
-Grenzen; R3.6b weiterhin zurückgestellt. Noch keine Implementierungsabnahme.
+Grenzen; R3.6b weiterhin zurückgestellt. Queueabschluss folgt erst nach dieser
+Qualifikation, lokaler Commit mit separatem sauberen Abschlussbeleg.
+Frühere Fehlversuche bleiben unverändert dokumentiert; keine OS-Fertigmeldung.
 
 ## R8.3am: Datei, ELF64-Import und Programmlebensdauer
 

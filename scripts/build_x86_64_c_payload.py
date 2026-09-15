@@ -28,6 +28,9 @@ MEMORY_ARENA_BYTES=((MEMORY_STATE_BYTES+4095)&~4095)+(1+16+512)*4096
 HEAP_STATE_BYTES=397704
 HEAP_LAYOUT=(HIGH+0x653000,HEAP_STATE_BYTES,3,8,6)
 HEAP_ARENA_BYTES=7102464
+POOL_HEAP_STATE_BYTES=795176
+POOL_HEAP_LAYOUT=(HIGH+0x653000,POOL_HEAP_STATE_BYTES,3,8,6)
+POOL_HEAP_ARENA_BYTES=7499776
 WIDE_LAYOUT={'.native_catalog':(0xa00000,1069056,2,1,4,1065344),
              '.native_scratch':(0xb05000,270336,3,8,6,266336)}
 WIDE_END=0xb47000
@@ -99,7 +102,7 @@ def elf(data,bits):
                 name=string(strings,n)
                 if name:
                     # Local labels may repeat; externally bound names may not.
-                    if name in BINDINGS or name in CALL_EXPORTS or name in ('native_memory_state','native_heap_state'):require(name not in symbols,'ELF duplicate binding')
+                    if name in BINDINGS or name in CALL_EXPORTS or name in ('native_memory_state','native_heap_state','native_task_pool_capacity'):require(name not in symbols,'ELF duplicate binding')
                     symbols[name]=dict(value=value,size=length,index=index,type=t&15,binding=t>>4,visibility=other)
     require(symtabs==1,'ELF exact symbol table')
     occupied.sort()
@@ -124,8 +127,9 @@ def validate(data):
     require(parsed['entry']==BINDINGS['x86_64_c_core_entry'],'C entry binding')
     allocated={n for n,s in sections.items() if s['flags']&2}
     layout=dict(LAYOUT)
+    pool='native_task_pool_capacity' in symbols
     if '.memory_state' in allocated:layout['.memory_state']=MEMORY_LAYOUT
-    if '.heap_state' in allocated:layout['.heap_state']=HEAP_LAYOUT
+    if '.heap_state' in allocated:layout['.heap_state']=POOL_HEAP_LAYOUT if pool else HEAP_LAYOUT
     require(allocated==set(layout),'C allocated section set')
     require(len(parsed['programs'])==len(layout),'C exact load segments')
     occupied=[]
@@ -166,15 +170,23 @@ def validate(data):
                 (state['value'],state['size'],state['index'],state['type'],state['binding'],state['visibility'])==
                 (HIGH+0x200000,MEMORY_STATE_BYTES,section['index'],1,1,0),'C native memory state binding')
     heap='.heap_state' in layout
+    require(not pool or heap,'C task pool requires heap')
     require(heap==('native_heap_state' in symbols)==('reist_native_heap' in symbols),
             'C native heap paired exports')
     if heap:
         require(native,'C heap requires native memory')
         state=symbols['native_heap_state'];section=sections['.heap_state']
-        require(section['size']==HEAP_STATE_BYTES and section['align']==4096 and
+        heap_bytes=POOL_HEAP_STATE_BYTES if pool else HEAP_STATE_BYTES
+        require(section['size']==heap_bytes and section['align']==4096 and
                 (state['value'],state['size'],state['index'],state['type'],state['binding'],state['visibility'])==
-                (HEAP_LAYOUT[0],HEAP_STATE_BYTES,section['index'],1,1,0),'C native heap state binding')
-    parsed['layout_version']=4 if heap else 3 if native else VERSION
+                (HEAP_LAYOUT[0],heap_bytes,section['index'],1,1,0),'C native heap state binding')
+    if pool:
+        symbol=symbols['native_task_pool_capacity'];ro=sections['.rodata'];offset=symbol['value']-ro['address']
+        require((symbol['size'],symbol['index'],symbol['type'],symbol['binding'],symbol['visibility'])==
+                (8,ro['index'],1,1,0) and 0<=offset<=ro['size']-8 and offset%8==0,
+                'C native task pool profile binding')
+        require(ro['data'][offset:offset+8]==struct.pack('<Q',8),'C native task pool capacity')
+    parsed['layout_version']=5 if pool else 4 if heap else 3 if native else VERSION
     return parsed
 
 
@@ -187,7 +199,8 @@ def outputs(data):
     result['bootstrap_core_layout.inc']=(f'; Generated from validated ELF64, private layout v{version}.\n'
         f'%define C_CORE_LAYOUT_VERSION {version}\n%define C_CORE_BSS_BYTES {s[".bss"]["size"]}\n'+
         (f'%define C_NATIVE_MEMORY_STATE_BYTES {MEMORY_STATE_BYTES}\n' if version>=3 else '')+
-        (f'%define C_NATIVE_HEAP_STATE_BYTES {HEAP_STATE_BYTES}\n' if version==4 else '')+
+        (f'%define C_NATIVE_HEAP_STATE_BYTES {POOL_HEAP_STATE_BYTES if version==5 else HEAP_STATE_BYTES}\n' if version in (4,5) else '')+
+        ('%define C_NATIVE_TASK_POOL_CAPACITY 8\n' if version==5 else '')+
         ''.join(f'%define {define} {p["symbols"].get(name,{}).get("value",0):#x}\n'
                 for name,define in CALL_EXPORTS.items())).encode('ascii')
     result['bootstrap_core_layout.json']=(json.dumps(metadata,indent=2,sort_keys=True)+'\n').encode('ascii')
@@ -199,9 +212,10 @@ def verify_outer(inner,outer):
     allocated={n:s for n,s in o['sections'].items() if s['flags']&2}
     expected={'.multiboot','.text','.rodata','.data','.bss','.c_core_bridge','.c_core_handoff'}|{'.c_core_'+n[1:] for n in LAYOUT}
     native=p['layout_version']>=3
-    arena_bytes=HEAP_ARENA_BYTES if p['layout_version']==4 else MEMORY_ARENA_BYTES
+    arena_bytes=POOL_HEAP_ARENA_BYTES if p['layout_version']==5 else HEAP_ARENA_BYTES if p['layout_version']==4 else MEMORY_ARENA_BYTES
     if native:expected.add('.memory_state')
     wide=bool(set(allocated)&set(WIDE_LAYOUT))
+    require(p['layout_version']!=5 or wide,'outer task pool requires wide boot areas')
     require(wide or len(outer)<=1048576,'outer legacy file capacity')
     if wide:
         require(native,'outer wide requires native memory')

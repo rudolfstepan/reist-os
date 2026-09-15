@@ -9,6 +9,10 @@ process_run_admit64:
     jz .bad
     test rdi, 7
     jnz .bad
+%ifdef REIST_NATIVE_TASK_POOL
+    cmp dword [rdi],4
+    je .pool_header
+%endif
     cmp dword [rdi], 1
 %ifdef REIST_NATIVE_PROGRAMS
     je .version_ok
@@ -29,6 +33,16 @@ process_run_admit64:
     cmp edx, 3
     ja .bad
     inc edx
+%ifdef REIST_NATIVE_TASK_POOL
+    jmp .dimensions
+.pool_header:
+    cmp dword [rdi+4],272
+    jne .bad
+    cmp dword [rdi+8],8
+    jne .bad
+    mov edx,8
+.dimensions:
+%endif
     cmp dword [rdi+12], 0
     jne .bad
     mov r8, (1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)
@@ -61,9 +75,21 @@ process_run_admit64:
     jb .v1
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp dword [rdi],3
+%ifdef REIST_NATIVE_TASK_POOL
+    je .family_entry
+    cmp dword [rdi],4
+%endif
     jne .image
+%ifdef REIST_NATIVE_TASK_POOL
+.family_entry:
+    cmp dword [rdi],4
+    je .family_dimensions
+%endif
     cmp dword [rdi+8],4
     jne .bad
+%ifdef REIST_NATIVE_TASK_POOL
+.family_dimensions:
+%endif
     xor eax,eax
     cmp ecx,2
     setb al
@@ -94,8 +120,19 @@ process_run_admit64:
     jnz .bad
 .next:
     inc ecx
+%ifdef REIST_NATIVE_TASK_POOL
+    cmp dword [rdi],4
+    jne .legacy_next
+    cmp ecx,8
+    jb .entry
+    jmp .admitted
+.legacy_next:
+%endif
     cmp ecx, 4
     jb .entry
+%ifdef REIST_NATIVE_TASK_POOL
+.admitted:
+%endif
     mov eax, 1
     ret
 .bad:
@@ -122,6 +159,10 @@ process_run_validate64:
     jne .bad
     cmp byte [rel scheduler_active], 1
     jne .bad
+%ifdef REIST_NATIVE_TASK_POOL
+    cmp dword [rel process_run_plan],4
+    jne .bad
+%endif
     lea rdi, [rel process_run_plan]
     call process_run_admit64
     test eax, eax
@@ -132,7 +173,7 @@ process_run_validate64:
     lea rax, [rel scheduler_identity_retired]
     cmp [rel scheduler_identity_pool+8], rax
     jne .bad
-    cmp dword [rel scheduler_identity_pool+16], TASK_SLOT_CAPACITY
+    cmp dword [rel scheduler_identity_pool+16], NATIVE_POOL_TASKS
     jne .bad
     mov eax, [rel process_run_generation]
     cmp [rel scheduler_identity_pool+20], eax
@@ -166,7 +207,7 @@ process_run_validate64:
     test eax,edx
     jnz .bad
     or eax,edx
-    test eax,~15
+    test eax,~NATIVE_POOL_MASK
     jnz .bad
 %endif
     xor ebx, ebx
@@ -204,7 +245,7 @@ process_run_validate64:
     test esi, esi
 %ifdef REIST_NATIVE_LIFECYCLE
     jnz .has_generation
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     je .outside
 .has_generation:
 %endif
@@ -212,7 +253,7 @@ process_run_validate64:
     cmp esi, [rel process_run_generation]
     ja .bad
 %ifdef REIST_NATIVE_LIFECYCLE
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     je .generation_ready
 %endif
     mov eax, [rel process_run_generation]
@@ -270,7 +311,7 @@ process_run_validate64:
     inc r8d
 .fifo_next:
     inc ecx
-    cmp ecx, TASK_SLOT_CAPACITY
+    cmp ecx, NATIVE_POOL_TASKS
     jb .fifo
     cmp r8d, r10d
     jne .bad
@@ -300,7 +341,7 @@ process_run_validate64:
 .deadline_next:
     add rdx, 16
     inc ecx
-    cmp ecx, TASK_SLOT_CAPACITY
+    cmp ecx, NATIVE_POOL_TASKS
     jb .deadline
     cmp r8d, r11d
     jne .bad
@@ -385,7 +426,7 @@ process_run_validate64:
     jnz .bad
 .next:
     inc ebx
-    cmp ebx, TASK_SLOT_CAPACITY
+    cmp ebx, NATIVE_POOL_TASKS
     jb .task
     cmp r14d, 1
     ja .bad
@@ -393,7 +434,7 @@ process_run_validate64:
     jne .bad
     add ebp, [rel scheduler_reap_count]
 %ifdef REIST_NATIVE_LIFECYCLE
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .legacy_total
     cmp ebp,[rel family_total]
     jne .bad
@@ -429,7 +470,7 @@ process_run_validate64:
 
 ; Read-only uniqueness across ALL private resources, including retired slots.
 process_run_frames64:
-    sub rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
+    sub rsp, NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8
 %ifdef REIST_NATIVE_WIDE
     ; Invocation-local negative filter, never cached authority. Collisions
     ; still execute the exact full-width scan below; every frame is recorded.
@@ -437,7 +478,7 @@ process_run_frames64:
     xor eax,eax
 %assign frame_filter_word 0
 %rep 8
-    mov [rsp+TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8+frame_filter_word*8],rax
+    mov [rsp+NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8+frame_filter_word*8],rax
 %assign frame_filter_word frame_filter_word+1
 %endrep
 %endif
@@ -504,7 +545,7 @@ process_run_frames64:
     shr r10,30
     xor r9,r10
     and r9d,511
-    bts qword [rsp+TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8],r9
+    bts qword [rsp+NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8],r9
     jnc .record
 %endif
     xor edx, edx
@@ -523,7 +564,7 @@ process_run_frames64:
     cmp ecx, NATIVE_CLAIM_FRAMES
     jb .frame
     inc ebx
-    cmp ebx, TASK_SLOT_CAPACITY
+    cmp ebx, NATIVE_POOL_TASKS
     jb .slot
     mov eax, 1
     jmp .return
@@ -533,7 +574,7 @@ process_run_frames64:
 %ifdef REIST_NATIVE_WIDE
     add rsp,64
 %endif
-    add rsp, TASK_SLOT_CAPACITY*NATIVE_CLAIM_FRAMES*8
+    add rsp, NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8
     ret
 
 ; Trusted caller pointer is pinned to C rodata by the bridge. No user pointer.
@@ -544,6 +585,12 @@ x86_64_process_run64:
     call process_run_admit64
     test eax, eax
     jz .reject
+%ifdef REIST_NATIVE_TASK_POOL
+    ; Pure admission also understands legacy descriptors. This selected
+    ; runtime may copy272 bytes only from an explicitly admitted v4 caller.
+    cmp dword [rdi],4
+    jne .reject
+%endif
     cmp byte [rel scheduler_active], 0
     jne .reject
     mov eax, [rel process_run_generation]
@@ -559,14 +606,14 @@ x86_64_process_run64:
     jne .reject
     mov rsi, rdi
     lea rdi, [rel process_run_plan]
-    mov ecx, 144/8
+    mov ecx, NATIVE_POOL_RUN_BYTES/8
     rep movsq
     lea rdi, [rel scheduler_state_begin]
     xor eax, eax
     mov ecx, (scheduler_state_end-scheduler_state_begin)/8
     rep stosq
     lea rdi, [rel process_run_generations]
-    mov ecx, 16/8
+    mov ecx, NATIVE_POOL_TASKS*4/8
     rep stosq
     mov [rel process_run_live], eax
     mov [rel scheduler_caller_rsp], rsp
@@ -578,7 +625,7 @@ x86_64_process_run64:
     mov [rel scheduler_identity_pool], rax
     lea rax, [rel scheduler_identity_retired]
     mov [rel scheduler_identity_pool+8], rax
-    mov dword [rel scheduler_identity_pool+16], TASK_SLOT_CAPACITY
+    mov dword [rel scheduler_identity_pool+16], NATIVE_POOL_TASKS
     mov eax, [rel process_run_generation]
     mov [rel scheduler_identity_pool+20], eax
 %ifdef REIST_NATIVE_RUNTIME
@@ -684,7 +731,7 @@ x86_64_process_run64:
     inc dword [rel process_run_build_slot]
     mov eax, [rel process_run_build_slot]
 %ifdef REIST_NATIVE_LIFECYCLE
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .all_initial
     cmp eax,2
     jb .build
@@ -704,7 +751,7 @@ x86_64_process_run64:
     call process_ipc_service64
     inc ebx
 %ifdef REIST_NATIVE_LIFECYCLE
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .all_ipc
     cmp ebx,2
     jb .ipc_bind
@@ -727,7 +774,7 @@ x86_64_process_run64:
     jnz scheduler_fail
     inc ebx
 %ifdef REIST_NATIVE_LIFECYCLE
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .all_heap
     cmp ebx,2
     jb .heap_bind
@@ -775,7 +822,7 @@ process_run_dispatch64:
     call family_dispatch64
 %endif
     lea rdx, [rel scheduler_tasks]
-    mov ecx, TASK_SLOT_CAPACITY
+    mov ecx, NATIVE_POOL_TASKS
 .quiescent:
     cmp qword [rdx+TASK_STATE], TASK_RUNNING
     je scheduler_fail
@@ -989,7 +1036,7 @@ process_run_exception64:
     test eax, eax
     jz .bad
     mov eax, [rel scheduler_current_slot]
-    cmp eax, TASK_SLOT_CAPACITY
+    cmp eax, NATIVE_POOL_TASKS
     jae .bad
     shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
@@ -1022,7 +1069,7 @@ process_run_irq_validate64:
     cmp qword [rdi+EXCEPTION_FRAME_SS], USER_DATA_SELECTOR
     jne .bad
     mov eax, [rel scheduler_current_slot]
-    cmp eax, TASK_SLOT_CAPACITY
+    cmp eax, NATIVE_POOL_TASKS
     jae .bad
     shl eax, NATIVE_TASK_SHIFT
     lea r12, [rel scheduler_tasks]
@@ -1079,14 +1126,26 @@ process_run_irq_validate64:
     mov eax,[rel process_heap_retire_mask]
     mov edx,[rel process_heap_pending_mask]
     or edx,eax
+%ifdef REIST_NATIVE_TASK_POOL
+    test edx,~NATIVE_POOL_MASK
+%else
     test edx,~15
+%endif
     jnz .bad
     test edx,edx
     jz .bad
+%ifdef REIST_NATIVE_TASK_POOL
+    test eax,~NATIVE_POOL_MASK
+%else
     test eax,~15
+%endif
     jnz .bad
     xor edx,edx
+%ifdef REIST_NATIVE_TASK_POOL
+    mov ecx,NATIVE_POOL_TASKS
+%else
     mov ecx,4
+%endif
 .retiring_count:
     shr eax,1
     adc edx,0
@@ -1260,7 +1319,7 @@ process_run_wake64:
     lea r10, [rel scheduler_deadline_entries]
     cmp [r10], rbp
     ja .done
-    cmp ebx, TASK_SLOT_CAPACITY
+    cmp ebx, NATIVE_POOL_TASKS
     jae .bad
     mov esi, [r10+8]
     movzx edi, byte [r10+12]
@@ -1405,10 +1464,10 @@ process_run_finish64:
     ; Per-task state was validated empty, and common cleanup proves frame balance.
     lea rdi, [rel process_run_plan]
     xor eax, eax
-    mov ecx, 144/8
+    mov ecx, NATIVE_POOL_RUN_BYTES/8
     rep stosq
     lea rdi, [rel process_run_generations]
-    mov ecx, 16/8
+    mov ecx, NATIVE_POOL_TASKS*4/8
     rep stosq
     mov [rel process_run_build_slot], eax
     lea rdi, [rel scheduler_syscall_context]

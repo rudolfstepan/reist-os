@@ -32,6 +32,7 @@ param(
     [switch]$NativeBlockProfile,
     [switch]$NativeFilesystem,
     [switch]$NativeFileLaunch,
+    [switch]$NativeTaskPool,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -50,6 +51,14 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeTaskPool) {
+    if ($NativePIO -or $NativeBlock -or $NativeBlockProfile -or $NativeFilesystem -or $NativeFileLaunch -or
+        $MemoryCase -ne 0 -or $PIOCase -ne 0 -or $StartupCase -ne 0 -or $FamilyCase -ne 0 -or
+        $BlockProfileCase -ne 0 -or $FilesystemCase -ne 0 -or $FilesystemLayout -ne 2 -or $FileLaunchCase -ne 0) {
+        throw 'NativeTaskPool requires plain NativeWide and excludes device and fault selectors.'
+    }
+    $NativeWide = [switch]$true
+}
 if ($NativeFileLaunch) {
     if ($FilesystemCase -ne 0) { throw 'NativeFileLaunch excludes FilesystemCase.' }
     $NativeFilesystem = [switch]$true
@@ -360,6 +369,7 @@ try {
         "X86_64_NATIVE_BLOCK_PROFILE=$([int]$NativeBlockProfile.IsPresent)" `
         "X86_64_NATIVE_FILESYSTEM=$([int]$NativeFilesystem.IsPresent)" `
         "X86_64_NATIVE_FILE_LAUNCH=$([int]$NativeFileLaunch.IsPresent)" `
+        "X86_64_NATIVE_TASK_POOL=$([int]$NativeTaskPool.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `

@@ -31,10 +31,13 @@ SECTIONS {
     KEEP(*(.heap_state))
   } :heap
   ASSERT(SIZEOF(.heap_state) == 0 ||
-         (SIZEOF(.memory_state) == 4531096 && SIZEOF(.heap_state) == 397704),
+         (SIZEOF(.memory_state) == 4531096 &&
+          ((SIZEOF(.heap_state) == 397704 && !DEFINED(native_task_pool_capacity)) ||
+           (SIZEOF(.heap_state) == 795176 && DEFINED(native_task_pool_capacity)))),
          "native heap exact metadata layout")
   ASSERT(SIZEOF(.heap_state) == 0 ||
-         0xFFFFFFFF80653000 + SIZEOF(.heap_state) <= 0xFFFFFFFF80700000,
+         0xFFFFFFFF80653000 + SIZEOF(.heap_state) <=
+           (DEFINED(native_task_pool_capacity) ? 0xFFFFFFFF80800000 : 0xFFFFFFFF80700000),
          "native combined metadata capacity")
   .init_array : { *(.init_array .init_array.* .ctors .ctors.*) } :NONE
   .fini_array : { *(.fini_array .fini_array.* .dtors .dtors.*) } :NONE

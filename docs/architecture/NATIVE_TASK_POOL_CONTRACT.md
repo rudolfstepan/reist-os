@@ -134,7 +134,7 @@ After the clean commit continue the next in-priority slice; R3.6b stays deferred
 Eight finite processes are a prerequisite, not long-lived services, SMP,
 ordinary shell, desktop/browser or complete native OS acceptance.
 
-## Implementation bindings (not an acceptance claim)
+## Implementation bindings
 
 The profile uses `proc/native_pool.h` and `mm/native_layout.inc`; backing8,
 legacy active4 and roots2 remain separate constants. Layout5 heap state is
@@ -259,3 +259,24 @@ All original gate predicates remain. One unchanged ten-case matrix,20s per
 guest/200s including cleanup; first failure stops without another repair or
 retry. Host300s/verifier180s/runtime600s and cumulative guest bounds remain.
 Only24 PASS/REUSED and direct scope/ABI/cleanup review permit acceptance.
+
+## 15 September: completed qualification
+
+Candidate07 on d5764fb9 satisfies all24 frozen obligations:21 executed PASS,
+three source/tool/profile/command/log/artifact-bound builds explicitly REUSED
+from candidate06, zero new kernel builds or links. All17 host groups, complete
+normal/FileLaunch binary equality, unchanged i386 guard and final review pass.
+The ten-case unchanged-image matrix passes in89.244703s, each guest including
+cleanup below20s, with two runs, all slot/frame/IPC/heap/retirement checks and
+independent same-stop kernel/high byte comparisons. Earlier failures remain
+failures, including candidate06's first6.501117s guest; no kernel repair claim.
+
+Direct source/ABI/bounds/cleanup and both build-entry reviews completed.
+The immutable verification-status-context-owner-qualified.json binds40 source
+snapshots,1525 inputs,1885 new evidence files and the entire prior chain/521
+protected artifacts before documentation-only queue finalization. Final local
+commit and clean worktree are recorded separately in
+verification-status-task-pool-final.json. No acceptance gate is repeated for
+these status-only notes, and they are not presented as frozen tested inputs.
+This accepts the finite eight-task profile, not device integration, long-lived
+services, ordinary shell, SMP, hardware certification or a complete64-bit OS.

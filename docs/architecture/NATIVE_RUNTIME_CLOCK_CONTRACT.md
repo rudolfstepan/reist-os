@@ -1,6 +1,12 @@
 # Native Laufzeituhr und Fristen
 
-Stand: 14. September 2026. R8.3ac, Basis `f88a439d`; R8.3am-Idle-Kandidat unten.
+Stand: 14. September 2026. R8.3ac, Basis `f88a439d`; R8.3am mit `0f4efd17`
+abgenommen. Die Idle-Reparaturgeschichte unten bleibt als Nachweis erhalten.
+
+Das zusätzliche [Acht-Task-Profil](NATIVE_TASK_POOL_CONTRACT.md) verändert keine
+CPU-, Tick-, IRQ-, WAIT- oder Sleep-Grenze. Acht aktive Task-/Deadlineeinträge
+werden nur durch private run-v4 zugelassen; alte Bootstrapproben bleiben bei
+vier. Schlafen, IPC, WAIT und Ersatzstarts setzen keine CPU-Quote zurück.
 
 ## Umfang und Grenze
 

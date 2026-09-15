@@ -19,16 +19,16 @@ static uint64_t current_tick;
  * optimization from narrowing/re-encoding the stored32-bit complement. */
 static volatile uint32_t initialized,entered;
 static volatile uint32_t initialized_inverse=UINT32_MAX;
-static Process clients[4];
-static uint32_t retired[4];
+static Process clients[REIST_NATIVE_TASKS];
+static uint32_t retired[REIST_NATIVE_TASKS];
 typedef struct {
     native_ipc_request_t request;
     uint32_t generation,state; /*0 empty,1 deadline-wait,2 ready-for-copyout */
 } Pending;
-static Pending pending[4];
+static Pending pending[REIST_NATIVE_TASKS];
 /* Two controls, three v1-prefix chunks, thirty optional bulk-tail chunks.
  * Always verify controls before selecting any capacity-dependent work. */
-static critical_object_t client_guards[4][2],pending_guards[4][35];
+static critical_object_t client_guards[REIST_NATIVE_TASKS][2],pending_guards[REIST_NATIVE_TASKS][35];
 static critical_object_t retired_guard;
 _Static_assert(sizeof(Process)==108 && sizeof(Pending)==2144,"bounded IPC snapshots");
 
@@ -88,7 +88,7 @@ static void verify(critical_object_t *guards,const void *data,size_t size) {
 }
 static void check_all(void) {
     verify(&retired_guard,retired,sizeof(retired));
-    for(unsigned i=0;i<4;i++) {
+    for(unsigned i=0;i<REIST_NATIVE_TASKS;i++) {
         verify(client_guards[i],&clients[i],sizeof(clients[i]));
         verify(pending_guards[i],&pending[i],64);
         verify(pending_guards[i]+1,&pending[i].request.handle,20);
@@ -105,7 +105,7 @@ static void check_all(void) {
 }
 static void seal_all(bool init) {
     protect(&retired_guard,retired,sizeof(retired),init);
-    for(unsigned i=0;i<4;i++) {
+    for(unsigned i=0;i<REIST_NATIVE_TASKS;i++) {
         protect(client_guards[i],&clients[i],sizeof(clients[i]),init);
         protect(pending_guards[i],&pending[i],64,init);
         protect(pending_guards[i]+1,&pending[i].request.handle,20,init);
@@ -133,11 +133,11 @@ static void seal_pending(unsigned slot) {
 }
 static uint64_t pump(bool deadlines_only,uint32_t *changed) {
     uint64_t ready=0;
-    /* At most four completions. A completion can free space for a preceding
-     * sender, hence four bounded passes, never a userspace-facing spin. */
-    for(unsigned pass=0;pass<(deadlines_only?1U:4U);pass++) {
+    /* At most one completion per configured task. A completion can free space
+     * for a preceding sender; at most TASKS passes, never a user-facing spin. */
+    for(unsigned pass=0;pass<(deadlines_only?1U:REIST_NATIVE_TASKS);pass++) {
         bool progress=false;
-        for(unsigned s=0;s<4;s++) {
+        for(unsigned s=0;s<REIST_NATIVE_TASKS;s++) {
             Pending *p=&pending[s];
             if(p->state!=1) continue;
             if(deadlines_only && current_tick<p->request.deadline) continue;
@@ -168,7 +168,7 @@ static int dispatch_request(unsigned slot,native_ipc_request_t *r,uint32_t *chan
     }
     if(r->number==55) {
         if(!r->a1 || r->a1>INT32_MAX || r->a2>UINT32_MAX) return -22;
-        for(unsigned s=0;s<4;s++) if(clients[s].is_running && (uint64_t)clients[s].pid==r->a1)
+        for(unsigned s=0;s<REIST_NATIVE_TASKS;s++) if(clients[s].is_running && (uint64_t)clients[s].pid==r->a1)
             return ipc_delegate(&clients[slot],(ipc_handle_t)r->a0,&clients[s],(uint32_t)r->a2);
         return -3; /* ESRCH: generation-valued PID no longer live. */
     }
@@ -193,7 +193,7 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
     serialized();
     uint32_t init_snapshot=initialized;
     native_ipc_require(init_snapshot<=1 && initialized_inverse==~init_snapshot);
-    native_ipc_require(!entered && slot<4 && generation && generation<=INT32_MAX &&
+    native_ipc_require(!entered && slot<REIST_NATIVE_TASKS && generation && generation<=INT32_MAX &&
                         tick<NATIVE_TICK_HORIZON && r && ((uintptr_t)r&7)==0 && operation<=NATIVE_IPC_END);
 #ifdef REIST_NATIVE_RUNTIME
     native_ipc_require(tick>=current_tick);
@@ -215,7 +215,7 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
         ipc_resource_stats_t stats;
         native_ipc_require(ipc_resource_stats(&stats)==0 && !stats.active_endpoints &&
                             !stats.active_capabilities && !stats.queued_messages);
-        for(unsigned s=0;s<4;s++) native_ipc_require(!clients[s].is_running && !pending[s].state);
+        for(unsigned s=0;s<REIST_NATIVE_TASKS;s++) native_ipc_require(!clients[s].is_running && !pending[s].state);
     } else if(operation==NATIVE_IPC_PUMP) {
         r->ready=pump(true,&changed);
     } else {
@@ -241,7 +241,7 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
     }
     if(operation==NATIVE_IPC_BIND) protect(client_guards[slot],p,sizeof(*p),false);
     else if(operation==NATIVE_IPC_REQUEST && r->number==55) {
-        for(unsigned i=0;i<4;i++)
+        for(unsigned i=0;i<REIST_NATIVE_TASKS;i++)
             if(clients[i].is_running && (uint64_t)clients[i].pid==r->a1)
                 protect(client_guards[i],&clients[i],sizeof(clients[i]),false);
     }
@@ -249,9 +249,9 @@ uint64_t reist_native_ipc(uint64_t operation,uint64_t slot,uint64_t generation,
      * returns EINTEGRITY and has already entered fatal above, never here. */
     else if(operation==NATIVE_IPC_REAP || (operation==NATIVE_IPC_REQUEST &&
             (r->number==49 || r->number==52 || r->number==58)))
-        for(unsigned i=0;i<4;i++) protect(client_guards[i],&clients[i],sizeof(clients[i]),false);
+        for(unsigned i=0;i<REIST_NATIVE_TASKS;i++) protect(client_guards[i],&clients[i],sizeof(clients[i]),false);
     if(operation==NATIVE_IPC_REAP) protect(&retired_guard,retired,sizeof(retired),false);
-    native_ipc_require(!(changed&~15U));
-    for(unsigned i=0;i<4;i++) if(changed&(1U<<i)) seal_pending(i);
+    native_ipc_require(!(changed&~REIST_NATIVE_TASK_MASK));
+    for(unsigned i=0;i<REIST_NATIVE_TASKS;i++) if(changed&(1U<<i)) seal_pending(i);
     entered=0;return 1;
 }

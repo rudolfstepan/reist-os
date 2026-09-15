@@ -47,7 +47,7 @@ family_request_admit64:
     mov rax,[rdi+16]
     test rax,rax
     jz .invalid
-    cmp eax,4
+    cmp eax,NATIVE_POOL_TASKS
     jae .invalid
     shr rax,32
     dec rax
@@ -282,7 +282,7 @@ family_record64:
     ret
 
 family_profile_apply64:
-    cmp edi,4
+    cmp edi,NATIVE_POOL_TASKS
     jae .bad
     push rbp
     mov rbp,rsp
@@ -386,7 +386,7 @@ family_initialize64:
     ret
 
 family_root_built64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
     mov edi,[rel process_run_build_slot]
     call family_record64
@@ -407,7 +407,7 @@ family_validate_runtime64:
     push r13
     cmp dword [rel family_total],18
     ja .bad
-    test dword [rel family_cancel_mask],~12
+    test dword [rel family_cancel_mask],~NATIVE_POOL_CHILD_MASK
     jnz .bad
     xor ebx,ebx
 .slot:
@@ -456,7 +456,7 @@ family_validate_runtime64:
     jne .bad
     mov edi,ecx
     sub edi,2
-    cmp edi,1
+    cmp edi,NATIVE_POOL_TASKS-3
     ja .bad
     add edi,2
     shl edi,6
@@ -472,7 +472,7 @@ family_validate_runtime64:
     jbe .bad
     mov rsi,[r12+TASK_GENERATION]
     lea rdx,[rel scheduler_deadline_entries]
-    mov edi,4
+    mov edi,NATIVE_POOL_TASKS
 .wait_entry:
     cmp [rdx+8],esi
     je .wait_found
@@ -561,7 +561,7 @@ family_validate_runtime64:
     jne .bad
 .next:
     inc ebx
-    cmp ebx,4
+    cmp ebx,NATIVE_POOL_TASKS
     jb .slot
     mov eax,1
     jmp .return
@@ -805,7 +805,7 @@ family_create64:
     cmp qword [rax+rcx+40],0
     je .found
     inc edi
-    cmp edi,4
+    cmp edi,NATIVE_POOL_TASKS
     jb .slot
 .capacity:
     mov rax,-11
@@ -814,7 +814,7 @@ family_create64:
     mov [rel family_build_slot],edi
     cmp dword [rel family_request],3
     jb .image_selected
-    ; Internal image7/8 is owned by this exact dynamic slot, never a catalog ID.
+    ; Internal image slot+5 belongs to this dynamic slot, never a catalog ID.
     lea eax,[rdi+5]
     mov [rel family_request+24],rax
 .image_selected:
@@ -1055,7 +1055,7 @@ family_wait64:
     jmp family_result64
 
 family_wait_expired64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
     push rax
     push r10
@@ -1074,7 +1074,7 @@ family_wait_expired64:
     ret
 
 family_terminal64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
 %ifdef REIST_NATIVE_PIO
     call native_pio_terminal64
@@ -1123,7 +1123,7 @@ family_terminal64:
 .next:
     add r10,64
     inc ecx
-    cmp ecx,4
+    cmp ecx,NATIVE_POOL_TASKS
     jb .children
 .restore:
     pop r10
@@ -1133,7 +1133,7 @@ family_terminal64:
     ret
 
 family_reaped64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
     mov edi,[rel scheduler_current_slot]
     call family_record64
@@ -1151,7 +1151,7 @@ family_reaped64:
     ret
 
 family_dispatch64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
     call process_run_validate64
     cmp eax,1
@@ -1166,7 +1166,7 @@ family_dispatch64:
     btr dword [rel family_cancel_mask],ebx
 .cancel_next:
     inc ebx
-    cmp ebx,4
+    cmp ebx,NATIVE_POOL_TASKS
     jb .cancel
     mov ebx,2
 .receipt:
@@ -1210,7 +1210,7 @@ family_dispatch64:
     rep stosq
 .receipt_next:
     inc ebx
-    cmp ebx,4
+    cmp ebx,NATIVE_POOL_TASKS
     jb .receipt
     pop rbx
 .done:
@@ -1243,7 +1243,7 @@ family_cancel_one64:
     cmp qword [r12+TASK_STATE],TASK_BLOCKED
     jne scheduler_fail
     lea r13,[rel scheduler_deadline_entries]
-    mov ecx,4
+    mov ecx,NATIVE_POOL_TASKS
 .deadline:
     cmp [r13+8],esi
     je .found
@@ -1297,14 +1297,24 @@ family_cancel_one64:
     ret
 
 family_finish64:
-    cmp dword [rel process_run_plan],3
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
     cmp dword [rel family_cancel_mask],0
     jne scheduler_fail
+%ifdef REIST_NATIVE_TASK_POOL
+    lea rdx,[rel family_records+2*64+40]
+    mov ecx,NATIVE_POOL_TASKS-2
+.children_empty:
+    cmp qword [rdx],0
+    jne scheduler_fail
+    add rdx,64
+    loop .children_empty
+%else
     cmp qword [rel family_records+128+40],0
     jne scheduler_fail
     cmp qword [rel family_records+192+40],0
     jne scheduler_fail
+%endif
 %ifdef REIST_NATIVE_PIO
     call native_pio_finish64
 %endif
@@ -1315,12 +1325,14 @@ family_finish64:
 section .bss
 alignb 8
 family_begin:
-family_records: resb 4*64
-family_profiles: resb 4*32
-family_extended_masks: resb 4*16
+; Keep this extracted data fragment self-contained; the include is guarded.
+%include "arch/x86_64/mm/native_layout.inc"
+family_records: resb NATIVE_POOL_TASKS*64
+family_profiles: resb NATIVE_POOL_TASKS*32
+family_extended_masks: resb NATIVE_POOL_TASKS*16
 family_admitted_profile: resb 40
 family_request: resb 64
-family_reasons: resd 4
+family_reasons: resd NATIVE_POOL_TASKS
 family_total: resd 1
 family_cancel_mask: resd 1
 family_build_slot: resd 1

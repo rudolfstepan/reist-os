@@ -2,6 +2,12 @@
 
 Stand: 14. September 2026
 
+R8.3an ergänzt das explizite [Acht-Prozess-Profil](NATIVE_TASK_POOL_CONTRACT.md)
+(`-NativeTaskPool` bzw. `X86_64_NATIVE_TASK_POOL=1` mit den dortigen Voraussetzungen).
+Es nutzt private run-v4/C-layout5; Standard-, Dateistart- und i386-Profile
+werden nicht umgestellt. Maßgeblich sind die24 eingefrorenen Gruppen und die
+separate Abschlussquittung, nicht allein ein erfolgreicher Bootstrap.
+
 Neuester Stand: R8.3am-Dateistartpaket vollständig qualifiziert auf Vertrag
 `f979c9a6`, alle30 Verpflichtungen plus Eingangs-/Abschlussprüfung bestanden.
 Neue vollständige18-Fall-Matrix mit unabhängigen Kernel-/High-Bytevergleichen
@@ -10,7 +16,7 @@ Kontrollgast16,901s PASS; unveränderte20s/360s und vollständige ursprüngliche
 Oracles. Null neue Builds/Links; FS18, Normalboot, vier IRQ-Fälle und Referenz
 quellen-/werkzeug-/artefakt-/beleggebunden erhalten. Gesamtreview und immutable
 Kandidatenbindung abgeschlossen, null QEMU-/GDB-Prozesse. Queue R8.3am done,
-lokaler Commit wird separat gebunden. Alter22,565s-Timeout bleibt fehlgeschlagen
+lokaler Commit `0f4efd17` ist separat gebunden. Alter22,565s-Timeout bleibt fehlgeschlagen
 und ungeklärt, kein garantierter Zeitnachweis oder kausaler Reparaturanspruch.
 Begrenzter Ring3-Dateistart ist nicht normale parallele Shell-/Dienstintegration
 oder die vollständige64-Bit-Version. [Belege](../development/CURRENT_WORK.md).
