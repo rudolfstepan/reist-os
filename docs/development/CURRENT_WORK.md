@@ -42,6 +42,14 @@ den geschützten Include im extrahierten Datenfragment und Kandidat06-Belege.
 Gleiche24 Gruppen, höchstens drei Builds/zehn Gäste; alle früheren Fehler
 bleiben erhalten. Abnahme und Implementierungscommit stehen weiterhin aus.
 
+Kandidat06:17 Hostgruppen, drei Builds und Bytegleichheit der bisherigen
+Profile bestanden (21PASS/1FAIL/2NOT_RUN). Der erste Gast stoppt nach6,501s
+an einer Image-Besitzannahme des neuen Prüfers. Die erneute Freigabe korrigiert
+ausschließlich die Zuordnung zum ausgewählten oder gespeicherten Loader-
+Kontext samt ausführbaren Negativtests. Kernel und Gastprogramm bleiben
+unverändert; die drei erfolgreichen Builds werden quell-/werkzeug-/profil-/
+artefaktgebunden wiederverwendet. Alle24 Abnahmeverpflichtungen bleiben.
+
 ## R8.3am: Vollständige Dateistart-Paketabnahme bestanden
 
 Auf eingefrorenem Vertrag `f979c9a6` sind alle30 Abnahmeverpflichtungen sowie

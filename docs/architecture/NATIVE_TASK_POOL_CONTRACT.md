@@ -230,3 +230,32 @@ The recorded failed original host gate supplies the red regression evidence.
 Freeze the same24 commands and all sources/helpers/tools, one pass, stop at
 first failure without another repair/retry. Three builds and ten same-image
 20s guests/200s including cleanup remain maxima; all previous attempts stay.
+
+## 15 September: selected-or-stored observer ownership renewal
+
+Candidate06 remains21PASS/1FAIL/2NOT_RUN. All17 host groups, three builds and
+default-byte equivalence passed. Its first guest stopped after6.501117s at
+the observer's private-image assertion, before any accepted pool start.
+The selected loader staging window is not the currently executing task.
+The renewed continuation authorizes only the pool observer, its existing test
+file and verifier bookkeeping, plus queue/contract/status documentation.
+Admit40 sources/1525 inputs/1060 latest evidence, every earlier status chain
+and521 protected artifacts before changes. Production sources stay frozen.
+
+First add an executable generated-observer regression where the task's image
+differs from the selected loader context. Cover all eight slots and thirteen
+selectors with distinct frame sentinels, selected-window versus stored-context
+selection, and wrong task image/generation/context/flags/entry/frame/active
+state. Bind authoritative per-task run-plan and family identity, then read the
+existing matching context without guest writes. Preserve all original mapped
+immutable frame/byte, private ownership, W^X and generation checks.
+
+Freeze candidate07 and the original24 obligations. Run17 host and four
+default/runtime/reference/review groups once. Mark only builds18..20 REUSED
+from candidate06 after exact old/new source/tool/profile/command/result/log/
+artifact binding; same output paths, no compiler or linker execution. Test
+reuse rejection on any unrelated input/tool/profile/result/artifact drift.
+All original gate predicates remain. One unchanged ten-case matrix,20s per
+guest/200s including cleanup; first failure stops without another repair or
+retry. Host300s/verifier180s/runtime600s and cumulative guest bounds remain.
+Only24 PASS/REUSED and direct scope/ABI/cleanup review permit acceptance.
