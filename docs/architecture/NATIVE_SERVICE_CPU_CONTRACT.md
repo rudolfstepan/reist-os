@@ -1,5 +1,73 @@
 # Native periodic CPU admission — R8.3ap
 
+## Runtime-cost renewal,16 September
+
+Renewed continuation authorizes the requested bounded runtime diagnosis and
+observer-only correction, not another build. Resume the sealed workload stop
+on76db0c33 (1539 inputs/2371 evidence/521 protected artifacts). Kernel, fixture,
+SDK, producer and all four built profiles stay exact; reuse their actual
+successful receipts with full source/tool/profile/command/log/artifact binding.
+The retained service image is7804de6d5496406457288258ed56501b4e7ef49d5749aa88a632d78812f42a9a.
+
+One fixed case0/4096 diagnostic guest adds only host-side timing/counters to
+the full unchanged observer. Reuse the actual bounded Cost accountant, with
+the service observer's8192-callback ceiling and128 checkpoints of8192 bytes.
+Measure final binary-memory reader calls, register calls and complete callback
+costs; preserve return values, exceptions, every hook and original guest
+access. Forwarding/failure behavior is host-tested before this guest. Keep
+original capture/cleanup bounds; a reproduced deadline is diagnostic data,
+never acceptance. Other unexpected failures stop. Count this guest, including
+failed elapsed time, in the original cumulative42/840 ceiling.
+
+Only then make an evidence-directed observer/test/verifier correction. At
+most two changed candidates/one correction and two lifecycle/two fatal
+matrices; no unchanged retry or automatic budget renewal. Same24 commands,
+all CPU/lifecycle/fatal predicates,40-sample minimum,20s including cleanup,
+65536-byte text and128MiB/2048-file evidence bounds. Zero new builds.
+Runtime speedups must preserve observable before/after facts, not alter guest
+clock/workload or manufacture samples through debugger delays. Full actual
+callback regressions, complete fresh matrix and direct scope/ABI review
+remain required before implementation commit. This supersedes only the
+exhausted observer-correction authority; historical failures remain failed.
+
+## Enclosing calibration candidate01: guest deadline stop
+
+Frozen f9d0732d on76db0c33 passes20/24 gates: all15 host groups (CPU25
+tests, including actual O0/O2 calibration and four default preprocessors),
+three strictly bound reference-build reuses, the single new service build
+in10.310434s and exact defaults in42.495384s. The interrupted executor had
+not opened gate19's log or created its output directory; it resumed before
+the actual build, without repeating a gate or a build. New service image
+SHA256 is7804de6d5496406457288258ed56501b4e7ef49d5749aa88a632d78812f42a9a.
+
+Gate21 fails the first normal4GiB guest: observation reaches20.010049s,
+cleanup takes2.071761s, total guest elapsed24.226725s. First run completes
+at12.446640s; the final serial log has13 of16 reaps, all healthy with44..64
+samples. Generations9,10,16 have no final kernel receipt. The progress
+snapshot records12 reaps before cleanup; draining serial adds the thirteenth.
+This is neither a completed guest nor proof for the remaining generations.
+
+The text trace is17222 bytes, not a capacity failure. It references853 CPU
+rows, but only816 rows reached the buffered binary file before interruption;
+there is no closing count/hash. The persisted prefix has exact encoding,
+charge continuity and matching available kernel receipts. This diagnostic
+does not synthesize37 absent rows, close the ledger or promote it to PASS.
+No captured calibration-trial or hook-cost timeline establishes the precise
+latency cause. The generic capture/detach error accompanies the measured
+deadline; it is not evidence that a successful guest merely failed to detach.
+
+Stop after this single new guest. Cases1..11 and gates22..24 were not run;
+no implementation commit or queue advance. The one-candidate/one-build
+renewal is exhausted, as is the remaining compact-candidate opportunity.
+All eight historical guests now total159.797200s within the cumulative42/840
+ceiling; unused guest capacity does not authorize another matrix or candidate.
+Keep all old evidence and the new image in place. Read-only diagnosis and
+sealed status are workload-deadline-diagnosis.json and
+verification-status-workload-stopped.json under build/codex-agent/r83ap-service-cpu.
+Further work needs a separately bounded runtime-cost diagnosis/correction
+using the retained image where its inputs remain exact, not an unchanged
+retry, a longer deadline, reduced CPU proof or an automatic new build.
+
 ## Enclosing calibration renewal,16 September
 
 Renewed continuation admits the requested fixture correction and exactly one

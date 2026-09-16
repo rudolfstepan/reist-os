@@ -2,6 +2,45 @@
 
 Stand: 16. September 2026
 
+## R8.3ap: begrenzte Laufzeitdiagnose und Observer-Korrektur freigegeben
+
+Erneutes mach weiter bestätigt die angefragte Fortsetzung ohne Neubau.
+1539 Eingaben/2371 Belege/521 geschützte Artefakte unverändert nachgeprüft.
+Ein profilierter4GiB-Gast misst ausschließlich Hostkosten des vollständigen
+Observers; Rückgaben, Fehler, Haltepunkte und Gastzugriffe bleiben erhalten.
+Danach höchstens zwei beleggestützt geänderte Observer-Kandidaten mit allen
+24 Gates, vier exakt gebundenen Build-Wiederverwendungen und unveränderten
+CPU-/Zeit-/Beleggrenzen. Diagnose zählt zum kumulativen42-Gäste-/840s-Budget.
+Kernel, Testlast und erzeugtes Image bleiben exakt; keine automatische
+Wiederholung, kein Neubau, keine vorweggenommene Abnahme.
+
+## R8.3ap:20/24 Gates; neuer Service-Build fertig, Gast-Zeitlimit offen
+
+Kandidat f9d0732d auf76db0c33: alle15 Hostgruppen bestanden, CPU25 Tests
+einschließlich tatsächlicher O0/O2-Kalibrierung und unveränderter Präprozessor-
+Ausgabe der vier Altvarianten. Drei Referenzbuilds geprüft wiederverwendet;
+genau ein neues Service-Image in10,310434s, Altprofilvergleich42,495384s.
+Die Sitzungsunterbrechung lag vor dem eigentlichen Buildstart; keine Wiederholung.
+
+Der erste normale4GiB-Gast überschreitet das unveränderte Zeitlimit:
+20,010049s Beobachtung,2,071761s Bereinigung,24,226725s insgesamt.
+Ein Durchlauf vollständig,13 von16 Reaps vorhanden; diese zeigen44..64
+CPU-Samples. Generationen9,10,16 und die übrigen Fälle bleiben unbewiesen.
+17222 Textbytes liegen unter der Kapazitätsgrenze. Das Binärprotokoll ist
+beim Abbruch unvollständig:816 gespeicherte von853 referenzierten Zeilen,
+kein Abschluss-Hash. Kein nachträgliches Ergänzen oder Umdeuten als PASS.
+Die genaue Laufzeitursache ist mit diesen Belegen nicht festgestellt.
+
+Gate21 fehlgeschlagen; Fälle1..11/Gates22..24 nicht gestartet. Kein weiterer
+Gast, Build, Implementierungscommit oder Queue-Fortschritt. Das ausdrücklich
+einmalige Kandidaten-/Buildbudget ist verbraucht; insgesamt acht historische
+Gäste159,797200s. Neues Image und alle Altbelege bleiben unverändert erhalten.
+Nächster erforderlicher Umfang: begrenzte Laufzeitkostenanalyse/-korrektur am
+vorhandenen Image, keine unveränderte Wiederholung, Grenzwertabsenkung oder
+automatischer Neubau. Diagnose/Sicherung: workload-deadline-diagnosis.json
+und verification-status-workload-stopped.json in build/codex-agent/r83ap-service-cpu.
+Der64-Bit-Kernel ist damit noch nicht vollständig abgenommen.
+
 ## R8.3ap: Testlastkorrektur mit genau einem Service-Build freigegeben
 
 Fortsetzung nach der ausdrücklich angefragten Erweiterung: TSC-Kalibrierung
