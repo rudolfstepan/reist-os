@@ -1,6 +1,44 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 15. September 2026
+Stand: 16. September 2026
+
+## R8.3ap: Testlastkorrektur mit genau einem Service-Build freigegeben
+
+Fortsetzung nach der ausdrücklich angefragten Erweiterung: TSC-Kalibrierung
+um beide Uhrsyscalls einschließlich Wiederaufnahmeverzögerung legen und die
+10ms-Quantisierung berücksichtigen. Nur die abgeschaltete Service-Funktion
+service_quantum ändern;40 Arbeitszyklen,40ms Sleep, Mindestnachweis40 Samples
+und alle übrigen Abläufe/Grenzen bleiben. Echte O0/O2- und Präprozessorprüfungen
+sichern die Korrektur und unveränderte Altprofile ab. Drei Referenzbuilds
+wiederverwenden, genau ein neues Service-Image in workload-renewal/native.
+Ein Kandidat, gleiche24 Prüfungen mit ausschließlich geändertem Servicepfad,
+keine automatische weitere Wiederholung. Alle bisherigen Belege/Fehler bleiben;
+noch keine erneute Abnahme oder Implementierungscommit.
+
+## R8.3ap: kompakte Belege funktionieren; Testlast unterschreitet Mindestnachweis
+
+Kandidat a7e8add5 auf93b174e2:20/24 Gates bestanden, darunter22 CPU-Tests,
+vier ausdrücklich gebundene Build-Wiederverwendungen und frischer Altprofil-
+Vergleich. Null neue Kernel-Builds. Die ersten vier realen Gäste (4/8GiB,
+UD2, periodische CPU-Überschreitung) bestehen mit vollständigen Belegen in
+18,570..19,272s; Textprotokolle nur17051..17724 statt zuvor150704 Bytes.
+
+Cancel-Fall4 beendet beide Durchläufe, scheitert aber zu Recht am CPU-Nachweis:
+Generation16/Slot7 liefert38 statt mindestens40 tatsächliche Samples. Alle
+38 Übergänge, finaler Budgetdatensatz und Kernel-Receipt stimmen überein.
+Kein verlorener Beleg und keine Zeit-/Kapazitätsüberschreitung.40 kalibrierte
+TSC-Schleifen sind damit kein garantierter Nachweis für40 eigene IRQ-Samples;
+die genaue zeitliche Ursache ist nicht belegt. Keine Grenzwertabsenkung,
+Debugger-Verzögerung als Workaround oder unveränderte Gastwiederholung.
+
+Nötige Erweiterung: ausschließlich die Testlast in arch/x86_64/user/task_pool.c
+zuverlässig machen und das Service-Image einmal neu bauen; drei Altprofil-Builds
+beibehalten. Fixture-/Build-Änderungen sind in der jetzigen Belegkorrektur
+ausdrücklich ausgeschlossen. Deshalb Umfangs-Stopp trotz eines unverbrauchten
+Kandidaten; kein Implementierungscommit. Fälle5..11/Gates22..24 bleiben offen.
+Fünf neue Gäste93,681887s; einschließlich Altfehlern sieben/135,570475s.
+Diagnose und gesicherter Stand: compact-lifetime-diagnosis.json und
+verification-status-compact-stopped.json unter build/codex-agent/r83ap-service-cpu.
 
 ## R8.3ap: kompakte CPU-Belege und begrenzte Abnahme freigegeben
 

@@ -1,5 +1,71 @@
 # Native periodic CPU admission — R8.3ap
 
+## Enclosing calibration renewal,16 September
+
+Renewed continuation admits the requested fixture correction and exactly one
+service-image build, using the remaining compact-candidate opportunity. Resume
+verification-status-compact-stopped.json:1539 inputs/2063 evidence/521 protected
+artifacts on93b174e2. All seven stopped candidates and seven guests135.570475s
+remain spent; the actual38-sample failure is red, never rerun or promoted.
+
+Change only service_quantum in the explicitly excluded service suffix. Place
+the first TSC read BEFORE the first monotonic syscall and the last AFTER the
+last syscall, so both potentially delayed syscall returns are enclosed. For
+10ms-quantized monotonic values use delta_ms-10 as the conservative denominator;
+request11ms of calibrated work rather than the old non-enclosing12.5ms estimate.
+All three trials, minimum selection,80ms calibration waits, timestamp/range
+guards,40 work bursts,40ms sleeps, one-million loop bound and every case's
+retention/idle/lifecycle workload stay unchanged. This fixes a demonstrable
+underestimation mechanism; it does not claim that this caused every observed
+timing fluctuation or guarantee arbitrary-host latency. Actual guest samples
+remain the sole acceptance authority, including the unchanged40 minimum.
+
+Actual extracted O0/O2 host tests compare the old/new functions with delayed
+first/last resumes, quantization and invalid clocks. Bind a byte-exact single
+function substitution and the unchanged legacy prefix, and preprocess all four
+default PROGRAM_ID inputs with the real compiler to prove identical output.
+No kernel, SDK, producer, observer, codec, oracle or scheduling-policy change.
+
+Reuse three reference builds only with full source/tool/profile/command/log/
+artifact identity plus the exact excluded-function proof. Build NativeServiceCPU
+once into workload-renewal/native; retain every old artifact at its old path.
+Only gates19/21/22 use this literal new output/image path; all24 logical gates
+and limits remain. One candidate, no extra correction/retry, one12-case and
+one2-fatal matrix, cumulative42 guests840s including history. Full passing
+qualification and direct review still precede implementation commit; no OS
+completion claim. This supersedes only the prior fixture-authority stop.
+
+## Compact candidate01: capacity fixed, workload acceptance blocked
+
+Frozen a7e8add5 on93b174e2 passes all15 host groups (CPU22 tests), four
+explicit source/tool/command/log/artifact-bound build reuses and fresh exact
+defaults:20/24 gates, zero new kernel builds. Gate21 passes normal4GiB,
+normal8GiB, UD2 and periodic exhaustion in19.271583/18.569806/18.660490/
+19.074357s. Their text traces are17051..17724 bytes, full CPU ledgers retained;
+the65536-byte capacity failure is closed for these actual captures.
+
+Case4 CANCEL then correctly fails `CPU healthy lifetime`: healthy generation16,
+slot7 returns status85/state4 with38 actual samples, not the required40.
+All38 charge transitions, the final eight words and independent kernel serial
+receipt agree. Both runs/16 reaps complete, debugger exit0, cleanup0.022511s,
+whole case18.105651s; no capture timeout/capacity failure or missing ledger row.
+This is not a passing matrix. Gates22..24 and cases5..11 are NOT executed.
+
+Forty calibrated TSC bursts are not a demonstrated minimum of40 scheduled
+IRQ samples. The captured evidence does not establish the exact calibration/
+preemption cause or a kernel-accounting defect. Do not lower40, modify guest
+clocks/counters, tune debugger delays to manufacture samples, or retry the same
+image. A reliable qualification workload needs a separately admitted change
+to arch/x86_64/user/task_pool.c and one service-image rebuild, both expressly
+outside this observer-only renewal. Keep the three legacy reference builds.
+The second compact candidate remains unused, not authority to expand scope.
+
+Five new guests consume93.681887s; historical total is seven/135.570475s
+inside the unchanged42/840s ceiling. Retain all successes and failures,
+including compact-lifetime-diagnosis.json and verification-status-compact-stopped.json
+under build/codex-agent/r83ap-service-cpu. No implementation commit, queue
+advance, runtime acceptance or finished64-bit OS claim.
+
 ## Compact-evidence renewal,15 September
 
 Renewed user continuation after the explicit bounded compact-evidence request
