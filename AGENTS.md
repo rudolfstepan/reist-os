@@ -27,6 +27,24 @@ authority, hardware or user-change blockers still require stopping. This is
 not permission to weaken gates, bypass a stop condition or claim completion
 from partial bootstrap evidence. Explicitly deferred work stays deferred.
 
+On 2026-09-17 the user explicitly rejected repeated confirmation requests for
+each diagnostic and reiterated the standing order to complete the native64
+version. Within that already requested work, diagnostic/correction/verification
+handoffs and agent-created attempt-reservation exhaustion are administrative
+boundaries, not requests for another user "yes". The interactive agent records
+the result, inventories the evidence-directed next step, freezes its scope and
+finite command/build/guest reservation, and continues itself. This supersedes
+older package text requiring renewed user authorization merely to continue
+in-scope development or reserve the next bounded qualification window. Never
+reset spent counters or relabel failed attempts; no unchanged retry-until-green.
+Preserve frozen acceptance gates, per-operation/runtime safety limits, explicit
+deferrals, one active implementation package and all historical evidence.
+New authority domains, destructive/external actions, unavailable hardware,
+unattributed changes and genuinely unresolved safety decisions still require
+stopping; none is authorized by this workflow clarification. No nested agents,
+push, speculative fixes or premature completion claims. Scope and evidence
+reviews remain mandatory; routine progress reports replace approval questions.
+
 ## Highest architecture rule
 
 The microkernel is the protected failure-containment boundary. Ring 0 contains
