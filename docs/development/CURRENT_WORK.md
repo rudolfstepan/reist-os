@@ -4,6 +4,15 @@ Stand: 18. September 2026
 
 ## R8.3as: native Konsolenvermittlung in Umsetzung
 
+Callback-Anbindung bestanden:11 Pakettests und neun Pruefgruppen, Image exakt
+wiederverwendet. Gast stoppt nun nach0,8389342s beim zu grossen512-KiB-Read des
+RAM-Beobachters. Beide Fehler unveraenderlich gesichert (Bitmap-Stopp
+SHA1919aced10adb218); ein Image, zwei Versuche1,4118777s, keine Gastreste.
+Naechster begrenzter Schritt: vollstaendige Bitmaps in256-KiB-Teilen lesen,
+alle bisherigen Vergleiche erhalten; unabhaengigen High-RAM-Transportvergleich
+aus der bereits validierten Speicherkarte ergaenzen. Nur Pruefadapter/Tests,
+kein Neubau. Alle12 Verpflichtungen und sieben frische Gaeste bleiben Pflicht.
+
 Neun Pruefgruppen einschliesslich zehn Pakettests und neuem Image bestanden.
 Erster Gastversuch nach0,5729435s vor Ausfuehrung gestoppt: Speichertransport
 erwartet andere Callback-Namen als der neue Beobachter. Reine Adapterkorrektur

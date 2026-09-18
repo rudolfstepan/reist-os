@@ -5,6 +5,28 @@ transaction, standing native64 completion authority; no agents, push or user
 media. This prerequisite closes the native process console boundary, not the
 normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
+## Bitmap adapter continuation,18 September2026
+
+Observer binding now passes11 hosts and nine obligations with exact image
+reuse. First guest reaches scheduler boot, then RAMWatch requests524288 bytes
+above the unchanged270336-byte transport bound;0.8389342s, cleanup complete.
+Seal `observer-binding/verification-status-bitmap-stopped.json`
+(SHA1919aced10adb218) preserves both failures: one image, two attempts,
+1.4118777s. No native console runtime acceptance yet.
+
+One candidate under bitmap-adapter, same six observer_binding_files only:
+split precisely the two full bitmaps into two262144-byte reads at the same
+paused checkpoint, preserving all original assertions and bytes. After full
+map validation select one bitmap-usable huge region above4GiB and compare
+32768 bytes independently through existing QMP/GDB transport. Read-only RAM
+transport witness, not application ownership evidence; no extra guest writes
+or allocation. Actual generated RAMWatch and transport regression first,
+including corrupt bitmap/page-map and mismatched/short reads. All12 gates,
+exact original image reuse, zero builds; seven fresh guests140s,20s each
+including cleanup3s,180s matrix. Cumulative at most nine attempts141.4118777s
+and one image. First failure stops. Shared reader, all kernel/Ring3/SDK code,
+quotas, assertions and per-operation bounds remain unchanged.
+
 ## Observer binding continuation,18 September2026
 
 Original candidate02 passes nine obligations, including10 package host tests
