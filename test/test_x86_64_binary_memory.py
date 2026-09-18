@@ -10,6 +10,43 @@ import run_qemu_x86_64_boot_programs as transport
 
 
 class BinaryTests(unittest.TestCase):
+    def test_service_pio_budget_reader_and_config(self):
+        with patch.object(binary.time,'monotonic',return_value=100):
+            for options,deadline in (({},120),({'service_cpu_budget':True},127),({'service_pio_budget':True},142)):
+                reader=binary.Reader(1,'test',self.folder(),4096,lambda a,n:bytes(n),lambda:4096,**options)
+                self.assertEqual(reader.deadline,deadline)
+        body='python\ndef mem(a,n):return b"original"\nend\ncontinue\n'
+        for options,keyword in (({},None),({'service_cpu_budget':True},'service_cpu_budget=True'),({'service_pio_budget':True},'service_pio_budget=True')):
+            _,code=binary.configure(body,self.folder(),4096,'equivalence',**options)
+            if keyword:self.assertIn(keyword,code)
+            else:self.assertNotIn('_budget=',code)
+            self.assertTrue(code.startswith(body[:-len('end\ncontinue\n')]))
+        for options in [dict(service_pio_budget=x) for x in (1,0,None,45,'true')]+[dict(service_pio_budget=True,service_cpu_budget=True)]:
+            with self.subTest(options=options),patch.object(binary.socket,'socket') as socket:
+                folder=self.folder()
+                with self.assertRaises(ValueError):binary.configure(body,folder,4096,'equivalence',**options)
+                with self.assertRaises(ValueError):binary.Reader(1,'test',folder,4096,lambda a,n:b'',lambda:4096,**options)
+                socket.assert_not_called();self.assertFalse((folder/'binary-memory').exists())
+
+    def test_service_pio_budget_forwarding_and_rejection(self):
+        folder=self.folder()
+        with patch.object(transport,'_capture_run',return_value=('a','b')) as run:
+            for options in ({},{'service_cpu_budget':True},{'service_pio_budget':True}):
+                transport.capture(ROOT/'build/a.elf',folder,'code',4096,binary_memory='equivalence',**options)
+                for name in ('service_cpu_budget','service_pio_budget'):
+                    if name in options:self.assertIs(run.call_args.kwargs[name],True)
+                    else:self.assertNotIn(name,run.call_args.kwargs)
+        for options in ({},{'service_cpu_budget':True},{'service_pio_budget':True}):
+            with patch.object(binary,'configure',side_effect=RuntimeError('BEFORE_OUTPUT')) as configure,patch.object(transport.subprocess,'Popen') as spawn:
+                with self.assertRaisesRegex(RuntimeError,'BEFORE_OUTPUT'):
+                    transport._capture_run(ROOT/'build/a.elf',folder,'code',4096,binary_memory='equivalence',**options)
+                self.assertEqual(configure.call_args.kwargs,options);spawn.assert_not_called()
+        for entry in (transport.capture,transport._capture,transport._capture_run):
+            for options in [dict(service_pio_budget=x) for x in (1,0,None,45,'true')]+[dict(service_pio_budget=True,service_cpu_budget=True)]:
+                with self.subTest(entry=entry.__name__,options=options),patch.object(transport.subprocess,'Popen') as spawn:
+                    with self.assertRaises(ValueError):entry(ROOT/'build/a.elf',folder,'code',4096,**options)
+                    spawn.assert_not_called();self.assertFalse((folder/'observe.gdb').exists())
+
     def test_service_cpu_budget_reader_and_config(self):
         folder=self.folder()
         with patch.object(binary.time,'monotonic',return_value=100):

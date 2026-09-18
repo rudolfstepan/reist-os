@@ -2,6 +2,52 @@
 
 Stand: 18. September 2026
 
+## R8.3aq vollstaendig qualifiziert
+
+Alle15 Pruefgruppen und18 Gastfaelle bestanden, einschliesslich voller
+CPU-/PIO-Rohdatenpruefung und physischem Fencing bei Metadatenkorruption.
+Kandidat824caeb2078e26a0 auf9731d528;75/75 Tests in der Hauptgruppe.
+Genau ein neues gemeinsames Imagec3e816552286537f, vier Referenzbuilds
+nach exakter Bindung und Trace-aus-Vergleich wiederverwendet. Gastzeit
+507,337903s, Gatekommandos592,778244s. Gesamtgeschichte samt allen Fehlern:
+sieben Images/36 Versuche958,222516s. Keine QEMU-/GDB-Prozesse verblieben.
+Der unveraenderliche Qualifikationsbeleg und der anschliessende lokale
+Commitbeleg liegen unter r83aq-service-pio/active-calibration. Queueabschluss
+erst nach vollstaendiger Pruefung; kein Push. Naechste native Prioritaet ist
+die normale Shell-/Dateidienstintegration, nicht eine erneute CPU-/PIO-Grundlage.
+Die vollstaendige64-Bit-OS-Abnahme und Hardwaregrenzen bleiben offen.
+
+### Erhaltene AQ-Umsetzungshistorie
+
+Aktuelle freigegebene Korrektur: aktive statt schlafende TSC-Kalibrierung nur
+in der PIO-Testlast, drei20ms-Messungen mit je maximal100000 Uhrenabfragen.
+Grund: Der letzte Gast lieferte vollstaendige276 CPU-Records und vier richtige
+Leseergebnisse, aber die erste Generation nur21 statt40 Warmup-Samples.
+Alle Runtime-Assertions bleiben; Kernel, Trace und Treiber unveraendert.
+Belege unter active-calibration, maximal ein neues Image und16+2 Gaeste;
+sechs Images/18 Versuche450,884613s bleiben erhalten. Noch keine Abnahme.
+
+Aktuelle AQ-Fortsetzung: ausschliesslich im NativeServicePIO-Pruefprofil wird
+der CPU-Nachweis in einen festen Kernel-Ringpuffer geschrieben. Vollstaendige
+Vorher-/Nachher-Werte ersetzen die zwei Debuggerhalte je CPU-Abrechnung;
+Abrechnung, Quoten, Treiber, Testlast und alle bisherigen Assertions bleiben.
+Diese ausdruecklich freigegebene Beobachtungsausnahme aendert den Scheduler,
+nicht den reinen CPU-Kern; aeltere Aussagen zu unveraenderten Kernelquellen
+beschreiben die vorherigen Kandidaten. Andere Profile bleiben ohne Trace.
+Die fuenf bisherigen Images und17 Gastversuche409,052493s sind erhalten;
+der letzte reduzierte Beobachtungsversuch war unvollstaendig, keine Abnahme.
+Jetzt maximal ein neues gemeinsames Image und16+2 Gaeste, gleiche15 Gates
+einmal, Stopp beim ersten Fehler. Referenzprofile werden nicht neu gebaut:
+ihre Trace-aus-Assembler-Eingaben muessen bytegleich nachgewiesen werden.
+Noch keine AQ-Abnahme oder vollstaendige64-Bit-OS-Fertigstellung.
+
+Trace-Hostlauf:72/73 Tests bestanden, einschliesslich echtem Assembler bei
+O0/O2. Ein historischer Identitaetsvergleich kennt die freigegebenen
+Trace-Ergaenzungen noch nicht; Stopp vor Build/Gast. Die reine Testadapter-
+Fortsetzung unter cpu-trace-adapter entfernt exakt diese Ergaenzungen vor
+dem alten Vergleich und prueft zusaetzlich fehlende/doppelte/manipulierte
+Ergaenzungen. Implementierung unveraendert, gleiches gemeinsames Budget.
+
 ## Naechste gemeinsame Grenze: periodischer PIO-Dienst
 
 R8.3ap ist mit `9011ef1e` sauber abgeschlossen; der endgueltige Beleg bindet
@@ -13,6 +59,90 @@ Kandidaten. Alle Slot-/Quota-/Crash-/Ersatz-/Korruptionsfaelle gemeinsam,
 einschliesslich physischem Fencing bei korrupter CPU-Metadatenlage.
 Umfang und15 Gates: [Vertrag](../architecture/NATIVE_SERVICE_PIO_CONTRACT.md)
 und Queue. Noch keine AQ-Abnahme; normale Shell-/Dateiintegration bleibt danach.
+
+AQ-Kandidat in Umsetzung: explizite Buildzulassung, CREATE-v6 fuer vorhandene
+Treiber/Fueller, vier begrenzte CPU-Pruefbloecke vor unveraenderter ATA-Sitzung,
+zusammengefuehrte CPU-/PIO-Rohdatenpruefung und zwei physische Fatal-Fence-Faelle.
+Produktive Kernel-/Treiber-/SDK-Quellen bleiben unveraendert. Erwartet-roter
+echter Producer-Test erhalten; vorheriger Python-Namensraumfehler ebenfalls
+erhalten und Aufruf auf konkrete Testdatei korrigiert (`59247c6c`). Vor der
+ersten eingefrorenen AQ-Abnahme waren noch kein Kernelbuild oder Gaststart erfolgt.
+
+AQ-Zwischenstand: Indexfehler korrigiert;11/15 Gruppen bestanden, danach
+scheiterten zwei gesunde PIO-Gaeste an CPU-Quotenerschöpfung nach der Testlast.
+Ein Image und zwei Gaeste21,4284s sind erhalten. Beobachter-Haltepunkte wurden
+generationsbezogen reduziert, ohne den Fehler damit zu beheben. Freigegeben
+ist eine weitere begrenzte Runde: unveraenderte40 CPU-Bursts, danach eine
+bestaetigte blockierende Ruhephase vor dem ATA-Dienststart; keine Quoten- oder
+Fristenerhoehung. Ein neuer Build, maximal18 Gaeste und unveraendert15 Gates.
+Noch keine AQ-Abnahme oder vollstaendige64-Bit-OS-Fertigstellung.
+
+Die Ruhephasen-Runde stoppte erneut bei Gate12: jetzt beweisen alle69
+gespeicherten CPU-Datensaetze die Erschoepfung bereits in der kuenstlichen
+Testlast, vor Ruhephase und ATA. Insgesamt zwei Images/drei Gaeste27,025603s
+sind erhalten. Die freigegebene Abstands-Korrektur verwendet80 statt40ms
+zwischen unveraenderten40 Rechenbloecken und bestaetigt alle5 statt10 Bloecke.
+CPU32/1000ms, Supervisor1000ms, Dienstfristen,30s Gastlimit und alle15 Gates
+bleiben. Genau ein neuer Build und maximal18 neue Gaeste; noch keine Abnahme.
+
+Die Abstands-Runde erreichte drei gesunde Treibergenerationen mit75/78/79
+CPU-Lebenszeitsamples, wurde jedoch beim zweiten Prozesslauf vom27s
+Host-Beobachtungslimit beendet. Kein CPU-Fehler im341-Datensatz-Praefix,
+aber fehlender Abschluss: weiterhin keine AQ-Abnahme. Drei Images/vier
+Gastversuche56,571504s sind erhalten. Freigegebene Hostkorrektur:45s nur
+fuer PIO einschliesslich Cleanup, unveraendert3s Cleanupmaximum und alle
+Kernel-/Dienstfristen. Default20s und CPU30s bleiben. Kein neuer Build:
+exakt gebundenes Image4e67cbdd, maximal18 neue Gaeste, alle15 Gates und
+vollstaendige18-Fall-Rohdatenpruefung; Stopp beim ersten Fehler.
+
+Hostlimit-Runde:11 Verpflichtungen und Gastfaelle0/1 bestanden, Fall2
+scheitert im zweiten Lauf an CPU32 waehrend des Lesens. Alle394 CPU-Records
+sind vollstaendig; Ersatztreiber erreicht83 Lebenszeitsamples, danach
+Fencing und ausgeglichene Freigabe, aber EPIPE statt erfolgreichem READ.
+Kein Host-Timeout. Insgesamt sieben Versuche143,078498s, unveraendert drei
+Images. Fortsetzung ohne Neubau: nur den Freigabe-Beobachter auf den
+maschinenbytegebundenen op4-Zweig verlegen, damit IPC-Zeitpruefungen keinen
+unnoetigen Hosthalt ausloesen. Originalcallback, CPU-/PIO-Nachweise und alle
+Fristen bleiben. Eine Kandidatenrunde mit maximal18 Gaesten/15 Gates;
+Wirksamkeit noch unbewiesen, keine AQ- oder Gesamt-OS-Abnahme.
+
+Freigabe-Beobachter-Runde:11 Gates und Gastfaelle0/1/2 bestanden, Fall3
+scheitert weiter an CPU32. Zwei Generationen benoetigen23/24 Samples fuer
+IDENTIFY plus LBA0-Selbsttest; beim sofortigen LBA1-Auftrag reichen die
+verbleibenden9/8 Samples nicht. Die unveraenderte Abschlusspruefung lehnt
+die fehlende zweite Ersatzgeneration ab. Elf Versuche249,672145s und drei
+Images sind gesichert. Explizit freigegeben ist nun eine800ms-Pause im
+Testclient zwischen READY und Request sowie160 statt120 Fueller-Schlafzyklen.
+Genau ein neues gemeinsames Image, maximal18 Gaeste; echte IPC-Blockierung,
+unveraenderte CPU-Records und unverlaengerte Sitzung werden zusaetzlich
+geprueft. Alle15 Gates und alle bisherigen Assertions bleiben verbindlich.
+Noch keine AQ-Abnahme oder vollstaendige64-Bit-OS-Fertigstellung.
+
+Die Client-Pause-Runde stoppte bereits in Hostgruppe1:65/66 Tests bestanden,
+der historische Quelltextvergleich scheiterte am virtuellen Python-Ladepfad.
+Kein neuer Build/Gast; Diagnose und fehlgeschlagene Gruppe sind versiegelt.
+Freigegeben ist ausschliesslich der echte, unveraenderliche Snapshotpfad im
+Testadapter. Neue Belegablage `client-pause-adapter`, gleiche15 Verpflichtungen,
+insgesamt weiterhin ein neuer Build/maximal18 Gaeste und Erstfehler-Stopp.
+Produktivcode, Testlast und saemtliche Vergleichsbedingungen bleiben gleich.
+
+Die Adapter-Runde bestand11 Gates samt Build, aber Gast0 beendet den Root
+mit245: SLEEP_MS800 verletzt die unveraenderte native Grenze1..100ms.
+74 Rohdatensaetze zeigen keine CPU-Erschoepfung; die Pause wurde begonnen,
+aber nicht erfolgreich blockierend ausgefuehrt. Vier Images/12 Versuche
+258,358061s bleiben erhalten. Freigegeben ist ein bestehender IPC-Empfang
+mit800ms auf dem verbrauchten Notice-Endpunkt, zwingend mit ETIMEDOUT.
+Echte Zulassungs-/Timeout-/Fehler-/Cleanup-Tests und der Nachweis beider
+blockierter Prozesse samt tatsaechlicher IPC-Rueckkehr gehen dem neuen
+Build voraus. Ein neuer Build, maximal18 Gaeste, gleiche15 Verpflichtungen
+und Erstfehler-Stopp; Kernelgrenzen/Quoten/Dienstfristen bleiben unveraendert.
+
+IPC-Pausenrunde:67/68 Hosttests bestanden; im neuen IPC-Hosttest fehlte
+REIST_NATIVE_RUNTIME, weshalb schon seine READY-Vorbereitung am alten
+256-Tick-Horizont scheiterte. Null Builds/Gaeste. Die begrenzte Fortsetzung
+setzt nur diesen bereits im Zielimage vorhandenen Test-Compiler-Schalter;
+alle Assertions bleiben. Neue Belege unter `ipc-pause-profile`; das gemeinsame
+Budget bleibt ein Image/maximal18 Gaeste, alle15 Gates und Erstfehler-Stopp.
 
 ## R8.3ap vollstaendig qualifiziert:24/24, keine weiteren Builds
 

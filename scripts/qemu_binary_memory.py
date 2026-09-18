@@ -145,11 +145,13 @@ def translate(address, size, root, ram, read):
 
 
 class Reader:
-    def __init__(self, port, name, folder, ram, original, cr3, compare=False, *, service_cpu_budget=False):
+    def __init__(self, port, name, folder, ram, original, cr3, compare=False, *, service_cpu_budget=False, service_pio_budget=False):
         if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
+        if type(service_pio_budget) is not bool:raise ValueError('service PIO host budget opt-in')
+        if service_cpu_budget and service_pio_budget:raise ValueError('exclusive service host budgets')
         self.port=port;self.name=name;self.folder=Path(folder)
         self.ram=ram;self.original=original;self.cr3=cr3;self.compare=compare
-        self.deadline=time.monotonic()+(27 if service_cpu_budget else 20)
+        self.deadline=time.monotonic()+(42 if service_pio_budget else 27 if service_cpu_budget else 20)
         self.client=None;self.count=0;self.total=0;self.compared=set();self.failed=False
         self.in_stop=False
 
@@ -209,9 +211,11 @@ class Reader:
         return raw
 
 
-def configure(code, folder, ram, mode, *, service_cpu_budget=False):
+def configure(code, folder, ram, mode, *, service_cpu_budget=False, service_pio_budget=False):
     """Return fixed QEMU options and an appended reader, original oracle intact."""
     if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
+    if type(service_pio_budget) is not bool:raise ValueError('service PIO host budget opt-in')
+    if service_cpu_budget and service_pio_budget:raise ValueError('exclusive service host budgets')
     if mode not in ('full','equivalence') or ram not in (4096,8192):raise ValueError('binary transport mode/profile')
     tail='end\ncontinue\n'
     if not code.endswith(tail) or code.count('def mem(a,n):')!=1:raise ValueError('binary observer shape')
@@ -227,7 +231,7 @@ def configure(code, folder, ram, mode, *, service_cpu_budget=False):
     setup=('\nimport sys\nsys.path.insert(0,'+repr(str(Path(__file__).resolve().parent))+')\n'
            'from qemu_binary_memory import Reader as BinaryReader\n'
            'binary_reader=BinaryReader('+repr(port)+','+repr(name)+','+repr(str(out))+','+repr(ram)+
-           ',mem,lambda:reg("cr3"),'+repr(mode=='equivalence')+(',service_cpu_budget=True' if service_cpu_budget else '')+')\nmem=binary_reader.read\n'
+           ',mem,lambda:reg("cr3"),'+repr(mode=='equivalence')+(',service_pio_budget=True' if service_pio_budget else ',service_cpu_budget=True' if service_cpu_budget else '')+')\nmem=binary_reader.read\n'
            'Hook.stop=binary_reader.wrap_stop(Hook.stop)\n'
            'ReleaseEnd.stop=binary_reader.wrap_stop(ReleaseEnd.stop)\n')
     return ['-qmp',f'tcp:127.0.0.1:{port},server=on,wait=off','-name',name],code[:-len(tail)]+setup+tail

@@ -8,6 +8,24 @@ transport=diagnostic.launch.wide.transport
 
 
 class FileTransportTests(unittest.TestCase):
+    def test_service_pio_capture_reserves_cleanup_and_rejects_overrun(self):
+        class Process:
+            def __init__(self):self.returncode=None;self.stdin=io.BytesIO();self.stdout=io.BytesIO()
+            def poll(self):return self.returncode
+            def wait(self,timeout):self.returncode=0;return 0
+        for finish in (143,145,146):
+            folder=self.folder();(folder/'frame-trace.log').write_text('')
+            vm,debug=Process(),Process();output=Mock();output.get.side_effect=transport.queue.Empty;output.empty.return_value=True
+            def terminate(p):p.returncode=0
+            clock=Mock(side_effect=[100,141,142,finish])
+            with self.subTest(finish=finish),patch.object(transport.subprocess,'Popen',side_effect=[vm,debug]),patch.object(transport,'resolve_qemu',return_value=Path('qemu.exe')),patch.object(transport.time,'monotonic',clock),patch.object(transport,'terminate_bounded',side_effect=terminate),patch.object(transport.queue,'Queue',return_value=output):
+                if finish>145:
+                    with self.assertRaisesRegex(ValueError,'service PIO total host deadline'):
+                        transport._capture_run(ROOT/'build/a.elf',folder,'code',4096,service_pio_budget=True)
+                else:self.assertEqual(transport._capture_run(ROOT/'build/a.elf',folder,'code',4096,service_pio_budget=True),('',''))
+            self.assertEqual(output.get.call_count,1);self.assertEqual(clock.call_count,4)
+            self.assertTrue(vm.stdin.closed and vm.stdout.closed);self.assertEqual(debug.returncode,0)
+
     def test_service_cpu_capture_reserves_cleanup(self):
         class Process:
             def __init__(self):self.returncode=None;self.stdin=io.BytesIO();self.stdout=io.BytesIO()

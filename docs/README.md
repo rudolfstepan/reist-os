@@ -15,6 +15,7 @@ Nativer Prozessbesitz: [Task-Family-Vertrag](architecture/NATIVE_TASK_FAMILY_CON
 Nativer Prozesspool: [Acht-Prozess-Profil](architecture/NATIVE_TASK_POOL_CONTRACT.md).
 Native Pool-Gerätezuordnung: [Acht-Task-PIO-Vertrag](architecture/NATIVE_POOL_PIO_CONTRACT.md).
 Native Dienst-CPU-Zulassung: [Periodischer CPU-Vertrag](architecture/NATIVE_SERVICE_CPU_CONTRACT.md).
+Native Dienst-Gerätezuordnung: [Periodischer PIO-Dienstvertrag](architecture/NATIVE_SERVICE_PIO_CONTRACT.md).
 Nativer Start und IPC: [Startup-Handoff-Vertrag](architecture/NATIVE_STARTUP_HANDOFF_CONTRACT.md).
 Nativer Abbildimport: [Ring3-ELF-Vertrag](architecture/NATIVE_IMAGE_IMPORT_CONTRACT.md).
 Native PIO-Domäne: [Treiber- und Fencingvertrag](architecture/NATIVE_PIO_DOMAIN_CONTRACT.md).

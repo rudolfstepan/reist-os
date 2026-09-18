@@ -45,7 +45,11 @@ static int64_t create(void *record,const void *template,unsigned slot,unsigned k
     typedef uint64_t word __attribute__((may_alias,aligned(1)));
     for(unsigned n=0;n<REIST_X64_PREPARED_V2_BYTES/8;n++)((word*)record)[n]=((const word*)template)[n];
     reist_task_profile_v1_t profile={1,40,{MASK,kind==256?0:1ULL<<49,0},0};
+#if REIST_NATIVE_SERVICE_PIO
+    int64_t child=reist_x64_task_import_periodic(record,&profile,32,1000,&startup);
+#else
     int64_t child=reist_x64_task_import_wide(record,&profile,32,&startup);
+#endif
     for(unsigned n=0;n<REIST_X64_PREPARED_V2_BYTES/8;n++)((volatile word*)record)[n]=0xa5a5a5a5a5a5a5a5ULL;
     (void)S0(GETPID); /* Observe completed source overwrite before another CREATE. */
     return child;
@@ -69,6 +73,9 @@ static int notice(unsigned mode,unsigned phase,unsigned value){
     return (int)S3(IPC_SEND_TIMEOUT,notice_ep,&message,1000);
 }
 static int sleep_ms(void *v,unsigned ms){(void)v;return (int)S1(SLEEP_MS,ms);}
+#if REIST_NATIVE_SERVICE_PIO
+#include "service_pio_workload.h"
+#endif
 static int64_t port(void *v,reist_native_pio_request *q){
     Driver *d=v;int64_t result=reist_x64_pio(q);
     if(!result&&q->operation==REIST_PIO_WRITE8&&q->port==0x1f7&&q->value==0x20){d->reads++;d->chunks=0;}
@@ -112,8 +119,16 @@ int main(int argc,char **argv,char **envp){
                 !S3(IPC_DELEGATE,notice_ep,(uint64_t)child>>32,1),208);
         REQUIRE(!pio(child,REIST_PIO_BIND),209);
         if(previous)REQUIRE(pio(previous,REIST_PIO_FENCE)==-13&&control(2,previous,1)==-10,210);
+#if REIST_NATIVE_SERVICE_PIO
+        for(unsigned batch=5;batch<=40;batch+=5)REQUIRE(!notice(child,fault,2,batch),242);
+        for(unsigned idle=6;idle<=12;idle+=6)REQUIRE(!notice(child,fault,3,idle),244);
+#endif
         REQUIRE(!notice(child,fault,0,mode==12?19:128),211);
         if(mode!=12){
+#if REIST_NATIVE_SERVICE_PIO
+            zero(&message,sizeof message);message.version=1;message.struct_size=140;message.length=128;
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,notice_ep,&message,800)==-110,245);
+#endif
             REQUIRE(!reist_block_client_bind(&client,child),212);
             pool_pio_root[3]=3;
             if(mode==11){
@@ -145,7 +160,11 @@ int main(int argc,char **argv,char **envp){
     REQUIRE(argc==2&&argv[1][0]=='1',224);
     pool_pio_peer[1]=(uint64_t)S0(GETPID);
     REQUIRE(reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,0)==-13,225);
+#if REIST_NATIVE_SERVICE_PIO
+    for(unsigned i=0;i<60;i++){REQUIRE(!S1(SLEEP_MS,100),226);pool_pio_peer[2]=i+1;}
+#else
     for(unsigned i=0;i<25;i++){REQUIRE(!S1(SLEEP_MS,100),226);pool_pio_peer[2]=i+1;}
+#endif
     (void)S0(GETPID);return 77;
 #elif PROGRAM_ID==2
     REQUIRE(argc==5,227);
@@ -157,13 +176,20 @@ int main(int argc,char **argv,char **envp){
     pool_pio_child[5]=(uintptr_t)heap;for(unsigned n=0;n<8192;n++)((unsigned char*)heap)[n]=(unsigned char)(n^slot^0x5a);
     if(kind==256){
         REQUIRE(reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,0)==-13,230);(void)S0(GETPID);
+#if REIST_NATIVE_SERVICE_PIO
+        for(unsigned i=0;i<160;i++)REQUIRE(!S1(SLEEP_MS,100),231);
+#else
         for(unsigned i=0;i<25;i++)REQUIRE(!S1(SLEEP_MS,100),231);
+#endif
         return 75; /* Healthy supervisor must cancel before this finite limit. */
     }
     REQUIRE(request_ep&&reply_ep&&notice_ep,232);
     Driver d={owner,kind,0,0};int64_t ready=-13;
     for(unsigned n=0;n<20&&ready==-13;n++){REQUIRE(!S1(SLEEP_MS,10),233);ready=pio(owner,REIST_PIO_READ8);}
     REQUIRE(ready>=0,234);
+#if REIST_NATIVE_SERVICE_PIO
+    REQUIRE(!service_pio_prepare(kind)&&!service_pio_idle(kind),243);
+#endif
     reist_pio_ops ops={&d,port,clock_ms,sleep_ms};reist_block_profile_v1 profile={1,24,1,0,clock_ms(0)+2500};
     pool_pio_child[4]=(uintptr_t)&service;
     int result=reist_native_service_init_profile(&service,owner,&ops,&profile);

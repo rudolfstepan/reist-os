@@ -2617,6 +2617,15 @@ scheduler_budget_apply64:
     mov r9,[rel scheduler_last_tick]
     lea rdi,[rel scheduler_cpu_budgets]
     add rdi,rax
+%ifdef REIST_NATIVE_CPU_TRACE
+    cmp edx,2
+    jne .untraced_period
+    call native_cpu_trace_before64
+    call reist_x64_period_apply
+    call native_cpu_trace_after64
+    jmp .budget_result
+.untraced_period:
+%endif
     call reist_x64_period_apply
     jmp .budget_result
 .period_bad:
@@ -8394,6 +8403,9 @@ scheduler_shell_ok_message db "REIST_X86_64_SCHEDULED_SHELL_OK", 13, 10, 0
 scheduler_stage_message db "REIST_X86_64_PROCESS_SCHEDULER_STAGE_", 0
 scheduler_newline db 13, 10, 0
 
+%ifdef REIST_NATIVE_CPU_TRACE
+%include "arch/x86_64/proc/cpu_trace.inc"
+%endif
 section .bss
 alignb 16
 scheduler_state_begin:
