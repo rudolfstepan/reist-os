@@ -2,6 +2,28 @@
 
 Stand: 18. September 2026
 
+## Naechste native Autoritaetsgrenze nach sauberem AU-Abschluss
+
+Implementierung53dd42d5 ist lokal abgenommen; finaler Beleg
+`r83au-service-console/scoped-start-fix/verification-status-service-console-final.json`
+SHA8a2633907e2e0c4f bindet sauberen Commit,217 Hosttests und25 Gastfaelle.
+
+Bestandsaufnahme: `userspace/bin/shell.c:1023` verlangt nach Spawn die echte
+generationsgebundene Terminaluebergabe. Der native `shell_platform.c:101`
+liefert dafuer -95; Kernelkonsole und Kindprofil verbieten Kind-Konsolenrechte.
+Datei-/ELF-Lesen allein darf diese Rechte nicht erzeugen. Ein erfolgreicher
+Spawn mit vorgetaeuschtem Transfer oder erfundener Prozessbeendigung ist keine
+zulaessige Integration. Die bisher freigegebene AU-Grenze gilt nur fuer Root0.
+
+Naechster vorgeschlagener Mechanismusschnitt R8.3av: ausdrueckliche, begrenzte
+Vordergrund-Konsolenleihe von Root0 an genau ein eigenes lebendes Kind, mit
+Generationstest und Entzug/Rueckgabe bei Exit, Fehler, Abbruch und Elternverlust.
+Treiber/Dateidienst bleiben ausgeschlossen; alte Profile, CPU-Quoten und
+Fristen bleiben unveraendert. Vorhandene Terminal-ABI127/v1 ist zuerst zu nutzen.
+Dies ist eine neue Autoritaetsfreigabe, kein routinemaessiges Weiterarbeiten.
+Bis zur Entscheidung kein aktives Folgepaket, keine Quelltextumsetzung und
+keine weiteren Builds/Gaeste. Dateinamensraum/Programmstart und Gesamt-OS offen.
+
 ## R8.3au: Dienstkonsole vollstaendig qualifiziert
 
 Alle12 Pruefpflichten bestanden:217 Hosttests in sieben Gruppen und alle25
