@@ -278,16 +278,17 @@ static char drive_letter(const x86os_drive_info_t* drive) {
 }
 
 static int find_drive(char letter, x86os_drive_info_t* result) {
-    for (uint32_t index = 0;; ++index) {
+    /* Fixed shell work budget, independent of the device service's capacity. */
+    for (uint32_t index = 0; index < 32U; ++index) {
         x86os_drive_info_t drive;
         int status = x86os_drive_info(index, &drive);
-        if (status == 0) return -1;
-        if (status < 0) continue;
+        if (status != 1) return -1;
         if (lower(drive_letter(&drive)) == lower(letter)) {
             *result = drive;
             return 0;
         }
     }
+    return -1;
 }
 
 static int path_has_mount(const char* path, const char* mount) {
@@ -302,19 +303,24 @@ static int path_has_mount(const char* path, const char* mount) {
 static int current_drive(const char* path, x86os_drive_info_t* result) {
     unsigned best_length = 0;
     int found = -1;
-    for (uint32_t index = 0;; ++index) {
+    x86os_drive_info_t selected;
+    for (uint32_t index = 0; index < 32U; ++index) {
         x86os_drive_info_t drive;
         int status = x86os_drive_info(index, &drive);
-        if (status == 0) break;
-        if (status < 0 || !path_has_mount(path, drive.mount_point)) continue;
+        if (status == 0) {
+            if (found == 0) *result = selected;
+            return found;
+        }
+        if (status != 1) return -1;
+        if (!path_has_mount(path, drive.mount_point)) continue;
         unsigned length = text_length(drive.mount_point);
         if (found < 0 || length > best_length) {
-            *result = drive;
+            selected = drive;
             best_length = length;
             found = 0;
         }
     }
-    return found;
+    return -1;
 }
 
 static void print_dos_path(const char* path) {

@@ -2,13 +2,41 @@
 
 Stand: 18. September 2026
 
-## R8.3at: normale Shell wird nativ angebunden
+## R8.3at: normale Shell nativ qualifiziert
+
+Alle acht Pruefgruppen bestanden: acht Pakettests,33 bestehende Shelltests,
+15 Konsolentests und vier echte Gaeste bei4/8GiB, mit History/Bearbeitung,
+Dienstfehlern und Leereingabe-Timeout. Vollstaendige Bereinigung und frische
+Ersatzgenerationen nachgewiesen. 64-Byte-Ausgabepuffer haelt die unveraenderte
+CPU32-Quote ein; gemeinsame Laufwerkssuche ist endlich und32-/64-Bit-geprueft.
+Image aa949fe650813739,22,8463759s Gastzeit. Gesamthistorie zwei OS-Builds,
+sechs Gastversuche29,9656697s; alle Fehlerbelege erhalten. Review5199 Dateien,
+SHAf5a01a4c0eb71565. Keine neuen Kernelrechte, keine Gastreste.
+Dateidienst, Programmstart und Terminaluebergabe sind noch nicht angebunden;
+dies ist keine Gesamt-OS-Abnahme. Folgende Abschnitte dokumentieren die Historie.
+
+Fortsetzung freigegeben: gemeinsame Laufwerkssuche jetzt im Paketumfang.
+Beide Enumeratoren werden auf32 Aufrufe begrenzt und brechen bei Fehlern ab;
+Mountauswahl wird erst nach erfolgreichem Listenende veroeffentlicht. Neue
+Regression fuehrt dieselben Funktionen auf32-/64-Bit-Hosts mit O0/O2 aus.
+Fruehere Stopps bleiben unveraendert erhalten; noch kein OS-Build/Gast verbraucht.
 
 Aktiv nach sauberem AS-Commit f2e93446: unveraenderte normale Userspace-Shell,
 begrenzter64-Bit-Konsolenadapter und beide Buildwege in einem Paket. Ein Image,
 vier Gaeste; Kernelrechte und Quoten bleiben gleich. Nicht angebundene Datei-,
 Prozess- und Terminaltransferdienste liefern ausdrueckliche Fehler. Vertrag:
 `docs/architecture/NATIVE_SHELL_CONTRACT.md`. Noch keine Gesamt-OS-Abnahme.
+
+Abnahme vor jedem OS-Build gestoppt: Die vorhandenen Funktionen `find_drive`
+und `current_drive` in userspace/bin/shell.c wiederholen negative
+Laufwerksauskuenfte ohne Grenze. Der korrekt nicht angebundene native Dienst
+liefert -38; `PATH` bleibt dadurch in der gemeinsamen Shell haengen. Dieser
+Quelltext liegt bewusst ausserhalb des eingefrorenen Aenderungsumfangs.
+Erforderlich ist eine begrenzte Fehlerbehandlung mit gemeinsamer32-/64-Bit-
+Regression; keine vorgetaeuschte leere Laufwerksliste im nativen Adapter.
+Zwei gestoppte Host-Gruppen, vier andere Tests jeweils bestanden; sieben
+weitere Gruppen nicht gestartet. Null OS-Builds, null Gaeste. Kandidat bleibt
+sichtbar und uncommittet; letzter abgenommener Implementierungsstand f2e93446.
 
 ## R8.3as: native Konsolenvermittlung vollstaendig qualifiziert
 

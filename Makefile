@@ -269,6 +269,18 @@ X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SERVICE_PIO ?= 0
 X86_64_NATIVE_LIVE_FILE ?= 0
 X86_64_NATIVE_CONSOLE ?= 0
+X86_64_NATIVE_SHELL ?= 0
+ifneq ($(words $(X86_64_NATIVE_SHELL)),1)
+$(error NativeShell selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_SHELL),0 1),$(X86_64_NATIVE_SHELL))
+$(error NativeShell selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_SHELL),1)
+ifneq ($(X86_64_NATIVE_CONSOLE),1)
+$(error NativeShell requires NativeConsole)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_CONSOLE)),1)
 $(error NativeConsole selector must be one explicit value)
 endif
@@ -284,7 +296,7 @@ $(error NativeConsole excludes other device/lifecycle/fault fixtures)
 endif
 endif
 X86_64_CONSOLE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),-DREIST_NATIVE_CONSOLE=1,)
-X86_64_CONSOLE_ARG = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),--console,)
+X86_64_CONSOLE_ARG = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),--console,) $(if $(filter 1,$(X86_64_NATIVE_SHELL)),--native-shell,)
 ifneq ($(words $(X86_64_NATIVE_LIVE_FILE)),1)
 $(error NativeLiveFile selector must be one explicit value)
 endif

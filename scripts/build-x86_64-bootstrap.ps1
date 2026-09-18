@@ -38,6 +38,7 @@ param(
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
     [switch]$NativeConsole,
+    [switch]$NativeShell,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -56,6 +57,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeShell) { $NativeConsole = [switch]$true }
 if ($NativeConsole) {
     if ($NativeLifecycle -or $NativeStartup -or $NativeImport -or $NativePIO -or $NativeBlock -or
         $NativeWide -or $NativeBlockProfile -or $NativeFilesystem -or $NativeFileLaunch -or
@@ -416,6 +418,7 @@ try {
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `
+        "X86_64_NATIVE_SHELL=$([int]$NativeShell.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `

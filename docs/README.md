@@ -26,6 +26,7 @@ Native Read-only-Dateisystemdienste: [Dateisystemvertrag](architecture/NATIVE_FI
 Nativer dateibasierter Programmstart: [Dateistartvertrag](architecture/NATIVE_FILE_LAUNCH_CONTRACT.md).
 Native gleichzeitige Datei-/Programmdienste: [Lebensdauervertrag](architecture/NATIVE_LIVE_FILE_CONTRACT.md).
 Native Konsolenvermittlung: [Byte- und Wartevertrag](architecture/NATIVE_CONSOLE_CONTRACT.md).
+Normale Shell auf64 Bit: [Port und begrenztes Konsolenprofil](architecture/NATIVE_SHELL_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

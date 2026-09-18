@@ -1,5 +1,12 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Neu vollstaendig qualifiziert: R8.3at [normaler nativer Shell-Port](../architecture/NATIVE_SHELL_CONTRACT.md).
+Acht Gruppen,8+33+15 Hosttests und vier Gaeste bestanden. Echte normale Shell
+bei4/8GiB, Befehle/History/Bearbeitung, Fehler und Timeout samt Ersatzgeneration
+und vollstaendiger Bereinigung; keine neuen Kernelrechte. Gesamthistorie zwei
+Images/sechs Gaeste29,9656697s, alle Fehler erhalten. Datei-/Prozessintegration,
+Terminaluebergabe und normaler Systemstart bleiben offen; keine OS-Gesamtabnahme.
+
 Vollstaendig qualifiziert nach sauberem AR-Commit `7d34f237`: R8.3as
 [native Konsolenvermittlung](../architecture/NATIVE_CONSOLE_CONTRACT.md).
 Der allgemeine native Prozesspfad vermittelt nun explizit berechtigtes,
