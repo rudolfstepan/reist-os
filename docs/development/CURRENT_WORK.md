@@ -1,6 +1,1451 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 16. September 2026
+Stand: 18. September 2026
+
+## R8.3ap vollstaendig qualifiziert:24/24, keine weiteren Builds
+
+Kandidat4df0497d auf5859a5c9 besteht alle24 Verpflichtungen:19 frisch
+ausgefuehrte Gates und fuenf exakt gebundene Wiederverwendungen (vier Builds
+und die bestandene12er-Lebenszyklusmatrix). Alle15 Hostgruppen einschliesslich
+118 CPU-/Adaptertests, Altprofilvergleich, zwei echte Korruptionsgaeste,
+Referenzschutz und die vollstaendige14-Fall-Rohdatenpruefung sind bestanden.
+Die einzige letzte Laufzeitaenderung ist die Fatal-Transportauswahl; keine
+Assertion, Kernelquote, Frist oder Beobachterfunktion wurde abgeschwaecht.
+
+Dieser Durchlauf: null Builds, zwei neue Gaeste in1,868945s; alle14 gueltigen
+Gastbelege208,969384s. Summierte Gate-Befehlszeit252,574959s, nicht Wandzeit.
+Die Image-SHA bleibt2f371638362bc76a213a2834cecbe3d4e6c1072657fdfb83b44214b44dccd9e0.
+Alle frueheren Fehler bleiben erhalten; kumulativ140 konservativ gezaehlte
+Versuche2282,533265s einschliesslich des fehlgeschlagenen Vorstartversuchs.
+Keine verbliebenen QEMU-/GDB-Prozesse. Scope, ABI, Grenzen und Cleanup direkt
+geprueft. Vor Commit nur Dokumentations-/Queueabschluss, keine Quellaenderung.
+
+Beleg: `build/codex-agent/r83ap-service-cpu/fatal-adapter/verification-status-fatal-qualified.json`.
+`build/codex-agent/r83ap-service-cpu/verification-status-service-cpu-final.json`
+bindet danach den lokalen Implementierungscommit und sauberen Arbeitsbaum.
+Anschliessend folgt die naechste zusammenhaengende native Prioritaet ohne
+Routine-Rueckfrage. R3.6b bleibt zurueckgestellt. Normale64-Bit-Shell, langfristige
+Geraetedienste und gesamte OS-/Hardwareabnahme sind damit noch nicht fertig.
+Die folgenden Abschnitte sind die unveraenderte datierte Fehler-/Freigabehistorie.
+
+## R8.3ap: Zwoelf Lebenszyklusfaelle bestanden; Fatal-Pruefadapter korrigiert
+
+Vertragscommit5859a5c9 erlaubt ausschliesslich die gezielte Adapterkorrektur,
+keinen weiteren Build. Die Fall11-Korrektur bestand alle117 CPU-/Adaptertests,
+alle15 Hostgruppen, drei Referenz-Reuses, den neuen Service-Build in7,016795s,
+den Altprofilvergleich und die komplette12er-Matrix in207,100439s. Fall11:
+18,334804s; Fall6:22,364162s. Image2f371638 bleibt unveraendert erhalten.
+
+Gate22 scheiterte vor Popen mit binary observer shape: Der Fatal-Beobachter
+hat begrenzte direkte mem(address,size)-Snapshots und Probe-Hooks; der normale
+RAM-Adapter verlangt mem(a,n), Hook und ReleaseEnd. spawned=False/pid0 und
+der vollstaendige Aufrufketten-Hosttest bestaetigen den Fehler vor Gaststart.
+Jetzt ist nur binary_memory fuer Fatalfaelle None; normale Faelle behalten
+equivalence. Kein Callback, Speicherbeweis, Fehler-Assertion oder Kernelwert
+aendert sich. Eine vor Popen abgefangene echte Capture-Aufrufkette prueft den
+Normalfall und beide Fatalvarianten ohne Gaststart.
+
+Alte Belege: idle-renewal/verification-status-idle-stopped.json und
+fatal-adapter-diagnosis.json;21 PASS/22 FAIL/23..24 NOT_RUN bleiben Historie.
+Konservativ138 Versuche2280,664320s einschliesslich des0,005593s-Vorstartfehlers.
+Neues Fenster fatal-adapter:24 Verpflichtungen,15 Hostgruppen frisch seriell,
+vier exakt gebundene Build-Reuses,12 bestandene Lebenszyklusfaelle unveraendert
+uebernommen, nur zwei neue Fatalgaeste mit60s Reserve. Jede Normalfall-Assertion
+wird in der Abschlusspruefung erneut auf Originalrohbytes angewandt. Erster
+Fehler stoppt; noch kein Implementierungscommit, Queuewechsel oder OS-Abschluss.
+
+## R8.3ap: Fall11 gezielt korrigiert; erneute Vollabnahme ausstehend
+
+Vertrag7dfc82dc setzt die ausdrueckliche Freigabe fuer genau eine Testlast-
+Korrektur und einen neuen Service-CPU-Build um. Die vorherige30s-Abnahme
+erreichte20 PASS/21 FAIL/22..24 NOT_RUN, elf von zwoelf Lebenszyklusfaellen
+bestanden. Fall6 bestand erstmals vollstaendig in22,830789s inklusive Cleanup.
+Fall11 scheiterte nach18,649610s an CPU idle skipped window: Generation3/12
+hatten47/51 reale Samples, groesste Pausen154/92 statt mindestens200 Ticks.
+Alle16 Tasks wurden regulaer gereapt; kein Timeout, kein verbliebener Gast.
+
+Zwanzig einzelne100ms-Schlafaufrufe garantieren keine durchgehende Pause:
+jede Rueckkehr erlaubt Ring3-Ausfuehrung. Die Rohdaten enthalten keinen RIP
+der Zwischensamples, daher wird kein eindeutiger Instruktions- oder Kernel-
+Defekt behauptet. Die reale extrahierte Altlast scheitert an der neuen
+Hostregression. Ausschliesslich Fall11 wartet jetzt einmal mit dem vorhandenen
+IPC_RECEIVE_TIMEOUT2000ms auf seinem bereits gewaehrten leeren Endpunkt und
+verlangt ETIMEDOUT; Nachrichten, Widerruf und andere Fehler bleiben Fehler.
+Alle40 CPU-Bursts,40ms-Pausen, Kalibrierung, Kernel-/ABI-/Quotenwerte und
+vollstaendigen Gast-Assertions bleiben unveraendert. O0/O2-Tests pruefen die
+alte/neue Aufruffolge, Fehlerreaktionen und den echten IPC-Deadline-/Reap-Pfad.
+
+Vorherige Belege: host-budget/verification-status-host-budget-stopped.json
+und idle-diagnosis.json.125 Gaeste2073,558288s bleiben verbraucht. Neues Fenster:
+idle-renewal, ein Service-Image, drei exakt gebundene Referenzbuild-Reuses,
+24 Gruppen einmal, hoechstens14 neue Gaeste420s; erster Fehler stoppt.
+Alte Images bleiben erhalten. Noch kein Implementierungscommit, Queuewechsel
+oder64-Bit-OS-Abschluss; R3.6b bleibt zurueckgestellt.
+
+## R8.3ap: Freigegebenes Host-Pruefbudget umgesetzt; Vollabnahme ausstehend
+
+Explizite Nutzerfreigabe und Vertragscommit4899c828 erlauben ausschliesslich
+fuer die vollstaendige R8.3ap-QEMU/GDB-Pruefung30s pro Gast inklusive Cleanup.
+Der neue boolesche Opt-in reserviert27s fuer Beobachtung und3s fuer Cleanup;
+alle alten/default Pruefprofile behalten20s. Kernel-Fristen, CPU-Quoten, Last,
+Register-/Speicherbeweise und Fehler-Assertions sind unveraendert.
+
+Die beiden gemeinsamen Capture-/RAM-Leseadapter reichen den Opt-in explizit
+weiter und lehnen ungueltige Werte vor Nebenwirkungen ab. Regressionstests
+fuer Defaults, Fristweitergabe und Cleanup sind Teil der bestehenden CPU-
+Hostgruppe. Ein erster fehlerhafter Testaufruf (stdlib-test-Paket statt Repo-
+Testpfad) bleibt separat gesichert; die korrigierte Invocation bestaetigt den
+tatsaechlichen Vorher-Fehler aller drei neuen Verhaltenstests.
+
+Alle vier alten Buildnachweise wurden samt Herkunft und Artefakten geprueft.
+Kein Kernel-Neubau. Eingefroren sind weiterhin24 Abnahmegruppen, einmal12
+Lebenszyklusfaelle und2 Fatalfaelle mit allen Beweispflichten; erster Fehler
+stoppt spaetere Gruppen. Reserve14 Gaeste/420s ab113/1867,978798s.
+Belege liegen unter build/codex-agent/r83ap-service-cpu/host-budget.
+Noch kein neuer Abnahmeerfolg, Implementierungscommit oder Queuewechsel.
+
+## R8.3ap: Fall6-Gastlast beendet; vollstaendige Beweisfuehrung noch offen
+
+Fortsetzung ohne erneute Routinefreigabe und ohne OS-Neubau. Unveraendertes
+Image569c3820: Der ausdruecklich unvollstaendige Laufzeit-Kontrollfall beendet
+Fall6 in16,375025s inklusive Cleanup. Zwei Durchlaeufe,18 regulaere Reaps,
+Generationen1..18 und40..44 CPU-Zeitscheiben je Aufgabe. Nur die vier originalen
+Root-Modusinjektionen und deren Speicherpruefungen bleiben beobachtet;
+CPU-/CREATE-/Freigabe-/Retentionsbeweise fehlen absichtlich. Daher KEINE
+Vollabnahme, kein Ersatz fuer den eingefrorenen Test und kein Kernel-Fix.
+
+Die vollstaendige passive Zeitmessung endet weiterhin bei15/18 Reaps am20s-
+Limit. Ihre2606 Callbacks brauchen zusammen3,6873006s. Hardwareunterstuetzte
+CPU-Pruefpunkte vermeiden die Einzelschritte nicht; auch explizites Single-
+Thread-TCG bleibt am Limit. Beide Transportkontrollen werden nicht uebernommen.
+Der Vergleich grenzt Beobachtung und Rueckwirkung auf den Gast als weitere
+Untersuchungsstelle ein, beweist aber weder einen konkreten Kernelfehler noch
+eine belastbare Abhilfe. Die urspruengliche CREATE-Assertion bleibt ungeklaert.
+
+Ein erster Root-Kontrollversuch scheitert nach1,249455s an seiner eigenen
+Referenz auf geloeschte Diagnose-Haltepunkte. Der korrigierte Kontrollhelfer
+laesst nur seine zwei nun unbenutzten Beobachter-Bindungen weg; alle originalen
+Root-Assertions und Modus-Schreibzugriffe bleiben gleich. Produktionsbeobachter,
+Kernel, Last, Quoten und Abnahmebedingungen sind nicht veraendert.
+
+Fuenf neue Gaeste, null Builds; kumulativ113 Gaeste/1867,978798s. Ein reiner
+Zaehlerfehler des letzten Hilfsprogramms (Python LOAD_SMALL_INT statt co_consts)
+wird separat belegt: Originalresultat und Fehlversuche bleiben unveraendert,
+der unabhaengig summierte Versuchszaehler ist113, nicht112. Gesichert in
+continuous-completion/measurements-preserved-03.json und checkpoint-03.json.
+Keine laufenden Gaeste, kein Implementierungscommit, kein Queuewechsel.
+Alte Qualifikation20 PASS/21 FAIL/22..24 nicht gestartet bleibt bestehen.
+Naechste Korrektur muss den gemessenen Beobachtungsaufwand samt zusaetzlichen
+CPU-Samples erklaeren; kein weiterer unveraenderter Versuch und keine Lockerung
+der20s-Abnahmegrenze. Das64-Bit-OS ist noch nicht fertig abgenommen.
+
+## Historisch: Dauerauftrag gilt; unbewaehrte Versuche zurueckgenommen
+
+Vertragb4c55fbb haelt den ausdruecklichen Dauerauftrag fest: in diesem
+Arbeitsumfang keine erneute Ja-Abfrage zwischen Diagnose, Korrektur und
+Abnahme. Begrenzte Arbeitsfenster werden anhand der gesicherten Ergebnisse
+fortgeschrieben; alte Fehlversuche und Zaehler bleiben erhalten. Aeltere
+administrative Freigabe-/Reservestopps unten sind historisch. Sicherheits-
+grenzen, alle24 Abnahmegruppen und echte neue Befugnisse bleiben verbindlich.
+
+Die schlankere8GiB-Aufzeichnung bleibt innerhalb der Protokollgrenze, endet
+aber am Zeitlimit:12 CREATE-Paare,14/16 Reaps, ein vollstaendiger Durchlauf.
+Die urspruengliche create_end-Assertion wurde nicht reproduziert; ihre Ursache
+ist weiterhin offen. Der erstmals unveraendert gemessene4GiB-Fall6 endet
+mit15/18 Reaps und einem Durchlauf ebenfalls am Zeitlimit.
+
+Zwei rein beobachtende Schnellpfad-Kandidaten bestehen9 bzw.11 gezielte Tests,
+schaffen Fall6 aber weiterhin nicht innerhalb20s. Keine belastbare
+End-to-End-Verbesserung. Ein eigener PAUSE-zu-NOP-Versuch in der begrenzten
+CPU-Testlast besteht6 gezielte Gruppen samt bytegleicher Vorverarbeitung
+aller vier Altprofile. Der Gast scheitert jedoch nach7,810387s mit Aufgaben-
+Fehlerstatus und der originalen finish-Assertion. Schnellere Fehlbeendigung
+ist kein Abnahmeerfolg; Schleifen-/Zeitgrenzen und Assertions bleiben gleich.
+
+Alle drei Kandidaten verworfen. Die vier betroffenen Quell-/Testdateien sind
+bytegenau auf den vor diesen Versuchen gesicherten AP-Stand zurueckgesetzt;
+keine fremde Aenderung entfernt. Kandidatenquellen, Testbelege und Images
+bleiben erhalten. Kein Implementierungscommit und kein Queuewechsel.
+
+Ein Hilfsprogrammfehler wurde reproduziert: verschachteltes Windows
+CREATE_NO_WINDOW ohne explizite Standard-Handles laesst einen nativen
+Ausgabebefehl mit Exit1 scheitern und verschluckt die Ausgabe. Explizite Pipes
+beheben den Kontrollfall. Erster Build bleibt FAIL; dessen Artefaktpruefungen
+bestehen separat. Zweiter frischer Build mit korrigierter Umleitung PASS,
+13,453314s inklusive Belegpruefung. Kuenftige Hilfsprogramme erfassen die
+Ausgabe verschachtelter PowerShell-Aufrufe ausdruecklich.
+
+Kumulativ108 Gaeste/1785,684936s; diese Fortsetzung5 Gaeste und2 Buildaufrufe.
+Alte Qualifikation20 PASS/21 FAIL/22..24 nicht gestartet bleibt unveraendert;
+keine neue Vollabnahme. Massgeblich: continuous-completion/checkpoint-02.json
+und experiments-preserved.json unter build/codex-agent/r83ap-service-cpu.
+Naechster technischer Schritt ist eine anhand der erhaltenen Fall6-Daten
+begruendete Laufzeitdiagnose am Originalimage, keine unveraenderte Wiederholung
+oder weitere vermutete Produktionskorrektur. Dafuer ist keine erneute
+Routinebestaetigung erforderlich. Das64-Bit-OS ist noch nicht fertig abgenommen.
+
+## Historisch:Remote-Diagnose an Protokollgrenze gestoppt; Ursache offen
+
+Vertrag86841065: kein Neubau, genau ein8GiB-Gast am vorhandenen Image.
+Originale Callbacks, Assertions, Transport und Zeitgrenzen unveraendert;
+keine zusaetzlichen Haltepunkte. Die private QEMU-Aufzeichnung ergaenzt
+nur empfangene GDB-Kommandos und Antworten, keine vollstaendige Wire-Aufzeichnung.
+
+Der erste Hostversuch bestand13/14 Tests. Ein strenger Bytecodevergleich
+fand einen Unterschied durch erneutes Kompilieren extrahierter Funktionen.
+Einmalige erlaubte Hilfsprogrammkorrektur: Original-Codeobjekte direkt
+uebernehmen. Unveraenderte Tests danach14/14 PASS,1,244542s;
+Hostkommando8,137426s. Erstversuch und Fehlerbelege bleiben erhalten.
+
+Der Gast wurde nach17,168808s an der unveraenderten8MiB-Protokollgrenze
+beendet; Cleanup0,190854s. Diagnosekommando FAIL/24,371726s.
+8.388.521 gespeicherte Bytes enden in einer unvollstaendigen Antwort;
+der strenge Decoder lehnt die Aufzeichnung ab. Kein abgeschnittener
+Teil wird als vollstaendiger Nachweis gewertet. Antwortfragmente belegen
+6.486.301 Bytes; die Aufzeichnung muss fuer weitere Diagnose schlanker werden.
+
+2.832 Callback-Eintraege zeigen354 geordnete Aufrufe und sechs gueltige
+CREATE-Paare, auch an der frueheren Fehlerstelle. Nur sechs Reaps, kein
+vollstaendiger Durchlauf. Die alte Assertion trat im erhaltenen Abschnitt
+nicht auf; damit ist die Ursache weder gefunden noch der Fehler behoben.
+
+Freigegebener Gast und Hilfsprogrammkorrektur ausgeschoepft. Kein weiterer
+Start, groesseres Limit, Produktionsfix oder Queuewechsel. Weitere gezielte
+Kontroll-/Stopaufzeichnung braucht einen neuen begrenzten Auftrag.
+Kumulativ103 Gaeste/1693,222976s; verbleibende10/236,777024s reichen nicht
+fuer volle14/280s Abnahmereserve. Alte20 PASS/21 FAIL/22..24 nicht gestartet,
+Fall6 offen. Kein laufendes QEMU/GDB/Fixture, alle alten Belege gesichert.
+Aktuell: create-remote-diagnostic/analysis.json und
+verification-status-create-remote-stopped.json im AP-Basisordner.
+Das64-Bit-OS ist weiterhin nicht fertig abgenommen.
+
+## Historisch:GDB-Reproduzierer abgeschlossen; QEMU-Ursache weiterhin offen
+
+Vertrag8cd5fb66:6 Adapter-/Callback-/Grenz-/Cleanup-Tests bestanden/1,075412s.
+Ein kleines Windows-Testprogramm gebaut, kein Kernel-Neubau und kein neuer
+Gaststart. Originale CREATE-Callbacks, Dispatcher und Bereinigungsbefehle
+weiterverwendet; Produktionscode und Abnahmebedingungen unveraendert.
+
+Drei unterschiedliche GDB-Konfigurationen bestehen jeweils64 nachgebildete CREATE-Ablaeufe
+mit1536 echten Allokationsaufrufen und1857 Callbacks: Haltepunkte dauerhaft
+eingefuegt, zusaetzliche lesende Fortschrittspunkte sowie bedarfsweises
+Einfuegen als Kontrolle. Effekte und Reihenfolge stimmen ueberein; kein
+Doppelaufruf. Unabhaengige ausgefuehrte Zaehler bestaetigen jeden Endpunkt.
+Die vierte, absichtlich doppelte Rueckkehr wird durch die originale
+create_end-Assertion mit Exit71 erkannt: ein Beginn, zwei Endeintritte,
+eine Rueckkehr und24 Allokationen. Vier GDB-Laeufe zusammen6,669252s.
+
+Der fruehere QEMU-Fehler ist damit nicht behoben oder ursachlich erklaert.
+Der native Ring3-Test bildet keine Gastinterrupts, Privilegien oder den
+QEMU-Debugtransport ab. Keine spekulative Kernel-/Beobachterkorrektur.
+Die freigegebenen vier Versuche sind ausgeschoepft; als naechster gezielter
+Schritt bleibt eine neu begrenzte Remote-Stop-/Schrittaufzeichnung am
+vorhandenen Image ohne die beiden zusaetzlichen Fortschrittshaltepunkte.
+
+Gastzaehler unveraendert102/1676,054168s; alte Qualifikation20 PASS,
+21 FAIL,22..24 nicht gestartet und Fall6 offen. Keine Queuefortschaltung,
+kein Implementierungscommit, keine laufenden Gast-/GDB-/Fixture-Prozesse.
+Alle Belege gesichert: create-native-diagnostic/analysis.json und
+verification-status-create-native-stopped.json im AP-Basisordner.
+Das64-Bit-OS ist weiterhin nicht fertig abgenommen.
+
+## Historisch:8GiB-Diagnose bestanden; alter Create-End-Fehler nicht reproduziert
+
+Vertragaab7f1d7: begrenzte Diagnose ohne Kernel-Neubau abgeschlossen.
+Alle10 Hosttests bestanden, einschliesslich echter Callback-/Dispatcher-
+Weiterleitung, unveraendertem Doppelaufruf-Abbruch, Aufzeichnungsgrenzen
+und Capture-Cleanup. Hostkommando8,131946s, Tests1,366722s.
+Produktionsquellen, Fixture, SDK und Abnahmepruefungen unveraendert;
+Image569c3820/Child89a3b44f exakt weiterverwendet. Kein Neubau.
+
+Einziger Diagnosegast Fall1/8GiB:16 Tasks und beide Durchlaeufe mit allen
+urspruenglichen Pruefungen bestanden,16,589499s; Cleanup0,022540s.
+Diagnosekommando30,259312s. Die5.876 Ereignisse zeigen728 genau einmal
+weitergeleitete Aufrufe,12 gueltige CREATE-Paare und je26 Aufzeichnungen
+der beiden festen Gastfortschrittspunkte. Auch Kind3/Slot2, an dem der
+fruehere Lauf scheiterte, wird korrekt abgeschlossen.
+
+Der wiederholte create_end-Aufruf trat diesmal nicht auf. Seine Ursache
+bleibt offen: weder Debugger-Replay noch Kernelursache ist damit bewiesen.
+Zusaetzliche lesende Haltepunkte und Aufzeichnung koennen den Ablauf zeitlich
+beeinflussen. Deshalb keine Fehlerbehebung oder erfolgreiche Abnahme behauptet.
+Alte Qualifikation bleibt20 PASS/21 FAIL/22..24 nicht gestartet; Fall6 offen.
+
+Kumulativ102 Gaeste/1676,054168s;11 Slots/253,945832s verbleiben, zu wenig
+fuer eine vollstaendige14/280s-Abnahmereserve. Diagnoseauftrag ausgeschoepft;
+weitere Untersuchung/Umsetzung/Abnahme braucht einen neuen begrenzten Auftrag.
+Kein automatischer Retry, Implementierungscommit oder Queuewechsel.
+Keine laufenden Gast-/GDB-/Fixture-Prozesse. Alle alten Belege erhalten.
+Aktuelle Sicherung: verification-status-create-event-stopped.json;
+Auswertung: create-event-diagnostic/analysis.json im AP-Basisordner.
+Das64-Bit-OS ist weiterhin nicht fertig abgenommen.
+
+## Historisch:20 Gates bestanden;8GiB-Beobachter stoppt vor Fall6
+
+Vertragb6a85c08/Kandidat499302e1:75 CPU-Tests PASS/54,238s,
+alle15 Hostgruppen und3.146 negative Bindungspruefungen bestanden.
+Synchronisierte Root0-Ueberlappung umgesetzt, Ablauf-/Fehlerregressionen
+bei O0/O2 bestanden. Vier Standard-Fixture-Varianten und echte NASM-
+Referenzobjekte bytegleich. Drei Referenzbuilds wiederverwendet;
+genau ein Service-Neubau/13,098772s. Image569c3820, Child89a3b44f,
+unveraendert24 Allokationen. Gates1..20 PASS;21 FAIL;22..24 nicht gestartet.
+
+Fall0/4GiB besteht mit16 Tasks in16,448093s. Fall1/8GiB bricht nach
+1,541363s ab: `create_end` trifft auf keinen aktiven CREATE-Zustand,
+nachdem Kind3/Slot2/24 Allokationen bereits protokolliert wurde.
+Gesicherte Fehlerzeile256: `allocator.enabled=False;assert created`.
+Nur ein entsprechender Hook ist eingerichtet. Ursache des wiederholten
+Aufrufs noch offen; weder Kernelursache noch Debugger-Replay bewiesen.
+Kein Timeout: GDB-Exit71, Cleanup0,013451s. Fall6 wurde nicht erreicht,
+also noch kein Laufzeitnachweis fuer die neue Ueberlappung.
+
+Zwei neue Gaeste17,989456s; kumulativ101/1659,464669s. Kein weiterer
+Gast, Retry, Neubau, Implementierungscommit oder Queuewechsel erlaubt.
+Der Beobachter liegt ausserhalb des neuen Quellumfangs; fuer eine begrenzte
+Create-End-Ereignisdiagnose ist ein eigener freigegebener Auftrag erforderlich.
+Alle Belege erhalten; keine laufenden QEMU-/GDB-/Fixture-Prozesse.
+AP und das64-Bit-OS sind nicht fertig abgenommen. Belege im AP-Basisordner:
+critical-renewal/qualification-analysis.json und verification-status-critical-final-stopped.json.
+
+## Historisch: synchronisierte Ueberlappung zur Abnahme vorbereitet
+
+Vertragb6a85c08: gesicherter Stand99 Gaeste/1641,475213s unveraendert.
+Root0 fuehrt seine40 CPU-Bursts wieder innerhalb der2500ms-Haltezeit aus;
+der spaetere doppelte Aufruf entfaellt. Der inzwischen vorhandene explizite
+Peer-Fence-Handshake verhindert weiterhin vorzeitiges Freigeben der anderen
+Familie. Sechs Anfangskinder, Kapazitaets-/Receiptbeweise, Ersatzprozess,
+56 Yields,3000ms Peer-Haltezeit und beide kompletten Durchlaeufe bleiben.
+Der neue ausgefuehrte Root-Regressionsfall ist vor der Umsetzung rot.
+
+Drei beendete Lese-Agenten haben kritischen Ablauf, Kalibrierung und
+Beobachterkosten parallel untersucht. Es gibt keinen nachgewiesenen
+Kalibrierungsfehler; die Laufzeitwirkung der Umordnung muss der Gast beweisen.
+Ein Service-Neubau, drei exakt gebundene Referenzwiederverwendungen, alle15
+Hostgruppen und unveraendert24 Gates. Neue Reserve14 Gaeste/280s innerhalb
+113/1930s kumulativ, weiterhin20s je Gast einschliesslich Cleanup.
+Erster Fehler stoppt; kein automatischer Runtime-Retry oder Grenzwertwechsel.
+Noch keine Paketabnahme und kein fertiges64-Bit-OS.
+
+## Historisch: Hostnachweise bestanden; Fall6 bleibt am20s-Limit blockiert
+
+Vertrag5588e59e/Kandidat41a16e0c:74 CPU-Hosttests PASS/52,738s,
+alle15 Hostgruppen und3.142 negative Bindungspruefungen bestanden.
+Realer alter/neuer Assembler bei O0/O2 gleichwertig; drei echte NASM-
+Referenzobjekte bytegleich. Nativer GDB-Test:64 Charges/129 Callbacks,
+keine Haltepunktmutation in stop; Fehlerabbruch mit Exit71 nachgewiesen.
+Die Windows-Ring3-Fixture modelliert IF, keinen Gast-IRQ-Nachweis.
+Erster Kandidat scheiterte an neuen Testgeruesten; die einzige erlaubte
+Korrektur betraf nur Tests. Alle Fehlerbelege bleiben erhalten.
+
+Drei Referenzbuilds wiederverwendet; ein Service-Neubau/12,909274s.
+Image860554ec, unveraenderte Childbytes89a3b44f und24 Allokationen.
+Gates1..20 PASS;21 FAIL/136,737947s;22..24 nicht gestartet.
+Gastfaelle0..5 bestehen. Fall6 erreicht beide Kapazitaetspaare und den
+vollstaendigen ersten Durchlauf. Im zweiten Lauf sind Kinder12..17 beendet,
+Ersatz18 gestartet; Eltern10/11 und Ersatz18 fehlen beim20s-Limit.
+Kein OBSERVER_FAIL;20,013025s Beobachtung plus2,036699s Cleanup,
+22,144893s gesamter Fehlergast. Kein ausreichender Laufzeitgewinn belegt.
+
+Sieben neue Gaeste120,519148s; kumulativ99/1641,475213s. Beide Kandidaten
+und der einzige Neubau sind verbraucht. Rest7 Gaeste/168,524787s reicht
+nicht fuer14 Gaeste/280s Reserve. Keine weiteren automatischen Versuche,
+Quellkorrekturen, Builds, Implementierungscommits oder Queuewechsel.
+Naechste Umsetzung/Abnahme benoetigt eine neue begrenzte Freigabe;
+20s-Limit,40/32 Last/Quota und beide Durchlaeufe bleiben unveraendert.
+Alle drei freigegebenen Lese-Agenten haben parallel geprueft und sind
+beendet. Keine laufenden Gast-/GDB-Prozesse. Das64-Bit-OS ist nicht fertig.
+Belege: static-cpu-renewal/qualification-analysis.json und
+verification-status-static-stopped.json im AP-Basisordner.
+
+## Historisch: statische CPU-Beobachtung zur Qualifikation vorbereitet
+
+Vertrag5588e59e: drei ausdruecklich freigegebene Lese-Agenten haben
+Laufzeitpfad, Regressionen und Abnahmebindung parallel untersucht.
+Implementierung und Gates bleiben beim Hauptagenten; kein Agent startet
+Builds oder Gaeste. Ihre Berichte sind keine Abnahmebelege.
+
+Vier feste CPU-Haltepunkte ersetzen das wiederholte Umschalten des
+Rueckkehr-Haltepunkts. Vollstaendige Vorher-/Nachherwoerter, tatsaechliche
+Rueckgaben und Fehlerpruefungen bleiben erhalten. Der mutierende Dispatcher,
+Fixture,40 Bursts,CPU32/1000ms und beide Durchlaeufe bleiben unveraendert.
+Zuerst reale Assembler-/NASM-/GDB-Hostnachweise, danach ein Service-Neubau;
+drei Referenzbuilds nur bei exakter Objektgleichheit wiederverwenden.
+Alle24 Gates und12+2 Gaeste bleiben erforderlich.20s inklusive Cleanup je
+Gast; kumulativ106 Gaeste/1810s ab erhaltenen92/1520,956065s.
+Kein Diagnosegast, Laufzeitretry oder Fertigstellungsanspruch.
+
+## Historisch: IPC-Abschluss nachgewiesen; Gesamtlauf an20s-Grenze gestoppt
+
+Vertrag72b543e4/Kandidat95e94692:69 CPU-Hosttests PASS/51,373s,
+alle15 Hostgruppen und3.166 negative Bindungspruefungen bestanden.
+Der erste Kandidat scheiterte nur am alten Root0-Testgeruest: fehlende
+Deklarationen der neuen Root1-Helfer. Die erlaubte Korrektur ergaenzt
+Fail-if-called-Stubs ohne geaenderte Pruefbedingungen; Fehlerbeleg erhalten.
+
+Drei Referenzbuilds wiederverwendet, vier Defaultvarianten bytegleich;
+genau ein Service-Neubau, Buildgate12,708846s. Image271558f3,
+Childbytes89a3b44f und24 Allokationen. Gates1..20 PASS;
+Gate21 FAIL/135,414847s,22..24 nicht gestartet. Gastfaelle0..5 bestehen.
+
+Fall6 erreicht beide Kapazitaetspaare Phase3/4 fuer Generationen1 und10
+mit Belegung6 und zurueckgehaltenem Receipt. Erster Durchlauf komplett:
+neun korrekt beendete Prozesse, Elternstatus90/91 und PROCESS_RUN_OK.
+Im zweiten Durchlauf sind die sechs urspruenglichen Kinder beendet und
+Ersatzkind18 gestartet; Eltern10/11 und Ersatz18 fehlen beim20s-Limit.
+Kein OBSERVER_FAIL. Beobachtung20,005521s plus Cleanup2,038784s;
+gesamter Fehlergast22,131848s. Das ist keine bestandene Zweifachabnahme.
+Der Anteil von Gast und Transport an der Laufzeit ist nicht eindeutig belegt.
+
+Sieben neue Gaeste118,997778s; kumulativ92/1520,956065s. Keine laufenden
+QEMU-/GDB-/Fixtureprozesse, kein weiterer Build/Retry, keine Fristlockerung,
+kein Implementierungscommit oder Queuewechsel. Quellen/Abbilder/Fehlerbelege
+bleiben erhalten. Rest7 Gaeste/169,043935s reicht nicht fuer die gefrorene
+14-Gast-/280s-Reserve. Naechster notwendiger Umfang: begrenzte Laufzeit-
+Kostenkorrektur mit eigener Quellen-/Budgetfreigabe und voller Abnahme;
+keine unveraenderte Wiederholung, Lastsenkung oder gestrichener Zweitlauf.
+R8.3ap und das64-Bit-OS sind weiterhin nicht fertig abgenommen.
+
+Belege: build/codex-agent/r83ap-service-cpu/peer-renewal/qualification-analysis.json
+und verification-status-peer-stopped.json im AP-Basisordner.
+
+## Historisch: explizite IPC-Abschlusssynchronisation vorbereitet
+
+Vertrag72b543e4 setzt die27 gebundenen Quellen und10687 Nachweise fort.
+Rolle1 behaelt ihre Receipts jetzt bis zum generationsgebundenen IPC-Fencing
+von Rolle0: ein eigener Endpunkt, explizites RECEIVE-Recht fuer die bekannte
+Peer-Generation, maximal acht blockierende1000ms-Empfaenge, nur EPIPE als
+Abschluss und CLOSE auch im Fehlerfall. Keine Kernel-/ABI-/Beobachteraenderung.
+Die unveraenderten Gastpruefungen muessen weiterhin den Erfolg des Peers,
+beide Kapazitaetszeugen und komplettes Aufraeumen belegen.
+
+Rolle0 ueberlappt ihre unveraenderten40 Bursts mit dem Ersatzkind;2500ms Hold
+und56-Yield-Barriere bleiben. Geplant: echte Hostpruefungen der Root-/IPC-
+Pfade, ein Service-Neubau, drei gebundene Referenzwiederverwendungen und die
+vollstaendige unveraenderte Abnahme. Kumulativer Start85/1401,958287s,
+Grenze99/1690s; noch kein Implementierungsabschluss oder fertiges64-Bit-OS.
+
+## R8.3ap: gebuendelt geprueft; Fall6 braucht echte Abschlusssynchronisation
+
+Vertrag171e326f/Kandidat51ad2fe3:67 CPU-Hosttests PASS/46,826s,
+alle15 Hostgruppen bestanden.3.166 negative Bindungspruefungen bestanden.
+Drei Referenzbuilds wiederverwendet, vier Defaultvarianten bytegleich;
+genau ein Service-Neubau, Buildgate12,645859s. Neues Image04c16566,
+Childbytes89a3b44f und24 Allokationen unveraendert.
+
+Gates1..20 PASS; Gate21 FAIL/121,239324s. Gastfaelle0..5 bestehen inklusive
+8GiB, CPU-Ueberlast, Cancel und Elternausfall. Fall6 stoppt nach8,972407s
+mit Debuggercode71 statt Timeout. Rolle1 beendet ihre Kinder5/7/8 und
+danach sich selbst mit91, bevor Rolle0 ihre Retained-Kapazitaet prueft.
+Der eigentlich abzuweisende CREATE erzeugt Generation9 im freigewordenen
+Peer-Slot4; Rolle0 beendet sich mit211 vor Phase4. Ihr Aufraeumen loest
+den unveraenderten Cancel-Fehlernachweis aus. Nur Phase3/Belegung6 belegt.
+
+Damit ist die fruehe Freigabe allein keine korrekte Loesung:3000ms Hold
+garantieren keinen Abschluss des anderen Prozesses. Die Hostpruefung der
+lokalen Reihenfolge ersetzt diesen Gastnachweis nicht. Notwendig ist eine
+explizite begrenzte generationsgebundene Abschluss-/Receipt-Synchronisation,
+mit Tests fuer unguenstige Reihenfolgen und anschliessend voller Abnahme.
+Keine weitere Zeitabstands-Schaetzung oder Lockerung der Fehlernachweise.
+
+Sieben neue Gaeste105,403863s; kumulativ85/1401,958287s. Gates22..24
+nicht gestartet, kein Retry oder Implementierungscommit, alle Prozesse
+beendet. Quellen und Fehlerbelege bleiben erhalten. Die erneute Korrektur
+und ihr Neubau/Gastbudget sind nach diesem eingefrorenen Fehlerstopp noch
+nicht freigegeben. R8.3ap und das64-Bit-OS bleiben unabgenommen.
+
+Belege: build/codex-agent/r83ap-service-cpu/dual-renewal/qualification-analysis.json
+und verification-status-dual-stopped.json im AP-Basisordner.
+
+## Historisch: gebuendelte Rolle1-Korrektur und volle Abnahme vorbereitet
+
+Vertrag171e326f setzt den exakt gebundenen Stand mit27 Quellen und9964
+Nachweisen fort. Neue Verhaltensregression bestaetigt die bisher serielle
+Rolle1-Freigabe als erwartetes Rot. Die Korrektur gibt deren drei Kinder
+im Fall6 vor der unveraenderten3000ms-Arbeit frei und vermeidet doppelte
+Freigaben. Receipts werden weiterhin erst nach dem Hold konsumiert.
+Kernel, ABI, Beobachter, CPU-Arbeit/Quotas und alle Abnahmepraedikate bleiben
+unveraendert. Ob die Kapazitaetszeugen und Zeitgrenze bestehen, ist offen.
+
+Ein Service-Neubau, drei exakt gebundene Referenzbuild-Wiederverwendungen,
+volle24 Gates und14 Gaeste; keine weitere Diagnose-VM. Der Gesamtzaehler
+beginnt bei78/1296,554424s, neue Gesamtgrenze92/1580s. Keine Fristlockerung,
+kein Retry nach Laufzeitfehler und noch kein Implementierungscommit.
+
+## R8.3ap: Fall6 vermessen; konkrete Fixture-Parallelisierung als naechste Grenze
+
+Vertrag5829f4ab;1539 Eingaben/27 Quellen/9829 bisherige Nachweis-Hashes exakt
+fortgesetzt. Keine Produktionsaenderung und kein Neubau. Einziger neuer Gast
+am unveraenderten d972f7f3-Image:22,093746s, Beobachtungsfrist20,003235s,
+Aufraeumen2,053184s. Wieder ein kompletter Durchlauf/zwoelf Reaps; kein
+vollstaendiger zweiter Lauf. Kein Debugger/Gast bleibt aktiv.
+
+Messadapter prueft die wirklichen Aktionen nach der Stop-Entscheidung:
+sieben zusaetzliche Verhaltens-/Cleanup-Tests PASS/0,471s plus bestehende
+Zeitmessregressionen; gesamtes Hostgate12,887666s. Diagnosegate34,612372s
+zeichnet den erwarteten Timeout auf, akzeptiert ihn aber nicht als Abnahme.
+2.309 vollstaendige Callbacks,9.168 Timeline-Records;19,385936s Horizont:
+3,306074s in Callbacks,15,926247s dazwischen. Groesster Abstandstyp:
+674 CPU-return -> CPU-charge zusammen11,557385s. Die768 unmittelbar
+aufeinanderfolgenden charge/return-Paare benoetigen dazwischen1,190063s.
+Callback-/Zwischenzeit umfasst auch Debugger, Transport und Hostplanung;
+keine exklusive Kernelursache oder Vorhersage einer bestandenen Frist.
+Beide Kosten-Uhren haben unterschiedliche letzte Checkpoints und Nachlaeufe.
+
+Quellseitig bleibt eine serielle Fixture-Stelle: Rolle1 fuehrt ihre40 Bursts
+in `service_overlap(3000)` vor der Freigabe ihrer drei Kinder aus. Im ersten
+Lauf liegen deren CPU-Samplemediane bei8,87..9,19s, die der Rolle1 bei3,99s.
+Das begruendet die Untersuchung einer frueheren Freigabe mit weiterhin
+behaltenen Receipts; es beweist noch keine sichere oder ausreichend schnelle
+Korrektur. Die staerkere Erste-/Letzte-Sample-Reihenfolgehypothese wurde von
+den Daten widerlegt und verworfen; auch Initialisierung/Abschluss werden
+abgerechnet. Ein anfaenglicher Offline-Quellindexfehler (Legacy-main statt
+Service-Suffix) ist korrigiert; beide Fehlbefunde bleiben gespeichert.
+
+768 persistierte CPU-Records/742 Charges sind als unvollstaendiges Praefix
+geprueft;30 weitere Textreferenzen haben keine persistierten Records.
+Der unveraenderte Produktionsparser weist den Beleg weiterhin zurueck.
+Keine Footer-Erfindung, Gate-Wiederholung oder stille Korrektur.
+Kumulativ78 Gaeste/1296,554424s; sechs Slots verbleiben, nicht genug fuer14.
+Abnahme bleibt20PASS/21FAIL/22..24NOT_RUN, kein Implementierungscommit.
+
+Naechste neue Grenze: gezielte Rolle1-Fixture-Parallelisierung mit vorherigen
+Ordering-/Fehlerpfadtests, einem Service-Neubau und vollstaendiger unveraenderter
+Abnahme; drei Defaultbuilds koennen exakt wiederverwendet werden. Dieser
+Diagnosevertrag erlaubt diese Aenderung noch nicht. Keine Frist-/Quota-
+Lockerung oder Wegnahme von CPU-Beobachtungen. Historisches acquired25 bleibt
+ungeklaert; kein fertiges64-Bit-OS.
+
+Belege: `build/codex-agent/r83ap-service-cpu/case6-dispatch-diagnostic/diagnosis.json`
+und `offline-analysis.json`; finale Bindung:
+`verification-status-case6-dispatch-stopped.json` im AP-Basisordner.
+
+## Historisch: GDB korrigiert; Abnahme an Fall6-Zeitgrenze gestoppt
+
+Vertrag ef043a47, Kandidat d28ed3ce. Der native GDB-Verhaltensnachweis und
+die gezielte Kommandokorrektur sind erbracht (Details unten).3.209 negative
+Bindungspruefungen bestehen. Frische Hostgates:66 CPU-Tests45,765s,
+elf Task-Pool-Tests12,132s,16 Pool-PIO-Tests22,601s; Dokumentationsgate PASS
+(sieben Tests, ein bestehender Skip). Elf unabhaengige Hostgates und vier
+vollstaendig gebundene Builds wiederverwendet; kein neuer OS-/Fixture-Bau.
+Gates1..20 PASS einschliesslich unveraenderter Defaultreferenzen.
+
+Gate21 FAIL/136,582350s. QEMU-Faelle0..5 bestehen in16,223927s/17,127255s/
+17,223480s/17,640673s/16,950591s/13,724529s, inklusive8GiB und Fall5.
+Fall6 endet an der Beobachtungsfrist:20,013462s plus2,031186s Aufraeumen,
+gesamter Fall22,136951s. Ein kompletter Durchlauf, zwoelf Reap-Records;
+zweiter Durchlauf unvollstaendig, kein abgeschlossener CPU-Gesamtbeleg.
+Alle14 sichtbaren CREATEs zaehlen24; beide Kapazitaets-/Receiptphasen und
+die Ersatzgeneration sind sichtbar. Das ist keine Teilabnahme und kein
+Beweis fuer die Ursache des historischen25-statt24-Fehlers.
+
+Gates22..24 NOT_RUN, kein Retry, keine Implementierungsaenderung nach dem
+Gastfehler, kein Implementierungscommit/Queue-Fortschritt. Alle Prozesse
+aufgeraeumt. Sieben neue Gaeste121,027406s; kumulativ77/1274,460678s.
+Die verbliebenen sieben Slots reichen nicht fuer eine neue14-Gast-Abnahme
+und setzen den ausdruecklichen Stopp ohnehin nicht ausser Kraft.
+Naechste Grenze: separat begrenzte Fall6-Laufzeitdiagnose/-korrektur am
+vorhandenen Image; keine Fristlockerung oder ungepruefte Ursachenzuschreibung.
+
+Belege: `build/codex-agent/r83ap-service-cpu/debugger-host/qualification-analysis.json`,
+`candidate-01/gate-21.json` und `guests/attempt-7ad920a4e5bf4eff9b7d0a66e8c4634c/`.
+Finale Bindung: `verification-status-debugger-host-stopped.json` im AP-Ordner.
+R8.3ap und die64-Bit-Version bleiben unabgenommen; alle Aenderungen erhalten.
+
+## Historisch: GDB-Hostnachweis erbracht; volle Abnahme vorbereitet
+
+Vertrag ef043a47 setzt1539 Eingaben/27 Quellen/9130 Nachweis-Hashes fort.
+Vier neue native GDB-Laeufe, kein Fixture-/OS-Neubau und kein QEMU-Gast:
+Original0,243529s, gezielter Einzeilen-Kontrolllauf0,414911s,
+alte Callbacks0,337596s, korrigierte Callbacks0,386188s; alle nativen Exitcodes0.
+Der Originalversuch endet nach einem Callback ohne Abschluss. GDBs Ruecklesen
+der Kommandoliste beweist: das ueberfluessige `end` nach `python EXPR` entfernt
+das anschliessende `continue`. Nur dieses `end` ist entfernt; Aktions-Bodies,
+Zaehlung und alle Laufzeitorakel bleiben unveraendert.
+
+Alt/neu vollstaendig:613 Callbacks,288 echte Fixture-Aufrufe, zwoelf Gruppen
+mit je24 Allokationen und identische612 geordnete Ereignisse.72 unzulaessige
+Haltepunktmutationen innerhalb der alten Stop-Entscheidung, null im neuen
+Dispatcher. Der finale Hostbeleg bindet den exakten Produktionsobserver.
+Der historische25-statt24-Fehler bleibt unabhaengig davon ungeklaert.
+
+Belege unter `build/codex-agent/r83ap-service-cpu/debugger-host/run-*/`:
+native Exitcodes/PIDs/Zeiten, begrenzte Setup-Schritte und Alt-/Neu-Verhalten.
+Vollstaendige24-Gate-Abnahme noch ausstehend; vier unveraenderte Builds und
+nur nachweislich unabhaengige Hostgates werden wiederverwendet. Ein12+2-Lauf
+mit unveraenderten20s/Gast; kein Diagnosegast oder Retry nach Laufzeitfehler.
+Paket weiterhin nicht abgenommen; kein fertiges64-Bit-OS behauptet.
+
+## Historisch: Observerkorrektur vorbereitet; GDB-Hostnachweis blockiert
+
+Vertrage98dbc76.1539 Eingaben,27 zugeordnete Quellen und9085 Nachweis-Hashes
+exakt fortgesetzt. Der neue Regressionstest bestätigt am echten CREATE-
+Callback eine Haltepunktänderung innerhalb von `Breakpoint.stop()` und schlägt
+erwartet fehl (0,082s Test/0,268120s Aufruf). Das widerspricht dem dokumentierten
+GDB-Vertrag; es beweist nicht die Ursache der früheren25-statt24-Zählung.
+
+Unabgenommener Korrekturstand: Stop-Methoden sammeln höchstens32 Vorkommen;
+die ursprünglichen vollständigen Aktionen laufen aus Haltepunktkommandos.
+Keine Zählerkorrektur/Deduplizierung, unveränderte Allokations-, OOM-, CPU-,
+Lifecycle- und Fatalprüfungen. Quellprüfung bestätigt alle drei unveränderten
+Aktions-Bodies und syntaktisch gültige normale/Fatal-Observer. Vier neue
+Regressionen sind ergänzt, aber ihr erfolgreicher Lauf und die vollständige
+Testsuite stehen noch aus. Zwei Fehler der neuen Quellprüfung/Generierung
+sind korrigiert und ihre Befunde erhalten; das ersetzt keinen Laufzeitbeleg.
+
+Kein OS-Neubau und kein neuer QEMU-Gast. Eine kleine Windows-Hostfixture wurde
+einmal gebaut. Beide erlaubten GDB-Hostläufe enden ohne Verhaltensnachweis:
+zunächst nicht einsetzbare absolute Haltepunkte vor Programmstart; danach
+`main` erreicht, aber kein Abschlussrecord. Der zweite native Exitcode wurde
+nicht gesichert; ein GDB-Absturz oder dessen Ursache ist nicht nachgewiesen.
+Die Loader-/ASLR-Erklärung des ersten Hilfsreports ist nur eine Hypothese.
+Keine laufenden Debugger, Testprogramme oder Gäste zurückgelassen.
+
+Die Zwei-Lauf-Grenze ist ausgeschöpft; keine neue Abnahme eingefroren/gestartet,
+kein Implementierungscommit und kein Queue-Fortschritt. Nötiger nächster
+Schritt: begrenzte Untersuchung der GDB-Kommandodispatch-/Hosttest-Grenze mit
+gesicherten Setup-Schritten und nativen Exitcodes vor Fehlerprüfungen.
+Alle Kernel-/Image-/SDK-/Producer-Dateien bleiben unverändert. QEMU weiterhin
+70 Gäste/1153,433272s; historische Abnahme20PASS/21FAIL/22..24NOT_RUN.
+Die64-Bit-Version ist weiterhin nicht fertig oder abgenommen.
+
+Belege: `build/codex-agent/r83ap-service-cpu/debugger-dispatch/analysis.json`,
+`expected-red.log`, `host/old.log`, `host/new.log`.
+Finale Bindung: `verification-status-debugger-dispatch-stopped.json` im
+AP-Basisordner. Observer-/Teständerungen bleiben als unabgenommener Stand offen.
+
+## R8.3ap: Drei Diagnosegäste bestanden; seltener Zählfehler weiter ungeklärt
+
+Vertrag184a2ee4.1539 Eingaben,27 zugeordnete Quellen und8783 bisherige Nachweis-
+Hashes exakt übernommen. Keine Produktionsänderung und kein Neubau; dasselbe
+d972f7f3-Image. Zusatzaufzeichnung nur an bestehenden Haltepunkten, unveränderte
+Zähler/Callbacks/OOM-Effekte und Abnahmeprüfungen; doppelte Ereignisse werden
+nicht entfernt. Sechs tatsächliche Hosttests bestehen in2,839s
+(Gate8,888244s), einschließlich Fehlerabbruch und realer Transportbereinigung.
+
+Die drei vorher begrenzten Fall5/4096-Gäste bestehen sämtliche ursprünglichen
+Prüfungen in13,497018s,13,474166s und13,254605s. Gastzeit gesamt40,225789s;
+Diagnosegate einschließlich Bindungsprüfungen52,711378s. Offline bestätigt:
+48 Tasks,1284 abgeschlossene CPU-Records und192 bytegenau gesicherte RAM-Dumps.
+Alle36 CREATEs haben24 Eintritte, zehn Loader-/vierzehn Frame-Claim-Aufrufe,
+korrekte Eigentümer/Generationen, IRQ aus und exakt24 verbrauchte Frames.
+Je313 zusätzliche104-Byte-Records einschließlich Abschluss; kein zusätzlicher
+Rückkehrhaltepunkt. Die frühere25-statt24-Abweichung trat erneut nicht auf.
+
+Die begrenzte Serie ist damit ausgeschöpft. Ursache weder im Kernel noch im
+Observer belegt; kein geratener Fix, vierter Gast oder Start der bedingten
+Abnahme. Kumulativ70 Gäste/1153,433272s. Der rechnerische Rest von14 Slots/
+326,566728s hebt den Stopp nicht auf. Nächste Grenze wäre eine gezielte,
+begrenzte Untersuchung der Debugger-/Gast-Ereigniszuordnung; keine weitere
+unveränderte Wiederholung. Abnahmestand weiterhin20PASS/21FAIL/22..24NOT_RUN,
+kein Implementierungscommit/Queue-Fortschritt und kein fertiges64-Bit-OS.
+
+Belege: `build/codex-agent/r83ap-service-cpu/allocation-series/diagnosis.json`
+und `offline-analysis.json`; finale Quellen-/Nachweisbindung unter
+`verification-status-allocation-series-stopped.json` im AP-Basisordner.
+Alle ursprünglichen Fehlerbelege bleiben erhalten; keine laufenden Gäste.
+
+## Historisch: Allokationsdiagnose vollständig, Abweichung nicht reproduziert
+
+Vertrag0f595f5c. Gesicherter Stand exakt fortgesetzt:1539 Eingaben,27 Quellen,
+8639 Nachweis-Hashes. Keine Produktionsquellen-/Imageänderung und kein Neubau.
+Der eingefrorene Diagnoseadapter besteht sechs tatsächliche Hosttests in0,962s
+(Gate6,991176s): unveränderte Callback-/OOM-Effekte,64-Bit-Messwerte, Kapazität,
+Fehlerabbruch, exklusive Ausgabe und reale Transport-Aufräumpfade.
+
+Ein Fall5-Gast am vorhandenen d972f7f3-Image läuft in13,134491s vollständig
+durch. Die ursprünglichen Fall5-Prüfungen bestehen, einschließlich16 Tasks,
+432 abgeschlossenen CPU-Records und beider Nullzustands-/Framebilanzprüfungen.
+601 zusätzliche104-Byte-Datensätze mit Abschluss belegen für alle zwölf CREATEs
+je24 Eintritte,24 Rückkehrereignisse,24 unterschiedliche ausgerichtete Highmem-
+Frames und Free-Delta24. Alle288 Paare stimmen bei Eigentümer, Generation,
+Stack, Rücksprungadresse, Zähler und Tick überein; IRQ aus, je genau ein Frame
+verbraucht. Pro CREATE zehn Loader- und vierzehn Frame-Claim-Allokationen.
+Keine doppelte/ungepaarte Eintrittsmessung in diesem Lauf.
+
+Die frühere25-statt24-Zählung ist nicht reproduziert und bleibt ungeklärt.
+Der Vertrag verlangt hier Stopp: keine spekulative Observerkorrektur, keine
+neue Abnahmematrix, kein zweiter Diagnosegast und kein Implementierungscommit.
+Kumulativ67 Gäste/1113,207483s. Die rechnerisch verbleibenden14 Slots/
+296,792517s ersetzen keine Freigabe für eine weitere Diagnose. Nächste Grenze:
+begrenzte, möglichst wenig eingreifende Reproduktionsstrategie am selben Image.
+
+Belege unter `build/codex-agent/r83ap-service-cpu/allocation-renewal/diagnostic/`:
+`diagnosis.json`, `offline-analysis.json`, `profile/allocations-v1.bin`.
+Finale Quellen-/Nachweisbindung: `verification-status-allocation-stopped.json`
+im AP-Basisordner. Abnahmestand unverändert20PASS/21FAIL/22..24NOT_RUN;
+Paket aktiv und64-Bit-OS weiterhin nicht abgenommen.
+
+## Historisch: 20 Gates bestanden; Fall5-Allokationszählung blockiert Abnahme
+
+Vertrag bf31f2ed; Kandidat01
+c40d5d9e19077008316013ac70e116171542c59b1e84e5d31f599ca9140f0734.
+Fall6-Parallelisierung und feste Yield-Barriere sind umgesetzt. Alle61 CPU-
+Hosttests bestehen (46,281s; Gate52,277041s), einschließlich echter Root-Ausführung
+für zwölf Modi/beide Rollen, Freigabefehler,56 Yield-Fehlerstellen sowie
+IPC-/Heap-/Reaper-Ausführung unter O0/O2. Default-Präprozessorvergleich bytegleich.
+Gates1..20 PASS; drei Referenz-Builds vollständig gebunden wiederverwendet,
+genau ein neuer Service-Build in12,055648s. Image-SHA256:
+d972f7f374ae028e74c6dd36cd0c086496559937e0d3ca851f13f8df6a41be00.
+Kindprogramm und erwartete24 Allokationen sind unverändert.
+
+Gate21 FAIL nach106,975868s mit `pool acquisition owner`. QEMU-Fälle0..4
+bestehen vollständig, einschließlich8GiB;314 RAM-Dumps/3889 abgeschlossene
+CPU-Records offline nachgeprüft. Fall5 läuft in13,307954s vollständig durch:
+Debugger exit0, beide Durchläufe beendet,16 Taskabschlüsse, gelöschter Zustand,
+freier Framebestand jeweils1045657.65 RAM-Dumps sind hashgleich; der geschlossene
+426-Record-CPU-Nachweis besteht separat. Trotzdem keine Teilabnahme:
+Generation3/Slot2 hat richtigen Eigentümer8589934593 (Parent2/Rolle1), aber
+der Observer zählt25 statt24 Allokationen. Die anderen elf CREATE-Belege zählen24.
+Die zusätzliche Zählerauslösung ist mangels Einzelaufruf-/Rücksprungbelegen nicht
+zugeordnet; weder Kerneldefekt noch harmloser Observereffekt ist nachgewiesen.
+
+Fall6 und spätere Gäste wurden nicht gestartet; seine Beschleunigung ist daher
+noch nicht im Gast belegt. Gates22..24 NOT_RUN. Sechs neue Gäste/92,603142s;
+kumulativ66 Gäste/1100,072992s. Acht verbleibende Slots/189,927008s reichen
+nicht für eine vollständige14-Gast-Matrix. Der zweite Kandidatenplatz ist nach
+Build/Laufzeitfehler nicht mehr nutzbar. Keine Wiederholung, kein weiterer Build,
+keine Quellenkorrektur nach dem Laufzeitfehler; kein Implementierungscommit.
+
+Belege: `build/codex-agent/r83ap-service-cpu/parallel-renewal/analysis.json`,
+`host-source-artifacts.json`, `direct-review.md` sowie im AP-Basisordner
+`verification-status-parallel-stopped.json`. Nötige nächste Grenze: begrenzte
+Zuordnung der Allokationszählung am vorhandenen Image mit ausdrücklicher
+Observer-Scope-/Prüfrahmenfreigabe. Erwartung24 und alle bisherigen CPU-/Lifecycle-/
+Fatal-Prüfungen bleiben erhalten. Paket aktiv,64-Bit-OS weiterhin nicht abgenommen.
+
+## Historisch: Fall6 parallelisiert — vollständige Abnahme ausstehend
+
+Vertrag bf31f2ed setzt auf exakt gesicherten60 Gästen/1007,469850s auf.
+Root0 gibt seine drei bestehenden Kinder vor der unveränderten CPU-Arbeit
+frei; später nur das Ersatzkind. Keine doppelten Freigaben, keine reduzierte
+Testarbeit. Nicht abgeholte Familienbelege belegen weiterhin ihre Plätze.
+Die EPIPE-Barriere bleibt;56 vorhandene Scheduler-Yields ersetzen56 künstliche
+Timerwartezeiten. Kernel, Kindprogramm, ABI und alle Observer-Prüfungen bleiben
+unverändert. Tatsächliche Root-/IPC-/Heap-/Reaper-Tests sichern Reihenfolge,
+Grenzen und Fehlerabbruch ab. Noch kein Laufzeitnachweis für diese Änderung.
+
+Genau ein neuer Service-Build und eine vollständige12+2-Gastmatrix sind
+freigegeben; drei byte-/quellengebundene Referenz-Builds werden wiederverwendet.
+Gesamtgrenze74 Gäste/1290s, weiterhin20s je Gast einschließlich Aufräumen.
+Keine weitere Diagnose, kein zweites Image oder Fix nach Laufzeitfehler.
+Alle24 Gates und direkte Prüfung bleiben Voraussetzung für Paketabschluss.
+Die vollständige64-Bit-OS-Version ist damit noch nicht abgenommen.
+
+## Historisch: Abschlussbarriere belegt, Gesamtabnahme am Zeitlimit gestoppt
+
+Vertrag c9e7a78d, Kandidat02 eabc258cb9377965b3888ec6ec66ec8e79d4bc17ac0aaf4039c4d0ed5045bc18.
+60 CPU-Hosttests PASS (43,478s; Gate49,344292s), einschließlich echter
+IPC-/Heap-/Reaper- und Ring3-Root-Ausführung unter O0/O2. Kandidat01 bleibt
+als fehlgeschlagene Hostprüfung erhalten: zwei Testhüllenfehler wurden vor
+dem einzigen Build korrigiert, keine Kerneländerung dafür.
+Alle20 Verpflichtungen vor der Gastmatrix bestanden. Drei Referenz-Builds
+hashgebunden wiederverwendet; genau ein neuer Service-Build in12,057518s.
+Image-SHA256:6b0a4255879c7bcf246091cb3cea517da132a77ea90a7720aa5bddd551b75f09.
+Das importierte Kind bleibt bytegleich (24 Allokationen).
+
+QEMU-Fälle0..5 bestehen vollständig, einschließlich8GiB:389 echte RAM-Dumps
+und4358 abgeschlossene CPU-Records offline nachgeprüft. Fall6 besteht jetzt
+die unveränderten Phase3/4-Prüfungen für Root-Generationen1 und10: jeweils
+sechs belegte Familienplätze, terminaler zurückbehaltener Kindbeleg und
+bereits gelöschter Task. Ersatzgenerationen9 und18 sind tatsächlich gestartet.
+Durchlauf1 endet mit neun Tasks, vollständig gelöschtem Zustand und
+identischem freien Framebestand1045657. Durchlauf2 endet nicht rechtzeitig.
+Keine Observer-Assertion und kein Release-Guard-Fehler im erhaltenen Trace.
+
+Gate21 FAIL nach130,120757s: Fall6 überschreitet die unveränderte20s-Frist
+(Beobachtung20,013160s; Aufräumen2,030083s; Gast gesamt22,135372s).
+Seine720 gespeicherten CPU-Records/746 Textverweise haben keinen Abschluss;
+keine Rekonstruktion oder Teilabnahme. Gates22..24 wurden nicht gestartet.
+QEMU/GDB sind beendet. Die sieben neuen Gäste verbrauchten116,199414s;
+kumulativ60 Gäste/1007,469850s. Nur sieben Slots/172,530150s bleiben im
+aktuellen Rahmen: zu wenig für eine vollständige neue14-Gast-Matrix.
+
+Nachweise: `build/codex-agent/r83ap-service-cpu/retention-renewal/analysis.json`
+und `verification-status-retention-renewal-stopped.json` im gleichen AP-Basisordner.
+Paket bleibt aktiv und nicht abgenommen; kein Implementierungscommit.
+Nächste zusammenhängende Grenze: beweiserhaltende Reduktion des Fall6-
+Aufzeichnungs-/Workload-Zeitbedarfs mit erneuertem vollständigem Prüfrahmen.
+Kein weiterer Gast, Build, Quellenfix oder unveränderter Wiederholungsversuch
+ist im verbrauchten Vertrag erlaubt. Die64-Bit-OS-Version ist nicht fertig.
+
+## Historischer Beginn der begrenzten Fall6-Korrektur
+
+Vertrag c9e7a78d bindet die bestehende Fall6-Diagnose als Regression und
+reserviert genau eine neue12+2-Abnahmematrix (kumulativ67 Gäste/1180s,
+davon53 Gäste/891,270436s bereits verbraucht). Keine weitere Diagnose.
+Das Ring3-Testprogramm wartet vor Phase4 auf den bestehenden IPC-Widerruf
+(`EPIPE`) und anschließend56 blockierende1ms-Sleeps. Der Widerruf allein
+beweist nicht das Aufräumen: Die Hosttests müssen zusätzlich höchstens sieben
+echte Heap-CANCEL-Schritte für das8192-Byte-Kind und die tatsächliche
+Acht-Slot-Round-Robin-Grenze belegen. Alle Fehler stoppen vor Phase4/WAIT.
+Kernel, öffentliche ABI, Kindprogramm und Observer-Prädikate bleiben exakt.
+Ein neuer Service-Build; drei Referenz-Builds werden nur mit vollständiger
+Hashbindung und echter Default-Präprozessor-Gleichheit wiederverwendet.
+Noch keine Paketabnahme und keine Aussage über eine fertige64-Bit-OS-Version.
+
+## R8.3ap: Ursache von Fall6 nachgewiesen — Phase4 kommt vor Kindabschluss
+
+Diagnosevertrag64b5a556 übernimmt1539 Eingaben/27 Quellen/6965 Nachweise,
+521 geschützte Artefakte und21 Werkzeuge unverändert. Null neue Kernel-Builds;
+Kernel, Fixture, Observer, Verifier und Abnahmegrenzen bleiben unverändert.
+
+Hostdiagnose PASS in8,176081s: sechs Tests mit4116 echten alten/neuen
+Observer-Kombinationen, Kurzschluss-/Fehler-/Kapazitäts-/Aufräumprüfungen.
+Der extrahierte Ring3-Root-Code besteht zusätzlich336 modellierte Ablaufpläne
+jeweils unter O0 und O2. Diese Hostmodelle belegen, dass Phase4 ohne bereits
+beendetes Kind erreichbar ist; sie ersetzen keinen Gastnachweis.
+
+Einziger Fall6-Diagnosegast:6,683906s; Diagnosekommando PASS in20,039567s,
+ausdrücklich keine Abnahme. Am originalen Fehlerpunkt ist Root0/Generation1
+in Phase4. Sein erstes Kind, Slot3/Generation4, hat Familienzustand2 (live)
+statt4 (aufgeräumt, Quittung noch nicht abgeholt). Alle sechs bereits gelesenen
+Kindrecords stehen auf2. Der zweite Taskzustand bleibt wegen des originalen
+Kurzschlusses ungelesen/null. Ein395-Byte-Datensatz sichert diese Werte vor
+dem Abbruch. Debuggercode71, Aufräumen0,024161s, kein Timeout.
+
+Im seriellen Log folgt ein regulärer Abschluss dieses Kindes mit Status80
+und50 Samples. Das heilt den früheren Prüffehler nicht und ersetzt weder
+Phase4 noch einen vollständigen CPU-Ledger. Die Testwurzel setzt Phase4 nach
+dem zweiten EAGAIN vor dem blockierenden WAIT. Eigene40 Arbeitsintervalle
+und2500ms Mindesthaltezeit garantieren keinen Kindabschluss. Damit ist ein
+Testsequenz-/Beobachtungsfehler nachgewiesen, kein Kerneldefekt.
+
+Nächster zusammenhängender Umsetzungsschritt: Fall6-Fixture und zugehörigen
+Beobachtungspunkt an tatsächlichen Abschluss/Quittungsretention binden; beide
+Zustandsbedingungen, volles Pool-EAGAIN, Ersatzgeneration und alte Handles
+sowie sämtliche CPU-/Speicherprüfungen beibehalten. Keine gelockerte Assertion
+und keine unbegründete längere Wartezeit als Ersatz für den Nachweis.
+
+Quellen/Nachweise werden in verification-status-retention-stopped.json gesichert.
+Kumulativ53 Gäste/891,270436s; QEMU/GDB geschlossen. Abnahme unverändert
+20PASS/21FAIL/22..24NOT_RUN, kein Implementierungscommit/Queue-Übergang.
+Dieser Vertrag erlaubt nur Diagnose. Die nächste begrenzte Umsetzungsfreigabe
+muss auch die volle12+2-Abnahme reservieren: Die verbleibenden8 Gastplätze
+und268,729564s reichen nicht für14 Gäste/280s. Keine automatische Erweiterung.
+
+## R8.3ap: 20 Gates bestanden, Laufzeitprüfung an Fall6 gestoppt
+
+Vertrag f8c93a0d setzt am gesicherten Stand mit45 Gästen/786,165502s an.
+Kein neuer Build: Die vier vorhandenen erfolgreichen Builds werden nur mit
+vollständiger Quellen-/Werkzeug-/Artefaktbindung übernommen. Betroffene Hosttests,
+Standardprofilprüfung und die vollständige12+2-Gastmatrix bleiben Pflicht.
+
+Der bisher unprotokollierte Freigabefehler schreibt jetzt ausschließlich im
+Fehlerfall einen exklusiven, sofort geflushten JSON-Datensatz bis1024 Bytes.
+Er enthält nur bereits gelesene Operanden und vorhandenen Python-Kontext;
+keine zusätzlichen Gastzugriffe oder Breakpoints, keine Ausgabe im Erfolgsfall.
+Schreib-/Schemafehler brechen ab. Der Datensatz zählt zu2048 Dateien/128MiB und
+verbietet eine erfolgreiche Abnahme. Die echte fehlende Datei wurde zuvor als
+rote Regression am unveränderten Observer bestätigt. Der frühere sporadische
+Fehler ist damit nicht als behoben erklärt; seine Diagnose bleibt ergebnisoffen.
+
+Bis zur vollständigen Prüfung kein Implementierungscommit und keine
+Queue-Transition. Maximal eine gerichtete Korrektur vor dem ersten neuen Gast,
+keine Reparatur oder Wiederholung nach Laufzeitfehler; kumulativ61 Gäste/1160s.
+
+Kandidat827cc98a besteht20 Gates. Der Prüfadapter verwirft3209 ungültige
+Bindungen. CPU-Hostgruppe:56 Tests in43,877s, Gate einschließlich Nachprüfung
+50,653334s; enthalten sind6156 tatsächliche alte/neue Guard-Kombinationen.
+Elf unveränderte Hostgruppen und alle vier Builds werden exakt gebunden
+übernommen. Task-Pool11 Tests, Pool-PIO16 Tests, Dokumentation und Standardprofile
+laufen frisch. Vor dem Einfrieren wurden ausschließlich die Importnormalisierung
+und die zu konservative Annahme über wiederverwendbare Hostgruppen korrigiert;
+dabei lief kein Gate oder Gast und es bestand noch kein Kandidat.
+
+Gate21 scheitert nach113,094111s. Sieben Gäste verbrauchen98,421028s; Fälle0..5
+bestehen vollständig, einschließlich8GiB und des früher fehlgeschlagenen Falls2.
+Je16 Generationen in zwei Durchläufen;379 Speicherabbilder und4320 vollständige
+CPU-Records wurden offline mit den unveränderten Orakeln/Hashes geprüft.
+
+Fall6 bricht nach6,087549s in receipt_capacity, generierte Zeile384, ab:
+erwartet werden eine terminale Familienquittung (Zustand4) und ein bereits
+aufgeräumter Task-Slot (Zustand0) für das erste Kind von Root0, Slot5/Generation6.
+Phase3 belegt sechs besetzte Kind-Slots; Phase4 ist nicht belegt. Keine terminale
+Quittung vorhanden. Die beiden fehlgeschlagenen Operanden wurden nicht gesichert;
+144 von165 referenzierten CPU-Records liegen ohne Abschluss vor. Fehlende21
+Records werden nicht rekonstruiert. Kein Freigabe-Guard-Fehler, kein Timeout,
+kein daraus belegter Kerneldefekt. Debuggercode71, Aufräumen0,015574s.
+
+Gates22..24 nicht ausgeführt; null neue Builds, kein Implementierungscommit,
+keine Queue-Transition. Kumulativ52 Gäste/884,586530s. QEMU/GDB sind beendet;
+Quellen/Nachweise werden in verification-status-guard-stopped.json versiegelt.
+Der ungenutzte zweite Kandidat ist nach dem Laufzeitfehler nicht mehr zulässig.
+Nächster erforderlicher, separat zu begrenzender Umfang: Fall6-Phase4 gegen
+den tatsächlichen Kind-Abschluss-/Quittungslebenszyklus aufklären, ohne die
+beiden Zustandsprüfungen zu schwächen. Kein automatischer Wiederholungsversuch.
+
+## R8.3ap: Freigabe-Diagnose abgeschlossen, früherer Fehler nicht reproduziert
+
+Diagnosevertrag9d81d1ae übernimmt unverändert1539 Eingaben/27 offene Quellen,
+6201 Nachweise,521 geschützte Artefakte und21 Werkzeuge vom gesicherten
+Overlap-Stopp. Kein Kernel-Build, keine Produktionsänderung und keine erneute
+Abnahmematrix. Der ursprüngliche fehlerhafte Fall2 bleibt ausdrücklich FAIL.
+
+Der eingefrorene Diagnosehelfer protokolliert nur die vorhandene Freigabe-
+Bedingung: zuerst `release is not None`, und nur beim bisherigen Registerzugriff
+einmalig EFLAGS. Kurzschluss, Assertions und alle folgenden CPU-/Speicher-/
+Lebenszyklusprüfungen bleiben erhalten. Bis zu32 synchron gesicherte JSONL-
+Records mit je höchstens1024 Bytes, keine zusätzlichen Gastzugriffe/Breakpoints.
+Eine vor dem Einfrieren gescheiterte reine AST-Darstellungsprüfung ist samt
+Helferentwurf erhalten; der korrigierte Vergleich bindet die exakte AST-Struktur
+statt von Python ergänzte Darstellungsklammern. Dabei lief kein Gast/Hostgate.
+
+`service_cpu_release_diagnosis.py --host`: PASS in8,360945s. Fünf reale Tests
+umfassen6156 Kombinationen der extrahierten alten/neuen Guard-Kontrollflüsse,
+Register-/Schreib-/Flush-Fehler, Kapazitäten, Mutationen sowie die ursprünglichen
+Capture-Aufräumtests mit simulierten Prozessen.
+`--profile`: diagnostisch PASS in24,721900s, ausdrücklich keine Abnahme.
+
+Der einzige Fall2/4096MiB-Gast läuft in13,561659s vollständig durch:16 Generationen
+in zwei Durchläufen; sämtliche16 Freigabeprüfungen melden keine laufende Freigabe
+und EFLAGS70 (`0x46`, IF gelöscht). Original-Orakel,60 gespeicherte Speicherabbilder
+mit ihren Hashes, unabhängige Kernel-/Highmem-Gleichheit und694 geschlossene
+CPU-Ledger-Records sind vorhanden. Die Freigabe-Callbacks des ursprünglichen
+Fehlerlaufs und des diagnostizierten Images stimmen strukturell überein.
+
+Ergebnis bleibt `inconclusive_not_reproduced`: Der frühere sporadische Fehler
+ist nicht erklärt oder behoben. Seine beiden Operanden sind weiterhin unbekannt;
+kein Beweis für einen Kerneldefekt oder einen reinen Observerfehler. Fall6 und
+die vollständige12+2-Abnahme bleiben offen. Der zusätzliche Gast zählt vollständig:
+kumulativ45 Gäste/786,165502s, null neue Builds in diesem Diagnosevertrag.
+
+Diagnose und Quellen werden in verification-status-release-stopped.json gebunden;
+QEMU/GDB sind beendet. Keine Implementierungsfreigabe, kein Implementierungscommit
+und keine Queue-Transition. Der Vertrag endet nach dieser einzelnen Diagnose.
+Vorgeschlagener nächster begrenzter Umfang: den belegten Mangel an Fehlerkontext
+im Observer durch dauerhaftes, nur im Fehlerfall geschriebenes Guard-Protokoll
+schließen und anschließend die vollständige Abnahme am unveränderten Image
+durchführen. Dafür ist eine neue gebundene Freigabe erforderlich; weder ein
+unveränderter Wiederholungsversuch noch eine spekulative Kernelreparatur ist erlaubt.
+
+## R8.3ap: ein Service-Build fertig, Abnahme an Fall2 gestoppt
+
+Vertrag e8cdbcfe bleibt aktiv; kein Implementierungscommit und keine
+Queue-Transition. Fall6-Überlappung und die echten O0/O2-Regressionen sind
+umgesetzt. Kandidat1 scheiterte vor dem Build am Host-GDB-Test, der bereits
+das noch nicht gebaute Image öffnete. Die einzige zugelassene Korrektur bindet
+diesen Decoder-Test an das erhaltene Referenzimage und dessen Artefakt-Hashes.
+Kandidat2 bbc021af besteht alle15 Hostgruppen (CPU-Gruppe:51 Tests), darunter
+vier exakt gebundene Reuses, sowie drei Referenzbuild-Reuses, den einzigen
+neuen Service-Build und die Prüfung unveränderter Standardprofile.
+
+Der neue Build benötigt15,063851s einschließlich Gate-Nachprüfung und liegt
+unter build/codex-agent/r83ap-service-cpu/overlap-renewal/native. Image-SHA256:
+a45b4b3164c7c0c9bd7ec287e67472ef2473eb7eb7dc81e04be2e7836401f538.
+Alle vorherigen Images bleiben erhalten. Keine weiteren Builds gestartet.
+
+Die vollständige Gastmatrix stoppt regelgemäß beim ersten Fehler:
+
+- Fall0/4096MiB: PASS,16 Generationen,19,739030s.
+- Fall1/8192MiB: PASS,16 Generationen,19,786241s.
+- Fall2/4096MiB: FAIL nach2,742481s, GDB-Ende71 statt Zeitüberschreitung.
+
+Der gespeicherte Observer meldet in release_begin, Python-Zeile227:
+`assert release is None and not reg('eflags')&512`.
+Die beiden Operanden wurden nicht aufgezeichnet; weder Reentranz noch ein
+gesetztes IF-Bit ist damit einzeln bewiesen. Ein erwarteter UD2-Terminalbeleg
+(Slot3/Generation4, Status134) ist vorhanden, aber kein vollständiger
+Freigabenachweis.38 CPU-Textreferenzen stehen einer leeren gepufferten
+Binärdatei gegenüber; fehlende Records/Footer werden nicht rekonstruiert.
+Die unveränderten Original-Orakel bestätigen offline beide vollständigen
+Erfolgsfälle. Fall6 wurde noch nicht erreicht; kein Laufzeitnachweis für die
+beabsichtigte Beschleunigung und kein Beleg für die gesamte64-Bit-Version.
+
+Stand:20 Gruppen PASS,21 FAIL,22..24 NICHT GESTARTET. Drei neue Gäste verbrauchen
+42,267752s; kumulativ44 Gäste/772,603843s. Beide Kandidaten und die einzige
+Build-/Matrix-Gelegenheit sind verbraucht. Restbudget erlaubt keine automatische
+Wiederholung. Quellen, Fehlversuche, Nachweise und beide Images werden unter
+verification-status-overlap-stopped.json gebunden erhalten; QEMU/GDB sind beendet.
+Nächster erforderlicher Umfang ist eine gesondert begrenzte Diagnose der beiden
+Assertion-Operanden am unveränderten Image, ohne neue Kernel-Builds oder gelockerte
+Prüfkriterien. Keine spekulative Kernel-/Observer-Reparatur in diesem Durchlauf.
+
+## R8.3ap: Fall6-Überlappung umgesetzt, Abnahme ausstehend
+
+Vertrag e8cdbcfe setzt1539 Eingaben/27 Quellen/5717 Nachweise fort. Der echte
+alte Root-C-Ablauf wurde zuerst im Hosttest als rot nachgewiesen:40-Burst-Arbeit
+erfolgte erst in Phase5. Jetzt erledigt nur Fall6 diese unveränderte Arbeit
+genau einmal während seiner Haltephase: Root1 vor Freigabe seiner Kinder,
+Root0 nach Freigabe des ersten Kindes und vor dem Retained-Receipt-Nachweis.
+Die Mindesthaltezeiten bleiben3000/2500 monotone Millisekunden. Ein begrenzter
+Helfer schläft nur die Restzeit in1..100ms-Schritten; höchstens31 Prüfungen,
+Fehler/Rücklauf/Überlauf brechen ab. Kalibrierung,40 Bursts,40ms-Schlafabstände,
+Kinder, andere Fälle, Kernel und Observer bleiben unverändert.
+
+Neue echte C-Tests vergleichen alte/neue Root-Lebenszyklusfolgen für beide
+Rollen/alle12 Modi bei unterschiedlichen Arbeitsdauern und prüfen den Helfer
+an Grenzen/Fehlern bei O0/O2. Die UD2-Stelle wird ausschließlich im Hostmodell
+als deterministischer Abbruch dargestellt; der reale Gast behält die Instruktion.
+Historische Kalibrierungsprüfungen verwenden ihre gespeicherten Quellstände;
+die aktuelle Änderung erhält eine eigene exakte Editbindung und echten
+Präprozessorvergleich aller vier deaktivierten Service-Varianten.
+
+Eingefrorene Abnahme:24 logische Gruppen, frische betroffene Hosts, nur vier
+transitiv unveränderte Host-Reuses, drei vollständig gebundene Referenz-Reuses
+und genau ein neuer Service-Build unter overlap-renewal/native. Vollständige
+12+2 Gastmatrix, CPU40/32, alle18 Fall6-Generationen/zwei Durchläufe, Speicher-
+und Lebenszyklusnachweise sowie20s inklusive Cleanup bleiben unverändert.
+Kein Diagnosegast/Relay, kein veränderter Wiederholungsversuch nach dem Build.
+Noch keine Abnahme/Implementierungscommit/Queue-Transition oder fertige64-Bit-OS-Version.
+
+## R8.3ap: Transport eingegrenzt, Fall6 noch nicht abgenommen
+
+Vertrag ea0ae870 setzt alle1539 Eingaben/27 Quellen/5541 Nachweise unverändert
+fort. Kein Build und kein erneuter Abnahmelauf. Die einmalige Hostgruppe besteht
+in13,998844s: ursprüngliche Observer-/Cache-Prüfungen sowie fünf neue reale
+RSP-Tests für Bytegleichheit, Fragmentierung, Prüfsummen, Teilsendungen,
+Kapazitäten, Deadline und unverändertes Capture-Cleanup.
+
+Der einzige Diagnosegast endet nach20,000067s Beobachtung; inklusive Aufräumen
+und Relay-Abschluss20,113829s. Die Diagnosegruppe bleibt FAIL (26,590027s):
+ConnectionResetError10054 wird vom eingefrorenen Helper als Fehler behandelt.
+Der Zusammenhang mit dem Deadline-Cleanup ist zeitlich plausibel, mangels
+eigenem Reset-Zeitstempel aber nicht unabhängig bewiesen. Keine Umdeutung zu PASS.
+
+33101 vollständige RSP-Pakete sind monoton ausgewertet; sämtliche312571/9005116
+weitergeleiteten Bytes beider Richtungen stimmen samt SHA256 überein. Innerhalb
+des19,844228s Pakethorizonts entfallen0,744721s auf normale Anfrage/Antwort,
+0,179577s auf Einzelschritt-Antworten,12,704790s auf Fortsetzungsantworten,
+5,516800s auf Zwischenräume und0,698339s auf Paketweiterleitung. Fortsetzungen
+enthalten Gast-, QEMU- und Hostlaufzeit; Zwischenräume enthalten Debugger und
+Callbacks. Die Durchleitung beeinflusst die Messung selbst. Kein Beleg für
+einen allein durch Pakettransport behebbaren Engpass oder eine sichere Beschleunigung.
+
+Die unabhängige Callback-Zeitleiste enthält3,952768s in1934 vollständigen
+Callbacks. Zeitleistenursprünge und Flush-Enden unterscheiden sich: keine
+scheinexakte Subtraktion.10/18 Generationen sind gesund beendet (45..67 Samples).
+Alle549 gespeicherten Charges stimmen mit der Originalformel/Generationsfolge
+überein;576 Rohrecords stehen622 Textreferenzen gegenüber, der Footer fehlt.
+
+Konkreter nächster Prüfentwurf, noch NICHT umgesetzt: In task_pool.c erfolgt
+die40-Burst-Prüfarbeit der Wurzeln erst nach den Fall6-Koordinationsphasen.
+Eine Überlappung dieser Arbeit mit den bestehenden2,5s/3s Haltephasen könnte
+die sequenzielle Testdauer verringern. Dafür ist eine ausdrücklich begrenzte
+Fixture-Änderung mit Äquivalenzbeweisen nötig: unveränderte absolute Haltezeiten,
+Kapazitäts-/Receipt-/Replacement-Belege, alle18 Generationen, mindestens40
+Samples,32er-Quota, zwei vollständige Läufe und20s inklusive Cleanup. Kein
+bewiesener Kernelfehler und keine Erlaubnis zum Überspringen eines Nachweises.
+Falls zugelassen: nur ein neuer Service-Build; unveränderte Referenzbuilds
+weiterverwenden. Der aktuelle Vertrag erlaubt Diagnose, nicht diese Änderung.
+
+Gesamt41 Gäste/730,336091s;20 Plätze/429,663909s bleiben rechnerisch frei.
+Alle fehlgeschlagenen Belege bleiben erhalten. Vollständiger Fortsetzungsstand:
+verification-status-transport-stopped.json; Detailauswertung:
+transport-diagnostic/offline-analysis.json, beide unter
+build/codex-agent/r83ap-service-cpu. Weiterhin20/24 Abnahmegruppen PASS,
+Gruppe21 FAIL,22..24 nicht gestartet. Kein Implementierungscommit/Queue-Wechsel;
+die64-Bit-Version ist nicht fertig.
+
+## R8.3ap: Observer-Korrektur geprüft, Fall6 weiterhin über Zeitgrenze
+
+Vertrag011e8ad7, Kandidatc1f71dca:49 CPU-Hosttests bestehen (57,293s Testzeit,
+65,109566s Gate), frische TaskPool-/PoolPIO-/Dokumentationsprüfungen ebenfalls.
+Elf Hostgruppen und alle vier Builds werden mit vollständigen Nachweisen
+wiederverwendet; kein Neubau. Der frische Altprofilvergleich besteht in43,688751s.
+20/24 Gruppen PASS, Gruppe21 FAIL, Gruppen22..24 nicht gestartet.
+
+Die Fälle0..5 bestehen vollständig mit jeweils16 Tasks in17,518658/17,159957/
+16,708674/16,788038/16,698430/12,470196s. Fall6 überschreitet erneut die
+Beobachtungsgrenze:20,010142s,22,133431s gesamte Gastzeit mit Cleanup.10/18
+Generationen sind regulär beendet; der erste Durchlauf endet nach11,639712s.
+Alle740 vollständig gespeicherten Charges und ihre Generationsfolge stimmen
+mit der Originalformel überein.768 Rohrecords,797 Textreferenzen, kein Schlusshash:
+die fehlenden Lebenszyklusbelege werden nicht rekonstruiert.
+
+Die Offline-Zeitkorrektur und die Observer-Änderung sind hostgeprüft, schließen
+die Gastabnahme aber nicht. Kein behaupteter eindeutiger Kerneldefekt oder
+kausaler Geschwindigkeitsgewinn aus Einzelmessungen. Die vorhandenen Belege
+zeigen keinen weiteren konkreten Fehler im zugelassenen CPU-Lese-/Buchführungspfad.
+Die Trennung von Gastlaufzeit und Debugger-/Transport-Stop/Resume-Aufwand braucht
+eine gesondert begrenzte Diagnosefreigabe; ein unveränderter Wiederholungsversuch
+oder eine spekulative zweite Quelländerung ist nicht zugelassen.
+
+Gesamt40 Gäste/710,222262s.21 Gastplätze und eine Kandidatenkorrektur bleiben
+rechnerisch frei, erweitern aber nicht den Umfang. Kein Implementierungscommit,
+Queue-Wechsel oder fertiges64-Bit-OS. Vollständiger Fortsetzungsstand:
+verification-status-monotonic-stopped.json unter build/codex-agent/r83ap-service-cpu.
+
+## R8.3ap: Zeitdiagnose korrigiert, Observer-Kandidat vor Abnahme
+
+Vertrag011e8ad7 setzt den exakt gesicherten Stand fort. Die Offline-Korrektur
+der Zeitdiagnose besteht in5,377596s mit17 Negativprüfungen, ohne weiteren Gast
+oder Build. UTC-Zeitsprünge bleiben Rohbeobachtungen, keine Laufzeitmessungen;
+die vorhandenen monotonen Messdaten werden unverändert ausgewertet. Die alte
+fehlgeschlagene Diagnose wird nicht nachträglich zu PASS umgedeutet.
+
+Der neue Observer-Kandidat bündelt acht Task-Header in einen begrenzten7184-
+Byte-Lesezugriff und berechnet unveränderliche CPU-Symbolabstände einmalig.
+Ein tatsächlicher roter Test bestätigt die bisherigen acht Einzelzugriffe;
+der erste fehlgeschlagene Testimport bleibt als verworfener Aufbau erhalten.
+Alle Werte, Prüfungen, Haltepunkte, Ereignisreihenfolgen und Cache-Löschgrenzen
+bleiben erhalten. Noch kein nachgewiesener Gast-Zeitgewinn, keine Paketabnahme.
+Die24 Gruppen sowie zwölf Normal- und zwei Fatalgäste bleiben erforderlich.
+Builds werden exakt wiederverwendet; Kernel, PC-Uhr und Zeitgrenzen bleiben
+unverändert. Bisher33 Gäste/590,744879s, Gesamtdeckel61/1160; maximal zwei
+geänderte Kandidaten und eine nachweisgestützte Korrektur. Kein fertiges64-Bit-OS.
+
+## R8.3ap: Neustart wiederhergestellt, Diagnose an Host-Zeitsprung gestoppt
+
+Vertragdb577901 erlaubt genau einen Fall6-Diagnosegast und danach nur bei
+erfolgreicher Diagnose die begrenzte Observer-Qualifikation. Nach dem PC-Neustart
+wurden alle1539 Eingaben und4738 alten Belege bestätigt. Nur die noch vor jedem
+Test erzeugte QEMU-Versionsausgabe bestand aus131 Nullbytes; die erneute reine
+Versionsabfrage stimmt bytegenau mit dem vorher eingefrorenen Hash überein.
+Die beschädigten Bytes bleiben separat erhalten; kein Test wurde wiederholt.
+
+Die neuen Diagnose-Hostprüfungen bestehen in8,383001s. Der einzige Diagnosegast
+braucht23,475030s mit Cleanup, erreicht die20s-Beobachtungsgrenze und beendet
+10/18 Generationen. Der Diagnosebefehl scheitert nach30,830006s bei der
+UTC-Intervallauswertung: QEMU-Zeitstempel springen um142,916ms zurück. Das
+Windows-Systemereignis448205 belegt währenddessen eine Rückstellung durch
+D4.exe von09:40:23.8415701Z auf09:40:23.6890000Z. Die Diagnose nahm hier
+fälschlich monotone UTC-Zeit an; das erklärt ihren Auswertungsfehler, nicht
+den Gast-Timeout. Keine Änderung der PC-Zeitsynchronisierung.
+
+Offline bleiben die monotonen Messungen auswertbar:3,547383s Observerarbeit,
+davon2,808180s Speicherlesezugriffe, bei18,038593s letztem Cost-Messhorizont.
+Alle550 vollständig gespeicherten CPU-Charges entsprechen der Originalformel.
+576 CPU-Records stehen607 Textreferenzen gegenüber; der Schlusshash fehlt.
+Fehlende Daten werden nicht rekonstruiert, der gescheiterte Lauf bleibt FAIL.
+
+Gesamt33 Gäste/590,744879s; null neue Builds, keine neue Qualifikationsmatrix,
+kein Implementierungscommit oder Queue-Wechsel. Der neue Gesamtdeckel61/1160
+ersetzt nur für diesen Folgevertrag den alten Deckel; die28 freien Gastplätze
+erlauben keinen Neustart nach dem ausdrücklich stoppenden Diagnosefehler.
+Fortsetzung benötigt eine begrenzte Freigabe zur Korrektur der Diagnose-
+Zeitbasis, nicht höhere Gastlimits oder Änderungen am Kernel. Quellen und
+Belege: verification-status-case6-stopped.json unter build/codex-agent/r83ap-service-cpu.
+Die letzte Paketqualifikation bleibt20/24; die64-Bit-Version ist nicht fertig.
+
+## R8.3ap:20 Gruppen bestanden, Fall6-Zeitgrenze blockiert Abschluss
+
+Vertrag86820d5f, Kandidat0ddcf406:43 CPU-Hosttests grün (Gate48,34s), TaskPool11
+(19,94s), PoolPIO16 (30,27s), Dokumentation und elf exakt gebundene Host-Reuses.
+Alle vier Builds wurden mit Quell-/Werkzeug-/Artefaktnachweisen wiederverwendet;
+null Neubauten. Der frische Altprofilvergleich besteht in63,09s. Insgesamt20/24
+Gruppen PASS, Gruppe21 FAIL, Gruppen22..24 nicht gestartet.
+
+Die Gastfälle0..5 bestehen vollständig mit jeweils16 Task-Nachweisen in18,04/
+17,04/17,84/17,94/17,46/14,89s; Fall1 verwendet8GiB. Fall6 erreicht die20s-
+Beobachtungsgrenze, Gesamtdauer22,13s einschließlich2,03s Cleanup. Erst10/18
+Generationen sind ordnungsgemäß beendet, ein Durchlauf vollständig. Die
+Kapazitätsphasen3/4 beider Rootgenerationen sind belegt. Alle692 gespeicherten
+CPU-Charges stimmen mit der unveränderten Formel überein;45 referenzierte
+Records und der Schlusshash fehlen jedoch. Keine rekonstruierte Abnahme und
+keine eindeutig nachgewiesene Kernel-/Transportursache.
+
+Die32 bisherigen Gäste kosten567,269849s. Zehn verbleibende Gastplätze reichen
+nicht für die vorgeschriebene vollständige Zwölfermatrix; auch die verbleibenden
+272,730151s reichen nicht für zwölf Normal- plus zwei Fatalfälle mit voller
+Reservierung. Deshalb kein weiterer Versuch, keine automatische Budgeterhöhung,
+kein Implementierungscommit und keine Queue-Fortschaltung. Fortsetzung erfordert
+ein ausdrücklich freigegebenes begrenztes Folgepaket mit ausreichendem Gastbudget.
+Der vollständige Stand ist in verification-status-coalesce-stopped.json gesichert.
+
+Wichtige Korrektur: Der tatsächlich erzeugte Lesehelfer bündelte schon vorher.
+Die neue direkte Längen-/Fragmentprüfung ist hostgeprüft, aber kein belegter
+Geschwindigkeitsgewinn. Der fehlerhafte erste Testaufbau und der korrekte rote
+Längentest bleiben mit ihren exakten Quellrevisionen erhalten. Details stehen im
+[CPU-Vertrag](../architecture/NATIVE_SERVICE_CPU_CONTRACT.md). Die64-Bit-Version
+ist weiterhin nicht fertig; R3.6b bleibt zurückgestellt.
+
+## R8.3ap: Tatsächlichen Leseadapter absichern, Abnahme offen
+
+Vertrag86820d5f bleibt auf fünf Observer-/Prüf-/Statusdateien begrenzt; keine
+Neubauten. Der erzeugte Observer verwendet bereits den bündelnden FileLaunch-
+Lesehelfer. Die vorherige Annahme eines seitenweisen Payload-Lesepfads war falsch;
+der erste darauf beruhende Testaufbau bleibt als nicht akzeptierter Fehlerbeleg
+erhalten. Der korrigierte Test bestätigt die vorhandene Bündelung und zeigt eine
+fehlende direkte Erkennung verkürzter Payload-Rückgaben. Der AP-Adapter ergänzt
+genaue Längenprüfung und feste270336-Byte/67-Fragment-Grenzen bei unveränderten
+Seitenprüfungen, Lesereihenfolge und Transportwegen. Kein behaupteter Zeitgewinn.
+Die24 eingefrorenen Gruppen, zwölf vollständigen Normalfälle und zwei Fatalfälle
+müssen weiterhin bestehen; bisher25 Gastversuche/441,924692s bleiben angerechnet.
+
+## R8.3ap: Kostenvergleich abgeschlossen, Fall0 vollständig geprüft
+
+Vertragcecde737 erlaubt die begrenzte Laufzeitkostenanalyse. Keine Kernel-,
+Testlast-, Transport- oder Implementierungsänderung; null Neubauten. Die alten
+1539 Eingaben,27 Quellpfade,3945 Belege,521 geschützten Artefakte und21 Werkzeuge
+sind exakt bestätigt. Der Hosttest besteht in10,809417s mit tatsächlichen
+Messadaptern,48 Rohwertfällen und17 Negativprüfungen der Kontextzählung.
+
+Zwei feste Vergleichsläufe auf demselben vorhandenen Image:
+
+- Ohne Beobachter:11,350976s Gastzeit, alle16 Tasks regulär beendet,
+ 40..44 Samples je Generation,659 insgesamt. Nur serielle Belege, keine Abnahme.
+- Vollständiger Beobachter samt Diagnose:17,998149s, alle16 Generationen mit
+ 44..62 Samples,835 insgesamt. Die unveränderten vollständigen Fall0-Prüfungen
+ für CPU, Lebenszyklus, Speicher und binäre Gleichheit bestehen. Kein Timeout.
+
+Die Prüfbefehle einschließlich Eingabebindungen dauern21,981968s bzw.28,748533s;
+das sind nicht die Gastzeiten.835 zusätzlich an vorhandenen CPU-Haltepunkten
+gelesene Kontexte stimmen vollständig mit dem originalen CPU-Ledger überein.
+702 Treffer liegen in der Testlast,116 an Syscall-Rückkehrpunkten,15 am Einstieg,
+zwei in anderem Benutzercode. Das ist keine Zeitmessung IRQ-gesperrten Kernelcodes.
+
+Gemessene Beobachterarbeit:4,5841012s, davon3,5496508s Speicherlesezugriffe.
+Die835 kurzen CPU-Eintritt-/Rückkehrabstände summieren sich auf1,2020698s;
+Kernelabrechnung, Debugger und Host-Scheduling sind darin nicht getrennt.
+Die6,647173s Differenz der Kontrollläufe darf wegen Einzelmessung und zusätzlicher
+Diagnose nicht pauschal als reiner Beobachteraufwand ausgegeben werden.
+
+Konkreter nächster Ansatz: zusammenhängende physische Benutzerseiten im
+AP-Beobachter gebündelt lesen. Der bisherige user()-Helfer zerlegt auch266336
+Bytes in höchstens4096-Byte-Lesezugriffe; dadurch greift der bereits vorhandene
+binäre Transport ab32768 Bytes nicht. Jede Seiten-/Rechteprüfung und jedes
+Vergleichsbyte muss erhalten bleiben; nur tatsächlich angrenzende Spannen
+zusammenfassen, keine stopübergreifende Zwischenspeicherung. Alt/Neu-Verhalten
+und Fehlerpfade zuerst am Host prüfen, anschließend vollständige unveränderte
+12+2-Gastabnahme mit exakt wiederverwendeten Builds. Kein versprochener Zeitgewinn.
+
+Die freigegebene Analyse ist beendet; diese Observer-Implementierung ist noch
+nicht freigegeben/eingefroren. Gesamt25 Gäste441,924692s. Belege und Quellstände
+sind in verification-status-execution-cost.json unter build/codex-agent/r83ap-service-cpu
+gesichert. Die Paketabnahme bleibt20/24: der erfolgreiche Diagnose-Fall0 ersetzt
+nicht die zwölf Fälle und zwei Fataltests. Kein Implementierungscommit oder
+behaupteter Abschluss der64-Bit-OS-Version.
+
+## R8.3ap: Messpunktfehler behoben, Laufzeitabnahme weiterhin offen
+
+Vertragd259f6e9 friert den ausdrücklich freigegebenen einzelnen korrigierten
+Diagnosegast ein. Die drei Endmesspunkte sind anhand der tatsächlichen Imagebytes
+und vollständigen Disassemblierung gegen alle Programme geprüft. Kein Messpunkt
+liegt auf einer fremden Instruktionsgrenze. Der Hosttest besteht in5,562444s mit
+48 Rohwertfällen,70 Negativprüfungen und allen neun Programm-/Adresskombinationen.
+Der komplette bisherige Beobachter und sämtliche Grenzen bleiben unverändert.
+
+Im Gast werden alle48 Kalibrierungswerte für16 Generationen erfasst, ohne fremde
+Treffer oder Kalibrierungs-Observerfehler. Offline-Wiedergabe durch den tatsächlichen
+Dekoder bestätigt jeden Rohwert, Reihenfolge, Bereich und Minimum. Intervalle
+80..130ms, ermittelte Quanta44155384..52777958 TSC-Einheiten; kein belegter
+Rechenfehler und kein Nachweis, dass eine kleinere Testlast korrekt wäre.
+
+Der Gast überschreitet aber weiter die Abnahmegrenze:20,000492s Beobachtung,
+0,107771s Bereinigung,20,217717s Gesamtzeit. Neun von16 Tasks enden regulär mit
+49..66 CPU-Samples. Beim Abbruch meldet release_end eine geschlossene QMP-Verbindung
+(Debuggerstatus72). Der Transport protokolliert vorher Deadline und beendet QEMU
+vor dem Warten auf GDB; das passt zu einem während der Bereinigung unterbrochenen
+Speicherabzug, beweist aber ohne eigenen Fehlerzeitstempel keine exakte Reihenfolge.
+Der Diagnosebefehl bleibt FAIL,26,000526s. Kein Kernelkorruptionsnachweis.
+
+864 gespeicherte CPU-Datensätze,871 Textreferenzen, kein Abschluss-Hash. Alle840
+gespeicherten Charge-Rohdatensätze sind konsistent; der unvollständige Gastbeleg
+wird nicht repariert oder anerkannt. Der vereinbarte Stop bei Observerfehler gilt.
+Kein Neubau, keine Implementierungsänderung, kein weiterer Abnahmekandidat.
+Abnahmestand unverändert20/24; Gate21 FAIL, Gates22..24 nicht gestartet.
+Gesamt23 Gäste412,575567s. Belege und27 Quellstände liegen gesichert in
+verification-status-calibration-probe-stopped.json unter build/codex-agent/r83ap-service-cpu.
+
+Die bedingte Kalibrierungskorrektur und der höchstens eine Service-Build bleiben
+unverbraucht. Für einen Eingriff in den gemeinsamen Transport-/Abbruchpfad oder
+eine weitergehende Laufzeitkostenuntersuchung muss der Umfang ausdrücklich neu
+begrenzt werden. Eine geänderte Timeout-Klassifizierung allein beschleunigt den
+Gast nicht. Keine weitere blinde Kalibrierungsänderung, Wiederholung oder
+Grenzlockerung; kein Implementierungscommit und keine fertige64-Bit-OS-Abnahme.
+
+## R8.3ap: Kalibrierungsdiagnose durch eigenen Messpunktfehler gestoppt
+
+Vertraga3ca6822 erlaubt die gezielte Kalibrierungsuntersuchung und bei belegtem
+Defekt höchstens einen neuen Service-Build. Die alten1539 Eingaben,27 Pfade,
+3772 Belege und521 geschützten Artefakte wurden unverändert bestätigt.
+Ein eingefrorener Diagnosehelfer bindet seine sechs Ring3-Messpunkte an die
+tatsächlichen Objekt- und Imagebytes. Sein Hosttest besteht mit zwölf Rohwertpaaren,
+19 Negativfällen und tatsächlichem GDB-Wrapper in5,612176s.
+
+Der einzige erlaubte Diagnosegast endet aber nach3,779603s mit Debuggerstatus76:
+CALIBRATION_OBSERVER_FAIL, Aufrufgrenze512. Keine vollständige Kalibrierungszeile,
+kein Task-Endbeleg; kein Timeout und kein neu nachgewiesener Kernelfehler.
+Die Hostprüfung hatte Überschneidungen der virtuellen Messadressen mit fremdem
+Programmcode nicht ausreichend abgedeckt. Konkret liegt der Kind-Messpunkt
+0x410bc5 im Root1-Image auf der zweiten Store-Instruktion einer Kopierschleife
+(0x410bc0..0x410bec). Der Callback zählt auch Treffer des falschen Programms.
+Ein Offline-Test des echten Callbacks reproduziert nach512 solchen Treffern
+denselben Abbruch ohne ein Kalibrierungspaar. Eine vollständige Einzelzuordnung
+aller Gasttreffer ist mangels per-hit-Aufzeichnung nicht belegt.
+
+Der unerwartete Diagnosefehler löst den vereinbarten Stop aus. Keine Quelldatei
+der Umsetzung geändert, kein Build oder neuer Abnahmekandidat gestartet, keine
+Grenze angehoben. Die bisherige Abnahme bleibt20/24 mit Gate21 FAIL; Gates22..24
+bleiben ungestartet. Gesamtaufwand22 Gäste392,357850s. Quellen, Fehlerbeleg und
+Offline-Reproduktion sind in verification-status-calibration-stopped.json unter
+build/codex-agent/r83ap-service-cpu gesichert. Kein Implementierungscommit.
+
+Nächster konkret einzugrenzender Schritt: einmaliger korrigierter Diagnosegast
+mit gegen alle Imagebelegungen geprüften Messpunkten, etwa nur Endpunkten mit
+gespeichertem Anfangs-TSC. Alle fremden Codeüberschneidungen und Kapazitätsgrenzen
+vorher am Host prüfen; nicht512 erhöhen oder Fehlertreffer verstecken. Die
+Kalibrierungskorrektur und der höchstens eine Service-Build bleiben unverbraucht,
+setzen aber verwertbare Diagnose und gesondert erneuerte Gastfreigabe voraus.
+
+## R8.3ap: Observerkorrektur geprüft, Laufzeitabnahme weiterhin blockiert
+
+Vertrag99503635, Kandidatbba1f044:37 CPU-Tests bestanden; elf unveränderte
+Hostgruppen mit geprüften transitiven Abhängigkeiten wiederverwendet, Task-Pool,
+PIO und Dokumentation frisch bestanden. Vier exakt gebundene Builds und der
+Altprofilvergleich bestehen ebenfalls:20/24 Gates PASS, null Kernel-Neubauten.
+3155 Negativprüfungen sichern die ursprünglichen Beleg- und Prüfbindungen.
+
+Die neue Matrix stoppt bereits bei Fall0/4096:20,012074s Beobachtung,
+2,041746s Bereinigung,22,213370s Gastgesamtzeit. Acht von16 Tasks enden regulär
+mit58..75 CPU-Samples; Durchlauf1 endet bei11,554024s. Generationen9..16 bleiben
+unvollständig. Kein OBSERVER_FAIL. Alle936 gespeicherten CPU-Charge-Datensätze
+sind mit ihren unveränderten Rohwort-Prädikaten konsistent; der Teilbeleg hat
+aber nur960 Datensätze bei983 Textreferenzen und keinen Abschluss-Hash.
+Keine Nachvervollständigung oder Anerkennung als Runtime-PASS. Gates22..24
+wurden nicht gestartet. Fall6 wurde in dieser Matrix nicht erreicht.
+
+Die Kapazitätshaken existieren in Fall0 nicht: ihr Lebenszyklus allein erklärt
+den verbleibenden Timeout somit nicht. Die einzige erlaubte passive Diagnose
+ist verbraucht. Für eine weitere Änderung innerhalb des jetzigen Observerumfangs
+liegt keine belastbare Ursache vor; die zwei übrigen Kandidatenplätze werden
+nicht für spekulative Wiederholungen verbraucht. Eine gezielte Untersuchung der
+TSC-Testlastkalibrierung gegenüber IRQ-Samples und Debugger-/Hostzeiten braucht
+einen neuen begrenzten Diagnosevertrag. Testlast, Takte, gemeinsamer Transport
+und Zeitgrenzen bleiben außerhalb dieser Freigabe; keine davon wird angehoben.
+
+Insgesamt21 Gäste388,578247s, davon hier eine Diagnose und ein Matrixgast
+44,402694s. Alle27 zugeordneten Pfade und Belege werden unter
+verification-status-capacity-stopped.json gesichert. Kein Implementierungscommit,
+keine Queue-Weiterschaltung, kein weiterer Gast, keine Behauptung eines fertigen OS.
+
+## R8.3ap: begrenzte Kapazitätskorrektur am unveränderten Image (Vorbereitung)
+
+Vertrag99503635 setzt die Arbeit ohne Neubau fort. Eine vollständige passive
+Messung von Fall6 endete nach22,189324s mit fünf Task-Endbelegen; ausschließlich
+Diagnosedaten, keine Runtime-Abnahme. Rund0,10s gemessene Kapazitätscallbacks
+erklären den Timeout nicht allein. Die beobachteten Zwischenzeiten enthalten
+Gastarbeit, Transport und Scheduling und sind keinem davon eindeutig zugeordnet.
+Alle bisherigen20 Gäste366,364877s bleiben im unveränderten Gesamtbudget42/840s.
+
+Der Kandidat deaktiviert Kapazitätshaken erst nach unverändert geprüften Phasen3
+und4 derselben Rootgeneration und aktiviert sie vor dem nächsten Rootstart neu.
+Sechs zusammenhängende Family-Datensätze werden in einem Halt gemeinsam gelesen.
+Der begrenzte Same-Stop-Cache umfasst jetzt auch Bootprüfung, Kapazitätsprüfung
+und den lesenden Startpräfix. Vor der einzigen Rootmodus-Schreiboperation wird
+er geleert und für den Rest des Halts abgeschaltet; der Nachvergleich liest neu.
+Alle CPU-Wörter, Lebenszyklusprädikate und unabhängigen RAM-Vergleiche bleiben.
+Neue tatsächliche Hostregressionen sind zuerst am alten Code fehlgeschlagen.
+Die anschließende Abnahme ist oben dokumentiert; keine OS-Fertigmeldung.
+
+## R8.3ap: sechs vollständige Gastfälle bestanden, Kapazitätsfall noch offen
+
+Vertrag1d711248, letzter Kandidatfc3f9f03: alle15 Hostgruppen bestanden,
+darunter34 CPU-Tests einschließlich tatsächlicher GDB-Konfigurationsübergabe.
+Vier Builds exakt wiederverwendet und Altprofile verglichen:20/24 Gates PASS,
+null neue Kernel-Builds. Die unveränderten Fälle0..5 bestehen vollständig mit
+je16 Task-Lebenszyklen in17,451602/17,189539/16,453994/16,901350/16,853290/
+13,376651s. Das sind96 vollständige Task-Lebenszyklen, keine ganze OS-Abnahme.
+
+Fall6 (Kapazität, behaltene Abschlussdaten, Ersatzgeneration) erreicht beide
+Kapazitätsphasen und den Ersatzstart in beiden Durchläufen. Nach20,003834s
+Beobachtung und2,034535s Bereinigung fehlt aber der zweite vollständige Abschluss;
+22,127565s Gesamtzeit, zehn von18 Task-Endbelegen. Generationen10/11/13..18
+fehlen. Kein OBSERVER_FAIL;768 CPU-Zeilen gespeichert,780 Textreferenzen,
+kein Abschluss-Hash. Dieser unvollständige Beleg wird nicht repariert oder
+nachträglich als bestanden gewertet. Gate21 FAIL; Fälle7..11 und Gates22..24
+nicht gestartet. Neuer Matrixaufwand sieben Gäste120,353991s.
+
+Beide zugelassenen Kandidaten sind ausgeschöpft. Insgesamt19 historische Gäste
+mit344,175553s bleiben gesichert; einschließlich des ersten Startfehlers waren
+es in dieser Fortsetzung acht Gäste121,505068s. Quellen/Belege:
+verification-status-capture-stopped.json unter build/codex-agent/r83ap-service-cpu.
+Kein Implementierungscommit, keine Queue-Weiterschaltung, keine Budgeterneuerung.
+Nächster begrenzt freizugebender Umfang: Kapazitäts-Observer-Lebenszyklus und
+vollständige Abnahme am selben Image. Die Kapazitätsprüfhaken bleiben nach ihren
+vier bezeugten Phasen aktiv; mögliche redundante Kosten sind noch nicht gemessen
+und nicht als alleinige Ursache nachgewiesen. Kernel, Testlast, Takte, Prüfgrenzen
+und alle tatsächlichen Zustandsbelege bleiben unverändert.
+
+## R8.3ap: gleichwertige Observeroptimierung, kein neuer Build
+
+Vertrag1d711248 setzt auf dem gesicherten Diagnosestand fort. Host-Konfiguration
+wird begrenzt komprimiert übertragen und auf exakte Länge/SHA256 geprüft.
+Ein auf256 Bereiche/1MiB begrenzter Lesecache gilt ausschließlich innerhalb
+ausgewählter schreibfreier Haltepunkte und wird vor jeder Rückkehr verworfen.
+Kernel, Last, alle Haltepunkte, Vollprüfungen und CPU-/Zeitgrenzen bleiben gleich.
+Die neuen Regressionen wurden zunächst tatsächlich rot nachgewiesen; vollständige
+24-Gruppen-Abnahme steht noch aus. Vier belegte Builds werden exakt übernommen;
+höchstens zwei geänderte Kandidaten, keine zusätzlichen Diagnosegäste.
+Kandidat78c587ce besteht20 Gates, scheitert aber vor Kernelstart am fehlenden
+zlib-Modul im eingebetteten GDB-Python (1,151077s). Die zugelassene einmalige
+Korrektur verwendet dafür den bereits hashgebundenen Host-Python-Decoder mit
+festem Code, isoliert und ohne Shell, begrenzter Ein-/Ausgabe und2s Timeout.
+Ein tatsächlicher GDB-Konfigurationstest ohne VM ergänzt die frische Hostabnahme.
+Keine fertige64bit-OS-Version oder neue Laufzeitabnahme behauptet.
+
+## R8.3ap: Laufzeitdiagnose abgeschlossen, konkrete Observerkosten gemessen
+
+Diagnosevertragdb73d43e: Messhülle geprüft, genau ein Gast am unveränderten
+Image, null Neubauten und keine zusätzlichen Gastzugriffe/Haltepunkte.
+787 kurze CPU-Abrechnungs-/Rückkehrwege benötigen zwischen ihren Haltepunkten
+zusammen1,2806374s; gespeicherte Callback-Intervalle insgesamt4,6990289s.
+Der letzte Wandzeit-Kostenstand ordnet3,8172279s vorhandenen Lesezugriffen zu.
+Das sind konkrete Ansatzpunkte für eine gleichwertige Observeroptimierung,
+noch kein Nachweis einer bestimmten Ursache oder einer fertigen Reparatur.
+
+Der Gast erreicht15 von16 Task-Abschlüssen mit43..64 Samples; Generation10
+fehlt beim Zeitlimit.20,378142s einschließlich Bereinigung, kein Abnahme-PASS.
+Messhülle6,199264s bestanden; Diagnosekommando32,405457s abgeschlossen.
+Messuhren enden an unterschiedlichen Callbacks; CPU-Zeit ist auf15,625ms
+quantisiert. Nicht gemessene Start-/Endanteile werden nicht als bekannt behauptet.
+
+Abnahme bleibt20/24 mit Gate21 fehlgeschlagen. Alle elf historischen Gäste
+zählen222,670485s; Quellen/Belege in verification-status-phase-stopped.json
+unter build/codex-agent/r83ap-service-cpu gesichert. Kein Implementierungscommit.
+Nächster erforderlicher Umfang: begrenzte, gleichwertige Observeroptimierung
+mit tatsächlichen Regressionen und vollständigem Gastnachweis am vorhandenen
+Image, ohne Kernel-/Laständerung, Neubau oder schwächere Prüfgrenzen.
+
+## R8.3ap:20/24 geprüft, null Neubauten; Gast-Zeitlimit weiterhin offen
+
+Serielle Fortsetzung auf925527ae, Kontext4d760ef2, unveränderte Umsetzung
+b139f4bf und identisches Service-Image. Elf Hostbelege ausdrücklich geprüft
+übernommen; die zuvor nie gestarteten Gruppen bestehen frisch: ELF-Import2,
+Task-Pool11, Bootprogramme7 Tests. Dokumentation frisch geprüft; vier Builds
+exakt wiederverwendet und Altprofilvergleich bestanden. Keine parallelen
+Git-Vorprüfungen mehr, kein neuer Kernel-Build.
+
+Gate21 stoppt am ersten4GiB-Gast:20,008696s Beobachtung,2,063866s Bereinigung,
+22,206755s insgesamt. Erster Durchlauf mit acht abgeschlossenen Tasks und
+51..80 CPU-Samples; im zweiten fehlen alle acht Endbelege. Das Binärprotokoll
+ist unvollständig, nicht nachträglich repariert oder als PASS gewertet.
+Die Aufzeichnung belegt das Zeitlimit, aber keine genaue Laufzeitursache.
+
+Weitere Fälle/Gates22..24 nicht gestartet. Alle zehn historischen Gäste
+zählen202,292343s. Quellen/Belege bleiben gesichert in
+verification-status-serial-stopped.json unter build/codex-agent/r83ap-service-cpu.
+Kein Implementierungscommit und keine Queue-Fortschaltung; der64-Bit-Kernel
+ist noch nicht fertig abgenommen. Vor einem weiteren Lauf ist eine separat
+begrenzte Laufzeitdiagnose/-korrektur nötig, ohne schwächere Prüfkriterien,
+automatische Wiederholung oder weitere Buildrunden.
+
+## R8.3ap: Observer korrigiert; parallele Git-Vorprüfung blockiert Abnahme
+
+Kein neuer Build. Ein profilierter Gast auf dem vorhandenen Image lieferte
+Laufzeitkosten, aber keinen Abnahmenachweis. Die Observer-Korrektur schaltet
+bereits erfüllte Speicherzeugen-Suchhaltepunkte ab und aktiviert sie bei
+CREATE UND tatsächlichem Erststart jeder Kindgeneration wieder. Ein vor dem
+Gastlauf gefundener Zwischenzustand ist durch tatsächlichen Code-Replay
+regressionsgesichert; CPU-/Lebenszyklusprüfungen und Image bleiben unverändert.
+
+Erster Kandidat3d6978b8:15 Hostgruppen bestanden, anschließend beim direkten
+Review verworfen, kein Gast. Zweiter Kandidatb139f4bf auf758bfbb3: zwölf
+gestartete Testkommandos mit Exit0, darunter28 CPU-Tests einschließlich der
+Erststartkorrektur. Der15-fache Parallelstart war zu aggressiv: Gate8/9/12
+scheiterten vor Teststart an30s Timeout von git diff --check. Alle zwölf
+später geschriebenen PASS-Receipts bleiben unakzeptierte Parallelbelege;
+keine nachträgliche Abnahme. Gates16..24 nicht gestartet, kein Neubau und
+kein Abnahmegast. Nach Ende der Parallelprozesse ist diff --check wieder
+sauber; das ist nur Diagnose, kein wiederholtes Gate.
+
+Beide freigegebenen Kandidaten verbraucht. Quellen und Belege sind in
+verification-status-cost-stopped.json unter build/codex-agent/r83ap-service-cpu
+gesichert; kein Implementierungscommit, keine Queue-Fortschaltung.
+Inklusive Diagnose neun historische Gäste180,085588s. Erforderliche neue
+Freigabe: begrenzte Fortsetzung mit serieller Vorprüfung, exakt gebundener
+Übernahme vorhandener Hostbelege und den noch ausstehenden Prüfungen am
+gleichen Image. Keine neuen Builds, Grenzlockerungen oder OS-Fertigmeldung.
 
 ## R8.3ap: begrenzte Laufzeitdiagnose und Observer-Korrektur freigegeben
 

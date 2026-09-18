@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3ap-x86_64-service-cpu"
+active_id = ""
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -15,7 +15,8 @@ push = false
 
 [[packages]]
 id = "R8.3ap-x86_64-service-cpu"
-status = "active"
+status = "done"
+evidence_note = "2026-09-18: Candidate4df0497d on5859a5c9 qualifies all24 obligations:19 executed PASS and five exact source/tool/command/log/artifact-bound reuses (four builds and the complete twelve-case lifecycle matrix). Fifteen fresh host groups include118 CPU/transport tests. Defaults, both fresh fatal guests, reference guard and original full14-case raw-evidence review pass. Zero new builds; two new guests1.868945s, all14 qualified cases208.969384s, summed gate commands252.574959s. Image2f371638362bc76a213a2834cecbe3d4e6c1072657fdfb83b44214b44dccd9e0 unchanged; normal candidate245f5015 exactly bound. Full history includes140 conservatively counted attempts2282.533265s; failed prelaunch attempt remains spent, not accepted. Immutable fatal-adapter/verification-status-fatal-qualified.json precedes documentation-only closure; verification-status-service-cpu-final.json binds the local implementation commit and clean worktree. Direct scope/append-only ABI/bounds/generation-cleanup review complete. No surviving QEMU/GDB; no push, full64-bit OS, shell, device-service or hardware acceptance claim. Empty active_id only at the clean boundary before next native priority inventory; R3.6b remains explicitly deferred."
 phase = "native-kernel-lifecycle"
 risk = "high"
 title = "Explicit periodic native CPU admission with unchanged lifetime profiles"

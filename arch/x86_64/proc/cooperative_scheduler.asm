@@ -24,6 +24,9 @@ extern reist_x64_queue_apply
 extern reist_x64_identity_apply
 extern reist_x64_context_apply
 extern reist_x64_budget_apply
+%ifdef REIST_NATIVE_SERVICE_CPU
+extern reist_x64_period_apply
+%endif
 extern reist_x64_terminal_status
 extern reist_x64_startup_stack
 %ifdef REIST_NATIVE_TASK_POOL
@@ -2582,6 +2585,45 @@ scheduler_budget_apply64:
     push r10
     push r11
     and rsp, -16
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .lifetime
+    mov r8,rdx
+    mov rcx,rsi
+    mov edx,eax
+    mov eax,edi
+    shl eax,5
+    lea rsi,[rel scheduler_cpu_windows]
+    add rsi,rax
+    lea r11,[rel process_run_plan+272]
+    mov r10,[r11+rdi*8]
+    test r10,r10
+    jz .period_selected
+    cmp r10,100
+    jne .period_bad
+.period_selected:
+    cmp edx,1
+    je .bind_period
+    cmp [rsi],r10
+    jne .period_bad
+    jmp .period_call
+.bind_period:
+    mov r11,r8
+    shr r11,32
+    jnz .period_bad
+    shl r10,32
+    or r8,r10
+.period_call:
+    mov r9,[rel scheduler_last_tick]
+    lea rdi,[rel scheduler_cpu_budgets]
+    add rdi,rax
+    call reist_x64_period_apply
+    jmp .budget_result
+.period_bad:
+    xor eax,eax
+    jmp .budget_result
+.lifetime:
+%endif
     mov rcx, rdx
     mov rdx, rsi
     mov esi, eax
@@ -2590,6 +2632,9 @@ scheduler_budget_apply64:
     lea rdi, [rel scheduler_cpu_budgets]
     add rdi, rax
     call reist_x64_budget_apply
+%ifdef REIST_NATIVE_SERVICE_CPU
+.budget_result:
+%endif
     lea rsp, [rbp - 64]
     pop r11
     pop r10
@@ -7691,6 +7736,15 @@ scheduler_verify_final_events64:
     jne .fail
     add rsi, 8
     loop .budget_zero
+%ifdef REIST_NATIVE_SERVICE_CPU
+    lea rsi,[rel scheduler_cpu_windows]
+    mov ecx,NATIVE_POOL_TASKS*4
+.window_zero:
+    cmp qword [rsi],0
+    jne .fail
+    add rsi,8
+    loop .window_zero
+%endif
     cmp qword [rel scheduler_child_terminal_generation], 0
     jne .fail
     cmp qword [rel scheduler_child_terminal_status], 0
@@ -8361,6 +8415,10 @@ scheduler_identity_retired:
     resd NATIVE_POOL_TASKS
 scheduler_cpu_budgets:
     resb NATIVE_POOL_TASKS * 32
+%ifdef REIST_NATIVE_SERVICE_CPU
+scheduler_cpu_windows:
+    resb NATIVE_POOL_TASKS * 32
+%endif
 scheduler_syscall_context:
     resq 2
 scheduler_original_cr3:

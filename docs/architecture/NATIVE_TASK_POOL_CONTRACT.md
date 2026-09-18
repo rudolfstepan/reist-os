@@ -1,5 +1,10 @@
 # Native bounded task pool — R8.3an
 
+Qualified explicit extension: [periodic service CPU](NATIVE_SERVICE_CPU_CONTRACT.md).
+Only NativeServiceCPU selects private run-v5/336 bytes and additional fixed
+window records. This original TaskPool run-v4 profile and its lifetime32
+budget remain unchanged; AP has its separate24-obligation/14-case qualification.
+
 The accepted plain profile remains device-free. The subsequent explicit
 [NativePoolPIO adapter](NATIVE_POOL_PIO_CONTRACT.md) composes its unchanged
 eight-owner lifecycle with the existing PIO domain; it does not silently enable

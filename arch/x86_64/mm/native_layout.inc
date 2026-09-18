@@ -5,8 +5,13 @@
 ; pools remain four; native run-v4 separately admits all eight owners.
 %ifdef REIST_NATIVE_TASK_POOL
 %define NATIVE_POOL_TASKS 8
+%ifdef REIST_NATIVE_SERVICE_CPU
+%define NATIVE_POOL_RUN_VERSION 5
+%define NATIVE_POOL_RUN_BYTES 336
+%else
 %define NATIVE_POOL_RUN_VERSION 4
 %define NATIVE_POOL_RUN_BYTES 272
+%endif
 %else
 %define NATIVE_POOL_TASKS 4
 %define NATIVE_POOL_RUN_VERSION 3
@@ -14,6 +19,11 @@
 %endif
 %define NATIVE_POOL_MASK ((1 << NATIVE_POOL_TASKS)-1)
 %define NATIVE_POOL_CHILD_MASK (NATIVE_POOL_MASK & ~3)
+%ifdef REIST_NATIVE_SERVICE_CPU
+%define NATIVE_FAMILY_REQUEST_BYTES 80
+%else
+%define NATIVE_FAMILY_REQUEST_BYTES 64
+%endif
 ; Compare without clobbering registers. Only admitted native run-v4 activates
 ; the larger pool; all legacy bootstrap modes retain four active entries.
 %macro NATIVE_ACTIVE_CMP 1

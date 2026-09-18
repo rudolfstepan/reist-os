@@ -1,5 +1,11 @@
 # Native Laufzeituhr und Fristen
 
+Explizite, mit24 Verpflichtungen und14 Gastfaellen qualifizierte Erweiterung:
+[periodische Dienst-CPU-Zulassung](NATIVE_SERVICE_CPU_CONTRACT.md).
+Das Zeitfenster wird aus der unveränderten monotonen100Hz-Uhr berechnet;
+Sleep/IPC/WAIT/Yield setzen keine Zähler zurück. Bestehende Tick-/IRQ-/TSC-
+Grenzen und endliche CPU-Budgets aller bisherigen Profile bleiben erhalten.
+
 Stand: 14. September 2026. R8.3ac, Basis `f88a439d`; R8.3am mit `0f4efd17`
 abgenommen. Die Idle-Reparaturgeschichte unten bleibt als Nachweis erhalten.
 

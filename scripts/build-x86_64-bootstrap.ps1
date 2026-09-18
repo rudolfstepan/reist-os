@@ -34,6 +34,7 @@ param(
     [switch]$NativeFileLaunch,
     [switch]$NativeTaskPool,
     [switch]$NativePoolPIO,
+    [switch]$NativeServiceCPU,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -52,6 +53,12 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeServiceCPU) {
+    if ($NativePoolPIO -or $NativePIO -or $NativeBlock -or $NativeBlockProfile -or $NativeFilesystem -or $NativeFileLaunch) {
+        throw 'NativeServiceCPU requires device-free NativeTaskPool.'
+    }
+    $NativeTaskPool = [switch]$true
+}
 if ($NativePoolPIO) {
     if ($NativeFilesystem -or $NativeFileLaunch -or $MemoryCase -ne 0 -or $PIOCase -ne 0 -or
         $StartupCase -ne 0 -or $FamilyCase -ne 0 -or $BlockProfileCase -ne 0 -or $FilesystemCase -ne 0 -or
@@ -381,6 +388,7 @@ try {
         "X86_64_NATIVE_FILE_LAUNCH=$([int]$NativeFileLaunch.IsPresent)" `
         "X86_64_NATIVE_TASK_POOL=$([int]$NativeTaskPool.IsPresent)" `
         "X86_64_NATIVE_POOL_PIO=$([int]$NativePoolPIO.IsPresent)" `
+        "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `

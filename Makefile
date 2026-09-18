@@ -265,6 +265,19 @@ X86_64_NATIVE_FILE_LAUNCH ?= 0
 X86_64_FILE_LAUNCH_CASE ?= 0
 X86_64_NATIVE_TASK_POOL ?= 0
 X86_64_NATIVE_POOL_PIO ?= 0
+X86_64_NATIVE_SERVICE_CPU ?= 0
+ifneq ($(words $(X86_64_NATIVE_SERVICE_CPU)),1)
+$(error NativeServiceCPU selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_SERVICE_CPU),0 1),$(X86_64_NATIVE_SERVICE_CPU))
+$(error NativeServiceCPU selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_SERVICE_CPU),1)
+ifneq ($(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_PIO)$(X86_64_NATIVE_BLOCK)$(X86_64_NATIVE_BLOCK_PROFILE)$(X86_64_NATIVE_FILESYSTEM)$(X86_64_NATIVE_FILE_LAUNCH),1000000)
+$(error NativeServiceCPU requires device-free NativeTaskPool)
+endif
+endif
+X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),-DREIST_NATIVE_SERVICE_CPU=1,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
@@ -293,6 +306,7 @@ endif
 endif
 endif
 X86_64_POOL_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),-DREIST_NATIVE_TASK_POOL=1,)
+X86_64_POOL_FLAGS += $(X86_64_SERVICE_CPU_FLAGS)
 ifeq ($(X86_64_NATIVE_FILE_LAUNCH),1)
 ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_FILESYSTEM_CASE),10)
 $(error NativeFileLaunch requires plain NativeFilesystem)
@@ -564,7 +578,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
@@ -680,7 +694,7 @@ endif
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)
 	@$(AS) -f elf32 $(X86_64_WIDE_ASM) arch/x86_64/proc/identity_core.asm -o $(X86_64_IDENTITY_OBJ)
 	@$(AS) -f elf32 $(X86_64_WIDE_ASM) arch/x86_64/proc/context_core.asm -o $(X86_64_CONTEXT_OBJ)
-	@$(AS) -f elf32 arch/x86_64/proc/cpu_budget.asm -o $(X86_64_BUDGET_OBJ)
+	@$(AS) -f elf32 $(X86_64_SERVICE_CPU_FLAGS) arch/x86_64/proc/cpu_budget.asm -o $(X86_64_BUDGET_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/terminal_status.asm -o $(X86_64_TERMINAL_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/ipc_admission.asm -o $(X86_64_IPC_ADMISSION_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/startup_stack.asm -o $(X86_64_STARTUP_OBJ)

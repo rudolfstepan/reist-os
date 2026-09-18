@@ -283,8 +283,10 @@ class ContinuationTrace:
         if self.error:raise ValueError('continuation trace: '+self.error)
 
 
-def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False):
+def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False):
+    if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
     options=dict(halt_witness=halt_witness)
+    if service_cpu_budget:options['service_cpu_budget']=True
     if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
     if trace_continuation:options['trace_continuation']=True
     if diagnostic_metrics:options['diagnostic_metrics']=True
@@ -317,8 +319,10 @@ def process_cpu_ns(pid):
     finally:api.CloseHandle(handle)
 
 
-def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False):
+def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False):
+    if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
     options={} if binary_memory is None else dict(binary_memory=binary_memory)
+    if service_cpu_budget:options['service_cpu_budget']=True
     if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
     if trace_continuation:options['trace_continuation']=True
     if not diagnostic_metrics:return _capture_run(image,folder,code,ram,media_arguments,halt_witness=halt_witness,**options)
@@ -331,12 +335,17 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagn
         (folder/'capture-metrics.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
 
 
-def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None,binary_memory=None,trace_continuation=False):
+def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None,binary_memory=None,trace_continuation=False,service_cpu_budget=False):
+    if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
+    # Only the explicitly selected service-CPU proof gets27s observation and
+    # reserves3s for cleanup within its30s total. Old/default captures are exact.
+    capture_started=time.monotonic() if service_cpu_budget else None
     if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
     binary_arguments=[]
     if binary_memory is not None:
         from qemu_binary_memory import configure
-        binary_arguments,code=configure(code,folder,ram,binary_memory)
+        binary_options={'service_cpu_budget':True} if service_cpu_budget else {}
+        binary_arguments,code=configure(code,folder,ram,binary_memory,**binary_options)
     script=folder/'observe.gdb'
     script.write_text('set confirm off\nset pagination off\nset architecture i386:x86-64\ntarget remote 127.0.0.1:12491\n'+code,encoding='ascii')
     command=[str(resolve_qemu(None)),'-machine','pc,accel=tcg','-cpu','qemu64','-m',str(ram)+'M','-smp','1',
@@ -364,8 +373,10 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
                 while chunk:=vm.stdout.read(256):
                     try:output.put_nowait(chunk)
                     except queue.Full:overflow.set();return
-            thread=threading.Thread(target=reader,daemon=True);thread.start();deadline=time.monotonic()+20
-            if metrics is not None:observed_since=deadline-20;metrics['progress']=[]
+            thread=threading.Thread(target=reader,daemon=True);thread.start()
+            deadline=capture_started+27 if service_cpu_budget else time.monotonic()+20
+            if metrics is not None:
+                observed_since=capture_started if service_cpu_budget else deadline-20;metrics['progress']=[]
             while time.monotonic()<deadline:
                 try:data.extend(output.get(timeout=.01))
                 except queue.Empty:pass
@@ -403,6 +414,7 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
             if metrics is not None:metrics.update(serial_bytes=len(data),debugger_exit=debugger.returncode if debugger else None)
             if metrics is not None:metrics['cleanup_seconds']=round(time.monotonic()-cleanup_since,6)
     if trace_sink:trace_sink.check()
+    if service_cpu_budget and time.monotonic()-capture_started>30:raise ValueError('service CPU total host deadline')
     if overflow.is_set() or len(data)>262144 or debugger.returncode:raise ValueError('program capture/detach failure')
     for name in ('observer.log','frame-trace.log'):
         if (folder/name).stat().st_size>65536:raise ValueError('program observer capacity')

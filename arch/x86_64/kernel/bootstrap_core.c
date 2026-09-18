@@ -14,7 +14,9 @@
 #define X86_64_NATIVE_PROCESSES 0
 #endif
 #if X86_64_NATIVE_PROCESSES
-#if REIST_NATIVE_TASK_POOL
+#if REIST_NATIVE_SERVICE_CPU
+extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v5 *plan);
+#elif REIST_NATIVE_TASK_POOL
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v4 *plan);
 #else
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
@@ -33,6 +35,20 @@ extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 #endif
 /* Independent payload admission binds this exact read-only profile witness. */
 const reist_u64 native_task_pool_capacity=8;
+#if REIST_NATIVE_SERVICE_CPU
+static const struct reist_x64_run_v5 native_runs[2] = {
+    {5,336,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+                {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
+                {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
+                {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},
+               {100,100,0,0,0,0,0,0}},
+    {5,336,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+                {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
+                {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
+                {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},
+               {100,100,0,0,0,0,0,0}}
+};
+#else
 static const struct reist_x64_run_v4 native_runs[2] = {
     {4,272,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
                 {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
@@ -43,6 +59,7 @@ static const struct reist_x64_run_v4 native_runs[2] = {
                 {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
                 {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}}}
 };
+#endif
 #else
 static const struct reist_x64_run_v1 native_runs[2] = {
 #if X86_64_NATIVE_LIFECYCLE

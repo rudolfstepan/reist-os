@@ -1,6 +1,6 @@
 """Execute the real profiler and capture diagnostics, never launch a guest."""
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import ast,copy,io,json,sys,tempfile,unittest
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
 import diagnose_x86_64_file_transport as diagnostic
@@ -8,6 +8,21 @@ transport=diagnostic.launch.wide.transport
 
 
 class FileTransportTests(unittest.TestCase):
+    def test_service_cpu_capture_reserves_cleanup(self):
+        class Process:
+            def __init__(self):self.returncode=None;self.stdin=io.BytesIO();self.stdout=io.BytesIO()
+            def poll(self):return self.returncode
+            def wait(self,timeout):self.returncode=0;return 0
+        folder=self.folder();(folder/'frame-trace.log').write_text('')
+        vm,debug=Process(),Process();output=Mock();output.get.side_effect=transport.queue.Empty;output.empty.return_value=True
+        def terminate(p):p.returncode=0
+        clock=Mock(side_effect=[100,126,127,128])
+        with patch.object(transport.subprocess,'Popen',side_effect=[vm,debug]),patch.object(transport,'resolve_qemu',return_value=Path('qemu.exe')),patch.object(transport.time,'monotonic',clock),patch.object(transport,'terminate_bounded',side_effect=terminate),patch.object(transport.queue,'Queue',return_value=output):
+            self.assertEqual(transport._capture_run(ROOT/'build/a.elf',folder,'code',4096,service_cpu_budget=True),('',''))
+        # One observation at26s, stop at27s, cleanup checked at28s: total<=30.
+        self.assertEqual(output.get.call_count,1);self.assertEqual(clock.call_count,4)
+        self.assertTrue(vm.stdin.closed and vm.stdout.closed)
+
     def test_case6_timing_original_observer_and_capture_dispatch(self):
         folder=self.folder();original='set logging enabled on\npython\n'+diagnostic.launch.observer_body()+'\nend\ncontinue\n'
         for kind in ('minimal','profiled'):

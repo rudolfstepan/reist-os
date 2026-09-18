@@ -64,4 +64,26 @@ static inline int64_t reist_x64_task_import_wide(const void *prepared,
     reist_task_create_v4_t q={5,64,1,0,0,(uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup};
     return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
 }
+/* Explicit x86-64 CREATE-v6; samples per1000ms period, not lifetime samples
+ * or measured CPU microseconds. Keep this native-only SDK extension beside
+ * its wrapper; the generated common syscall ABI header remains exact.
+ * Only an admitted periodic root may delegate it. RNPGv2/profile-v1/startup-v1
+ * are unchanged. Old kernels reject this version. */
+#define REIST_TASK_PERIODIC_IMPORT_VERSION 6U
+typedef struct {
+    uint32_t version,struct_size,operation,flags;
+    uint64_t target,prepared,timeout_ms,profile,cpu_samples,startup;
+    uint64_t cpu_period_ms,reserved;
+} reist_task_create_v6_t;
+typedef char reist_task_periodic_size_check[sizeof(reist_task_create_v6_t)==80U?1:-1];
+
+/* No ambient periodic right, in-place renewal, burst or reset operation. */
+static inline int64_t reist_x64_task_import_periodic(const void *prepared,
+    const reist_task_profile_v1_t *profile,uint64_t cpu_samples,uint64_t cpu_period_ms,
+    const reist_task_startup_v1_t *startup)
+{
+    reist_task_create_v6_t q={REIST_TASK_PERIODIC_IMPORT_VERSION,80,1,0,0,
+        (uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup,cpu_period_ms,0};
+    return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
+}
 #endif

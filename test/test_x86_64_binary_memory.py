@@ -10,6 +10,37 @@ import run_qemu_x86_64_boot_programs as transport
 
 
 class BinaryTests(unittest.TestCase):
+    def test_service_cpu_budget_reader_and_config(self):
+        folder=self.folder()
+        with patch.object(binary.time,'monotonic',return_value=100):
+            old=binary.Reader(1,'test',folder,4096,lambda a,n:bytes(n),lambda:4096)
+            new=binary.Reader(1,'test',folder,4096,lambda a,n:bytes(n),lambda:4096,service_cpu_budget=True)
+        self.assertEqual(old.deadline,120);self.assertEqual(new.deadline,127)
+        body='python\ndef mem(a,n):return b"original"\nend\ncontinue\n'
+        _,default=binary.configure(body,self.folder(),4096,'equivalence')
+        _,selected=binary.configure(body,self.folder(),4096,'equivalence',service_cpu_budget=True)
+        self.assertNotIn('service_cpu_budget=',default)
+        self.assertIn('service_cpu_budget=True',selected)
+        self.assertTrue(selected.startswith(body[:-len('end\ncontinue\n')]))
+        for value in (1,0,None,30,'true'):
+            with self.subTest(value=value),patch.object(binary.socket,'socket') as socket:
+                with self.assertRaises(ValueError):binary.configure(body,self.folder(),4096,'equivalence',service_cpu_budget=value)
+                with self.assertRaises(ValueError):binary.Reader(1,'test',folder,4096,lambda a,n:b'',lambda:4096,service_cpu_budget=value)
+                socket.assert_not_called()
+
+    def test_service_cpu_budget_forwarding_and_rejection(self):
+        folder=self.folder()
+        with patch.object(transport,'_capture_run',return_value=('a','b')) as run:
+            transport.capture(ROOT/'build/a.elf',folder,'code',4096)
+            self.assertNotIn('service_cpu_budget',run.call_args.kwargs)
+            transport.capture(ROOT/'build/a.elf',folder,'code',4096,service_cpu_budget=True,binary_memory='equivalence')
+            self.assertIs(run.call_args.kwargs['service_cpu_budget'],True)
+        for entry in (transport.capture,transport._capture,transport._capture_run):
+            for value in (1,0,None,30,'true'):
+                with self.subTest(entry=entry.__name__,value=value),patch.object(transport.subprocess,'Popen') as spawn:
+                    with self.assertRaises(ValueError):entry(ROOT/'build/a.elf',folder,'code',4096,service_cpu_budget=value)
+                    spawn.assert_not_called()
+
     def folder(self):
         base = ROOT / 'build/codex-agent/r83am-file-launch/binary-host'
         base.mkdir(parents=True, exist_ok=True)

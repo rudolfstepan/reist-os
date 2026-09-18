@@ -144,31 +144,42 @@ class PoolPioTests(unittest.TestCase):
         return result
 
     def test_runtime_reference_reuse_is_exact(self):
-        import tomllib
+        from unittest.mock import patch
         import verify_x86_64_pool_pio as v
         old=v.read(v.BASE/'candidate-01/frozen-candidate.json')
+        accepted=v.read(v.BASE/'verification-status-pool-pio-final.json')
+        frozen=v.BASE/'candidate-03/frozen-candidate.json'
+        self.assertEqual(v.link(frozen),accepted['frozen'])
+        new=v.read(frozen)
         before=(v.BASE/'candidate-01/source'/v.PRODUCER.replace('/','__')).read_bytes()
-        after=(ROOT/v.PRODUCER).read_bytes();v.producer_optimization_binding(before,after)
+        after=(v.BASE/'candidate-03/source'/v.PRODUCER.replace('/','__')).read_bytes()
+        self.assertEqual(hashlib.sha256(before).hexdigest(),old['source_inputs'][v.PRODUCER])
+        self.assertEqual(hashlib.sha256(after).hexdigest(),new['source_inputs'][v.PRODUCER])
+        v.producer_optimization_binding(before,after)
         for raw in (after+b'\n',after.replace(b"and not pool_pio",b"or pool_pio"),
                     after.replace(b"'-Oz'",b"'-O2'"),after.replace(b'--strip-all',b'--discard-all')):
             with self.assertRaises(ValueError):v.producer_optimization_binding(before,raw)
-        new=copy.deepcopy(old);new['directory']='build/codex-agent/r83ao-pool-pio/candidate-03'
-        new['runtime_correction']=v.link(v.RUNTIME/'expected-red.json')
-        new['package']=tomllib.loads((ROOT/'automation/reist-s03b.toml').read_text())['packages'][0]
-        new['commands']=sum((new['package'][name] for name in ('targeted_tests','package_tests','runtime_tests')),[])
-        new['source_inputs']={name:v.digest(ROOT/name) for name in old['source_inputs']}
+        self.assertEqual(new['runtime_correction'],v.link(v.RUNTIME/'expected-red.json'))
         def sign(obj):obj['candidate']=hashlib.sha256(json.dumps(obj['source_inputs'],sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        sign(new)
-        for index in (13,14):
-            receipt=v.read(v.BASE/'candidate-01'/f'gate-{index:02d}.json')
-            v.build_reuse_binding(new,old,receipt,index)
-            for name in ('Makefile','arch/x86_64/user/pool_pio.c','scripts/run_qemu_x86_64_pool_pio.py',v.PRODUCER):
-                bad=copy.deepcopy(new);bad['source_inputs'][name]='0'*64;sign(bad)
-                with self.subTest(dependency=name),self.assertRaises(ValueError):v.build_reuse_binding(bad,old,receipt,index)
-            for key in ('runtime_tests','package_tests','targeted_tests'):
-                bad=copy.deepcopy(new);bad['package'][key][0]+=' --changed'
-                with self.assertRaises(ValueError):v.build_reuse_binding(bad,old,receipt,index)
-        with self.assertRaises(ValueError):v.build_reuse_binding(new,old,v.read(v.BASE/'candidate-01/gate-15.json'),15)
+        # Only the verifier's historical producer input is rooted in this
+        # exclusive fixture. All old receipts and predicates stay unchanged.
+        folder=v.BASE/('host-historical-reuse-'+uuid.uuid4().hex)
+        producer=folder/v.PRODUCER;producer.parent.mkdir(parents=True)
+        producer.write_bytes(after)
+        with patch.object(v,'ROOT',folder):
+            for index in (13,14):
+                receipt=v.read(v.BASE/'candidate-01'/f'gate-{index:02d}.json')
+                v.build_reuse_binding(new,old,receipt,index)
+                for name in ('Makefile','arch/x86_64/user/pool_pio.c','scripts/run_qemu_x86_64_pool_pio.py',v.PRODUCER):
+                    bad=copy.deepcopy(new);bad['source_inputs'][name]='0'*64;sign(bad)
+                    with self.subTest(dependency=name),self.assertRaises(ValueError):v.build_reuse_binding(bad,old,receipt,index)
+                for key in ('runtime_tests','package_tests','targeted_tests'):
+                    bad=copy.deepcopy(new);bad['package'][key][0]+=' --changed'
+                    with self.assertRaises(ValueError):v.build_reuse_binding(bad,old,receipt,index)
+                producer.write_bytes(after+b'\n')
+                with self.assertRaises(ValueError):v.build_reuse_binding(new,old,receipt,index)
+                producer.write_bytes(after)
+            with self.assertRaises(ValueError):v.build_reuse_binding(new,old,v.read(v.BASE/'candidate-01/gate-15.json'),15)
         original=v.runtime_package_original(new['package'])
         self.assertEqual(original,v.read(v.BASE/'candidate-02/frozen-candidate.json')['package'])
 

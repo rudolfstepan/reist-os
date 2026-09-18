@@ -1,5 +1,12 @@
 # REIST x86_64 bootstrap contract
 
+R8.3ap qualified: [explicit periodic CPU admission](NATIVE_SERVICE_CPU_CONTRACT.md).
+`-NativeServiceCPU` / `X86_64_NATIVE_SERVICE_CPU=1` selects the device-free
+eight-task periodic qualification fixture. It excludes device/file profiles
+and is not the normal shell or a completed64-bit OS. All24 obligations and
+14 guest cases passed; existing profiles are unchanged. Its contract links
+the immutable qualification and separate clean-commit evidence.
+
 Stand: 15. September 2026
 
 R8.3an ist mit `4f4e1df4` und24 geprüften Verpflichtungen abgeschlossen.

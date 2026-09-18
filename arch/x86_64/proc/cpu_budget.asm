@@ -72,6 +72,27 @@ reist_x64_budget_apply:
     mov [rdi + 24], rax
     jmp .success
 .charge:
+%ifdef REIST_NATIVE_SERVICE_CPU
+    ; Charge-only observation boundary, including rejected charges.
+    cmp r9, r8
+    jae .charge_fail
+    cmp rcx, r10
+    jbe .charge_fail
+    inc r9
+    mov [rdi + 16], r9
+    mov [rdi + 24], rcx
+    cmp r9, r8
+    jne .charge_success
+    mov eax, 2
+    jmp .charge_result
+.charge_success:
+    mov eax, 1
+    jmp .charge_result
+.charge_fail:
+    xor eax, eax
+.charge_result:
+    ret
+%else
     cmp r9, r8
     jae .fail
     cmp rcx, r10
@@ -83,9 +104,13 @@ reist_x64_budget_apply:
     jne .success
     mov eax, 2
     ret
+%endif
 .success:
     mov eax, 1
     ret
 .fail:
     xor eax, eax
     ret
+%ifdef REIST_NATIVE_SERVICE_CPU
+%include "arch/x86_64/proc/cpu_period.inc"
+%endif

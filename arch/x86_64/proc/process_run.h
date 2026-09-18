@@ -24,4 +24,11 @@ struct reist_x64_run_v4 {
     struct reist_x64_run_task_v1 tasks[8];
 };
 _Static_assert(sizeof(struct reist_x64_run_v4)==272, "native run-v4 descriptor size");
+/* Explicit periodic CPU authority; never infer it from the backing capacity. */
+struct reist_x64_run_v5 {
+    unsigned int version, size, count, reserved;
+    struct reist_x64_run_task_v1 tasks[8];
+    unsigned long long period_ticks[8];
+};
+_Static_assert(sizeof(struct reist_x64_run_v5)==336, "native run-v5 descriptor size");
 #endif

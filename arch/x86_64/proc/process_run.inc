@@ -10,6 +10,10 @@ process_run_admit64:
     test rdi, 7
     jnz .bad
 %ifdef REIST_NATIVE_TASK_POOL
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rdi],5
+    je .service_header
+%endif
     cmp dword [rdi],4
     je .pool_header
 %endif
@@ -38,6 +42,13 @@ process_run_admit64:
 .pool_header:
     cmp dword [rdi+4],272
     jne .bad
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jmp .pool_count
+.service_header:
+    cmp dword [rdi+4],336
+    jne .bad
+.pool_count:
+%endif
     cmp dword [rdi+8],8
     jne .bad
     mov edx,8
@@ -77,11 +88,19 @@ process_run_admit64:
     cmp dword [rdi],3
 %ifdef REIST_NATIVE_TASK_POOL
     je .family_entry
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rdi],5
+    je .family_entry
+%endif
     cmp dword [rdi],4
 %endif
     jne .image
 %ifdef REIST_NATIVE_TASK_POOL
 .family_entry:
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rdi],5
+    je .family_dimensions
+%endif
     cmp dword [rdi],4
     je .family_dimensions
 %endif
@@ -119,6 +138,24 @@ process_run_admit64:
     or rax, [r9+24]
     jnz .bad
 .next:
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rdi],5
+    jne .nonperiodic_entry
+    mov rax,[rdi+272+rcx*8]
+    cmp ecx,2
+    jb .root_period
+    test rax,rax
+    jz .period_valid
+.root_period:
+    cmp rax,100
+    jne .bad
+.period_valid:
+    inc ecx
+    cmp ecx,8
+    jb .entry
+    jmp .admitted
+.nonperiodic_entry:
+%endif
     inc ecx
 %ifdef REIST_NATIVE_TASK_POOL
     cmp dword [rdi],4
@@ -160,7 +197,7 @@ process_run_validate64:
     cmp byte [rel scheduler_active], 1
     jne .bad
 %ifdef REIST_NATIVE_TASK_POOL
-    cmp dword [rel process_run_plan],4
+    cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .bad
 %endif
     lea rdi, [rel process_run_plan]
@@ -424,6 +461,17 @@ process_run_validate64:
     or rax, [r15+16]
     or rax, [r15+24]
     jnz .bad
+%ifdef REIST_NATIVE_SERVICE_CPU
+    mov eax,ebx
+    shl eax,5
+    lea rdx,[rel scheduler_cpu_windows]
+    add rdx,rax
+    mov rax,[rdx]
+    or rax,[rdx+8]
+    or rax,[rdx+16]
+    or rax,[rdx+24]
+    jnz .bad
+%endif
 .next:
     inc ebx
     cmp ebx, NATIVE_POOL_TASKS
@@ -587,8 +635,8 @@ x86_64_process_run64:
     jz .reject
 %ifdef REIST_NATIVE_TASK_POOL
     ; Pure admission also understands legacy descriptors. This selected
-    ; runtime may copy272 bytes only from an explicitly admitted v4 caller.
-    cmp dword [rdi],4
+    ; runtime may copy its full extent only from its explicitly admitted ABI.
+    cmp dword [rdi],NATIVE_POOL_RUN_VERSION
     jne .reject
 %endif
     cmp byte [rel scheduler_active], 0

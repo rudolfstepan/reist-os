@@ -1,5 +1,13 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Vollstaendig qualifizierter gebündelter Arbeitsschritt R8.3ap:
+[periodische CPU-Zulassung](../architecture/NATIVE_SERVICE_CPU_CONTRACT.md).
+Die Umsetzung umfasst Zulassung, Zeitfenster, Delegation und Retirement samt
+Host-/Gastnachweisen in einer Transaktion:24 Verpflichtungen und14 Gastfaelle
+bestanden. Letzter Durchlauf ohne Build mit12 wiederverwendeten und zwei neuen
+Gastbelegen. Unveränderte Altprofile, Ring3-Fehlergrenze und verbleibende
+Systemabnahme bleiben Anforderungen. R3.6b bleibt ausdrücklich zurückgestellt.
+
 Stand: 15. September 2026. Nutzerpriorität: die 64-Bit-Version fertigstellen.
 Basis `fd8dc3d7`; i386 bleibt unveränderter Standard und Rückfallpfad bis zur
 eigenen vollständigen Systemabnahme. Dieses Papier ist keine Fertigmeldung.

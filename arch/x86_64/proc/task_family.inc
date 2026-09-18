@@ -12,6 +12,10 @@ family_request_admit64:
 %ifdef REIST_NATIVE_WIDE
     je .startup
     cmp dword [rdi],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    je .startup
+    cmp dword [rdi],6
+%endif
 %endif
     jne .invalid
 .startup:
@@ -24,8 +28,23 @@ family_request_admit64:
     cmp qword [rdi+56],0
     jne .invalid
 .header:
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rdi],6
+    jne .legacy_header
+    cmp dword [rdi+4],80
+    jne .invalid
+    cmp qword [rdi+64],1000
+    jne .invalid
+    cmp qword [rdi+72],0
+    jne .invalid
+    jmp .header_flags
+.legacy_header:
+%endif
     cmp dword [rdi+4],64
     jne .invalid
+%ifdef REIST_NATIVE_SERVICE_CPU
+.header_flags:
+%endif
     cmp dword [rdi+12],0
     jne .invalid
     mov eax,[rdi+8]
@@ -102,6 +121,29 @@ family_request_admit64:
 .invalid:
     mov rax,-22
     ret
+
+%ifdef REIST_NATIVE_SERVICE_CPU
+; Already admitted request, parent's immutable period ticks and sample limit.
+; Old versions intentionally retain lifetime accounting. No writes or grants.
+global family_cpu_attenuate64
+family_cpu_attenuate64:
+    cmp dword [rdi],6
+    jne .okay
+    cmp rsi,100
+    jne .denied
+    mov rax,rdx
+    dec rax
+    cmp rax,31
+    ja .denied
+    cmp [rdi+48],rdx
+    ja .denied
+.okay:
+    mov eax,1
+    ret
+.denied:
+    mov rax,-13
+    ret
+%endif
 
 ; Pinned profile-v1 and exact parent's live profile-v2. No output on failure.
 global family_profile_admit64
@@ -633,9 +675,26 @@ family_syscall64:
     call scheduler_validate_shell_range64
     test eax,eax
     jz .pointer
+%ifdef REIST_NATIVE_SERVICE_CPU
+    mov rax,[rel syscall_rdi]
+    cmp dword [rax],6
+    jne .snapshot_range
+    mov edx,80
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    test eax,eax
+    jz .pointer
+.snapshot_range:
+%endif
     mov rsi,[rel syscall_rdi]
     lea rdi,[rel family_request]
     mov ecx,8
+%ifdef REIST_NATIVE_SERVICE_CPU
+    cmp dword [rsi],6
+    jne .snapshot_copy
+    mov ecx,10
+.snapshot_copy:
+%endif
     rep movsq
     lea rdi,[rel family_request]
     call family_request_admit64
@@ -685,7 +744,11 @@ family_syscall64:
     mov rax,[rel family_request+24]
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jb .range_v1
+%else
     jne .range_v1
+%endif
     call family_import_range_v2_64
     jmp .range_ready
 .range_v1:
@@ -701,7 +764,11 @@ family_syscall64:
     mov ecx,4612
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jb .copy_ready
+%else
     jne .copy_ready
+%endif
     mov ecx,NATIVE_PREPARED_V2_BYTES/8
 .copy_ready:
 %endif
@@ -710,7 +777,11 @@ family_syscall64:
     mov esi,36896
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jb .admit_ready
+%else
     jne .admit_ready
+%endif
     mov esi,NATIVE_PREPARED_V2_BYTES
 .admit_ready:
 %endif
@@ -722,7 +793,11 @@ family_syscall64:
     lea rdi,[rel elf_import_record+32800]
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jb .tail_ready
+%else
     jne .tail_ready
+%endif
     lea rdi,[rel elf_import_record+262240]
 .tail_ready:
 %endif
@@ -781,7 +856,7 @@ family_result64:
     rep stosq
     lea rdi,[rel family_request]
     xor eax,eax
-    mov ecx,8
+    mov ecx,NATIVE_FAMILY_REQUEST_BYTES/8
     rep stosq
     lea rdi,[rel family_startup]
     mov ecx,512
@@ -848,6 +923,18 @@ family_create64:
     mov edi,[rel scheduler_current_slot]
     call family_record64
 .full_attenuated:
+%ifdef REIST_NATIVE_SERVICE_CPU
+    mov eax,[rel scheduler_current_slot]
+    lea rsi,[rel process_run_plan+272]
+    mov rsi,[rsi+rax*8]
+    shl eax,5
+    lea rdx,[rel process_run_plan+32]
+    mov rdx,[rdx+rax]
+    lea rdi,[rel family_request]
+    call family_cpu_attenuate64
+    cmp rax,1
+    jne family_result64
+%endif
     cmp dword [rel process_run_generation],0x7fffffff
     jae .capacity
     inc qword [r10+48]
@@ -861,7 +948,11 @@ family_create64:
     jne scheduler_fail
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
+%ifdef REIST_NATIVE_SERVICE_CPU
+    jb .cached_entry
+%else
     jne .cached_entry
+%endif
     ; The free dynamic slot is this staging image's sole consumer. A new
     ; CREATE-v5 must execute its new admitted snapshot, never cached bytes.
     call x86_64_elf64_release64
@@ -932,6 +1023,15 @@ family_create64:
     mov [r13+16],rax
     mov rax,[rel family_request+24]
     mov [r13+24],rax
+%ifdef REIST_NATIVE_SERVICE_CPU
+    xor eax,eax
+    cmp dword [rel family_request],6
+    jne .cpu_lifetime
+    mov eax,100
+.cpu_lifetime:
+    lea rcx,[rel process_run_plan+272]
+    mov [rcx+rdi*8],rax
+%endif
     mov eax,edi
     shl eax,4
     lea rcx,[rel family_extended_masks]
@@ -1033,7 +1133,7 @@ family_wait64:
     mov [r10+24],r15
     lea rdi,[rel family_request]
     xor eax,eax
-    mov ecx,8
+    mov ecx,NATIVE_FAMILY_REQUEST_BYTES/8
     rep stosq
     mov qword [r12+TASK_STATE],TASK_BLOCKED
     mov edi,[rel scheduler_current_slot]
@@ -1331,7 +1431,7 @@ family_records: resb NATIVE_POOL_TASKS*64
 family_profiles: resb NATIVE_POOL_TASKS*32
 family_extended_masks: resb NATIVE_POOL_TASKS*16
 family_admitted_profile: resb 40
-family_request: resb 64
+family_request: resb NATIVE_FAMILY_REQUEST_BYTES
 family_reasons: resd NATIVE_POOL_TASKS
 family_total: resd 1
 family_cancel_mask: resd 1

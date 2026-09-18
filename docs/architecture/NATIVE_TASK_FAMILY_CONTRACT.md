@@ -1,5 +1,10 @@
 # Native task family boundary
 
+Qualified append-only CREATE-v6: [periodic CPU admission](NATIVE_SERVICE_CPU_CONTRACT.md).
+Its80-byte request adds1000ms period/reserved fields and requires an admitted
+periodic parent's attenuated quota. CREATE-v1..5 retain lifetime accounting,
+including in the new profile; WAIT/CANCEL-v1 and syscall132 do not change.
+
 Opt-in capacity extension: [native task pool](NATIVE_TASK_POOL_CONTRACT.md).
 NativeTaskPool uses private run-v4/eight slots, roots0/1 and dynamic slots2..7
 with slot-private imported IDs7..12. The four-slot run-v3 profile and public

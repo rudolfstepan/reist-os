@@ -19,12 +19,16 @@ def harness(source):
         'scheduler_validate_shell_ipc_send_wait64', 'scheduler_validate_shell_send_deadline64',
         'scheduler_verify_shell_deadline_zero64')
     data = source[source.index('scheduler_expected_events:'):]
-    constants = '\n'.join(re.findall(r'^\w+\s+equ\s+[^\n]+', source, re.M))
+    # Keep NASM's actual profile selection and imported layout/memory macros.
+    # Flattening equ lines includes both mutually exclusive task layouts and
+    # drops MEMORY_COMPARE_LIMIT from the production frame-validation path.
+    preamble = source.split('section .text', 1)[0]
+    preamble = re.sub(r'^(?:extern|global)\s[^\n]*\n', '', preamble, flags=re.M)
     exports = '\n'.join('global '+n for n in re.findall(r'^(\w+):', data, re.M))
     body = ''.join(function(n) for n in names)
     cores = ''.join((ROOT/f'arch/x86_64/proc/{n}.asm').read_text()
                     for n in ('identity_core','syscall_profile','cpu_budget','queue_core','terminal_status'))
-    return 'BITS 64\n'+constants+'\nsection .data\n'+exports+'\n'+data+'''
+    return preamble+'\nsection .data\n'+exports+'\n'+data+'''
 section .text
 global owner_admit
 owner_admit:
@@ -53,6 +57,19 @@ owner_admit:
 
 
 class OwnerTerminalTests(unittest.TestCase):
+    def test_harness_preserves_production_profile_selection(self):
+        source=(ROOT/'arch/x86_64/proc/cooperative_scheduler.asm').read_text()
+        asm=harness(source)
+        preamble=source.split('section .text',1)[0]
+        expected=re.sub(r'^(?:extern|global)\s[^\n]*\n','',preamble,flags=re.M)
+        self.assertTrue(asm.startswith(expected+'\nsection .data\n'))
+        self.assertIn('%include "arch/x86_64/mm/memory_profile.inc"',expected)
+        self.assertIn('%ifndef REIST_NATIVE_WIDE',expected)
+        self.assertNotRegex(expected,r'(?m)^(?:extern|global)\s')
+        for name in ('scheduler_validate_owner_terminal64','scheduler_owner_frames_valid64'):
+            body=re.search(r'^'+name+r':\n.*?(?=^[A-Za-z_][\w]*:|\Z)',source,re.M|re.S).group()
+            self.assertEqual(asm.count(body),1)
+
     def test_observer_start_failure_reaps_own_vm(self):
         import run_qemu_x86_64_owner_terminal as runner
         vm=Mock()

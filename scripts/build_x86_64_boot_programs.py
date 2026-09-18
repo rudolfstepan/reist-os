@@ -58,7 +58,10 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=1536:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False):
+    if type(service_cpu) is not bool:raise ValueError('service CPU selector')
+    if service_cpu and (not task_pool or any((pool_pio,pio,block,block_profile,filesystem,file_launch))):
+        raise ValueError('service CPU requires device-free task pool')
     if type(pool_pio) is not bool:raise ValueError('pool PIO selector')
     if pool_pio and (not (task_pool and wide and import_image and startup and family and pio and block and block_profile) or
         any((filesystem,file_launch,case,family_case,startup_case,pio_case,memory_case,block_profile_case,filesystem_case,file_launch_case)) or filesystem_layout!=2):
@@ -84,6 +87,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if import_image and not startup:raise ValueError('import requires startup')
     if startup and (not family or family_case or case):raise ValueError('startup requires normal family')
     if pool_pio:cc=[*cc,'-DREIST_NATIVE_POOL_PIO=1']
+    if service_cpu:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-Dmain=reist_pool_finite_fixture_main']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -165,6 +169,7 @@ if __name__=='__main__':
     p.add_argument('--file-launch',action='store_true')
     p.add_argument('--task-pool',action='store_true')
     p.add_argument('--pool-pio',action='store_true')
+    p.add_argument('--service-cpu',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -172,4 +177,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu)
