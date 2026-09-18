@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3au-service-console"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -12,6 +12,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3au-service-console"
+status = "active"
+title = "Root-only console in the live file service authority domain"
+phase = "native-shell-service-authority"
+risk = "high"
+scope = "User-approved console authority extension only to initial root0 of explicit service-console run-v5. Prove it with the complete existing concurrent file/service fault matrix before binding the normal shell to this domain. This mechanism boundary is not a completed interactive filesystem shell."
+allowed_files = ["automation/reist-s03b.toml","docs/architecture/NATIVE_SERVICE_CONSOLE_CONTRACT.md","docs/development/CURRENT_WORK.md","Makefile","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","arch/x86_64/proc/process_run.inc","arch/x86_64/kernel/bootstrap_core.c","arch/x86_64/user/live_file.c","arch/x86_64/user/file_program.c","arch/x86_64/user/service_console.c","test/test_x86_64_service_console.py","test/x86_64_service_console_host.c","scripts/run_qemu_x86_64_service_console.py","scripts/verify_x86_64_service_console.py"]
+inventory = "Clean473da11c; AT normal shell console accepted, AR concurrent filesystem/ATA/application accepted. Console currently root0/run-v2 only. Family profile admission already denies bits15/20 irrespective of parent mask. Existing UART mediator, range validation, generation, lifecycle, CPU and PIO mechanisms are reused unchanged."
+invariants = ["Follow NATIVE_SERVICE_CONSOLE_CONTRACT.md. No agents, push, real media, implicit inheritance or child terminal rights.","New explicit selector requires LiveFile and independently enables existing console mechanism. Old selectors/defaults unchanged. Only root0 run-v5 gains bits15/20; other run versions and every child/driver profile remain denied.","No syscall ABI, quota, lifetime, parser, transport or resource-limit changes. Complete inherited raw memory/CPU/PIO/IPC/heap/frame/cleanup and concurrent file proofs required."]
+targeted_tests = ["python test/test_x86_64_service_console.py -v","python test/test_x86_64_console.py -v","python test/test_x86_64_service_cpu.py -v","python test/test_x86_64_task_pool.py -v","python test/test_x86_64_pool_pio.py -v","python test/test_x86_64_live_file.py -v","python test/test_x86_64_file_launch.py -v","python scripts/verify_x86_64_service_console.py --defaults"]
+package_tests = ["powershell.exe -NoProfile -File scripts/build-x86_64-bootstrap.ps1 -NativeServiceConsole -OutputDirectory build/codex-agent/r83au-service-console/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_service_console.py --image build/codex-agent/r83au-service-console/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83au-service-console/guests","python scripts/verify_x86_64_reference_artifacts.py","python scripts/verify_x86_64_service_console.py --review"]
+acceptance = "Twelve gates in listed order once per frozen candidate; first failure stops. Hosts300s, defaults/reference/review180s, build180s, complete25-guest matrix1200s. Exactly one image,25 guests45s inclusive cleanup<=3s each,1125s aggregate. Freeze exact source/tool/commands/logs before gates; retain failures and spent counts. Evidence-directed corrections require a new finite recorded window, no unchanged retry. Direct scope/ABI/bounds/cleanup review then done and clean local commit."
+stop_conditions = ["Unattributed change or required source outside allowed_files.","Implicit child console authority, changed quotas/deadlines, unsupported complete-OS claim.","First failed gate stops and retains evidence; no queue advance or implementation commit before complete acceptance."]
+commit_message = "feat: isolate native service-root console authority"
 
 [[packages]]
 id = "R8.3at-x86_64-shell"
