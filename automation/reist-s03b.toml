@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ar-x86_64-live-file"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -12,6 +12,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ar-x86_64-live-file"
+status = "active"
+phase = "native-service-lifecycle"
+risk = "high"
+title = "Concurrent native file-service and independently loaded application lifecycle"
+scope = "Compose accepted eight-task periodic PIO with the existing immutable file/ELF64 path. Keep the real Ring3 filesystem and ATA service alive during application import and execution, with an independent application channel and a witnessed concurrent filesystem query. Bundle all five read-only media layouts, application/service faults, owner loss, OOM rollback and generation-scoped replacement. No new kernel mechanism, driver, SDK ABI, writable media, normal-shell claim or quota/deadline increase."
+allowed_files = ["automation/reist-s03b.toml","docs/architecture/NATIVE_LIVE_FILE_CONTRACT.md","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/README.md","Makefile","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","arch/x86_64/user/filesystem.c","arch/x86_64/user/file_program.c","arch/x86_64/user/live_file.c","scripts/run_qemu_x86_64_live_file.py","scripts/verify_x86_64_live_file.py","test/test_x86_64_live_file.py","test/x86_64_live_file_host.c"]
+inventory = "Clean accepted c7e5e72ad05c7a0e9355e9dc4b0fc99ad99ba8ff and immutable AQ final receipt:15 gates18 guests. Old file_launch.c tears down slots2/3 before importing into slot2; normal shell cannot use surviving services. Existing pool supplies slot4, CREATE-v6 supplies periodic32/1000, old file SDK already performs bounded fresh-session capture, immutable ELF validation and source wipe. Preserve those implementations. Use separate app IPC with validated ACK/GO; no app device/task-control authority. Existing SDK maximum1536 remains; new qualification executable is capped1280 to reserve one of eight FS requests for the concurrent query."
+invariants = ["Follow NATIVE_LIVE_FILE_CONTRACT.md; one clean frozen package, main agent only, no nested agents or push.","NativeLiveFile is explicit and excludes other fault selectors. Keep old profile commands and compiled behavior exact. Kernel/ASM, SDK, ATA and persistent formats are outside source scope.","Eight slots/eight CREATE attempts, service32 samples/1000ms, application lifetime32; IPC1000ms, file capture1800ms, ATA200ms, driver profile2800ms/session3000ms, FS8 requests and block16 unchanged.","Generated read-only media only, exact backing/map/logical-byte/no-data-allocation guard on success and failure. No physical or user disk.","Full CPU/PIO, memory/FP/IPC/heap and terminal ownership evidence, two process runs and two generation-scoped service/application rounds except explicit owner-loss cases. Fail closed and physically fence before dependency teardown; independent peer progresses.","Single common image, five layouts and25 distinct guests from one finite matrix;45s each including cleanup<=3s,1125s summed guest ceiling,1200s matrix command. No diagnostic guest, old matrix replay or unchanged retry."]
+targeted_tests = ["python test/test_x86_64_live_file.py -v","python test/test_x86_64_file_launch.py -v","python test/test_x86_64_filesystem.py -v","python test/test_x86_64_file_image.py -v","python scripts/verify_x86_64_live_file.py --core-hosts","python test/test_x86_64_cpu_trace.py -v","python test/test_x86_64_boot_programs.py -v","python scripts/verify_x86_64_live_file.py --abi-docs"]
+package_tests = ["python scripts/verify_x86_64_live_file.py --references",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeLiveFile -OutputDirectory build/codex-agent/r83ar-live-file/native","python scripts/verify_x86_64_live_file.py --kernel-equivalence"]
+runtime_tests = ["python scripts/run_qemu_x86_64_live_file.py --image build/codex-agent/r83ar-live-file/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83ar-live-file/guests","python scripts/verify_x86_64_reference_artifacts.py","python scripts/verify_x86_64_live_file.py --review"]
+acceptance = "All14 frozen obligations once per candidate, first failure stops; host groups300s, reference/build/equivalence/review180s, matrix1200s. New regression first with retained expected red. At most three changed host candidates/two evidence-directed pre-build corrections, one total new common image and25 total guests1125s. No correction/retry after a build or runtime failure in this reservation. Reuse only fully source/tool/command/log/artifact-bound references with actual default preprocessor equivalence. Direct scope/ABI/bounds/cleanup review, complete raw evidence and clean local implementation commit required before done; continue next priority after acceptance."
+stop_conditions = ["Unrelated/user-overlapping changes, required source outside allowed_files, pre-existing failure or default/reference drift.","Need new authority, kernel mechanism, persistent policy, physical hardware or relaxed invariant; stop for architectural review.","First failed gate stops later gates; no post-build/runtime retry or more than three changed host candidates, one image and25 guests. Preserve every failure and all prior evidence."]
+commit_message = "feat: preserve isolated native file services during application execution"
 
 [[packages]]
 id = "R8.3aq-x86_64-service-pio"

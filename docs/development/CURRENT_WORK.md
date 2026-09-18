@@ -2,6 +2,16 @@
 
 Stand: 18. September 2026
 
+## R8.3ar: Dateidienste beim Programmlauf erhalten
+
+Nach sauberem AQ-Commit `c7e5e72a` ist der naechste gemeinsame Schnitt
+[R8.3ar](../architecture/NATIVE_LIVE_FILE_CONTRACT.md) eingefroren:
+echter Dateistart in Slot4 bei weiterlaufendem Dateisystem und ATA-Dienst,
+eigener Programmkanal und echter gleichzeitiger Dateizugriff. Alle fuenf
+Medienlayouts und Fehler-/Recoveryfaelle gemeinsam; maximal ein neues Image
+und25 Gaeste. Kein Kernel-/SDK-/Treiberumbau, keine erhoehten Quoten.
+Noch keine Implementierungsabnahme; normale Shell und Gesamt-OS bleiben offen.
+
 ## R8.3aq vollstaendig qualifiziert
 
 Alle15 Pruefgruppen und18 Gastfaelle bestanden, einschliesslich voller

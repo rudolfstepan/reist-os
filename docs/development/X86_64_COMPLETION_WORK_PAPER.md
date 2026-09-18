@@ -1,11 +1,12 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-Aktiv nach sauberem AP-Commit `9011ef1e`: R8.3aq schliesst die gemeinsame
-[periodische PIO-Dienstgrenze](../architecture/NATIVE_SERVICE_PIO_CONTRACT.md).
-Vorhandene CPU-/PIO-Mechanismen bleiben exakt; neue Profilzulassung, echte
-periodische Treiberausfuehrung, Quoten-Recovery und physische Fatal-Einzaeunung
-werden zusammen geprueft. Ein gemeinsames Image, keine Referenz-Neubauten.
-Die normale Shell-/Dateiintegration ist dadurch noch nicht abgenommen.
+R8.3aq ist mit sauberem Commit `c7e5e72a` abgeschlossen:15 Pruefgruppen,
+18 Gastfaelle, ein neues gemeinsames Image, vollstaendige CPU-/PIO-Rohdaten.
+Naechster gemeinsamer Schnitt R8.3ar:
+[gleichzeitige Datei-/Programmdienst-Lebensdauer](../architecture/NATIVE_LIVE_FILE_CONTRACT.md).
+Dateisystem und Treiber bleiben beim Import und Lauf des Dateiprogramms aktiv;
+alle Medien-/Fehlerfaelle nutzen ein Image. Noch keine AR-Abnahme oder normale
+Shell-/vollstaendige64-Bit-Systemabnahme. Kernelmechanismen bleiben unveraendert.
 
 Vollstaendig qualifizierter gebündelter Arbeitsschritt R8.3ap:
 [periodische CPU-Zulassung](../architecture/NATIVE_SERVICE_CPU_CONTRACT.md).
