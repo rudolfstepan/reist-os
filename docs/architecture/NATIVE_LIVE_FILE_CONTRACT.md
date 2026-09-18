@@ -9,6 +9,19 @@ This is a service/application lifetime prerequisite, not normal shell or full
 
 ### Subsequent cold-control window
 
+Closed without acceptance:17 host tests and11 obligations pass; eleven guests
+pass through filesystem UD2. Case6 stops at the control callback's live-task
+generation assertion after driver and filesystem retirement. Kernel family
+receipts preserve identity/parent separately from the cleared task; terminal
+CANCEL is idempotent. This is not evidence of a kernel failure. The immutable
+`cold-control/verification-status-terminal-receipt-stopped.json` binds every
+source/tool/gate/raw file and successful guest prefix. Twelve attempts in this
+window,201.5328874s; cumulative14 attempts211.1808727s and one AR image. No
+surviving QEMU/GDB, no implementation commit, gates13/14 not run. Any terminal
+observer correction needs a separately frozen finite window and actual host
+regression; preserve live identity checks and validate terminal family rights.
+Passed guests may only be reused after exact input/oracle/evidence binding.
+
 The observer window is sealed at `observer-adapter/verification-status-cpu-stopped.json`:
 eleven obligations pass, cache and both proof options work, but driver3 spends
 32 CPU samples by tick69, before its first period boundary105. The broad

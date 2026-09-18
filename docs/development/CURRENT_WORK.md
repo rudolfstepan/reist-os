@@ -12,17 +12,28 @@ Medienlayouts und Fehler-/Recoveryfaelle gemeinsam; maximal ein neues Image
 und25 Gaeste. Kein Kernel-/SDK-/Treiberumbau, keine erhoehten Quoten.
 Noch keine Implementierungsabnahme; normale Shell und Gesamt-OS bleiben offen.
 
-AR-Stand: elf Pruefgruppen bestanden, ein gemeinsames Image gebaut;
-Kernelobjekte/C-Kern bytegleich zu AQ. Pfad-/Cachekorrektur und geforderte
-Cleanup-/Speichervergleichsoptionen geprueft, ohne Neubau. Jetzt echter
-CPU-Abbruch im ATA-Dienst:32 Samples bei Tick69 vor Periodengrenze105.
-Unveraenderlich gesichert unter observer-adapter/verification-status-cpu-stopped.json.
-Ein begrenzter cold-control-Kandidat beschraenkt den Steuerungsbeobachter
-auf Familie/Fencing; alle CPU-/PIO-/IPC- und Speicherassertions bleiben.
-Die Ursache ist noch kein Beweis fuer einen Beobachter-Zeiteffekt.
-Kein Neubau; alle14 Verpflichtungen, hoechstens25 neue Gaeste; insgesamt
-27 inklusive zweier Fehlversuche. Wiederholter CPU-Fehler verlangt
-Entwurfsdiagnose statt weiterer Timing-Wiederholungen.
+AR-Stand nach cold-control:17/17 Pakettests, elf von14 Verpflichtungen und
+elf von25 vollstaendigen Gastfaellen bestanden. Alle fuenf Medienlayouts,
+8GiB, Programmabsturz/CPU-Abbruch/CANCEL, ungueltiges ELF und FS-Absturz
+sind nachgewiesen. Image ohne Neubau wiederverwendet; Kernelobjekte/C-Kern
+weiter bytegleich zu AQ. Kein Implementierungscommit oder Queueabschluss.
+
+Stopp in Fall6: ATA-Absturz wird abgegrenzt und bereinigt, FS endet mit90.
+Der Pruefer verlangt beim anschliessenden idempotenten CANCEL noch die
+bereits geloeschte Task-Generation. Der Kernel fuehrt den generationstreuen
+Abschlussbeleg getrennt im Familienrecord. Noch kein Kerneldefekt belegt.
+Gate12 fehlgeschlagen;13/14 nicht ausgefuehrt. Fehler und bestandene Faelle
+unveraenderlich gesichert unter
+`r83ar-live-file/cold-control/verification-status-terminal-receipt-stopped.json`
+(SHA16ed2d44d24545f30689b21e4325fe111cfd0dd406e9e9d4e8167fdb114f82e8).
+AR gesamt: ein Image,14 Gastversuche211,1808727s, keine QEMU-/GDB-Reste.
+
+Naechste Grenze: gezielte Hostregression fuer Terminal-CANCEL, dann
+Familienbeleg/Elternbesitz/Generation/Phase getrennt vom freien Task pruefen.
+Aktive Generationspruefung erhalten; fremde/veraltete/wiederverwendete Belege
+ablehnen. Neues begrenztes Fenster und exakte Wiederverwendung der elf
+bestandenen Gaeste vor weiterem Gaststart einfrieren. Kein unveraenderter
+Wiederholungsversuch, weiterer Imagebau oder Gesamt-OS-Abschluss gerechtfertigt.
 
 ## R8.3aq vollstaendig qualifiziert
 
