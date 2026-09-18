@@ -12,6 +12,14 @@ Medienlayouts und Fehler-/Recoveryfaelle gemeinsam; maximal ein neues Image
 und25 Gaeste. Kein Kernel-/SDK-/Treiberumbau, keine erhoehten Quoten.
 Noch keine Implementierungsabnahme; normale Shell und Gesamt-OS bleiben offen.
 
+AR-Stand: elf Pruefgruppen bestanden, ein gemeinsames Image gebaut;
+Kernelobjekte/C-Kern bytegleich zu AQ. Laufzeitgate stoppte vor dem ersten
+Gast an einem relativen CLI-Pfad im Belegadapter. Der Fehlerstand ist unter
+`r83ar-live-file/verification-status-pre-guest-stopped.json` unveraenderlich
+gesichert. Eng begrenzte Pfadadapter-Fortsetzung unter stehender Vollmacht,
+kein weiterer Build, dieselben25 noch ungenutzten Gastplaetze und alle14
+Verpflichtungen. Quoten und Runtime-Assertions bleiben unveraendert.
+
 ## R8.3aq vollstaendig qualifiziert
 
 Alle15 Pruefgruppen und18 Gastfaelle bestanden, einschliesslich voller

@@ -5,6 +5,26 @@ completion authority, one package/main worktree; no nested agent or push.
 This is a service/application lifetime prerequisite, not normal shell or full
 64-bit OS acceptance. R3.6b remains deferred.
 
+## Path-adapter continuation, 18 September 2026
+
+The original three-candidate window is stopped and sealed, not accepted.
+Candidate d1939191 passes11 obligations, including one common image and exact
+AQ kernel-object/C-core equality. Gate12 fails before any guest or capture:
+the relative CLI image reaches an absolute-root provenance helper. The two
+earlier host failures and empty pre-capture attempt remain retained.
+
+Under standing evidence-directed completion authority, freeze one changed
+candidate under `path-adapter`. Normalize the two CLI paths before admission
+and test actual main dispatch/rejection-before-effects. The observer, oracle,
+Ring3 implementation, kernel, SDK, producer, assertions and all limits stay
+exact. Only entry-path/evidence-path and provenance adapters plus AR tests,
+this contract, status and queue may change. All14 obligations remain; zero
+new builds or diagnostic guests. Gate10 reuses the one sealed image only with
+exact original source/tool/profile/command/log/artifact bindings. The unused
+25-guest/1125s reservation remains, not another25 on top. First failure stops
+this window; no in-window repair, unchanged retry, agent or push. Acceptance
+still requires the complete original matrix and raw review, not the11 passes.
+
 ## Existing mechanisms and standard-first boundary
 
 Reuse the System V ELF64/AMD64 executable representation and existing bounded
