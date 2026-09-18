@@ -7,6 +7,27 @@ This is a service/application lifetime prerequisite, not normal shell or full
 
 ## Path-adapter continuation, 18 September 2026
 
+### Subsequent observer-adapter window
+
+The path window is also stopped, not accepted: eleven obligations pass, the
+same image is reused, and one guest stops after3.980959s at selector readback.
+The actual write is followed by a stale SameStopReads cache hit. Retain the
+sealed `path-adapter/verification-status-selector-stopped.json` and all bytes.
+Under standing completion authority, one changed `observer-adapter` candidate
+adds only the existing before_write barrier before the existing16-byte write
+and selects existing diagnostic_metrics/binary-memory equivalence. These
+options provide the cleanup and independent kernel/high-RAM proof already
+required by the unchanged review; they do not relax an assertion or limit.
+Actual generated-selector/cache and main-capture host regressions precede
+correction. Kernel, Ring3, SDK, producer and image remain exact. Runtime
+changes are limited to these three adaptations and evidence BASE; verifier
+provenance, existing AR test and status/queue may adapt to the sealed stop.
+All14 obligations once, zero OS builds, exactly bound gate10 reuse; at most
+25 new guests1125s in1200s, each45s including cleanup3s. The prior failed
+guest remains spent: cumulative26 guests1128.980959s maximum, one image.
+First failure stops this finite window; no in-window repair or unchanged
+retry. Full matrix/raw review and clean implementation commit remain required.
+
 The original three-candidate window is stopped and sealed, not accepted.
 Candidate d1939191 passes11 obligations, including one common image and exact
 AQ kernel-object/C-core equality. Gate12 fails before any guest or capture:

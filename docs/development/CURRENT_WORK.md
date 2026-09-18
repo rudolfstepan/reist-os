@@ -13,12 +13,14 @@ und25 Gaeste. Kein Kernel-/SDK-/Treiberumbau, keine erhoehten Quoten.
 Noch keine Implementierungsabnahme; normale Shell und Gesamt-OS bleiben offen.
 
 AR-Stand: elf Pruefgruppen bestanden, ein gemeinsames Image gebaut;
-Kernelobjekte/C-Kern bytegleich zu AQ. Laufzeitgate stoppte vor dem ersten
-Gast an einem relativen CLI-Pfad im Belegadapter. Der Fehlerstand ist unter
-`r83ar-live-file/verification-status-pre-guest-stopped.json` unveraenderlich
-gesichert. Eng begrenzte Pfadadapter-Fortsetzung unter stehender Vollmacht,
-kein weiterer Build, dieselben25 noch ungenutzten Gastplaetze und alle14
-Verpflichtungen. Quoten und Runtime-Assertions bleiben unveraendert.
+Kernelobjekte/C-Kern bytegleich zu AQ. Pfadadapter korrigiert und Image ohne
+Neubau wiederverwendet. Erster Gast stoppt nach3,980959s am veralteten
+Cache-Lesewert nach Testfallauswahl. Beide Fehlerfenster unveraenderlich
+gesichert, zuletzt path-adapter/verification-status-selector-stopped.json.
+Begrenzte Beobachterkorrektur: vorhandene Schreibbarriere sowie bereits
+geforderte Cleanup-/Speichervergleichsoptionen aktivieren. Kein Neubau;
+alle14 Verpflichtungen und hoechstens25 neue Gaeste, insgesamt26 inklusive
+Fehlversuch. Kernel, Quoten, Laufzeitassertions und Image bleiben gleich.
 
 ## R8.3aq vollstaendig qualifiziert
 
