@@ -7,6 +7,26 @@ This is a service/application lifetime prerequisite, not normal shell or full
 
 ## Path-adapter continuation, 18 September 2026
 
+### Subsequent cold-control window
+
+The observer window is sealed at `observer-adapter/verification-status-cpu-stopped.json`:
+eleven obligations pass, cache and both proof options work, but driver3 spends
+32 CPU samples by tick69, before its first period boundary105. The broad
+control hook stops on every syscall even though nonroot calls immediately
+return. Its causal timing impact is not yet proved. One `cold-control`
+candidate may replace only that hook with the actual family entry and admitted
+PIO fence-request entry; keep its callback body and every existing IPC, fault,
+start, release, CPU/PIO trace hook and assertion exact. IPC preserves witnesses
+before messages, fault before owner loss, family before CREATE/CANCEL and
+FENCE before device effects. Bind actual image symbols/dispatch instructions
+and test generated callback/routing before correction. No new guest write,
+kernel/Ring3/SDK/producer/image change or relaxed bound. Only this runtime
+substitution/BASE, verifier provenance/BASE, AR tests and docs/queue may change.
+All14 once, zero builds, exact gate10 reuse, at most25 guests1125s in1200s,
+45s each including cleanup3s. Preserve two prior failed guests9.6479853s:
+cumulative27 guests1134.6479853s and one image maximum. First failure stops;
+repeated CPU failure requires design diagnosis, not another timing retry.
+
 ### Subsequent observer-adapter window
 
 The path window is also stopped, not accepted: eleven obligations pass, the

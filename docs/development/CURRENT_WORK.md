@@ -13,14 +13,16 @@ und25 Gaeste. Kein Kernel-/SDK-/Treiberumbau, keine erhoehten Quoten.
 Noch keine Implementierungsabnahme; normale Shell und Gesamt-OS bleiben offen.
 
 AR-Stand: elf Pruefgruppen bestanden, ein gemeinsames Image gebaut;
-Kernelobjekte/C-Kern bytegleich zu AQ. Pfadadapter korrigiert und Image ohne
-Neubau wiederverwendet. Erster Gast stoppt nach3,980959s am veralteten
-Cache-Lesewert nach Testfallauswahl. Beide Fehlerfenster unveraenderlich
-gesichert, zuletzt path-adapter/verification-status-selector-stopped.json.
-Begrenzte Beobachterkorrektur: vorhandene Schreibbarriere sowie bereits
-geforderte Cleanup-/Speichervergleichsoptionen aktivieren. Kein Neubau;
-alle14 Verpflichtungen und hoechstens25 neue Gaeste, insgesamt26 inklusive
-Fehlversuch. Kernel, Quoten, Laufzeitassertions und Image bleiben gleich.
+Kernelobjekte/C-Kern bytegleich zu AQ. Pfad-/Cachekorrektur und geforderte
+Cleanup-/Speichervergleichsoptionen geprueft, ohne Neubau. Jetzt echter
+CPU-Abbruch im ATA-Dienst:32 Samples bei Tick69 vor Periodengrenze105.
+Unveraenderlich gesichert unter observer-adapter/verification-status-cpu-stopped.json.
+Ein begrenzter cold-control-Kandidat beschraenkt den Steuerungsbeobachter
+auf Familie/Fencing; alle CPU-/PIO-/IPC- und Speicherassertions bleiben.
+Die Ursache ist noch kein Beweis fuer einen Beobachter-Zeiteffekt.
+Kein Neubau; alle14 Verpflichtungen, hoechstens25 neue Gaeste; insgesamt
+27 inklusive zweier Fehlversuche. Wiederholter CPU-Fehler verlangt
+Entwurfsdiagnose statt weiterer Timing-Wiederholungen.
 
 ## R8.3aq vollstaendig qualifiziert
 
