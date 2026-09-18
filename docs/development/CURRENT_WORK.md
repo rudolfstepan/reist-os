@@ -4,6 +4,11 @@ Stand: 18. September 2026
 
 ## R8.3as: native Konsolenvermittlung in Umsetzung
 
+Quittierter Sender implementiert; Vorpruefung vor Gate1 an einer AST-
+Kommentargrenze des eigenen Herkunftsvergleichs gestoppt (SHA6ebbe3a9735ac6de).
+Keine neue Gastzeit oder Builds. Ein zusaetzlicher Kandidat korrigiert nur
+diesen Vergleich samt Regression; Sender/Kernel/Image bleiben dabei identisch.
+
 Speicheradapter jetzt auch im Gast bestanden: komplette Bitmap-/Mappingpruefung
 und unabhaengiger Kernel-/High-RAM-Vergleich. Beide Prozessrunden bereinigen
 alle Tasks, erhalten aber nur14 von65 auf einmal eingespeisten Zeichen und

@@ -7,6 +7,14 @@ normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
 ## Acknowledged input continuation,18 September2026
 
+Candidate01 preflight stops before any gate/build/guest: AST source segments
+exclude the final class comment, so exact provenance removal fails closed.
+Seal SHA6ebbe3a9735ac6de preserves this attempt. Exactly candidate02 may correct
+only verifier extraction to whole top-level line boundaries, stop provenance
+and one focused regression, with docs/queue. All runtime/feeder/image bytes
+remain fixed and the same unspent seven-guest reservation applies. All12 gates
+remain mandatory, first failure stops; no new build.
+
 The bitmap correction passes12 hosts, nine obligations and the real full RAM
 map plus independent kernel/high-RAM comparisons. Both actual native runs
 receive only14 bytes of each65-byte host injection, then EAGAIN and bounded
