@@ -1,5 +1,12 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Aktiv nach sauberem AR-Commit `7d34f237`: R8.3as
+[native Konsolenvermittlung](../architecture/NATIVE_CONSOLE_CONTRACT.md).
+Der allgemeine native Prozesspfad hat noch kein READ/WRITE; historische
+Test-Shell-Zaehler sind kein normaler Konsolenvertrag. Gemeinsamer Schnitt:
+explizite Generationsrechte, begrenzte Bytevermittlung, Ring3-Warteadapter und
+vollstaendige Fehler-/Cleanuppruefung. Keine neue Shell-Kommandoliste.
+
 R8.3aq ist mit sauberem Commit `c7e5e72a` abgeschlossen:15 Pruefgruppen,
 18 Gastfaelle, ein neues gemeinsames Image, vollstaendige CPU-/PIO-Rohdaten.
 Ebenfalls vollstaendig qualifiziert ist R8.3ar:

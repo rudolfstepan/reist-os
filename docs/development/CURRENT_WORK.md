@@ -2,6 +2,17 @@
 
 Stand: 18. September 2026
 
+## R8.3as: native Konsolenvermittlung in Umsetzung
+
+AR ist mit sauberem Commit `7d34f237` abgeschlossen. Die Bestandspruefung
+zeigt als naechste Grenze fehlendes READ/WRITE im allgemeinen nativen
+Prozesspfad. Eingefroren ist die begrenzte Konsolenvermittlung samt Ring3-
+Warteadapter und Fehlernachweis: explizite Generationsrechte, maximal64 Bytes
+je nichtblockierender Operation, kein Kernel-Polling oder neuer komplexer
+Treiber. Ein gemeinsames Image, sieben Gaeste, zwoelf Pruefgruppen.
+[Vertrag](../architecture/NATIVE_CONSOLE_CONTRACT.md). Normale Shell und
+Dateiintegration werden damit vorbereitet, noch nicht als fertig bezeichnet.
+
 ## R8.3ar vollstaendig qualifiziert
 
 Alle14 Pruefgruppen und25 Gastfaelle bestanden;20/20 neue Pakettests.

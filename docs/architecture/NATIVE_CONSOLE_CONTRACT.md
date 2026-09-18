@@ -1,0 +1,83 @@
+# Native bounded console mediation — R8.3as
+
+Frozen after clean accepted AR `7d34f237` on18 September2026. One interactive
+transaction, standing native64 completion authority; no agents, push or user
+media. This prerequisite closes the native process console boundary, not the
+normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
+
+## Inventory and architecture
+
+The normal shell is `userspace/bin/shell.c`; it must remain the eventual normal
+command dispatcher. `arch/x86_64/user/shell.c` is a separate historical test
+dialog. Its kernel READ/WRITE handlers are tied to fixed test counters, and
+WRITE uses diagnostic serial polling which can fail fatally. General native
+run admission excludes bits15/20 and dispatch has no corresponding path.
+The live-file package supplies concurrent isolated FS/ATA/application lifetime,
+not input/output. Do not pretend a new scripted dialog finishes the shell.
+
+Reuse existing generation/profile/CPU admission, complete range validation,
+native task retirement, actual UART initialization, READ15/WRITE20, and the
+existing raw AMD64 SDK. Ring0 adds only a bounded byte-resource mediator over
+the already initialized COM1 UART. No UART setup, line editing, terminal policy,
+complex driver, device grant, filesystem parser or retry loop in Ring0.
+Formatting and bounded wait policy stay in Ring3. ATA/PIO rights are unchanged.
+
+## Authority, semantics and bounds
+
+Explicit NativeConsole selects plain NativePrograms/Runtime/Heap/IPC/RAM;
+reject lifecycle/import/PIO/task-pool/file/service and other fault selectors.
+Existing private run-v2/144-byte descriptors retain their representation.
+Only initial slot0 may explicitly receive READ/WRITE mask bits; no inference
+from numeric fd or image ID, no inheritance/delegation to other slots. Existing
+exact generation/profile checks precede every operation and retirement revokes
+authority using the existing state machine. Both runs start independently.
+Other profiles must preprocess to the identical old code and commands.
+
+Use POSIX-inspired nonblocking byte-stream read/write semantics: fd0 for READ,
+fd1 for WRITE, zero count returns0 only after authority/fd/unused-argument
+admission; count1..64, otherwise EINVAL. Bad descriptor is EBADF; unavailable
+data/transmit space is EAGAIN, invalid mapping is EFAULT, hardware line error
+is EIO. Positive partial progress is returned instead of retrying internally.
+No POSIX terminal/termios compatibility claim: fixed initialized UART, no
+canonical editing, signals, ioctl, stderr, inherited descriptors or file fd.
+
+Validate the entire nonempty buffer and access direction before the first
+device access. One LSR check and at most one byte I/O per iteration, at most64
+iterations. No spin, sleep, allocation, formatted logging, IRQ work or fatal
+transition for ordinary UART unavailability/error. Preserve all context and
+CPU accounting. User output is untrusted and cannot itself prove acceptance.
+
+Reusable explicitly named SDK helpers provide finite read/write completion
+with one caller-supplied monotonic deadline, maximum1000ms, fixed64-byte call
+chunks and existing blocking SLEEP_MS between EAGAIN/partial attempts. Preserve
+partial progress on terminal error; reject bad inputs before any syscall;
+bound attempts independently of clock progress. No unbounded libc alias.
+
+## Qualification and rollback
+
+One shared fixture image, no new shell command: real serial round-trip for a
+fixed64-byte payload, real high-address/private buffers, invalid fd/count/range
+and unused-register rejection, denied peer operations, empty receive timeout,
+root UD2/CPU containment and independent peer progress. Replacement run gets
+fresh authority and clean memory. Healthy4/8GiB, UD2, CPU and timeout plus two
+descriptor-admission negatives: seven guests,20s each including cleanup<=3s,
+140s total and180s matrix command. One build; no diagnostic guest or unchanged
+retry. Full mapped bytes/rights/stack/FP/IPC/heap/frame retirement evidence;
+raw observer I/O records bind exact generation, arguments, bytes, result and
+no unauthorized effects. Retain all previous baseline proofs and reference
+artifacts. No marker-only runtime acceptance.
+
+Host-first regression demonstrates the absent native path. Actual production
+admission/mediator assembly with only privileged byte-I/O replaced by modeled
+ports is executed at O0/O2: permission and pointer failure before I/O, every
+length/boundary, zero/partial/EAGAIN/EIO, faults after partial transfer, bad
+owner/generation and no input mutation. Actual SDK C covers frozen/stale clocks,
+overflow, partial progress, deadline, retry budget and failed sleep. Generated
+observer, serial feeder, rejection and negative oracle tests accompany it.
+
+Freeze all commands, exact source/tool/reference hashes before executing gates
+once, stop at first failure. At most three changed pre-build host candidates;
+one total image and seven total guests in this reservation. Further correction
+requires a separately frozen evidence-directed window, preserving all spent
+counts. No weakening of per-operation limits or earlier package acceptance.
+Final direct scope/ABI/cleanup review and clean local commit follow all gates.

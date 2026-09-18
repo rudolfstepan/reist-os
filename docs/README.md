@@ -25,6 +25,7 @@ Native Blockdienstprofile: [Profilvertrag](architecture/NATIVE_BLOCK_PROFILE_CON
 Native Read-only-Dateisystemdienste: [Dateisystemvertrag](architecture/NATIVE_FILESYSTEM_CONTRACT.md).
 Nativer dateibasierter Programmstart: [Dateistartvertrag](architecture/NATIVE_FILE_LAUNCH_CONTRACT.md).
 Native gleichzeitige Datei-/Programmdienste: [Lebensdauervertrag](architecture/NATIVE_LIVE_FILE_CONTRACT.md).
+Native Konsolenvermittlung: [Byte- und Wartevertrag](architecture/NATIVE_CONSOLE_CONTRACT.md).
 
 Jede Information besitzt genau einen fachlich autoritativen Ort. Andere
 Dokumente geben nur eine kurze Einordnung und verlinken dorthin; sie kopieren

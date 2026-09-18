@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3as-x86_64-console"
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -12,6 +12,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3as-x86_64-console"
+status = "active"
+phase = "native-console-mediation"
+risk = "high"
+title = "Bounded native console byte mediation and Ring3 wait adapter"
+scope = "Close the missing general-native READ/WRITE path using explicit generation/profile authority and bounded nonblocking COM1 byte mediation. Reuse existing UART setup and memory/profile/retirement mechanisms; wait policy remains Ring3. Not normal shell, driver policy, file integration or full OS acceptance."
+allowed_files = ["automation/reist-s03b.toml","docs/architecture/NATIVE_CONSOLE_CONTRACT.md","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","docs/README.md","Makefile","scripts/build-x86_64-bootstrap.ps1","scripts/build_x86_64_boot_programs.py","arch/x86_64/kernel/bootstrap_core.c","arch/x86_64/proc/process_run.inc","arch/x86_64/proc/cooperative_scheduler.asm","arch/x86_64/proc/native_console.inc","arch/x86_64/user/console.c","userspace/sdk/include/reist/x86_64/console.h","userspace/sdk/lib/x86_64/console.c","scripts/run_qemu_x86_64_console.py","scripts/verify_x86_64_console.py","scripts/run_qemu_x86_64_boot_programs.py","test/test_x86_64_console.py","test/x86_64_console_host.c","test/x86_64_console_sdk_host.c"]
+inventory = "Clean AR7d34f237 and final acceptance ba842403f570aed91cc7c76b482456b8e1769a758bbd76547a5af524255d760c bind14 gates25 cases. Native run mask currently excludes READ15/WRITE20 and dispatch has no handlers. Old shell handlers have fixed18-read/8-write counters and diagnostic serial polling; do not reuse them as normal I/O. Actual normal userspace shell and shell_vfs stay intact. Existing generation profile, pointer validation, raw SDK and task cleanup can be reused. No new public syscall or kernel complex driver."
+invariants = ["Follow NATIVE_CONSOLE_CONTRACT.md; one package/main worktree, no agents/push or physical/user media.","Opt-in plain NativePrograms only; default and older source preprocessing/tool commands remain exact. READ/WRITE mask authority only explicit slot0; peers and descendants gain nothing.","Nonblocking fd0/fd1,0..64 bytes, complete pointer validation before I/O, bounded LSR/byte operations, partial/EAGAIN/EIO errors never panic or spin. Existing CPU32 and timer/cleanup limits remain.","SDK waits use absolute monotonic deadline<=1000ms, fixed attempts and blocking sleep. No command parser or normal-shell completion claim.","One common image and seven guests20s each inclusive cleanup3s, total140s/180s command. Full raw generation/I/O/ownership/cleanup evidence; serial output alone is untrusted."]
+targeted_tests = ["python test/test_x86_64_console.py -v","python test/test_x86_64_process_run.py -v","python test/test_x86_64_boot_programs.py -v","python test/test_x86_64_requests.py -v","python test/test_x86_64_profiles.py -v","python test/test_x86_64_sdk.py -v","python scripts/verify_x86_64_console.py --abi-docs"]
+package_tests = ["python scripts/verify_x86_64_console.py --references",".\\scripts\\build-x86_64-bootstrap.ps1 -NativeConsole -OutputDirectory build/codex-agent/r83as-console/native"]
+runtime_tests = ["python scripts/run_qemu_x86_64_console.py --image build/codex-agent/r83as-console/native/x86_64/reist-x86_64-bootstrap.elf --evidence build/codex-agent/r83as-console/guests","python scripts/verify_x86_64_reference_artifacts.py","python scripts/verify_x86_64_console.py --review"]
+acceptance = "Exactly12 obligations once per frozen candidate, stop at first failure. Host300s, other gates180s; at most three changed pre-build host candidates, one total new image and seven guests140s. Expected regression first. Default/reference source/tool/command/log/artifact and actual preprocessor equality permit reference reuse, not a rebuild. Complete raw review and direct scope/ABI/bounds/cleanup review before done and clean local implementation commit; then continue next native priority."
+stop_conditions = ["Unattributed/user-overlapping changes, required source outside frozen files, pre-existing failure or default/reference drift.","New authority outside explicit console byte grant, complex Ring0 driver, hardware policy, mutable disk or relaxed invariant.","First failed gate stops later gates; preserve all sources/logs/raw evidence and spent counters. No unchanged retry or in-window post-build correction."]
+commit_message = "feat: mediate bounded console bytes for native processes"
 
 [[packages]]
 id = "R8.3ar-x86_64-live-file"
