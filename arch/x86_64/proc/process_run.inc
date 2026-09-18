@@ -83,7 +83,11 @@ process_run_admit64:
     jz .console_admitted
     test ecx,ecx
     jnz .bad
+%ifdef REIST_NATIVE_SERVICE_CONSOLE
+    cmp dword [rdi],5
+%else
     cmp dword [rdi],2
+%endif
     jne .bad
 .console_admitted:
 %endif

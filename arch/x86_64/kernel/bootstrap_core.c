@@ -36,13 +36,21 @@ extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 /* Independent payload admission binds this exact read-only profile witness. */
 const reist_u64 native_task_pool_capacity=8;
 #if REIST_NATIVE_SERVICE_CPU
+#if REIST_NATIVE_SERVICE_CONSOLE
+#if !REIST_NATIVE_CONSOLE
+#error "NativeServiceConsole requires console mediation"
+#endif
+#define NATIVE_SERVICE_ROOT_MASK (NATIVE_RUN_MASK | (1ULL<<15) | (1ULL<<20))
+#else
+#define NATIVE_SERVICE_ROOT_MASK NATIVE_RUN_MASK
+#endif
 static const struct reist_x64_run_v5 native_runs[2] = {
-    {5,336,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+    {5,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
                 {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
                 {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
                 {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},
                {100,100,0,0,0,0,0,0}},
-    {5,336,8,0,{{1,NATIVE_RUN_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+    {5,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
                 {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
                 {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
                 {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},

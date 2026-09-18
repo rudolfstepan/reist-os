@@ -125,7 +125,8 @@ class PoolPioTests(unittest.TestCase):
             if profile in ('pool_pio','file_launch','filesystem','block_profile','block','pio'):flags['pio']=True
             for n in range(4):
                 env=dict(flags,cc=['cc'],case=0,family_case=0,startup_case=0,pio_case=0,memory_case=0,block_profile_case=0,
-                         filesystem_case=0,filesystem_layout=2,file_launch_case=0,n=n,extra=['-DTEST_ONLY=1'],obj=Path('unit.o'))
+                         filesystem_case=0,filesystem_layout=2,file_launch_case=0,n=n,extra=['-DTEST_ONLY=1'],obj=Path('unit.o'),
+                         shell_root=False,console=False,live_file=False,service_console=False)
                 old=eval(a,{'__builtins__':{}},env);new=eval(b,{'__builtins__':{}},env)
                 if profile=='pool_pio':
                     self.assertEqual([v for v in new if isinstance(v,str) and v.startswith('-O')],['-O2'],

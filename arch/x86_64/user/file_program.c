@@ -12,8 +12,15 @@ int main(unsigned long long argc,char **argv,char **envp) {
         channel=(channel<<4)|c;
     }
     if(!channel || argv[1][8] || argv[2][1] || argv[2][0]<'0' || argv[2][0]>'3') return 203;
+#ifdef REIST_NATIVE_SERVICE_CONSOLE
+    const uint32_t denied_calls[]={REIST_SYS_DEVICE_CONTROL,REIST_SYS_TASK_CONTROL,
+                                   REIST_X64_SYS_READ,REIST_X64_SYS_WRITE};
+    for(unsigned n=0;n<4;n++)
+        if(reist_x64_syscall3(denied_calls[n],n==0?29:n==3?1:0,0,0)!=-13)return 204;
+#else
     if(reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,0)!=-13 ||
        reist_x64_syscall1(REIST_SYS_TASK_CONTROL,0)!=-13) return 204;
+#endif
     x86os_ipc_message_t m={1,140,16,{0}};
     uint64_t pid=(uint64_t)reist_x64_syscall0(REIST_X64_SYS_GETPID);
     for(unsigned n=0;n<8;n++) {m.payload[n]=(unsigned char)(pid>>(8*n));m.payload[n+8]="ELF64RO!"[n];}

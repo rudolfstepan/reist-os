@@ -22,6 +22,9 @@ static void witness(unsigned phase,uint64_t fs,uint64_t driver,uint64_t app,
     live_file_record[6]=(uintptr_t)record;live_file_record[7]=(uintptr_t)workspace;
     live_file_record[8]=round;live_file_record[9]=live_layout;
     live_file_record[0]=0x4c49564546494c31ULL;
+#ifdef REIST_NATIVE_SERVICE_CONSOLE
+    if(phase==2)service_console_probe();
+#endif
 }
 static int retire(uint64_t fs,uint64_t driver,int64_t fs_status,int64_t driver_status) {
     REQUIRE(!port_control(driver,REIST_PIO_FENCE),240);

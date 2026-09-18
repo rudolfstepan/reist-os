@@ -59,7 +59,9 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False):
+    if type(service_console) is not bool or service_console and (not live_file or console or native_shell):
+        raise ValueError('service console requires live file and excludes console-only fixtures')
     if type(native_shell) is not bool or native_shell and not console:raise ValueError('native shell requires explicit console')
     if type(console) is not bool:raise ValueError('console selector')
     if console and (any((case,family,family_case,startup,startup_case,import_image,pio,pio_case,block,wide,memory_case,block_profile,block_profile_case,filesystem,filesystem_case,file_launch,file_launch_case,task_pool,pool_pio,service_cpu,service_pio,live_file)) or filesystem_layout!=2):
@@ -100,6 +102,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if service_cpu:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-Dmain=reist_pool_finite_fixture_main']
     if service_pio:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_SERVICE_PIO=1']
     if live_file:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_LIVE_FILE=1']
+    if service_console:cc=[*cc,'-DREIST_NATIVE_SERVICE_CONSOLE=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -160,7 +163,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              *([f'-DFILESYSTEM_CASE={filesystem_case}',f'-DFILESYSTEM_LAYOUT={filesystem_layout}'] if filesystem else []),
              *([f'-DFILE_LAUNCH_CASE={file_launch_case}'] if file_launch else []),
              *(['-fstack-usage'] if shell_root else []),
-             *extra,'-c','userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/service_console.c' if service_console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
@@ -200,6 +203,7 @@ if __name__=='__main__':
     p.add_argument('--live-file',action='store_true')
     p.add_argument('--console',action='store_true')
     p.add_argument('--native-shell',action='store_true')
+    p.add_argument('--service-console',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -207,4 +211,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console)

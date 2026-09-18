@@ -2,6 +2,47 @@
 
 Stand: 18. September 2026
 
+## R8.3au: Dienstkonsole vollstaendig qualifiziert
+
+Alle12 Pruefpflichten bestanden:217 Hosttests in sieben Gruppen und alle25
+Gastfaelle mit Konsolenrechten, parallelem Dateizugriff, Dienstfehlern,
+Speichermangel, frischen Generationen und kompletter Bereinigung. Nur
+Startprozess0 erhaelt READ/WRITE; Kinder, Dateidienst und ATA-Treiber nicht.
+Ein einziger OS-Build; Beobachterkorrekturen ohne Neubau, sieben exakt gebundene
+Wiederverwendungen. Image8adc4814f311e951. Qualifizierte Gastzeit490,573724s,
+gesamte Historie29 Versuche522,4090149s. Alle Fehlerbelege erhalten.
+Review2d571297a64799f2 versiegelt7129 Dateien vor lokaler Abschlussbuchung.
+Keine abgeschwaechten Quoten, Fristen oder Assertions. Normale Shell-Anbindung
+an Dateidienste und Programmstart bleibt offen; keine Gesamt-OS-Abnahme.
+
+### Historie: freigegebene Testadapter-Korrektur
+
+Der Nutzer hat die Aufnahme von `test/test_x86_64_pool_pio.py` freigegeben.
+Die versiegelten1697 Quellen/1897 Belegdateien sind unveraendert bestaetigt.
+Nur fehlende falsche Selektordefaults werden ergaenzt;48 komplette
+Befehlsvergleiche und O2-Pruefung bleiben bestehen. Neues endliches Fenster
+adapter-fix mit denselben12 Gruppen, einem OS-Build und25 Gaesten.
+Noch keine Runtime-Abnahme; die folgende Stoppbeschreibung bleibt Historie.
+
+Nur der explizite neue Dienstkonsolen-Modus vergibt READ/WRITE an Startprozess0
+im Acht-Prozess-Profil. Kind-, Treiber- und Dateidienstrechte bleiben gesperrt.
+Vier Pruefgruppen bestanden:5 neue,15 Konsolen-,121 CPU/Transport- und11
+Prozesspooltests. Testprogramm1256 Bytes innerhalb unveraenderter1280-Byte-Grenze.
+
+Gruppe5 stoppt nach23,612432s an einem vorhandenen Testadapter: dessen lokale
+Auswertungsumgebung kennt `shell_root` noch nicht.15 weitere Tests bestanden.
+Diagnose bestaetigt denselben Fehler im abgenommenen473da11c; mit vollstaendigen
+falschen Selektordefaults sind alle48 alten/neuen Befehlsvektoren identisch.
+Noetige Datei `test/test_x86_64_pool_pio.py` liegt ausserhalb des eingefrorenen
+Pakets. Keine stille Umfangserweiterung, keine abgeschwaechte Assertion.
+Gruppen6..12 nicht gestartet; insgesamt null OS-Builds/null Gaeste. Die zwei
+vorherigen Hoststopps sind erhalten. Sichtbare Umsetzung bleibt uncommittet,
+letzter abgenommener Implementierungsstand473da11c, Vertragscommit4f4e533b.
+Belege: `build/codex-agent/r83au-service-console/`; Vertrag:
+`docs/architecture/NATIVE_SERVICE_CONSOLE_CONTRACT.md`.
+Die normale Shell ist weiterhin nicht an Dateizugriff/Programmstart angebunden;
+keine Gesamt-OS-Abnahme.
+
 ## R8.3at: normale Shell nativ qualifiziert
 
 Alle acht Pruefgruppen bestanden: acht Pakettests,33 bestehende Shelltests,
