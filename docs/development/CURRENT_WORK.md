@@ -4,6 +4,12 @@ Stand: 18. September 2026
 
 ## R8.3as: native Konsolenvermittlung in Umsetzung
 
+14 Hosttests und neun Gruppen bestanden; neuer Gast stoppt vor Eingabe an
+Hostqueue128 (520 Bytes), nicht am Kernel. Beleg SHAf666d2adf68f521f:
+ein Image, vier Fehlversuche10,2689488s. Ein queue-drain-Kandidat liest
+wartende Ausgabe gebuendelt und wertet Eingabequittungen erst ab READY aus.
+Keine groessere Queue/Frist, kein Neubau; vollstaendige Abnahme bleibt offen.
+
 Quittierter Sender implementiert; Vorpruefung vor Gate1 an einer AST-
 Kommentargrenze des eigenen Herkunftsvergleichs gestoppt (SHA6ebbe3a9735ac6de).
 Keine neue Gastzeit oder Builds. Ein zusaetzlicher Kandidat korrigiert nur

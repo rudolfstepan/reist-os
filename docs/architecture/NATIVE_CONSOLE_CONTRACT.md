@@ -5,6 +5,20 @@ transaction, standing native64 completion authority; no agents, push or user
 media. This prerequisite closes the native process console boundary, not the
 normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
+## Output queue continuation,18 September2026
+
+The acknowledged feeder passes14 hosts and nine obligations. First guest
+stops before input: queue128 overflows at520 retained bytes while the new
+consumer parses unrelated boot trace and drains only one output chunk/pass.
+Seal SHAf666d2adf68f521f preserves four failures10.2689488s, one image.
+One queue-drain candidate only defers trace parsing until READY and drains
+at most127 additional already queued chunks/pass in the opt-in console path.
+Actual loop regression first; feeder algorithm, observer, raw oracle, old
+defaults and all queue/byte/trace/event/pump/time limits remain unchanged.
+Same feeder_files; verifier provenance/BASE/default AST proof may adapt.
+All12 gates, zero builds, seven fresh guests140s/180s matrix,20s including
+cleanup3s. At most11 total attempts150.2689488s; first failure stops.
+
 ## Acknowledged input continuation,18 September2026
 
 Candidate01 preflight stops before any gate/build/guest: AST source segments
