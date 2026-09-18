@@ -28,12 +28,14 @@ unveraenderlich gesichert unter
 (SHA16ed2d44d24545f30689b21e4325fe111cfd0dd406e9e9d4e8167fdb114f82e8).
 AR gesamt: ein Image,14 Gastversuche211,1808727s, keine QEMU-/GDB-Reste.
 
-Naechste Grenze: gezielte Hostregression fuer Terminal-CANCEL, dann
+Aktuelle begrenzte Fortsetzung: gezielte Hostregression fuer Terminal-CANCEL, dann
 Familienbeleg/Elternbesitz/Generation/Phase getrennt vom freien Task pruefen.
 Aktive Generationspruefung erhalten; fremde/veraltete/wiederverwendete Belege
-ablehnen. Neues begrenztes Fenster und exakte Wiederverwendung der elf
-bestandenen Gaeste vor weiterem Gaststart einfrieren. Kein unveraenderter
-Wiederholungsversuch, weiterer Imagebau oder Gesamt-OS-Abschluss gerechtfertigt.
+ablehnen. Ein Kandidat unter terminal-receipt, alle14 Verpflichtungen; exakte
+Wiederverwendung des Images und der elf bestandenen Gaeste. Hoechstens14
+neue Gaeste,45s je Gast inklusive Cleanup3s. Vollstaendige25-Fall-Abnahme
+bleibt Pflicht; Stopp beim ersten Fehler. Kein neuer Imagebau, keine
+Ruecksetzung verbrauchter Versuche oder Gesamt-OS-Abschlussbehauptung.
 
 ## R8.3aq vollstaendig qualifiziert
 

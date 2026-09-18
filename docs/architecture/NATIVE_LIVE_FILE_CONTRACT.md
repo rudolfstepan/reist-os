@@ -7,6 +7,31 @@ This is a service/application lifetime prerequisite, not normal shell or full
 
 ## Path-adapter continuation, 18 September 2026
 
+### Terminal-receipt continuation
+
+User continuation on18 September renews one finite candidate after sealed
+cold-control stop16ed2d44. Only the CANCEL observer gains a zero-task branch:
+require all128 task words zero, a known retired generation with exact slot and
+parent/root, and the full64-byte family receipt with exact identity/parent,
+phase4, planned result and zero wait/attempt/reserved fields. Return without
+arming a cancellation hook. Other tasks retain the original generation check;
+all other callbacks, oracles, kernel/Ring3/SDK/producer/image bytes stay exact.
+Actual generated-callback regressions cover success, every rejected authority
+field, partial cleanup, stale/reused/foreign generations, and implication of
+the old accepted branch. Old successful CANCEL callbacks have a nonzero task
+generation and cannot enter the added branch.
+
+Only this observer delta, runtime evidence BASE/eleven-case prefix reuse,
+verifier provenance/reuse accounting, AR tests and queue/status may change.
+Bind every input/tool/image/command/log/raw file before reusing the eleven
+individually passed cold-control guests; never reuse the failed twelfth guest.
+All14 obligations remain, gate10 is exact reuse with zero OS builds. At most
+14 fresh guests630s,45s each including cleanup3s, matrix1200s. Original25-case
+and full raw review remain mandatory. Prior14 attempts211.1808727s stay spent;
+cumulative maximum28 attempts841.1808727s and one image. First failure stops
+this window; no in-window repair, diagnostic guest, unchanged retry, agent,
+push, quota/deadline increase or partial acceptance.
+
 ### Subsequent cold-control window
 
 Closed without acceptance:17 host tests and11 obligations pass; eleven guests
