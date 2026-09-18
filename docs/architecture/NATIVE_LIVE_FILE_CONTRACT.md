@@ -5,6 +5,24 @@ completion authority, one package/main worktree; no nested agent or push.
 This is a service/application lifetime prerequisite, not normal shell or full
 64-bit OS acceptance. R3.6b remains deferred.
 
+## Completed qualification, 18 September 2026
+
+Candidate `3f003774136af34b` on contract `5ecc356c` passes all14 obligations,
+20/20 package host tests and the complete25-case raw-evidence review. The
+terminal-receipt window uses zero new OS builds: exact original image
+`336a1f2c53beb3e9b`, eleven bound successful old guests and14 fresh guests
+(241.1325924s). All historical failures remain spent: one AR image and28
+attempts452.3134651s. Kernel objects/C payload remain byte-identical to AQ;
+no SDK/ATA source or public ABI change. No QEMU/GDB process remains.
+
+`terminal-receipt/verification-status-reviewed.json` seals2776 evidence files
+before documentation-only closure; `verification-status-live-file-final.json`
+binds the subsequent clean local implementation commit. Direct scope, ABI,
+bounds and generation-scoped cleanup review completed. The historical windows
+below describe preserved earlier failures, not the current qualification.
+Normal shell integration and full native64 system/hardware acceptance remain
+open. No push or certification claim.
+
 ## Path-adapter continuation, 18 September 2026
 
 ### Terminal-receipt continuation

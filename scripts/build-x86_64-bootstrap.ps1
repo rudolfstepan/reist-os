@@ -36,6 +36,7 @@ param(
     [switch]$NativePoolPIO,
     [switch]$NativeServiceCPU,
     [switch]$NativeServicePIO,
+    [switch]$NativeLiveFile,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -54,6 +55,12 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeLiveFile) {
+    if ($NativeServiceCPU -or $NativeServicePIO) { throw 'NativeLiveFile excludes other service fixtures.' }
+    $NativePoolPIO = [switch]$true
+    $NativeFileLaunch = [switch]$true
+    $NativeFilesystem = [switch]$true
+}
 if ($NativeServicePIO) {
     if ($NativeServiceCPU) { throw 'NativeServicePIO is distinct from device-free NativeServiceCPU.' }
     $NativePoolPIO = [switch]$true
@@ -65,7 +72,7 @@ if ($NativeServiceCPU) {
     $NativeTaskPool = [switch]$true
 }
 if ($NativePoolPIO) {
-    if ($NativeFilesystem -or $NativeFileLaunch -or $MemoryCase -ne 0 -or $PIOCase -ne 0 -or
+    if ((-not $NativeLiveFile -and ($NativeFilesystem -or $NativeFileLaunch)) -or $MemoryCase -ne 0 -or $PIOCase -ne 0 -or
         $StartupCase -ne 0 -or $FamilyCase -ne 0 -or $BlockProfileCase -ne 0 -or $FilesystemCase -ne 0 -or
         $FilesystemLayout -ne 2 -or $FileLaunchCase -ne 0 -or $ProgramCase -ne 0) {
         throw 'NativePoolPIO excludes filesystem, file-launch and fault selectors.'
@@ -74,7 +81,7 @@ if ($NativePoolPIO) {
     $NativeBlockProfile = [switch]$true
 }
 if ($NativeTaskPool) {
-    if ((-not $NativePoolPIO -and ($NativePIO -or $NativeBlock -or $NativeBlockProfile)) -or $NativeFilesystem -or $NativeFileLaunch -or
+    if ((-not $NativePoolPIO -and ($NativePIO -or $NativeBlock -or $NativeBlockProfile)) -or (-not $NativeLiveFile -and ($NativeFilesystem -or $NativeFileLaunch)) -or
         $MemoryCase -ne 0 -or $PIOCase -ne 0 -or $StartupCase -ne 0 -or $FamilyCase -ne 0 -or
         $BlockProfileCase -ne 0 -or $FilesystemCase -ne 0 -or $FilesystemLayout -ne 2 -or $FileLaunchCase -ne 0) {
         throw 'NativeTaskPool requires plain NativeWide and excludes device and fault selectors.'
@@ -395,6 +402,7 @@ try {
         "X86_64_NATIVE_POOL_PIO=$([int]$NativePoolPIO.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
+        "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `

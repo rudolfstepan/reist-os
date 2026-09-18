@@ -2,7 +2,26 @@
 
 Stand: 18. September 2026
 
-## R8.3ar: Dateidienste beim Programmlauf erhalten
+## R8.3ar vollstaendig qualifiziert
+
+Alle14 Pruefgruppen und25 Gastfaelle bestanden;20/20 neue Pakettests.
+Dateisystem und ATA bleiben waehrend des isolierten Dateiprogramms aktiv,
+einschliesslich nachgewiesenem gleichzeitigem Dateizugriff, Fehlerabgrenzung
+und generationstreuem Ersatz. Alle fuenf Medienlayouts und8GiB abgedeckt.
+Kandidat `3f003774136af34b` auf `5ecc356c`; kein neuer OS-Build in der letzten
+Runde, elf exakt gebundene Gastnachweise wiederverwendet und14 neue bestanden.
+Neue Gastzeit241,1325924s; Gatekommandos355,0883493s. Gesamte AR-Historie
+einschliesslich Fehlern: ein Image,28 Versuche452,3134651s. Keine Gastreste.
+
+Der unveraenderliche Beleg unter
+`r83ar-live-file/terminal-receipt/verification-status-reviewed.json` bindet
+2776 Nachweisdateien vor dem Dokumentationsabschluss; der abschliessende
+`verification-status-live-file-final.json` bindet den sauberen lokalen Commit.
+Kernel/C-Kern bytegleich zu AQ, SDK/Treiberquellen und Quoten unveraendert.
+Normale interaktive Shell-/Dateianbindung und vollstaendige64-Bit-OS-Abnahme
+bleiben offen. R3.6b bleibt zurueckgestellt; kein Push.
+
+### Erhaltene AR-Umsetzungshistorie
 
 Nach sauberem AQ-Commit `c7e5e72a` ist der naechste gemeinsame Schnitt
 [R8.3ar](../architecture/NATIVE_LIVE_FILE_CONTRACT.md) eingefroren:

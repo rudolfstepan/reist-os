@@ -24,6 +24,17 @@ int main(unsigned long long argc,char **argv,char **envp) {
         if(result==-9 && reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,10)) return 205;
     }
     if(result) return 206;
+#ifdef REIST_NATIVE_LIVE_FILE
+    /* Retain this independently owned image while the root probes live FS.
+     * No service/device authority is inherited through this private channel. */
+    m=(x86os_ipc_message_t){1,140,128,{0}};
+    if(reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,channel,(uintptr_t)&m,1000)) return 208;
+    if(m.version!=1 || m.struct_size!=140 || m.length!=16) return 209;
+    for(unsigned n=0;n<128;n++) {
+        unsigned char expected=n<8?(unsigned char)(pid>>(8*n)):n<16?"LIVE64GO"[n-8]:0;
+        if(m.payload[n]!=expected) return 210;
+    }
+#endif
     if(argv[2][0]=='1') __asm__ volatile("ud2");
     if(argv[2][0]=='2') for(;;) __asm__ volatile("pause");
     if(argv[2][0]=='3') for(unsigned n=0;n<20;n++)

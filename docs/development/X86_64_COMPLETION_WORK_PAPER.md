@@ -2,11 +2,16 @@
 
 R8.3aq ist mit sauberem Commit `c7e5e72a` abgeschlossen:15 Pruefgruppen,
 18 Gastfaelle, ein neues gemeinsames Image, vollstaendige CPU-/PIO-Rohdaten.
-Naechster gemeinsamer Schnitt R8.3ar:
+Ebenfalls vollstaendig qualifiziert ist R8.3ar:
 [gleichzeitige Datei-/Programmdienst-Lebensdauer](../architecture/NATIVE_LIVE_FILE_CONTRACT.md).
 Dateisystem und Treiber bleiben beim Import und Lauf des Dateiprogramms aktiv;
-alle Medien-/Fehlerfaelle nutzen ein Image. Noch keine AR-Abnahme oder normale
-Shell-/vollstaendige64-Bit-Systemabnahme. Kernelmechanismen bleiben unveraendert.
+alle Medien-/Fehlerfaelle nutzen ein Image. Alle14 Pruefgruppen und25 Faelle
+bestanden,20/20 neue Pakettests. Letzte Runde ohne OS-Build: elf exakt gebundene
+Gastbelege wiederverwendet,14 neue bestanden. Gesamtgeschichte ein Image,
+28 Versuche452,3134651s. Vollstaendige Rohdatenpruefung und direkter Review
+abgeschlossen; Belege unter r83ar-live-file/terminal-receipt.
+Normale interaktive Shell-/Dateianbindung und vollstaendige64-Bit-Systemabnahme
+bleiben offen. Kernelmechanismen bleiben unveraendert.
 
 Vollstaendig qualifizierter gebündelter Arbeitsschritt R8.3ap:
 [periodische CPU-Zulassung](../architecture/NATIVE_SERVICE_CPU_CONTRACT.md).

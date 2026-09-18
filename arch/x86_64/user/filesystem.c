@@ -17,6 +17,11 @@ typedef struct {
 #if PROGRAM_ID!=1
 static uint32_t control_ep;
 static unsigned mode;
+#ifdef REIST_NATIVE_LIVE_FILE
+#undef FILESYSTEM_LAYOUT
+static unsigned live_layout;
+#define FILESYSTEM_LAYOUT live_layout
+#endif
 #if PROGRAM_ID!=0
 static uint32_t request_ep,reply_ep;
 static uint64_t self;
@@ -74,7 +79,11 @@ static int64_t create(void *record,unsigned slot,unsigned options,uint32_t ep) {
     unsigned size=slot==2?sizeof(import_blob):sizeof(filesystem_blob);
     if(reist_x64_image_prepare_v2(record,blob,size)) return -22;
     reist_task_profile_v1_t profile={1,40,{MASK,slot==2?1ULL<<49:0,0},0};
+#ifdef REIST_NATIVE_LIVE_FILE
+    int64_t child=reist_x64_task_import_periodic(record,&profile,32,1000,&startup);
+#else
     int64_t child=reist_x64_task_import_wide(record,&profile,32,&startup);
+#endif
 #if FILESYSTEM_CASE==7
     if(slot==3 && !options) {
         if(child!=-12) return -22;
@@ -103,6 +112,17 @@ static int startup(Control *c) {
     }return -110;
 }
 #endif
+#ifdef REIST_NATIVE_LIVE_FILE
+#if PROGRAM_ID!=0
+static int live_options(const char *s) {
+    for(unsigned n=0;n<8;n++)
+        if(!((s[n]>='0' && s[n]<='9') || (s[n]>='a' && s[n]<='f'))) return -22;
+    uint32_t value=number(s);
+    if(s[8] || value&~0x71fU || (value&15)>7 || (value>>8)>4) return -22;
+    mode=value&15;live_layout=value>>8;return 0;
+}
+#endif
+#endif
 #if PROGRAM_ID==2
 static reist_native_profile_service filesystem_block_service;
 static unsigned reads,chunks;
@@ -112,8 +132,15 @@ static int64_t port(void *p,reist_native_pio_request *q) {
     if(!result && q->operation==REIST_PIO_WRITE8 && q->port==0x1f7 && q->value==0x20) { reads++;chunks=0; }
     if(!result && reads==2 && q->operation==REIST_PIO_READ16 && ++chunks==8) {
         if(mode==5) __asm__ volatile("ud2");
+#ifdef REIST_NATIVE_LIVE_FILE
+        if(mode==6 || mode==7) {
+#else
         if(mode==6) {
+#endif
             Control c={self,0,0,0,0,0,9,0,0};if(control_send(control_ep,&c)) return -5;
+#ifdef REIST_NATIVE_LIVE_FILE
+            if(mode==7) for(;;) __asm__ volatile("pause");
+#endif
             for(unsigned n=0;n<20;n++) if(S1(SLEEP_MS,100)) return -5;
             return -110;
         }
@@ -215,6 +242,9 @@ int main(int argc,char **argv,char **envp) {
     return 77;
 #elif PROGRAM_ID==2
     control_ep=number(argv[0]);mode=number(argv[1])&15;self=((uint64_t)S0(GETPID)<<32)|2;
+#ifdef REIST_NATIVE_LIVE_FILE
+    REQUIRE(!live_options(argv[1]),248);
+#endif
     Control c;REQUIRE(control_ep && !startup(&c) && c.owner==self && (uint32_t)c.peer==3 && c.phase==1,233);
     REQUIRE(!S1(IPC_CREATE,&request_ep) && !S1(IPC_CREATE,&reply_ep),234);
     REQUIRE(!S3(IPC_DELEGATE,request_ep,c.peer>>32,1) && !S3(IPC_DELEGATE,reply_ep,c.peer>>32,2),235);
@@ -235,6 +265,9 @@ int main(int argc,char **argv,char **envp) {
     return 241;
 #else
     control_ep=number(argv[0]);mode=number(argv[1])&15;self=((uint64_t)S0(GETPID)<<32)|3;
+#ifdef REIST_NATIVE_LIVE_FILE
+    REQUIRE(!live_options(argv[1]),248);
+#endif
     Control c;REQUIRE(control_ep && !startup(&c) && c.owner==self && (uint32_t)c.peer==2 && c.phase==3,242);
     REQUIRE(reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,0)==-13,243);
     request_ep=c.request;reply_ep=c.reply;

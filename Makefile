@@ -267,6 +267,19 @@ X86_64_NATIVE_TASK_POOL ?= 0
 X86_64_NATIVE_POOL_PIO ?= 0
 X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SERVICE_PIO ?= 0
+X86_64_NATIVE_LIVE_FILE ?= 0
+ifneq ($(words $(X86_64_NATIVE_LIVE_FILE)),1)
+$(error NativeLiveFile selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_LIVE_FILE),0 1),$(X86_64_NATIVE_LIVE_FILE))
+$(error NativeLiveFile selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_LIVE_FILE),1)
+ifneq ($(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_FILESYSTEM)$(X86_64_NATIVE_FILE_LAUNCH)$(X86_64_NATIVE_SERVICE_CPU)$(X86_64_NATIVE_SERVICE_PIO),11100)
+$(error NativeLiveFile requires PoolPIO Filesystem FileLaunch and excludes other service fixtures)
+endif
+endif
+X86_64_LIVE_FILE_ARG = $(if $(filter 1,$(X86_64_NATIVE_LIVE_FILE)),--live-file,)
 ifneq ($(words $(X86_64_NATIVE_SERVICE_PIO)),1)
 $(error NativeServicePIO selector must be one explicit value)
 endif
@@ -289,7 +302,7 @@ ifneq ($(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_PIO)$(
 $(error NativeServiceCPU requires device-free NativeTaskPool)
 endif
 endif
-X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO)),-DREIST_NATIVE_SERVICE_CPU=1,)
+X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_SERVICE_CPU=1,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
@@ -300,7 +313,7 @@ ifeq ($(X86_64_NATIVE_POOL_PIO),1)
 ifneq ($(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_WIDE)$(X86_64_NATIVE_PIO)$(X86_64_NATIVE_BLOCK)$(X86_64_NATIVE_BLOCK_PROFILE),11111)
 $(error NativePoolPIO requires TaskPool Wide PIO Block BlockProfile)
 endif
-ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_NATIVE_FILE_LAUNCH)$(X86_64_MEMORY_CASE)$(X86_64_PIO_CASE)$(X86_64_STARTUP_CASE)$(X86_64_FAMILY_CASE)$(X86_64_BLOCK_PROFILE_CASE)$(X86_64_FILESYSTEM_CASE)$(X86_64_FILE_LAUNCH_CASE)$(X86_64_PROGRAM_CASE),0000000000)
+ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_NATIVE_FILE_LAUNCH)$(X86_64_MEMORY_CASE)$(X86_64_PIO_CASE)$(X86_64_STARTUP_CASE)$(X86_64_FAMILY_CASE)$(X86_64_BLOCK_PROFILE_CASE)$(X86_64_FILESYSTEM_CASE)$(X86_64_FILE_LAUNCH_CASE)$(X86_64_PROGRAM_CASE),$(if $(filter 1,$(X86_64_NATIVE_LIVE_FILE)),11,00)00000000)
 $(error NativePoolPIO excludes filesystem file-launch and fault selectors)
 endif
 endif
@@ -590,7 +603,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,) $(X86_64_LIVE_FILE_ARG)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
@@ -700,7 +713,7 @@ endif
 		-DUSER_CHILD_PATH=\"$(X86_64_USER_CHILD_ELF)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
 	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
-	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) $(X86_64_PROGRAM_ASM) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),-DREIST_NATIVE_PIO_TRACE=1,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),-DREIST_NATIVE_CPU_TRACE=1,) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
+	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) $(X86_64_PROGRAM_ASM) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),-DREIST_NATIVE_PIO_TRACE=1,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_CPU_TRACE=1,) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)

@@ -55,10 +55,14 @@ def build_file_program(directory,cc,nasm,ld):
         with (directory/'file-build.log').open('ab') as log:log.write(r.stdout+r.stderr)
         if r.returncode:raise ValueError('file program build: '+(r.stdout+r.stderr).decode(errors='replace')[-2000:])
     raw=elf.read_bytes()
-    if not 64<=len(raw)<=1536:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
+    limit=1280 if '-DREIST_NATIVE_LIVE_FILE=1' in cc else 1536
+    if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False):
+    if type(live_file) is not bool:raise ValueError('live file selector')
+    if live_file and (not (pool_pio and filesystem and file_launch) or service_cpu or service_pio):
+        raise ValueError('live file requires pool PIO and file launch, excludes other service fixtures')
     if type(service_pio) is not bool:raise ValueError('service PIO selector')
     if service_pio and (not pool_pio or service_cpu):raise ValueError('service PIO requires pool PIO and excludes service CPU')
     if type(service_cpu) is not bool:raise ValueError('service CPU selector')
@@ -66,11 +70,11 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         raise ValueError('service CPU requires device-free task pool')
     if type(pool_pio) is not bool:raise ValueError('pool PIO selector')
     if pool_pio and (not (task_pool and wide and import_image and startup and family and pio and block and block_profile) or
-        any((filesystem,file_launch,case,family_case,startup_case,pio_case,memory_case,block_profile_case,filesystem_case,file_launch_case)) or filesystem_layout!=2):
+        any((filesystem and not live_file,file_launch and not live_file,case,family_case,startup_case,pio_case,memory_case,block_profile_case,filesystem_case,file_launch_case)) or filesystem_layout!=2):
         raise ValueError('pool PIO requires complete pool/block profile and excludes other fixtures')
     if type(task_pool) is not bool:raise ValueError('task pool selector')
     if task_pool and (not (wide and import_image and startup and family) or
-        any((pio and not pool_pio,block and not pool_pio,block_profile and not pool_pio,filesystem,file_launch,case,family_case,startup_case,
+        any((pio and not pool_pio,block and not pool_pio,block_profile and not pool_pio,filesystem and not live_file,file_launch and not live_file,case,family_case,startup_case,
              pio_case,memory_case,block_profile_case,filesystem_case,file_launch_case)) or filesystem_layout!=2):
         raise ValueError('task pool requires plain wide import and excludes device/fault selectors')
     if type(file_launch) is not bool or type(file_launch_case) is not int or file_launch_case not in range(11):raise ValueError('file launch selector')
@@ -91,6 +95,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if pool_pio:cc=[*cc,'-DREIST_NATIVE_POOL_PIO=1']
     if service_cpu:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-Dmain=reist_pool_finite_fixture_main']
     if service_pio:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_SERVICE_PIO=1']
+    if live_file:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_LIVE_FILE=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -140,7 +145,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',f'-DBLOCK_PROFILE_CASE={block_profile_case}',
              *([f'-DFILESYSTEM_CASE={filesystem_case}',f'-DFILESYSTEM_LAYOUT={filesystem_layout}'] if filesystem else []),
              *([f'-DFILE_LAUNCH_CASE={file_launch_case}'] if file_launch else []),
-             *extra,'-c','arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
@@ -174,6 +179,7 @@ if __name__=='__main__':
     p.add_argument('--pool-pio',action='store_true')
     p.add_argument('--service-cpu',action='store_true')
     p.add_argument('--service-pio',action='store_true')
+    p.add_argument('--live-file',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -181,4 +187,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file)
