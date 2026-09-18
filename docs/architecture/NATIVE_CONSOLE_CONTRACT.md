@@ -5,6 +5,28 @@ transaction, standing native64 completion authority; no agents, push or user
 media. This prerequisite closes the native process console boundary, not the
 normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
+## Acknowledged input continuation,18 September2026
+
+The bitmap correction passes12 hosts, nine obligations and the real full RAM
+map plus independent kernel/high-RAM comparisons. Both actual native runs
+receive only14 bytes of each65-byte host injection, then EAGAIN and bounded
+exit217; all eight task retirements/cleanup complete. No exact QEMU pipe/FIFO
+loss mechanism is asserted. Immutable bitmap-adapter input stop SHA76237d7a
+preserves three failed attempts7.3145155s and one image.
+
+One acknowledged-input candidate replaces host burst injection with <=8-byte
+chunks, <=18 chunks/130 bytes total, advancing only on the existing raw I/O
+proof of the preceding exact received prefix/run/generation. Trace<=1MiB,
+events<=512, pumps<=2048; malformed/stale/ahead/corrupt acknowledgement or
+short write fails without retry. Keep immutable chunk receipts and replay
+against all raw I/O in final review. Only existing feeder_files may change;
+the shared capture is already in package scope, with old defaults unchanged.
+Console diagnostic elapsed origin may be corrected, never the clock/deadline.
+Actual behavior and negative regressions first. All12 gates; exact image
+reuse, zero builds, seven fresh guests140s,20s including cleanup3s,180s matrix.
+Guest500ms and all kernel/SDK limits unchanged. At most ten total attempts
+147.3145155s and one image. First failure stops; no callback/acceptance weakening.
+
 ## Bitmap adapter continuation,18 September2026
 
 Observer binding now passes11 hosts and nine obligations with exact image

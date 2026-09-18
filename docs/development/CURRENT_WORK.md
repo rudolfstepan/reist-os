@@ -4,6 +4,15 @@ Stand: 18. September 2026
 
 ## R8.3as: native Konsolenvermittlung in Umsetzung
 
+Speicheradapter jetzt auch im Gast bestanden: komplette Bitmap-/Mappingpruefung
+und unabhaengiger Kernel-/High-RAM-Vergleich. Beide Prozessrunden bereinigen
+alle Tasks, erhalten aber nur14 von65 auf einmal eingespeisten Zeichen und
+enden fristgerecht mit217. Stoppbeleg SHA76237d7a; insgesamt ein Image,
+drei Fehlversuche7,3145155s. Naechste gezielte Korrektur betrifft ausschliesslich
+den Hostsender: maximal8 Bytes, danach echte Empfangsquittung aus dem bereits
+vorhandenen Rohprotokoll. Keine neue Firmware, kein Neubau, keine laengeren
+Fristen; zwoelf Pruefgruppen und sieben frische Gastfaelle bleiben erforderlich.
+
 Callback-Anbindung bestanden:11 Pakettests und neun Pruefgruppen, Image exakt
 wiederverwendet. Gast stoppt nun nach0,8389342s beim zu grossen512-KiB-Read des
 RAM-Beobachters. Beide Fehler unveraenderlich gesichert (Bitmap-Stopp
