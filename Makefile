@@ -268,6 +268,23 @@ X86_64_NATIVE_POOL_PIO ?= 0
 X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SERVICE_PIO ?= 0
 X86_64_NATIVE_LIVE_FILE ?= 0
+X86_64_NATIVE_CONSOLE ?= 0
+ifneq ($(words $(X86_64_NATIVE_CONSOLE)),1)
+$(error NativeConsole selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_CONSOLE),0 1),$(X86_64_NATIVE_CONSOLE))
+$(error NativeConsole selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_CONSOLE),1)
+ifneq ($(X86_64_NATIVE_PROGRAMS),1)
+$(error NativeConsole requires NativePrograms)
+endif
+ifneq ($(filter-out 0,$(X86_64_NATIVE_LIFECYCLE) $(X86_64_NATIVE_STARTUP) $(X86_64_NATIVE_IMPORT) $(X86_64_NATIVE_PIO) $(X86_64_NATIVE_BLOCK) $(X86_64_NATIVE_WIDE) $(X86_64_NATIVE_BLOCK_PROFILE) $(X86_64_NATIVE_FILESYSTEM) $(X86_64_NATIVE_FILE_LAUNCH) $(X86_64_NATIVE_TASK_POOL) $(X86_64_NATIVE_POOL_PIO) $(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE) $(X86_64_PROGRAM_CASE)),)
+$(error NativeConsole excludes other device/lifecycle/fault fixtures)
+endif
+endif
+X86_64_CONSOLE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),-DREIST_NATIVE_CONSOLE=1,)
+X86_64_CONSOLE_ARG = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),--console,)
 ifneq ($(words $(X86_64_NATIVE_LIVE_FILE)),1)
 $(error NativeLiveFile selector must be one explicit value)
 endif
@@ -408,6 +425,7 @@ X86_64_PROGRAM_ASM = $(if $(filter 1,$(X86_64_NATIVE_PROGRAMS)),-DREIST_NATIVE_P
 X86_64_PROGRAM_ASM += $(X86_64_WIDE_ASM) $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,)
 X86_64_PROGRAM_ASM += $(X86_64_POOL_FLAGS)
 X86_64_PROGRAM_ASM += $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),-DREIST_NATIVE_POOL_PIO=1,)
+X86_64_PROGRAM_ASM += $(X86_64_CONSOLE_FLAGS)
 X86_64_RUNTIME_ASM = $(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),-DREIST_NATIVE_RUNTIME=1,)
 ifeq ($(X86_64_NATIVE_RUNTIME),1)
 ifneq ($(filter x86_64-native-image,$(MAKECMDGOALS)),)
@@ -603,7 +621,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,) $(X86_64_LIVE_FILE_ARG)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,) $(X86_64_LIVE_FILE_ARG) $(X86_64_CONSOLE_ARG)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \
@@ -652,7 +670,7 @@ endif
 		-o $(X86_64_USER_CHILD_ELF) $(X86_64_USER_CHILD_OBJ)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -Iarch/x86_64/kernel -c \
 		-DX86_64_NATIVE_PROGRAMS=$(X86_64_NATIVE_PROGRAMS) \
-		-DX86_64_NATIVE_LIFECYCLE=$(X86_64_NATIVE_LIFECYCLE) $(X86_64_POOL_FLAGS) \
+		-DX86_64_NATIVE_LIFECYCLE=$(X86_64_NATIVE_LIFECYCLE) $(X86_64_POOL_FLAGS) $(X86_64_CONSOLE_FLAGS) \
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_C_PAYLOAD_PROBE=$(X86_64_C_PAYLOAD_PROBE) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) \

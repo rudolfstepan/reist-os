@@ -283,11 +283,87 @@ class ContinuationTrace:
         if self.error:raise ValueError('continuation trace: '+self.error)
 
 
-def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False):
+def console_input_plan(value):
+    if value is None:return None
+    if type(value) is not tuple or len(value)!=2:raise ValueError('console input two finite runs')
+    normal=b'N'+bytes(97+n%26 for n in range(64))
+    if any(type(row) is not bytes or row not in (normal,b'F',b'C',b'T') for row in value):
+        raise ValueError('console input fixed payloads')
+    if value[1]!=normal:raise ValueError('console replacement is healthy')
+    return value
+
+
+class ConsoleFeeder:
+    """Finite host-only input; acknowledge actual RX before another small send."""
+    def __init__(self,plan):
+        self.plan=console_input_plan(plan)
+        if self.plan is None:raise ValueError('console feeder plan')
+        self.offsets=[0,0];self.ready=0;self.trace='';self.calls=0;self.elapsed=0
+        self.sent=[];self.chunks=[]
+
+    def pump(self,serial,trace,write,elapsed):
+        self.calls+=1
+        if self.calls>2048 or not self.elapsed<=elapsed<17:raise ValueError('console feeder deadline/capacity')
+        self.elapsed=elapsed
+        if len(trace)>1024*1024:raise ValueError('console feeder trace capacity')
+        complete=trace[:trace.rfind('\n')+1]
+        if not complete.startswith(self.trace):raise ValueError('console feeder stale trace')
+        self.trace=complete;rows=[]
+        for line in complete.splitlines():
+            if line.startswith('CONSOLE_IO '):rows.append(json.loads(line[len('CONSOLE_IO '):]))
+        if len(rows)>512:raise ValueError('console feeder event capacity')
+        received=[bytearray(),bytearray()]
+        for row in rows:
+            if row['op']!=15 or row['result']<=0:continue
+            run=row['run'];size=row['result']
+            if run not in (1,2) or row['slot']!=0 or row['gen']!=(run-1)*4+1 or row['fd']!=0 or any(row['unused']) or not 0<size<=row['size']<=64:
+                raise ValueError('console feeder acknowledgement ownership')
+            raw=bytes.fromhex(row['after'])
+            if len(raw)!=row['size']:raise ValueError('console feeder acknowledgement bytes')
+            received[run-1].extend(raw[:size])
+        for index,raw in enumerate(received):
+            if len(raw)>self.offsets[index] or raw!=self.plan[index][:len(raw)]:raise ValueError('console feeder corrupt/ahead acknowledgement')
+        ready=serial.count('NATIVE_CONSOLE_READY\n')
+        if not self.ready<=ready<=min(2,self.ready+1):raise ValueError('console feeder unexpected request')
+        if ready>self.ready:
+            if self.ready and received[self.ready-1]!=self.plan[self.ready-1]:raise ValueError('console feeder incomplete prior run')
+            self.ready=ready
+        if not ready:return
+        index=ready-1;offset=self.offsets[index]
+        if len(received[index])!=offset or offset==len(self.plan[index]):return
+        raw=self.plan[index][offset:offset+8]
+        if len(self.chunks)>=18:raise ValueError('console feeder chunk capacity')
+        if write(raw)!=len(raw):raise ValueError('console short host input write')
+        self.chunks.append(dict(run=ready,offset=offset,payload=raw.hex(),bytes=len(raw),
+                                acknowledged=len(received[index]),trace_bytes=len(complete),elapsed=elapsed))
+        self.offsets[index]+=len(raw)
+        if self.offsets[index]==len(self.plan[index]):
+            self.sent.append(dict(run=ready,payload=self.plan[index].hex(),bytes=len(self.plan[index]),elapsed=elapsed))
+
+    @staticmethod
+    def validate(plan,trace,chunks,sent):
+        if not 2<=len(chunks)<=18:raise ValueError('console complete chunk receipts')
+        replay=ConsoleFeeder(plan)
+        for row in chunks:
+            count=row['trace_bytes']
+            if type(count) is not int or not 0<=count<=len(trace):raise ValueError('console exact trace prefix')
+            previous=len(replay.chunks)
+            replay.pump('NATIVE_CONSOLE_READY\n'*row['run'],trace[:count],lambda raw:len(raw),row['elapsed'])
+            if len(replay.chunks)!=previous+1 or replay.chunks[-1]!=row:raise ValueError('console exact acknowledged chunk')
+        replay.pump('NATIVE_CONSOLE_READY\n'*2,trace,lambda raw:(_ for _ in ()).throw(ValueError('console missing chunk')),chunks[-1]['elapsed'])
+        if replay.sent!=sent or [r['payload'] for r in sent]!=[r.hex() for r in plan]:raise ValueError('console complete sent input')
+        # Final exact received bytes are also independently enforced by validate_io.
+
+
+def capture(image,folder,code,ram,media=None,*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False,console_input=None):
+    console_input=console_input_plan(console_input)
+    if console_input is not None and (media is not None or halt_witness or service_cpu_budget or service_pio_budget or trace_continuation):
+        raise ValueError('console input plain bounded capture only')
     if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
     if type(service_pio_budget) is not bool:raise ValueError('service PIO host budget opt-in')
     if service_cpu_budget and service_pio_budget:raise ValueError('exclusive service host budgets')
     options=dict(halt_witness=halt_witness)
+    if console_input is not None:options['console_input']=console_input
     if service_cpu_budget:options['service_cpu_budget']=True
     if service_pio_budget:options['service_pio_budget']=True
     if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
@@ -322,11 +398,13 @@ def process_cpu_ns(pid):
     finally:api.CloseHandle(handle)
 
 
-def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False):
+def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagnostic_metrics=False,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False,console_input=None):
     if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
     if type(service_pio_budget) is not bool:raise ValueError('service PIO host budget opt-in')
     if service_cpu_budget and service_pio_budget:raise ValueError('exclusive service host budgets')
     options={} if binary_memory is None else dict(binary_memory=binary_memory)
+    console_input=console_input_plan(console_input)
+    if console_input is not None:options['console_input']=console_input
     if service_cpu_budget:options['service_cpu_budget']=True
     if service_pio_budget:options['service_pio_budget']=True
     if type(trace_continuation) is not bool:raise ValueError('continuation trace opt-in')
@@ -341,7 +419,13 @@ def _capture(image,folder,code,ram,media_arguments=(),*,halt_witness=False,diagn
         (folder/'capture-metrics.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
 
 
-def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False):
+def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,metrics=None,binary_memory=None,trace_continuation=False,service_cpu_budget=False,service_pio_budget=False,console_input=None):
+    console_input=console_input_plan(console_input)
+    if console_input is not None and (media_arguments or halt_witness or service_cpu_budget or service_pio_budget or trace_continuation):
+        raise ValueError('console input plain bounded capture only')
+    console_started=time.monotonic() if console_input is not None else None
+    console_sent=[]
+    console_feeder=ConsoleFeeder(console_input) if console_input is not None else None
     if type(service_cpu_budget) is not bool:raise ValueError('service CPU host budget opt-in')
     if type(service_pio_budget) is not bool:raise ValueError('service PIO host budget opt-in')
     if service_cpu_budget and service_pio_budget:raise ValueError('exclusive service host budgets')
@@ -383,14 +467,26 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
                     except queue.Full:overflow.set();return
             thread=threading.Thread(target=reader,daemon=True);thread.start()
             deadline=capture_started+42 if service_pio_budget else capture_started+27 if service_cpu_budget else time.monotonic()+20
+            if console_input is not None:deadline=console_started+17
             if metrics is not None:
                 observed_since=capture_started if service_cpu_budget or service_pio_budget else deadline-20;metrics['progress']=[]
+                if console_input is not None:observed_since=console_started
             while time.monotonic()<deadline:
                 try:data.extend(output.get(timeout=.01))
                 except queue.Empty:pass
+                if console_input is not None:
+                    for _ in range(127):
+                        try:data.extend(output.get_nowait())
+                        except queue.Empty:break
                 if trace_sink:trace_sink.check()
                 if overflow.is_set() or len(data)>262144:raise ValueError('program serial capacity')
                 serial=data.decode('ascii',errors='replace')
+                if console_input is not None and 'NATIVE_CONSOLE_READY\n' in serial:
+                    trace_path=folder/'frame-trace.log';trace=''
+                    if trace_path.exists():
+                        with trace_path.open(encoding='ascii') as source:trace=source.read(1024*1024+1)
+                    console_feeder.pump(serial,trace,vm.stdin.write,time.monotonic()-console_started)
+                    console_sent=console_feeder.sent
                 if metrics is not None:capture_progress(metrics,serial,time.monotonic()-observed_since)
                 if halt_witness:
                     # A fatal serial prefix alone does not prove physical halt.
@@ -415,6 +511,9 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
             if thread is not None:thread.join(timeout=1)
             while not output.empty():data.extend(output.get_nowait())
             vm.stdout.close();(folder/'guest.log').write_bytes(data)
+            if console_input is not None:
+                (folder/'console-input.json').write_text(json.dumps(console_sent,indent=2),encoding='ascii')
+                (folder/'console-chunks.json').write_text(json.dumps(console_feeder.chunks,indent=2),encoding='ascii')
             if trace_thread is not None:
                 trace_thread.join(timeout=1)
                 if trace_thread.is_alive():trace_sink.error='trace reader cleanup deadline'
@@ -422,6 +521,8 @@ def _capture_run(image,folder,code,ram,media_arguments=(),*,halt_witness=False,m
             if metrics is not None:metrics.update(serial_bytes=len(data),debugger_exit=debugger.returncode if debugger else None)
             if metrics is not None:metrics['cleanup_seconds']=round(time.monotonic()-cleanup_since,6)
     if trace_sink:trace_sink.check()
+    if console_input is not None and (time.monotonic()-console_started>20 or len(console_sent)!=2):
+        raise ValueError('console input complete bounded capture')
     if service_cpu_budget and time.monotonic()-capture_started>30:raise ValueError('service CPU total host deadline')
     if service_pio_budget and time.monotonic()-capture_started>45:raise ValueError('service PIO total host deadline')
     if overflow.is_set() or len(data)>262144 or debugger.returncode:raise ValueError('program capture/detach failure')

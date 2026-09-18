@@ -2,7 +2,19 @@
 
 Stand: 18. September 2026
 
-## R8.3as: native Konsolenvermittlung in Umsetzung
+## R8.3as: native Konsolenvermittlung vollstaendig qualifiziert
+
+Alle12 Pruefgruppen,15 Pakettests und sieben Gastfaelle bestanden. Echte
+UART-Ein-/Ausgabe bei4/8GiB, Absturz/CPU-Abbruch/Timeout, Rechteabwehr,
+frische Generationen und vollstaendige Speicher-/IPC-/FP-Bereinigung belegt.
+Letzte Runde ohne neuen OS-Build: vorhandenes Image e6accbc30a48e54d,
+27,7793623s Gastzeit und63,4642017s Gatekommandos. Gesamthistorie einschliesslich
+aller Fehler: ein Image, elf Gastversuche38,0483111s; keine Gastreste.
+551 Nachweisdateien unter r83as-console/queue-drain unveraenderlich versiegelt
+(Review SHA33c6059d3e14bda6); finaler Beleg bindet den sauberen lokalen Commit.
+Normale Shell-/Dateidienstintegration und Gesamt-OS-Abnahme bleiben offen.
+
+### Erhaltene AS-Umsetzungshistorie
 
 14 Hosttests und neun Gruppen bestanden; neuer Gast stoppt vor Eingabe an
 Hostqueue128 (520 Bytes), nicht am Kernel. Beleg SHAf666d2adf68f521f:

@@ -57,6 +57,9 @@ process_run_admit64:
     cmp dword [rdi+12], 0
     jne .bad
     mov r8, (1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)
+%ifdef REIST_NATIVE_CONSOLE
+    or r8,(1<<15)|(1<<20)
+%endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     or r8,(1<<4)|(1<<5)|(1<<6)
 %endif
@@ -75,6 +78,15 @@ process_run_admit64:
     mov rax, [r9+8]
     test rax, r8
     jnz .bad
+%ifdef REIST_NATIVE_CONSOLE
+    test rax,(1<<15)|(1<<20)
+    jz .console_admitted
+    test ecx,ecx
+    jnz .bad
+    cmp dword [rdi],2
+    jne .bad
+.console_admitted:
+%endif
     test rax, 1<<9 ; an orderly exit must always be available
     jz .bad
     mov rax, [r9+16]
@@ -964,6 +976,12 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_CONSOLE
+    cmp qword [rel syscall_rax],REIST_SYS_READ
+    je native_console_syscall64
+    cmp qword [rel syscall_rax],REIST_SYS_WRITE
+    je native_console_syscall64
+%endif
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp qword [rel syscall_rax],132
     je family_syscall64

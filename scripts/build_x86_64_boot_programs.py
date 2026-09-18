@@ -59,7 +59,10 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False):
+    if type(console) is not bool:raise ValueError('console selector')
+    if console and (any((case,family,family_case,startup,startup_case,import_image,pio,pio_case,block,wide,memory_case,block_profile,block_profile_case,filesystem,filesystem_case,file_launch,file_launch_case,task_pool,pool_pio,service_cpu,service_pio,live_file)) or filesystem_layout!=2):
+        raise ValueError('console requires plain native programs without other fixtures')
     if type(live_file) is not bool:raise ValueError('live file selector')
     if live_file and (not (pool_pio and filesystem and file_launch) or service_cpu or service_pio):
         raise ValueError('live file requires pool PIO and file launch, excludes other service fixtures')
@@ -109,6 +112,10 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     for n in ([2,3,0,1] if filesystem else [2,0,1,3] if import_image else range(4)):
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
         extra=[];objects=[]
+        if console:
+            unit=attempt/f'console-{n}.o'
+            run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/console.c','-o',unit])
+            objects.append(unit)
         if import_image and n==2:extra=['-DNATIVE_IMPORT_CHILD=1']
         if import_image and (n==0 or task_pool and not pool_pio and n==1):
             blob=(attempt/'program2.prg').read_bytes()
@@ -145,7 +152,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              f'-DPIO_CASE={pio_case}',f'-DMEMORY_CASE={memory_case}',f'-DBLOCK_PROFILE_CASE={block_profile_case}',
              *([f'-DFILESYSTEM_CASE={filesystem_case}',f'-DFILESYSTEM_LAYOUT={filesystem_layout}'] if filesystem else []),
              *([f'-DFILE_LAUNCH_CASE={file_launch_case}'] if file_launch else []),
-             *extra,'-c','arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','arch/x86_64/user/console.c' if console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
@@ -180,6 +187,7 @@ if __name__=='__main__':
     p.add_argument('--service-cpu',action='store_true')
     p.add_argument('--service-pio',action='store_true')
     p.add_argument('--live-file',action='store_true')
+    p.add_argument('--console',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -187,4 +195,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console)

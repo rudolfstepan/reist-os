@@ -8281,6 +8281,9 @@ scheduler_profile_ranges64:
 %endif
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_CONSOLE
+%include "arch/x86_64/proc/native_console.inc"
+%endif
 %ifdef REIST_NATIVE_LIFECYCLE
 %include "arch/x86_64/proc/task_family.inc"
 %ifdef REIST_NATIVE_PIO

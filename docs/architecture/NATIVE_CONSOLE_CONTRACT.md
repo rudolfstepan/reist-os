@@ -5,6 +5,24 @@ transaction, standing native64 completion authority; no agents, push or user
 media. This prerequisite closes the native process console boundary, not the
 normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
+## Qualified result,18 September2026
+
+Candidate621ce94e on4d867806 passes all12 obligations,15 package host tests
+and all seven fresh guests27.7793623s. Healthy4/8GiB, root UD2/CPU/empty-input
+timeout, denied peer/legacy descriptors, fresh generations and full cleanup
+pass with exact raw UART bytes and independent kernel/high-RAM comparison.
+Original image e6accbc30a48e54d reused; zero additional OS builds. All default
+profiles and reference artifacts remain unchanged. Final command time
+63.4642017s; history includes every failure: one image,11 guests38.0483111s
+and one no-guest provenance preflight. No remaining QEMU/GDB.
+
+`queue-drain/verification-status-reviewed.json` (SHA33c6059d3e14bda6) seals
+551 evidence files before documentation-only closure. Final
+`verification-status-console-final.json` binds the clean local commit.
+Direct ABI/scope/bounds/generation/cleanup review complete. Normal shell,
+combined console/file services and complete native64 OS acceptance remain
+separate unfinished work; no terminal/POSIX compatibility claim.
+
 ## Output queue continuation,18 September2026
 
 The acknowledged feeder passes14 hosts and nine obligations. First guest

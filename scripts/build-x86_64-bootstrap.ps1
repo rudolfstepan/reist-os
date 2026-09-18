@@ -37,6 +37,7 @@ param(
     [switch]$NativeServiceCPU,
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
+    [switch]$NativeConsole,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -55,6 +56,17 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeConsole) {
+    if ($NativeLifecycle -or $NativeStartup -or $NativeImport -or $NativePIO -or $NativeBlock -or
+        $NativeWide -or $NativeBlockProfile -or $NativeFilesystem -or $NativeFileLaunch -or
+        $NativeTaskPool -or $NativePoolPIO -or $NativeServiceCPU -or $NativeServicePIO -or
+        $NativeLiveFile -or $ProgramCase -ne 0 -or $MemoryCase -ne 0 -or $PIOCase -ne 0 -or
+        $StartupCase -ne 0 -or $FamilyCase -ne 0 -or $BlockProfileCase -ne 0 -or
+        $FilesystemCase -ne 0 -or $FilesystemLayout -ne 2 -or $FileLaunchCase -ne 0) {
+        throw 'NativeConsole requires plain NativePrograms and excludes device/lifecycle/fault fixtures.'
+    }
+    $NativePrograms = [switch]$true
+}
 if ($NativeLiveFile) {
     if ($NativeServiceCPU -or $NativeServicePIO) { throw 'NativeLiveFile excludes other service fixtures.' }
     $NativePoolPIO = [switch]$true
@@ -403,6 +415,7 @@ try {
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
+        "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `
