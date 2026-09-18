@@ -2,6 +2,17 @@
 
 Stand: 18. September 2026
 
+## R8.3av: begrenzte Terminalweitergabe freigegeben
+
+Der Nutzer hat die folgende echte Autoritaetsgrenze freigegeben. Paket
+R8.3av-terminal-lease ist aktiv: vorhandene ABI127/v1, genau ein explizit
+berechtigtes eigenes Vordergrundkind, generationsgebundener Entzug auf allen
+Endpfaden. Treiber/Dateidienst und alte Profile bleiben unveraendert.
+Ein gemeinsames Image,14 Pruefpflichten,25 Lebenszyklus- und zwei
+Korruptionsgaeste eingefroren. Noch keine Umsetzung oder Abnahme dieses Pakets.
+Vertrag: `docs/architecture/NATIVE_TERMINAL_LEASE_CONTRACT.md`.
+Die folgende Freigabeanforderung bleibt als inzwischen erledigte Historie.
+
 ## Naechste native Autoritaetsgrenze nach sauberem AU-Abschluss
 
 Implementierung53dd42d5 ist lokal abgenommen; finaler Beleg
