@@ -4,6 +4,14 @@ Stand: 18. September 2026
 
 ## R8.3as: native Konsolenvermittlung in Umsetzung
 
+Neun Pruefgruppen einschliesslich zehn Pakettests und neuem Image bestanden.
+Erster Gastversuch nach0,5729435s vor Ausfuehrung gestoppt: Speichertransport
+erwartet andere Callback-Namen als der neue Beobachter. Reine Adapterkorrektur
+ist getrennt eingefroren; echtes Setup/Callback-Hostmodell zuerst. Image bleibt
+unveraendert, kein weiterer Build. Sieben neue Gaeste innerhalb gleicher
+20-s-Grenze; der alte Fehlversuch bleibt gezaehlt. Noch keine AS-Abnahme.
+Unveraenderlicher Beleg: r83as-console/verification-status-observer-stopped.json.
+
 AR ist mit sauberem Commit `7d34f237` abgeschlossen. Die Bestandspruefung
 zeigt als naechste Grenze fehlendes READ/WRITE im allgemeinen nativen
 Prozesspfad. Eingefroren ist die begrenzte Konsolenvermittlung samt Ring3-

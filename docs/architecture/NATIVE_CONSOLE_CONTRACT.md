@@ -5,6 +5,27 @@ transaction, standing native64 completion authority; no agents, push or user
 media. This prerequisite closes the native process console boundary, not the
 normal `/bin/shell.prg` port or full OS acceptance. R3.6b stays deferred.
 
+## Observer binding continuation,18 September2026
+
+Original candidate02 passes nine obligations, including10 package host tests
+and image `e6accbc30a48e54d`. First guest stops after0.5729435s before serial
+execution: binary transport setup expects Hook/ReleaseEnd class names, while
+this observer defines ConsoleEntry/ConsoleResult. No runtime claim or kernel
+fault is inferred. Candidate01 host setup failures and all raw evidence remain
+sealed in `verification-status-observer-stopped.json` (SHA9bc27614aa2816d9).
+
+Standing completion authority freezes one adapter-only candidate under
+observer-binding. Bind these two actual callback classes to the existing
+transport scopes; no dummy methods, shared transport change or oracle delta.
+Actual generated setup and wrapped callback behavior regression first. Runtime
+may change only these two aliases; tests and verifier provenance/evidence path
+plus queue/status/contract may adapt. All12 obligations remain, exact gate9
+reuse only after complete source/tool/command/log/artifact binding. Zero new
+builds; seven fresh guests140s,20s each including cleanup3s. Prior one failed
+attempt stays spent: cumulative at most eight attempts140.5729435s, one image.
+First failure stops. Full raw seven-case proof is required; no kernel, Ring3,
+SDK, producer, quota/deadline or assertion change. No unchanged retry or push.
+
 ## Inventory and architecture
 
 The normal shell is `userspace/bin/shell.c`; it must remain the eventual normal
