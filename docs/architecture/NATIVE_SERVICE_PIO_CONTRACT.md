@@ -81,8 +81,12 @@ before/after, including failures. Never use user or physical disks.
 
 Each guest has30s including setup/capture/media/process cleanup; cleanup<=3s.
 Normal matrix480s/fatal60s, outer600s/120s; host300s, build/verifier180s.
-All15 queue obligations are frozen, each once per unchanged candidate. Selected
-actual AP/AO host mechanisms are reused, not all historical test matrices.
+All15 queue obligations are frozen, each once per unchanged candidate.
+The selected AP methods are invoked through their concrete test file, not the
+`test.*` package namespace which collides with Python's installed test package.
+This host invocation correction precedes any candidate or acceptance gate;
+the same seven actual method names and all assertions remain unchanged.
+Selected actual AP/AO host mechanisms are reused, not all historical test matrices.
 One new common image per changed build-input candidate, no reference rebuilds.
 The reference gate binds accepted AP/AO/legacy evidence and original inputs,
 tools, profiles, commands, logs, artifacts plus exact legacy preprocessing.
