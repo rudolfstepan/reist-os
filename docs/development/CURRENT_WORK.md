@@ -2,6 +2,14 @@
 
 Stand: 18. September 2026
 
+## R8.3at: normale Shell wird nativ angebunden
+
+Aktiv nach sauberem AS-Commit f2e93446: unveraenderte normale Userspace-Shell,
+begrenzter64-Bit-Konsolenadapter und beide Buildwege in einem Paket. Ein Image,
+vier Gaeste; Kernelrechte und Quoten bleiben gleich. Nicht angebundene Datei-,
+Prozess- und Terminaltransferdienste liefern ausdrueckliche Fehler. Vertrag:
+`docs/architecture/NATIVE_SHELL_CONTRACT.md`. Noch keine Gesamt-OS-Abnahme.
+
 ## R8.3as: native Konsolenvermittlung vollstaendig qualifiziert
 
 Alle12 Pruefgruppen,15 Pakettests und sieben Gastfaelle bestanden. Echte
