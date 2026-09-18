@@ -2,6 +2,18 @@
 
 Stand: 18. September 2026
 
+## Naechste gemeinsame Grenze: periodischer PIO-Dienst
+
+R8.3ap ist mit `9011ef1e` sauber abgeschlossen; der endgueltige Beleg bindet
+24 Verpflichtungen,14 Gastfaelle und den Commit. R8.3aq verbindet als naechste
+eingefrorene Transaktion die vorhandene periodische CPU-Zulassung mit dem
+achtplaetzigen read-only PIO-Besitz. Kein neuer Kernelmechanismus/Treiber,
+keine Referenz-Neubauten; ein gemeinsames neues Profilimage je notwendigem
+Kandidaten. Alle Slot-/Quota-/Crash-/Ersatz-/Korruptionsfaelle gemeinsam,
+einschliesslich physischem Fencing bei korrupter CPU-Metadatenlage.
+Umfang und15 Gates: [Vertrag](../architecture/NATIVE_SERVICE_PIO_CONTRACT.md)
+und Queue. Noch keine AQ-Abnahme; normale Shell-/Dateiintegration bleibt danach.
+
 ## R8.3ap vollstaendig qualifiziert:24/24, keine weiteren Builds
 
 Kandidat4df0497d auf5859a5c9 besteht alle24 Verpflichtungen:19 frisch
