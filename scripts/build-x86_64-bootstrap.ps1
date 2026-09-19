@@ -35,6 +35,7 @@ param(
     [switch]$NativeTaskPool,
     [switch]$NativePoolPIO,
     [switch]$NativeServiceCPU,
+    [switch]$NativeSession,
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
     [switch]$NativeConsole,
@@ -59,6 +60,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeSession) { $NativeServiceCPU = [switch]$true }
 if ($NativeTerminal) { $NativeServiceConsole = [switch]$true }
 if ($NativeServiceConsole) {
     if ($NativeConsole -or $NativeShell) { throw 'NativeServiceConsole excludes console-only fixtures.' }
@@ -422,6 +424,7 @@ try {
         "X86_64_NATIVE_TASK_POOL=$([int]$NativeTaskPool.IsPresent)" `
         "X86_64_NATIVE_POOL_PIO=$([int]$NativePoolPIO.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
+        "X86_64_NATIVE_SESSION=$([int]$NativeSession.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `

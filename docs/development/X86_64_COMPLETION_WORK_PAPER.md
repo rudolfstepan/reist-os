@@ -1,10 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
 19.September, nach AW: Nutzerfreigabe fuer ein separates dauerhaftes Shell-/
-Supervisorprofil erteilt. Aktiv ist R8.3ax, dessen Kernelgrenze versioniert und
+Supervisorprofil erteilt. R8.3ax ist qualifiziert, dessen Kernelgrenze versioniert und
 generationsgebunden acht Konstruktionen pro Sekunde zulaesst, ohne alte Profile,
 CPU-Quoten oder Operationsfristen zu aendern. Ring3-Recovery und normale Shell-
 Komposition folgen; noch keine Dauerbetriebs- oder Gesamt-OS-Abnahme.
+AX: neun Gates,146 Hostmethoden,17 Gastnachweise;40 Kind-Erzeugungen und44
+Bereinigungen ueber zwei Laeufe. Letzte Prueferkorrektur ohne Neubau mit14
+exakt gebundenen CPU-Wiederverwendungen und drei frischen Sitzungs-/Fatalgaesten.
+Gesamthistorie drei Images/35 Versuche inklusive aller Fehler und Diagnosen.
+Review-closure dfcc8ef8fec50cfb; [Vertrag](../architecture/NATIVE_SESSION_ADMISSION_CONTRACT.md).
 
 Aktuell19.September: R8.3av ist alsf05fcc86 abgenommen (14 Gates,233 Hosttests,
 27 Gastfaelle); generationsgebundene Vordergrund-Terminalweitergabe ist vorhanden.

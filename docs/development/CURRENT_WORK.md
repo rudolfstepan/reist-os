@@ -2,16 +2,24 @@
 
 Stand: 19. September 2026
 
-## R8.3ax aktiv: begrenzte Erzeugung im Dauerbetriebsprofil
+## R8.3ax qualifiziert: begrenzte Erzeugung im Dauerbetriebsprofil
 
 Die ausdrueckliche Lebensdauerfreigabe ist am19.September durch das erneute
 Nutzer-Ja erteilt. AX qualifiziert zuerst die notwendige Kernelgrenze:
 NativeSession-v1, Root0 maximal acht Erzeugungsversuche je1000ms bei nie
 zurueckgesetztem Gesamtzaehler. Alte Profile und Root1 behalten acht insgesamt;
 CPU32/1000ms und alle Einzeloperations-/Treibergrenzen bleiben unveraendert.
-Ein gemeinsames Image, neun Gates, hoechstens17 Gaeste sind eingefroren.
-Noch keine Implementierungsabnahme; normale Shell-/Supervisor-Komposition
-folgt unter derselben Freigabe. [Vertrag](../architecture/NATIVE_SESSION_ADMISSION_CONTRACT.md).
+Alle neun Gates bestanden:146 Hostmethoden und17 vollstaendig ausgewertete
+Gastfaelle. Sitzungstest:40 Kind-Erzeugungen/44 Bereinigungen in zwei Laeufen,
+Root0 jeweils zwoelf, Root1 unveraendert acht; beide neuen Korruptionsfaelle
+halten ohne Reparatur an. Letzte Korrektur ausschliesslich am Beobachter:
+Image7b2f6a2f035ade5b und14 bestandene CPU-Faelle exakt wiederverwendet,
+nur drei frische Gaeste9,817478s, kein weiterer Build. Gesamthistorie:
+drei Images/35 Versuche462,4977937s, alle Fehler/Diagnosen erhalten.
+Reviewdfcc8ef8fec50cfb bindet2688 Dateien; finaler commitgebundener Beleg:
+`build/codex-agent/r83ax-session-admission/candidate06/verification-status-session-final.json`.
+Normale Shell-/Supervisor-Komposition folgt unter derselben Freigabe;
+keine Gesamt-OS-Abnahme. [Vertrag](../architecture/NATIVE_SESSION_ADMISSION_CONTRACT.md).
 
 ## Bestandsaufnahme vor der nun erteilten Lebensdauerfreigabe
 

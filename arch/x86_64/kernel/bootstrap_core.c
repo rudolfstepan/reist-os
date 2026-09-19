@@ -35,6 +35,13 @@ extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v1 *plan);
 #endif
 /* Independent payload admission binds this exact read-only profile witness. */
 const reist_u64 native_task_pool_capacity=8;
+#if REIST_NATIVE_SESSION
+#if !REIST_NATIVE_SERVICE_CPU
+#error "NativeSession requires periodic CPU admission"
+#endif
+/* Immutable boot-policy witness: version, bytes, owner slot, quota, period ms. */
+const reist_u64 native_session_profile_v1[5]={1,40,0,8,1000};
+#endif
 #if REIST_NATIVE_SERVICE_CPU
 #if REIST_NATIVE_SERVICE_CONSOLE
 #if !REIST_NATIVE_CONSOLE

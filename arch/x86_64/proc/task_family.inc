@@ -1,4 +1,7 @@
 %include "arch/x86_64/mm/native_layout.inc"
+%ifdef REIST_NATIVE_SESSION
+%include "arch/x86_64/proc/session_admission.inc"
+%endif
 ; Pure SysV admission over a pinned64-byte snapshot. No output or authority.
 global family_request_admit64
 family_request_admit64:
@@ -469,6 +472,17 @@ family_root_built64:
     mov [r10],rax
     mov qword [r10+40],1
     inc dword [rel family_total]
+%ifdef REIST_NATIVE_SESSION
+    test edi,edi
+    jnz .done
+    push rax
+    mov edi,1
+    call family_session_apply64
+    cmp eax,1
+    jne scheduler_fail
+    pop rax
+    xor edi,edi
+%endif
 %ifdef REIST_NATIVE_TERMINAL
     test edi,edi
     jnz .done
@@ -483,7 +497,11 @@ family_validate_runtime64:
     push rbx
     push r12
     push r13
+%ifdef REIST_NATIVE_SESSION
+    cmp dword [rel family_total],0x7fffffff
+%else
     cmp dword [rel family_total],18
+%endif
     ja .bad
     test dword [rel family_cancel_mask],~NATIVE_POOL_CHILD_MASK
     jnz .bad
@@ -501,8 +519,29 @@ family_validate_runtime64:
     add r13,rax
     cmp qword [r10+56],0
     jne .bad
+%ifdef REIST_NATIVE_SESSION
+    test ebx,ebx
+    jnz .lifetime_attempts
+    cmp qword [r10+40],0
+    je .session_empty
+    mov edi,2
+    call family_session_apply64
+    cmp eax,1
+    jne .bad
+    jmp .attempts_ready
+.session_empty:
+    lea rdi,[rel family_session_window]
+    mov ecx,7
+    xor eax,eax
+    repe scasq
+    jne .bad
+.lifetime_attempts:
+%endif
     cmp qword [r10+48],8
     ja .bad
+%ifdef REIST_NATIVE_SESSION
+.attempts_ready:
+%endif
     mov rax,[r10+40]
     test rax,rax
     jz .empty
@@ -905,8 +944,15 @@ family_result64:
     jmp process_run_resume64
 
 family_create64:
+%ifdef REIST_NATIVE_SESSION
+    cmp dword [rel scheduler_current_slot],0
+    je .attempts_ready
+%endif
     cmp qword [r10+48],8
     jae .capacity
+%ifdef REIST_NATIVE_SESSION
+.attempts_ready:
+%endif
     ; Capacity admission precedes attempt charging; retained receipts own slots.
     mov edi,2
 .slot:
@@ -973,6 +1019,17 @@ family_create64:
 %endif
     cmp dword [rel process_run_generation],0x7fffffff
     jae .capacity
+%ifdef REIST_NATIVE_SESSION
+    cmp dword [rel scheduler_current_slot],0
+    jne .charge_lifetime
+    mov edi,3
+    call family_session_apply64
+    cmp eax,2
+    je .capacity
+    cmp eax,1
+    jne scheduler_fail
+.charge_lifetime:
+%endif
     inc qword [r10+48]
     call scheduler_save_syscall_context64
     call physical_free_frame_count64
@@ -1469,6 +1526,9 @@ family_finish64:
 section .bss
 alignb 8
 family_begin:
+%ifdef REIST_NATIVE_SESSION
+family_session_window: resq 7
+%endif
 %ifdef REIST_NATIVE_TERMINAL
 native_terminal_state: resq 3 ; root handle, foreground child handle, RX fence
 %endif
