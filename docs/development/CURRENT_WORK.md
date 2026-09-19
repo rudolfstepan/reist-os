@@ -2,6 +2,18 @@
 
 Stand: 19. September 2026
 
+## R8.3aw: gemeinsame Dateiabfrage und ELF-Erfassung aktiv
+
+AV ist alsf05fcc86 sauber lokal abgenommen; finaler Belegcb07c12c335b1540.
+Bestandsaufnahme der normalen Shell: STAT vor SPAWNV trifft auf einen
+ELF-Lader, der bisher zwingend eine frische Dateisitzung verlangt. Der naechste
+zusammenhaengende SDK-Schnitt teilt Abfrage und Daten-/EOF-/ELF-Erfassung unter
+derselben absoluten Deadline und Generation, ohne weitere Dateianfrage oder
+Ruecksetzen des Acht-Anfragen-Budgets. Alter Einstieg bleibt kompatibel.
+Zehn Gates, ein gemeinsames Image,25 frische Gaeste; keine Kernel-/Dienstrechte
+oder Quoten aendern. Vertrag: `NATIVE_FILE_CAPTURE_CONTRACT.md`.
+Normale Shell-Komposition und Gesamt-OS weiterhin offen; noch keine AW-Abnahme.
+
 ## R8.3av: generationsgebundene Terminalweitergabe qualifiziert
 
 Alle14 eingefrorenen Pruefpflichten bestanden:233 Hosttests, alle25 normalen

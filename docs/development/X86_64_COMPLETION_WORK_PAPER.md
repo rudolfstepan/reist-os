@@ -1,5 +1,14 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Aktuell19.September: R8.3av ist alsf05fcc86 abgenommen (14 Gates,233 Hosttests,
+27 Gastfaelle); generationsgebundene Vordergrund-Terminalweitergabe ist vorhanden.
+R8.3aw buendelt nun die Dateiabfrage und anschliessende ELF-Erfassung im SDK
+unter einer gemeinsamen unverlaengerten FS-Sitzung; bisher verlangt der Lader
+eine unbenutzte Sitzung, die normale Shell fragt aber vor SPAWNV bereits STAT ab.
+[Vertrag](../architecture/NATIVE_FILE_CAPTURE_CONTRACT.md). Danach bleibt die
+normale Namespace-/Start-/Wait-Komposition offen, nicht eine weitere Terminal-
+Autoritaetsfreigabe. Diese Schritte sind noch keine Gesamt-OS-Abnahme.
+
 Neu vollstaendig qualifiziert: R8.3at [normaler nativer Shell-Port](../architecture/NATIVE_SHELL_CONTRACT.md).
 Acht Gruppen,8+33+15 Hosttests und vier Gaeste bestanden. Echte normale Shell
 bei4/8GiB, Befehle/History/Bearbeitung, Fehler und Timeout samt Ersatzgeneration

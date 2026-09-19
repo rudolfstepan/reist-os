@@ -1,8 +1,8 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3aw-file-capture"
 terminal_lease_authority = "2026-09-18 renewed user ja mach weiter explicitly approves the preceding question: bounded terminal delegation to one own foreground program, automatic revoke on exit/crash/cancel. Only this opt-in native mechanism; no driver/FS console rights, implicit inheritance, service terminal acquisition or general OS completion claim."
-next_native_authority_boundary = "Post-AU inventory on clean accepted53dd42d54abd6bdcd3ed62a03143ddeced9205ce: normal shell run_program always requests generation-bound REIST_TERMINAL_TRANSFER after spawn; native shell_platform only admits CHECK/ATTACH and returns -95 for transfer, while native UART and child-profile admission explicitly deny child console rights. A complete interactive file-launch slice therefore requires a separately authorized native terminal-delegation mechanism before namespace/launch integration. Proposed R8.3av: opt-in bounded foreground-child console lease controlled by root0, exact live parent/child generations, automatic revoke/reclaim on child exit/fault/cancel or owner loss, no driver/FS console rights, unchanged default/AU profiles and quotas. Reuse established terminal ABI127/v1 where compatible; no new grant from reading an ELF and no fabricated transfer/identity success. Not active, no candidate or build/guest reserved pending this genuine new-authority decision. R3.6b stays deferred. AU final receipt8a2633907e2e0c4f7899641e16778f759021a58cfea452eedc8576f8f645cd07."
+historical_native_authority_boundary_au = "Post-AU inventory on clean accepted53dd42d54abd6bdcd3ed62a03143ddeced9205ce: normal shell run_program always requests generation-bound REIST_TERMINAL_TRANSFER after spawn; native shell_platform only admits CHECK/ATTACH and returns -95 for transfer, while native UART and child-profile admission explicitly deny child console rights. A complete interactive file-launch slice therefore requires a separately authorized native terminal-delegation mechanism before namespace/launch integration. Proposed R8.3av: opt-in bounded foreground-child console lease controlled by root0, exact live parent/child generations, automatic revoke/reclaim on child exit/fault/cancel or owner loss, no driver/FS console rights, unchanged default/AU profiles and quotas. Reuse established terminal ABI127/v1 where compatible; no new grant from reading an ELF and no fabricated transfer/identity success. Not active, no candidate or build/guest reserved pending this genuine new-authority decision. R3.6b stays deferred. AU final receipt8a2633907e2e0c4f7899641e16778f759021a58cfea452eedc8576f8f645cd07."
 next_user_request = "2026-09-11: User prioritizes completing the native64-bit OS over further JS features. R8.1/R8.2 are an isolated128MiB bootstrap, not product parity. First R8.3a reusable syscall SDK and real baseline; then completion work paper stages for general kernel lifecycle, scalable64-bit memory, trusted boot/ELF64 process loading, Ring3 services/drivers, SDK/userland/desktop/browser and platform/performance/recovery acceptance. Preserve i386 fallback, fd8dc3d7 images, R341-H1/H2 and explicit R3.6b deferral. One cohesive frozen package per run, main agent only, no agents/visible VMs/push; no claim that bootstrap success finishes64-bit migration."
 
 [policy]
@@ -14,6 +14,23 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3aw-file-capture"
+status = "active"
+title = "Shared-deadline STAT and ELF capture within one native FS session"
+phase = "native-shell-file-adapter"
+risk = "high"
+scope = "One immutable file-capture publication boundary: expose existing STAT and bounded read/EOF/ELF stages, preserve old fresh-client wrapper and all FS quotas. No namespace/spawn composition, kernel or service change."
+allowed_files = ["automation/reist-s03b.toml","docs/architecture/NATIVE_FILE_CAPTURE_CONTRACT.md","docs/development/CURRENT_WORK.md","docs/development/X86_64_COMPLETION_WORK_PAPER.md","userspace/sdk/include/reist/x86_64/file_image.h","userspace/sdk/lib/x86_64/file_image.c","test/test_x86_64_file_capture.py","test/x86_64_file_capture_host.c","scripts/verify_x86_64_file_capture.py"]
+inventory = "Clean accepted AVf05fcc86dfd5f8e6b61b911a349230c5a68c7b29; final receiptcb07c12c335b1540dbbf9f33d4150fce91ba6c2a46300bdd033950102dad641a. Normal shell STAT precedes SPAWNV, while file_prepare_v2 rejects nonfresh clients. Native FS already exposes matched fixed512-byte STAT/READ frames and exact owner/sequence; no new protocol or service authority needed."
+invariants = ["Follow NATIVE_FILE_CAPTURE_CONTRACT.md; one main agent/worktree, no push.","No kernel/service/parser/shell/producer selector or public syscall changes. Old wrapper outcomes and defaults unchanged; no counter reset, implicit retry/restart, new device/terminal rights or quota/deadline increase.","Observation is Ring3 data, not a capability. Exact current owner/sequence, canonical frame, shared absolute deadline, bounded remaining-request admission, full EOF/ELF validation and single prepared-image publication."]
+targeted_tests = ["python test/test_x86_64_file_capture.py -v","python test/test_x86_64_file_image.py -v","python test/test_x86_64_live_file.py -v","python test/test_x86_64_terminal.py -v","python scripts/verify_x86_64_file_capture.py --defaults"]
+package_tests = ["powershell.exe -NoProfile -File scripts/build-x86_64-bootstrap.ps1 -NativeTerminal -OutputDirectory build/codex-agent/r83aw-file-capture/native"]
+runtime_tests = ["python scripts/verify_x86_64_file_capture.py --image-equivalence","python scripts/verify_x86_64_file_capture.py --runtime","python scripts/verify_x86_64_reference_artifacts.py","python scripts/verify_x86_64_file_capture.py --review"]
+acceptance = "Ten frozen gates exactly once on source/tool/command-bound candidate, first failure stops. Host300s, others180s, full25-case matrix1200s. One new image,25 fresh45s guests1125s total including cleanup<=3s. Unmodified full AV raw oracle; exact kernel and file-child identity binds its two fatal-proof reuses. Preserve all failures/counters; only separately frozen evidence-directed corrections. Direct scope/ABI/bounds/cleanup review and clean local commit before next package."
+stop_conditions = ["Unattributed edits, required file outside scope, pre-existing source failure or default/reference drift.","Kernel/device authority, service quota/deadline/lifetime change or unchanged retry required.","First failed frozen gate stops later gates; no partial OS completion claim."]
+commit_message = "feat: share bounded filesystem sessions across file lookup and capture"
 
 [[packages]]
 id = "R8.3av-terminal-lease"
