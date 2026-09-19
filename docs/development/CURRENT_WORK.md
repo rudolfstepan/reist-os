@@ -2,7 +2,18 @@
 
 Stand: 19. September 2026
 
-## Naechste Betriebsgrenze: dauerhafte normale Shell
+## R8.3ax aktiv: begrenzte Erzeugung im Dauerbetriebsprofil
+
+Die ausdrueckliche Lebensdauerfreigabe ist am19.September durch das erneute
+Nutzer-Ja erteilt. AX qualifiziert zuerst die notwendige Kernelgrenze:
+NativeSession-v1, Root0 maximal acht Erzeugungsversuche je1000ms bei nie
+zurueckgesetztem Gesamtzaehler. Alte Profile und Root1 behalten acht insgesamt;
+CPU32/1000ms und alle Einzeloperations-/Treibergrenzen bleiben unveraendert.
+Ein gemeinsames Image, neun Gates, hoechstens17 Gaeste sind eingefroren.
+Noch keine Implementierungsabnahme; normale Shell-/Supervisor-Komposition
+folgt unter derselben Freigabe. [Vertrag](../architecture/NATIVE_SESSION_ADMISSION_CONTRACT.md).
+
+## Bestandsaufnahme vor der nun erteilten Lebensdauerfreigabe
 
 Abgenommene Implementierungen: Terminalf05fcc86 und Datei-SDKe70c454c.
 AW-Abschlussbelegbede32654369d5a3 bindet den sauberen lokalen Commit.
@@ -20,7 +31,7 @@ generationsgebundene Wiederherstellung und definierte Degradierung bei
 Erschoepfung. Alte Profile und Einzeloperationsgrenzen bleiben unveraendert;
 keine impliziten Zaehlerresets, unendlichen Wiederholungen oder Treiberrechte.
 Das ist eine echte Lebensdauer-/Zulassungsentscheidung, keine Routinefreigabe
-fuer Diagnose oder weitere Builds. Noch kein Folgepaket aktiv oder reserviert.
+fuer Diagnose oder weitere Builds. Dieser Freigabestand ist oben fortgeschrieben.
 R3.6b bleibt zurueckgestellt; vollstaendiges natives OS weiterhin nicht fertig.
 
 ## R8.3aw: gemeinsame Dateiabfrage und ELF-Erfassung qualifiziert

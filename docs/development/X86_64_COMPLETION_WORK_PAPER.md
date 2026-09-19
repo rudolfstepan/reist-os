@@ -1,5 +1,11 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+19.September, nach AW: Nutzerfreigabe fuer ein separates dauerhaftes Shell-/
+Supervisorprofil erteilt. Aktiv ist R8.3ax, dessen Kernelgrenze versioniert und
+generationsgebunden acht Konstruktionen pro Sekunde zulaesst, ohne alte Profile,
+CPU-Quoten oder Operationsfristen zu aendern. Ring3-Recovery und normale Shell-
+Komposition folgen; noch keine Dauerbetriebs- oder Gesamt-OS-Abnahme.
+
 Aktuell19.September: R8.3av ist alsf05fcc86 abgenommen (14 Gates,233 Hosttests,
 27 Gastfaelle); generationsgebundene Vordergrund-Terminalweitergabe ist vorhanden.
 R8.3aw ist alse70c454c ebenfalls vollstaendig qualifiziert: zehn Gates,41 Hostmethoden,
@@ -15,7 +21,7 @@ Integration von dauerhaftem Shell-Betrieb: dessen1000ms Gesamtfrist, die
 acht FS-Anfragen/3000ms und acht CREATE-Versuche je Root-Generation duerfen
 nicht stillschweigend erneuert werden. Ein ausdrueckliches neues dauerhaftes
 Shell-/Supervisorprofil mit begrenzten Operationen und zeitfenstergebundenen
-Zulassungs-/Neustartbudgets benoetigt diese echte Lebensdauerfreigabe; alte
+Zulassungs-/Neustartbudgets hat nun diese echte Lebensdauerfreigabe; alte
 Profile bleiben erhalten. Details und offene Grenze: [CURRENT_WORK](CURRENT_WORK.md).
 
 Neu vollstaendig qualifiziert: R8.3at [normaler nativer Shell-Port](../architecture/NATIVE_SHELL_CONTRACT.md).
