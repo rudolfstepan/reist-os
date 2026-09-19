@@ -2,6 +2,27 @@
 
 Stand: 19. September 2026
 
+## Naechste Betriebsgrenze: dauerhafte normale Shell
+
+Abgenommene Implementierungen: Terminalf05fcc86 und Datei-SDKe70c454c.
+AW-Abschlussbelegbede32654369d5a3 bindet den sauberen lokalen Commit.
+Nachfolgende Bestandsaufnahme: `shell_platform.c` beendet die ganze Shell
+nach1000ms; FS-Sitzungen besitzen acht Anfragen und maximal3000ms, das
+Treiberprofil2800ms/16 Anfragen. Jede Root-Generation hat acht CREATE-Versuche
+ohne Erneuerung; Kinder erhalten kein TASK_CONTROL. Normale Namespace-,
+Spawn-,Wait- und Identitaetsadapter sind weiterhin explizite -38-Stubs.
+
+Eine endliche Shell-Komposition waere unter diesen Grenzen moeglich, aber
+noch kein Dauerbetrieb. Fuer die dauerhaft nutzbare Shell ist vor Umsetzung
+ein neues ausdrueckliches Shell-/Supervisor-Lebensdauerprofil freizugeben:
+begrenzte Einzeloperationen, feste Zulassungs-/Neustartbudgets je Zeitfenster,
+generationsgebundene Wiederherstellung und definierte Degradierung bei
+Erschoepfung. Alte Profile und Einzeloperationsgrenzen bleiben unveraendert;
+keine impliziten Zaehlerresets, unendlichen Wiederholungen oder Treiberrechte.
+Das ist eine echte Lebensdauer-/Zulassungsentscheidung, keine Routinefreigabe
+fuer Diagnose oder weitere Builds. Noch kein Folgepaket aktiv oder reserviert.
+R3.6b bleibt zurueckgestellt; vollstaendiges natives OS weiterhin nicht fertig.
+
 ## R8.3aw: gemeinsame Dateiabfrage und ELF-Erfassung qualifiziert
 
 Alle zehn Gates bestanden:41 Hostmethoden, die vollstaendige25-Faelle-Gastmatrix

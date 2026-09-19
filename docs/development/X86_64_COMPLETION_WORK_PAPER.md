@@ -2,7 +2,7 @@
 
 Aktuell19.September: R8.3av ist alsf05fcc86 abgenommen (14 Gates,233 Hosttests,
 27 Gastfaelle); generationsgebundene Vordergrund-Terminalweitergabe ist vorhanden.
-R8.3aw ist ebenfalls vollstaendig qualifiziert: zehn Gates,41 Hostmethoden,
+R8.3aw ist alse70c454c ebenfalls vollstaendig qualifiziert: zehn Gates,41 Hostmethoden,
 25 frische Gastfaelle und zwei exakt gebundene AV-Korruptionsnachweise.
 Dateiabfrage und anschliessende ELF-Erfassung teilen im SDK nun eine absolute
 Deadline und die unverlaengerte FS-Sitzung. Alter Fresh-Client-Einstieg bleibt
@@ -10,6 +10,13 @@ kompatibel. Ein fertiges Image, kein Kernel- oder Dienstumbau.
 [Vertrag](../architecture/NATIVE_FILE_CAPTURE_CONTRACT.md). Danach bleibt die
 normale Namespace-/Start-/Wait-Komposition offen, nicht eine weitere Terminal-
 Autoritaetsfreigabe. Diese Schritte sind noch keine Gesamt-OS-Abnahme.
+Die anschliessende Inventur unterscheidet eine weiterhin moegliche endliche
+Integration von dauerhaftem Shell-Betrieb: dessen1000ms Gesamtfrist, die
+acht FS-Anfragen/3000ms und acht CREATE-Versuche je Root-Generation duerfen
+nicht stillschweigend erneuert werden. Ein ausdrueckliches neues dauerhaftes
+Shell-/Supervisorprofil mit begrenzten Operationen und zeitfenstergebundenen
+Zulassungs-/Neustartbudgets benoetigt diese echte Lebensdauerfreigabe; alte
+Profile bleiben erhalten. Details und offene Grenze: [CURRENT_WORK](CURRENT_WORK.md).
 
 Neu vollstaendig qualifiziert: R8.3at [normaler nativer Shell-Port](../architecture/NATIVE_SHELL_CONTRACT.md).
 Acht Gruppen,8+33+15 Hosttests und vier Gaeste bestanden. Echte normale Shell
