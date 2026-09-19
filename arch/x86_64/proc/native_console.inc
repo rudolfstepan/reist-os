@@ -1,8 +1,14 @@
 ; Already generation/profile-admitted native call, IF0, current task in R12.
 ; Minimal initialized-UART byte mediation. No setup/poll loop/driver policy.
 native_console_syscall64:
+%ifdef REIST_NATIVE_TERMINAL
+    call native_terminal_io_admit64
+    cmp rax,1
+    jne process_run_resume64
+%else
     cmp dword [rel scheduler_current_slot],0
     jne .denied
+%endif
     mov rax,[rel syscall_r10]
     or rax,[rel syscall_r8]
     or rax,[rel syscall_r9]

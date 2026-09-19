@@ -260,6 +260,9 @@ RFLAGS_FAULT_FORBIDDEN     equ 0x00000000003E7F00
 REIST_SYS_EXIT             equ 9
 REIST_SYS_READ             equ 15
 REIST_SYS_WRITE            equ 20
+%ifdef REIST_NATIVE_TERMINAL
+REIST_SYS_TERMINAL_INPUT   equ 127
+%endif
 REIST_SYS_YIELD            equ 40
 REIST_SYS_SLEEP_MS         equ 41
 REIST_SYS_MONOTONIC_MS     equ 42
@@ -8281,6 +8284,9 @@ scheduler_profile_ranges64:
 %endif
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_TERMINAL
+%include "arch/x86_64/proc/native_terminal.inc"
+%endif
 %ifdef REIST_NATIVE_CONSOLE
 %include "arch/x86_64/proc/native_console.inc"
 %endif

@@ -3,6 +3,14 @@
 #error Explicit service console profile required
 #endif
 #include <reist/x86_64/syscall.h>
+#ifdef REIST_NATIVE_TERMINAL
+#include <reist/x86_64/terminal.h>
+#if PROGRAM_ID==0
+static int terminal_target(uint64_t handle) {
+    return reist_x64_terminal_input(REIST_TERMINAL_TRANSFER,(int32_t)(handle>>32),(uint32_t)(handle>>32));
+}
+#endif
+#endif
 static void service_console_probe(void) {
 #if PROGRAM_ID==0
     if(reist_x64_syscall3(REIST_X64_SYS_READ,0,0,0))goto failed;

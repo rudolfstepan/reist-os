@@ -81,8 +81,21 @@ process_run_admit64:
 %ifdef REIST_NATIVE_CONSOLE
     test rax,(1<<15)|(1<<20)
     jz .console_admitted
+%ifdef REIST_NATIVE_TERMINAL
+    cmp ecx,2
+    jb .console_root
+    and eax,(1<<15)|(1<<20)
+    cmp eax,(1<<15)|(1<<20)
+    jne .bad
+    mov rax,[r9+8]
+    jmp .console_version
+.console_root:
+%endif
     test ecx,ecx
     jnz .bad
+%ifdef REIST_NATIVE_TERMINAL
+.console_version:
+%endif
 %ifdef REIST_NATIVE_SERVICE_CONSOLE
     cmp dword [rdi],5
 %else
@@ -980,6 +993,10 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_TERMINAL
+    cmp qword [rel syscall_rax],REIST_SYS_TERMINAL_INPUT
+    je native_terminal_syscall64
+%endif
 %ifdef REIST_NATIVE_CONSOLE
     cmp qword [rel syscall_rax],REIST_SYS_READ
     je native_console_syscall64

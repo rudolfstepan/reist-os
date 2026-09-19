@@ -5,6 +5,9 @@
 #include <reist/x86_64/console.h>
 #include <reist/vfs_stat_client.h>
 #include <reist/vfs_read_client.h>
+#ifdef REIST_NATIVE_TERMINAL
+#include <reist/x86_64/terminal.h>
+#endif
 
 static uint64_t shell_deadline, shell_previous;
 static unsigned shell_operations, shell_received, shell_written;
@@ -98,11 +101,16 @@ void x86os_print_number(int value) {
     shell_write(buffer,length);
 }
 int x86os_terminal_input(uint32_t operation,int pid,uint32_t generation) {
+#ifdef REIST_NATIVE_TERMINAL
+    (void)shell_clock();
+    return reist_x64_terminal_input(operation,pid,generation);
+#else
     if(operation!=REIST_TERMINAL_CHECK && operation!=REIST_TERMINAL_ATTACH_CONSOLE)return -95;
     if(pid || generation)return -22;
     (void)shell_clock();
     int64_t result=reist_x64_syscall3(REIST_X64_SYS_READ,0,0,0);
     return result<=0 && result>=-4095?(int)result:-5;
+#endif
 }
 
 /* Not bound in this finite profile: no output writes, syscall, fallback or

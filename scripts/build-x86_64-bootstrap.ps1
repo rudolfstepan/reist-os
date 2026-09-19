@@ -40,6 +40,7 @@ param(
     [switch]$NativeConsole,
     [switch]$NativeShell,
     [switch]$NativeServiceConsole,
+    [switch]$NativeTerminal,
     [ValidateRange(0,10)] [int]$FileLaunchCase = 0,
     [ValidateRange(0,8)] [int]$FilesystemCase = 0,
     [ValidateRange(0,4)] [int]$FilesystemLayout = 2,
@@ -58,6 +59,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeTerminal) { $NativeServiceConsole = [switch]$true }
 if ($NativeServiceConsole) {
     if ($NativeConsole -or $NativeShell) { throw 'NativeServiceConsole excludes console-only fixtures.' }
     $NativeLiveFile = [switch]$true
@@ -425,6 +427,7 @@ try {
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `
         "X86_64_NATIVE_SHELL=$([int]$NativeShell.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CONSOLE=$([int]$NativeServiceConsole.IsPresent)" `
+        "X86_64_NATIVE_TERMINAL=$([int]$NativeTerminal.IsPresent)" `
         "X86_64_FILE_LAUNCH_CASE=$FileLaunchCase" `
         "X86_64_FILESYSTEM_CASE=$FilesystemCase" `
         "X86_64_FILESYSTEM_LAYOUT=$FilesystemLayout" `

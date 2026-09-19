@@ -157,12 +157,20 @@ family_profile_admit64:
     mov rax,[rdi+8]
     test rax,1<<9
     jz .denied
+%ifdef REIST_NATIVE_TERMINAL
+    mov rdx,~((1<<4)|(1<<5)|(1<<6)|(1<<9)|(1<<15)|(1<<20)|(1<<22)|(1<<40)|(1<<41)|(1<<42)|(0x7f<<49)|(1<<58))
+%else
     mov rdx,~((1<<4)|(1<<5)|(1<<6)|(1<<9)|(1<<22)|(1<<40)|(1<<41)|(1<<42)|(0x7f<<49)|(1<<58))
+%endif
     test rax,rdx
     jnz .denied
     mov rax,[rdi+16]
 %ifdef REIST_NATIVE_PIO
+%ifdef REIST_NATIVE_TERMINAL
+    mov rdx,~((1<<49)|(1<<63))
+%else
     mov rdx,~(1<<49)
+%endif
     test rax,rdx
 %else
     test rax,rax
@@ -170,6 +178,22 @@ family_profile_admit64:
     jnz .denied
     cmp qword [rdi+24],0
     jne .denied
+%ifdef REIST_NATIVE_TERMINAL
+    mov rdx,[rdi+8]
+    and edx,(1<<15)|(1<<20)
+    bt qword [rdi+16],63
+    jc .terminal
+    test edx,edx
+    jnz .denied
+    jmp .admitted
+.terminal:
+    cmp edx,(1<<15)|(1<<20)
+    jne .denied
+    mov rdx,1<<63
+    cmp [rdi+16],rdx
+    jne .denied
+.admitted:
+%endif
     mov eax,1
     ret
 .invalid:
@@ -364,12 +388,19 @@ family_profile_apply64:
     jnz .invalid_binding
 .child_extended:
 %ifdef REIST_NATIVE_PIO
+%ifdef REIST_NATIVE_TERMINAL
+    mov r10,~((1<<49)|(1<<63))
+%else
     mov r10,~(1<<49)
+%endif
     test rax,r10
     jnz .invalid_binding
     test edi,edi
     jnz .extended
     bts rax,49
+%ifdef REIST_NATIVE_TERMINAL
+    bts rax,63
+%endif
 .extended:
 %else
     test rax,rax
@@ -438,6 +469,11 @@ family_root_built64:
     mov [r10],rax
     mov qword [r10+40],1
     inc dword [rel family_total]
+%ifdef REIST_NATIVE_TERMINAL
+    test edi,edi
+    jnz .done
+    mov [rel native_terminal_state],rax
+%endif
 .done:
     ret
 
@@ -1176,6 +1212,9 @@ family_wait_expired64:
 family_terminal64:
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
     jne .done
+%ifdef REIST_NATIVE_TERMINAL
+    call native_terminal_retire_hook64
+%endif
 %ifdef REIST_NATIVE_PIO
     call native_pio_terminal64
 %endif
@@ -1401,6 +1440,11 @@ family_finish64:
     jne .done
     cmp dword [rel family_cancel_mask],0
     jne scheduler_fail
+%ifdef REIST_NATIVE_TERMINAL
+    mov rax,[rel native_terminal_state]
+    or rax,[rel native_terminal_state+8]
+    jnz scheduler_fail
+%endif
 %ifdef REIST_NATIVE_TASK_POOL
     lea rdx,[rel family_records+2*64+40]
     mov ecx,NATIVE_POOL_TASKS-2
@@ -1425,6 +1469,9 @@ family_finish64:
 section .bss
 alignb 8
 family_begin:
+%ifdef REIST_NATIVE_TERMINAL
+native_terminal_state: resq 3 ; root handle, foreground child handle, RX fence
+%endif
 ; Keep this extracted data fragment self-contained; the include is guarded.
 %include "arch/x86_64/mm/native_layout.inc"
 family_records: resb NATIVE_POOL_TASKS*64

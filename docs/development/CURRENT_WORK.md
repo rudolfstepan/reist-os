@@ -1,19 +1,66 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 18. September 2026
+Stand: 19. September 2026
 
-## R8.3av: begrenzte Terminalweitergabe freigegeben
+## R8.3av: generationsgebundene Terminalweitergabe qualifiziert
+
+Alle14 eingefrorenen Pruefpflichten bestanden:233 Hosttests, alle25 normalen
+Lebenszyklus-/Medien-/CPU-/Fehler-/OOM-Faelle sowie zwei Korruptionsgaeste mit
+physischer Geraetesperre, IF0 und Halt. Kandidat05 verwendet neun exakt
+quelltext-, werkzeug-, befehls- und beleggebundene Pruefungen wieder; fuenf
+Pruefungen frisch. Alle25 normalen Rohdatensaetze erneut vollstaendig bewertet.
+Image e2e9172277e67edc, echter dateigeladener ELF64-Client1272 Bytes.
+Insgesamt genau zwei Images und31 physische Gastversuche502,3338371s,
+einschliesslich aller Fehler und eines nicht als Abnahme gewerteten Kontrollgasts.
+Review6de066070d27b699 versiegelt6425 Belegdateien; Abschlussbeleg:
+`build/codex-agent/r83av-terminal/candidate05/verification-status-terminal-final.json`.
+
+Eigene explizit berechtigte Vordergrundkinder erhalten die Konsole nur fuer
+ihre lebende Generation. Exit, Fehler, CPU-Erschoepfung, Abbruch und Elternverlust
+entziehen sie; Treiber/Dateidienst erhalten keine Konsolenrechte. Alte Profile,
+Quoten, Fristen und Assertions bleiben erhalten. Keine Gesamt-OS-Abnahme:
+normale Shell mit Dateinamensraum und Programmstart sowie Hardwareabnahme offen.
+Nach sauberem lokalen Commit folgt deren zusammenhaengende Bestandsaufnahme;
+R3.6b bleibt ausdruecklich zurueckgestellt.
+
+### Historie: Freigabe und begrenzte Korrekturfenster
 
 Der Nutzer hat die folgende echte Autoritaetsgrenze freigegeben. Paket
 R8.3av-terminal-lease ist aktiv: vorhandene ABI127/v1, genau ein explizit
 berechtigtes eigenes Vordergrundkind, generationsgebundener Entzug auf allen
 Endpfaden. Treiber/Dateidienst und alte Profile bleiben unveraendert.
 Ein gemeinsames Image,14 Pruefpflichten,25 Lebenszyklus- und zwei
-Korruptionsgaeste eingefroren. Noch keine Umsetzung oder Abnahme dieses Pakets.
+Korruptionsgaeste eingefroren. Umsetzung im Hauptarbeitsbaum: feste
+generationsgebundene Terminalzustandsmaschine, explizite Kindprofilrechte,
+begrenzter UART-Adapter, gemeinsamer Entzugspfad, SDK und1272-Byte-ELF64-Client.
+Die gezielten echten NASM-/SDK-/Adaptertests bestehen bei O0/O2; vollstaendige
+Scheduler-Assembly, alte Producer-Aufrufe und ausgeschaltete Quellzweige sind
+geprueft. Neuer Rohdatenbeobachter behaelt die komplette AR-Pruefung bei.
+Kandidat02: Gates1..10 bestanden, ein Image d1a12c39047ef7e9; erster Gast
+scheitert nach7.3006299s am verbliebenen Root-only-Deskriptorguard vor dem
+Programmstart. Echte NASM-Regression zuerst rot, gezielte Korrektur jetzt
+O0/O2 gruen; alte deaktivierte Quellzweige bleiben identisch. Zusaetzlich
+PIO-Komplement im Fatalbeobachter korrigiert. Kandidat03 reserviert genau
+ein korrigiertes Image und die volle25+2-Matrix. Image e2e9172277e67edc:
+Gates1..10 und sechs vollstaendige Gaeste bestehen. Fall1 entzieht die
+Terminalleihe beim Kindabsturz korrekt, scheitert aber an der CPU32-Quote
+des Ersatz-ATA-Dienstes. Kontrollgast mit unveraendertem Image und originaler
+AR-Beobachtung besteht; keine Terminalabnahme aus diesem Diagnoseergebnis.
+Kandidat04 begrenzt ausschliesslich die neuen Beobachterproben auf aktive
+Uebergabe-/IO-Phasen und beobachtet Entzug an aequivalenten IF0-Grenzen.
+Keine Produktionsaenderung/Neubau. Acht exakt gebundene Gate-Wiederverwendungen,
+sechs exakt gebundene gesunde Gaeste; verbleibende19+2 Gaeste frisch.
+Kandidat04: alle25 normalen Faelle bestanden. Erster Fatalgast scheitert vor
+Injektion an einer Methodennamenskollision im neuen GDB-Adapter; echte
+Dispatcher-Regression reproduziert den Fehler und besteht nach ausschliesslicher
+Umbenennung der inneren Callback-Methode. Kandidat05 behaelt Image und alle25
+normalen Nachweise exakt bei, reserviert nur zwei neue Fatalgaeste. Bislang
+insgesamt zwei Images,29 Gaeste497.8194527s einschliesslich aller Fehler und
+des Kontrollgastes. Noch keine AV-Abnahme.
 Vertrag: `docs/architecture/NATIVE_TERMINAL_LEASE_CONTRACT.md`.
 Die folgende Freigabeanforderung bleibt als inzwischen erledigte Historie.
 
-## Naechste native Autoritaetsgrenze nach sauberem AU-Abschluss
+## Historie: inzwischen freigegebene Autoritaetsgrenze nach AU-Abschluss
 
 Implementierung53dd42d5 ist lokal abgenommen; finaler Beleg
 `r83au-service-console/scoped-start-fix/verification-status-service-console-final.json`

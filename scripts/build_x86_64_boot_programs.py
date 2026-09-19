@@ -48,7 +48,8 @@ def build_file_program(directory,cc,nasm,ld):
     environment.setdefault('ZIG_LOCAL_CACHE_DIR',str(directory/'zig-cache'))
     start=directory/'file-start.o';obj=directory/'file-program.o';elf=directory/'file-program.prg'
     commands=[[*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start],
-        [*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/file_program.c','-o',obj],
+        ([*nasm,'-f','elf64','arch/x86_64/user/terminal_program.asm','-o',obj] if '-DREIST_NATIVE_TERMINAL=1' in cc else
+         [*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/file_program.c','-o',obj]),
         [*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined','-z','noexecstack','--strip-all','-T','config/x86_64_file_program.ld','-o',elf,start,obj]]
     for command in commands:
         r=subprocess.run(list(map(str,command)),cwd=ROOT,env=environment,capture_output=True,timeout=60,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -59,7 +60,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False):
+    if type(terminal) is not bool or terminal and not service_console:raise ValueError('terminal requires explicit service console')
     if type(service_console) is not bool or service_console and (not live_file or console or native_shell):
         raise ValueError('service console requires live file and excludes console-only fixtures')
     if type(native_shell) is not bool or native_shell and not console:raise ValueError('native shell requires explicit console')
@@ -103,6 +105,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if service_pio:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_SERVICE_PIO=1']
     if live_file:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_LIVE_FILE=1']
     if service_console:cc=[*cc,'-DREIST_NATIVE_SERVICE_CONSOLE=1']
+    if terminal:cc=[*cc,'-DREIST_NATIVE_TERMINAL=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -204,6 +207,7 @@ if __name__=='__main__':
     p.add_argument('--console',action='store_true')
     p.add_argument('--native-shell',action='store_true')
     p.add_argument('--service-console',action='store_true')
+    p.add_argument('--terminal',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -211,4 +215,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal)

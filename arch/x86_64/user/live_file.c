@@ -25,6 +25,17 @@ static void witness(unsigned phase,uint64_t fs,uint64_t driver,uint64_t app,
 #ifdef REIST_NATIVE_SERVICE_CONSOLE
     if(phase==2)service_console_probe();
 #endif
+#ifdef REIST_NATIVE_TERMINAL
+    if(phase==2) {
+        if(terminal_target(fs)!=-13 || terminal_target(driver)!=-13 ||
+           reist_x64_terminal_input(REIST_TERMINAL_ATTACH_CONSOLE,0,0) ||
+           terminal_target(app) || terminal_target(app) ||
+           reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0)!=-11 ||
+           reist_x64_syscall3(REIST_X64_SYS_READ,0,0,0)!=-11) {
+            (void)S1(EXIT,247);__builtin_trap();
+        }
+    }
+#endif
 }
 static int retire(uint64_t fs,uint64_t driver,int64_t fs_status,int64_t driver_status) {
     REQUIRE(!port_control(driver,REIST_PIO_FENCE),240);
@@ -98,6 +109,10 @@ int main(int argc,char **argv,char **envp) {
             const char *args[]={"/boot.prg",channel,option};reist_task_startup_v1_t startup;
             REQUIRE(!reist_x64_startup_init(&startup,3,args),219);
             reist_task_profile_v1_t profile={1,40,{MASK,0,0},0};
+#ifdef REIST_NATIVE_TERMINAL
+            profile.masks[0]|=(1ULL<<15)|(1ULL<<20);
+            profile.masks[1]|=1ULL<<63;
+#endif
             int64_t program=reist_x64_task_import_wide(record,&profile,32,&startup);
             if(test==8 && !round) {
                 REQUIRE(program==-12,220);program=reist_x64_task_import_wide(record,&profile,32,&startup);
@@ -132,6 +147,10 @@ int main(int argc,char **argv,char **envp) {
             int64_t expected=!round && test==1?((1LL<<32)|134):!round && test==2?((1LL<<32)|256):
                              !round && test==3?(2LL<<32):82;
             REQUIRE(task_control(2,program,1000)==expected && task_control(2,program,1)==-10,232);
+#ifdef REIST_NATIVE_TERMINAL
+            REQUIRE(!reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0) &&
+                    terminal_target(program)==-116 && !S3(READ,0,0,0),248);
+#endif
             if(previous_program) REQUIRE(task_control(2,previous_program,1)==-10,233);
             REQUIRE(!S1(IPC_CLOSE,app_ep),234);previous_program=program;
         }

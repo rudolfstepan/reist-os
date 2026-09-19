@@ -271,6 +271,18 @@ X86_64_NATIVE_LIVE_FILE ?= 0
 X86_64_NATIVE_CONSOLE ?= 0
 X86_64_NATIVE_SHELL ?= 0
 X86_64_NATIVE_SERVICE_CONSOLE ?= 0
+X86_64_NATIVE_TERMINAL ?= 0
+ifneq ($(words $(X86_64_NATIVE_TERMINAL)),1)
+$(error NativeTerminal selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_TERMINAL),0 1),$(X86_64_NATIVE_TERMINAL))
+$(error NativeTerminal selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_TERMINAL),1)
+ifneq ($(X86_64_NATIVE_SERVICE_CONSOLE),1)
+$(error NativeTerminal requires NativeServiceConsole)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_SERVICE_CONSOLE)),1)
 $(error NativeServiceConsole selector must be one explicit value)
 endif
@@ -309,6 +321,8 @@ endif
 endif
 X86_64_CONSOLE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE) $(X86_64_NATIVE_SERVICE_CONSOLE)),-DREIST_NATIVE_CONSOLE=1,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CONSOLE)),-DREIST_NATIVE_SERVICE_CONSOLE=1,)
 X86_64_CONSOLE_ARG = $(if $(filter 1,$(X86_64_NATIVE_CONSOLE)),--console,) $(if $(filter 1,$(X86_64_NATIVE_SHELL)),--native-shell,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CONSOLE)),--service-console,)
+X86_64_CONSOLE_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL)),-DREIST_NATIVE_TERMINAL=1,)
+X86_64_CONSOLE_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL)),--terminal,)
 ifneq ($(words $(X86_64_NATIVE_LIVE_FILE)),1)
 $(error NativeLiveFile selector must be one explicit value)
 endif

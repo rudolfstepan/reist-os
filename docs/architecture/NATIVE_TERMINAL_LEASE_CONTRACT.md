@@ -75,3 +75,22 @@ raw evidence and every failed window stay bound under ignored r83av-terminal.
 Standing authority allows separately frozen evidence-directed corrections,
 never unchanged retries or weaker gates. All gates and direct scope/ABI/bounds/
 cleanup review precede local implementation commit. Then continue native work.
+
+## Qualified result — 2026-09-19
+
+All14 obligations passed:233 host tests and27 qualified guests (the complete25
+normal lifecycle/media/CPU/fault/OOM cases and two corrupt-generation cases with
+physical device fencing, IF0 and halt). Candidate05 reuses nine exactly bound
+gates and executes five fresh gates; final review replays every raw case.
+Image SHA256: e2e9172277e67edcf0cbb932a6ba1d725e995ec48723d8f6c42135653c130e10.
+The actual file-loaded ELF64 client is1272 bytes within the unchanged1280-byte
+bound. Exactly two cumulative images and31 physical guest attempts consumed
+502.3338371000136s, retaining all failures and the diagnostic-only control.
+
+The reviewed seal6de066070d27b69967fd442fc57d6c5f6c4791fe5642a4f33c00bbeb1be93105
+binds6425 evidence files. The subsequent clean local implementation commit is
+bound by `build/codex-agent/r83av-terminal/candidate05/verification-status-terminal-final.json`.
+No quota, deadline, existing lifecycle oracle or shared transport was weakened.
+This qualifies only the bounded native terminal mechanism and its integration
+fixture, not normal-shell namespace/file/launch integration, a complete64-bit OS
+or hardware acceptance. Those remain separate completion work.
