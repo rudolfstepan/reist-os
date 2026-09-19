@@ -70,3 +70,29 @@ other gates180s except matrix1200s. Preserve every failure and spent count;
 standing authority permits only separately frozen evidence-directed windows.
 Freeze source/tool/command/scope hashes before gates, review the complete raw
 matrix and diff, then documentation-only queue closure and clean local commit.
+
+## Preserved freestanding link stop
+
+Candidate01 passes gates1..5 (40 host methods). Its first build invocation
+fails before a complete OS image: the new canonical STAT-info assignment is
+lowered by freestanding Oz compilation to an unresolved memcpy. Stop58ad4de9
+and all sources/logs remain. Candidate02 replaces only that assignment with
+existing bounded file_copy and adds an actual nostdlib/no-undefined link test
+before the corrected build. Same ten gates and unchanged25-case raw oracle,
+zero previous guests; one corrected image, at most two cumulative build
+invocations. No libc, new dependency, weaker assertion or quota change.
+
+## Completed qualification — 19 September2026
+
+Candidate02 passes all ten obligations:41 host methods, including actual
+O0/O2 media/FS/block/ELF cases and the freestanding no-implicit-libc link.
+All25 fresh guest cases pass in468.5106607999187s. Exact allocated kernel
+sections/objects/symbols and unchanged driver, FS and child images bind reuse
+and replay of AV's two physical-fence/corruption proofs. One completed image
+2042f4de5287201ef4b8596906ac8820033a5ff1291ae255b78d2d8cb63ae571; two build
+invocations including the retained failed link, no guest retries.
+Review751cd640f8903331b5d9055afe44044aca038c9bd8d2ce9e660d6785907e147d
+seals2928 files. Documentation-only closure and the clean local implementation
+commit are bound by `build/codex-agent/r83aw-file-capture/candidate02/verification-status-file-capture-final.json`.
+This qualifies the shared file-capture boundary, not normal-shell namespace,
+spawn/wait integration, persistent sessions, complete OS or physical hardware.

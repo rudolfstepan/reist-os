@@ -2,7 +2,20 @@
 
 Stand: 19. September 2026
 
-## R8.3aw: gemeinsame Dateiabfrage und ELF-Erfassung aktiv
+## R8.3aw: gemeinsame Dateiabfrage und ELF-Erfassung qualifiziert
+
+Alle zehn Gates bestanden:41 Hostmethoden, die vollstaendige25-Faelle-Gastmatrix
+und zwei erneut ausgewertete AV-Korruptionsnachweise mit exakt unveraendertem
+Kernel. Neue SDK-Stufen teilen Generation, Sequenz und absolute Deadline;
+alte Aufrufer behalten ihren Fresh-Client-Vertrag. Kein Zaehlerreset oder
+zusaetzlicher Dateirequest, keine Aenderung von Kernel, Diensten oder Quoten.
+Ein fertiges Image2042f4de5287201e; zwei Buildaufrufe einschliesslich des
+erhaltenen Linkfehlers.25 frische Gaeste468,5106608s. Review751cd640f8903331
+versiegelt2928 Dateien. Finaler Beleg:
+`build/codex-agent/r83aw-file-capture/candidate02/verification-status-file-capture-final.json`.
+Normale Shell mit Namespace-/Spawn-/Wait-Anbindung und Gesamt-OS bleiben offen.
+
+### Historie: Paketdefinition und Linkkorrektur
 
 AV ist alsf05fcc86 sauber lokal abgenommen; finaler Belegcb07c12c335b1540.
 Bestandsaufnahme der normalen Shell: STAT vor SPAWNV trifft auf einen
@@ -13,6 +26,11 @@ Ruecksetzen des Acht-Anfragen-Budgets. Alter Einstieg bleibt kompatibel.
 Zehn Gates, ein gemeinsames Image,25 frische Gaeste; keine Kernel-/Dienstrechte
 oder Quoten aendern. Vertrag: `NATIVE_FILE_CAPTURE_CONTRACT.md`.
 Normale Shell-Komposition und Gesamt-OS weiterhin offen; noch keine AW-Abnahme.
+Kandidat01: Gates1..5 bestanden (40 Hostmethoden); erster Build stoppt vor
+fertigem Image an compilererzeugtem memcpy aus der neuen Strukturkopie.
+Stopp58ad4de9 erhalten, null Gaeste. Kandidat02 ersetzt ausschliesslich diese
+Kopie durch den vorhandenen begrenzten Helfer und ergaenzt die echte
+Freestanding-Linkregression; ein korrigiertes Image, gleiche zehn Gates.
 
 ## R8.3av: generationsgebundene Terminalweitergabe qualifiziert
 

@@ -16,43 +16,105 @@ static int file_range(const void *p,size_t bytes) {
 static int file_overlap(const void *a,size_t an,const void *b,size_t bn) {
     return (uintptr_t)a<(uintptr_t)b+bn && (uintptr_t)b<(uintptr_t)a+an;
 }
-int reist_x64_file_prepare_v2(void *output,reist_file_image_workspace *w,
-    reist_fs_client *c,const reist_fs_transport *t,const char *path,unsigned length,unsigned timeout) {
-    if(!length || length>=192 || !timeout || timeout>3000) return -22;
-    const void *objects[]={output,w,c,t,path};
-    const size_t sizes[]={REIST_X64_PREPARED_V2_BYTES,sizeof(*w),sizeof(*c),sizeof(*t),length};
-    for(unsigned i=0;i<5;i++) if(!file_range(objects[i],sizes[i])) return -22;
-    for(unsigned i=0;i<3;i++) for(unsigned j=i+1;j<5;j++)
+static int file_objects(const void *const *objects,const size_t *sizes,unsigned count,unsigned mutable) {
+    for(unsigned i=0;i<count;i++) if(!file_range(objects[i],sizes[i])) return -22;
+    for(unsigned i=0;i<mutable;i++) for(unsigned j=i+1;j<count;j++)
         if(file_overlap(objects[i],sizes[i],objects[j],sizes[j])) return -22;
+    return 0;
+}
+static int file_client(const reist_fs_client *c,const reist_fs_transport *t) {
     if(c->busy) return -16;
     if(c->failed) return -116;
-    if(c->sequence || (uint32_t)c->owner!=3 || !(c->owner>>32) || c->owner>INT64_MAX ||
-       !t->clock || !t->send || !t->receive || path[0]!='/') return -22;
+    if((uint32_t)c->owner!=3 || !(c->owner>>32) || c->owner>INT64_MAX ||
+       !t->clock || !t->send || !t->receive) return -22;
+    return 0;
+}
+static int file_path(const char *path,unsigned length) {
+    if(path[0]!='/') return -22;
     for(unsigned i=0;i<length;i++) if(!path[i]) return -22;
+    return 0;
+}
+static int file_stat_call(reist_file_capture_v1 *out,reist_fs_client *c,
+    const reist_fs_transport *t,const char *path,unsigned length,unsigned timeout,
+    uint64_t start,uint64_t owner,uint64_t sequence) {
+    reist_file_capture_v1 next;file_clear(&next,sizeof(next));
+    next.version=1;next.struct_size=sizeof(next);next.owner=owner;next.sequence=sequence;
+    int result=reist_fs_request_init(&next.frame,5,path,length,0,0);if(result)return result;
+    reist_fs_transport transport=*t;
+    next.deadline_ms=start+timeout;
+    uint64_t now=transport.clock(transport.context);
+    if(now<start || now>=next.deadline_ms)return now<start?-84:-110;
+    if(c->owner!=next.owner || c->sequence!=next.sequence-1)return -116;
+    result=reist_fs_call(c,&transport,&next.frame,(unsigned)(next.deadline_ms-now));
+    if(result)return result;
+    next.observed_ms=transport.clock(transport.context);
+    if(next.observed_ms<now || next.observed_ms>=next.deadline_ms)
+        return next.observed_ms<now?-84:-110;
+    if(c->owner!=next.owner || c->sequence!=next.sequence)return -116;
+    file_copy(out,&next,sizeof(next));return 0;
+}
+int reist_x64_file_stat_v1(reist_file_capture_v1 *out,reist_fs_client *c,
+    const reist_fs_transport *t,const char *path,unsigned length,unsigned timeout) {
+    if(!length || length>=192 || !timeout || timeout>3000)return -22;
+    const void *objects[]={out,c,t,path};
+    const size_t sizes[]={sizeof(*out),sizeof(*c),sizeof(*t),length};
+    int result=file_objects(objects,sizes,4,2);if(result)return result;
+    result=file_client(c,t);if(result)return result;
+    if(file_path(path,length))return -22;
+    if(c->sequence>=REIST_FS_SESSION_REQUESTS)return -11;
+    reist_fs_transport transport=*t;
+    uint64_t owner=c->owner,sequence=c->sequence+1,start=transport.clock(transport.context);
+    if(start>UINT64_MAX-timeout)return -22;
+    return file_stat_call(out,c,&transport,path,length,timeout,start,owner,sequence);
+}
+static int file_observation(const reist_file_capture_v1 *p) {
+    if(p->version!=1 || p->struct_size!=sizeof(*p) || !p->sequence ||
+       p->sequence>REIST_FS_SESSION_REQUESTS || p->deadline_ms<=p->observed_ms ||
+       p->deadline_ms-p->observed_ms>3000)return -22;
+    unsigned length=p->frame.stat.path_length;
+    if(!length || length>=192 || file_path(p->frame.stat.path,length))return -22;
+    reist_fs_frame canonical;
+    if(reist_fs_request_init(&canonical,5,p->frame.stat.path,length,0,0))return -22;
+    file_copy(&canonical.stat.info,&p->frame.stat.info,sizeof(canonical.stat.info));
+    for(unsigned n=0;n<512;n++)if(canonical.bytes[n]!=p->frame.bytes[n])return -22;
+    unsigned n=0;while(n<sizeof(canonical.stat.info.name) && canonical.stat.info.name[n])n++;
+    if(!n || n==sizeof(canonical.stat.info.name))return -22;
+    for(;n<sizeof(canonical.stat.info.name);n++)if(canonical.stat.info.name[n])return -22;
+    if(canonical.stat.info.type!=X86OS_FILE)return -13;
+    if(canonical.stat.info.size<64 || canonical.stat.info.size>REIST_X64_FILE_IMAGE_BYTES)return -27;
+    return 0;
+}
+int reist_x64_file_finish_v2(void *output,reist_file_image_workspace *w,
+    reist_fs_client *c,const reist_fs_transport *t,const reist_file_capture_v1 *p) {
+    const void *objects[]={output,w,c,t,p};
+    const size_t sizes[]={REIST_X64_PREPARED_V2_BYTES,sizeof(*w),sizeof(*c),sizeof(*t),sizeof(*p)};
+    int result=file_objects(objects,sizes,5,3);if(result)return result;
+    result=file_client(c,t);if(result)return result;
+    result=file_observation(p);if(result)return result;
+    if(c->owner!=p->owner || c->sequence!=p->sequence)return -116;
+    unsigned size=p->frame.stat.info.size,offset=0;
+    unsigned calls=(size+255)/256+1;
+    if(calls>REIST_FS_SESSION_REQUESTS-c->sequence)return -11;
     reist_fs_transport transport=*t;uint64_t owner=c->owner;
-    uint64_t last=transport.clock(transport.context);
-    if(last>UINT64_MAX-timeout) return -22;
-    uint64_t deadline=last+timeout;unsigned size=0,offset=0;
-    int result=0;
+    uint64_t sequence=c->sequence,last=p->observed_ms,deadline=p->deadline_ms;
+    /* Snapshot the observation before callbacks, including the exact path. */
+    char path[192];unsigned length=p->frame.stat.path_length;
+    file_copy(path,p->frame.stat.path,length);path[length]=0;
     file_clear(w,sizeof(*w));
-    /* Fresh stat, <=6 complete data reads, one exact EOF. No retry or rebind. */
-    for(unsigned call=0;call<8;call++) {
-        unsigned requested=call?(offset<size?(size-offset<256?size-offset:256):1):0;
-        result=reist_fs_request_init(&w->frame,call?6:5,path,length,offset,requested);
+    /* At most six complete data reads and one exact EOF. No retry or rebind. */
+    for(unsigned call=0;call<calls;call++) {
+        unsigned requested=offset<size?(size-offset<256?size-offset:256):1;
+        result=reist_fs_request_init(&w->frame,6,path,length,offset,requested);
         if(result) break;
         uint64_t now=transport.clock(transport.context);
         if(now<last || now>=deadline) {result=now<last?-84:-110;break;}
-        if(c->owner!=owner || c->sequence!=call) {result=-116;break;}
+        if(c->owner!=owner || c->sequence!=sequence+call) {result=-116;break;}
         result=reist_fs_call(c,&transport,&w->frame,(unsigned)(deadline-now));
         if(result) break;
         last=transport.clock(transport.context);
         if(last<now || last>=deadline) {result=last<now?-84:-110;break;}
-        if(c->owner!=owner || c->sequence!=call+1) {result=-116;break;}
-        if(!call) {
-            if(w->frame.stat.info.type!=X86OS_FILE) {result=-13;break;}
-            size=w->frame.stat.info.size;
-            if(size<64 || size>REIST_X64_FILE_IMAGE_BYTES) {result=-27;break;}
-        } else if(offset<size) {
+        if(c->owner!=owner || c->sequence!=sequence+call+1) {result=-116;break;}
+        if(offset<size) {
             if(w->frame.read.transferred!=requested) {result=-5;break;}
             file_copy(w->file+offset,w->frame.read.data,requested);offset+=requested;
         } else {
@@ -61,12 +123,30 @@ int reist_x64_file_prepare_v2(void *output,reist_file_image_workspace *w,
             if(result) break;
             now=transport.clock(transport.context);
             if(now<last || now>=deadline) {result=now<last?-84:-110;break;}
-            if(c->owner!=owner || c->sequence!=call+1) {result=-116;break;}
+            if(c->owner!=owner || c->sequence!=sequence+call+1) {result=-116;break;}
             /* Single publication after full ELF validation and deadline admission. */
             file_copy(output,w->prepared,REIST_X64_PREPARED_V2_BYTES);
             file_clear(w,sizeof(*w));return 0;
         }
     }
     if(!result) result=-5;
+    file_clear(w,sizeof(*w));return result;
+}
+int reist_x64_file_prepare_v2(void *output,reist_file_image_workspace *w,
+    reist_fs_client *c,const reist_fs_transport *t,const char *path,unsigned length,unsigned timeout) {
+    if(!length || length>=192 || !timeout || timeout>3000)return -22;
+    const void *objects[]={output,w,c,t,path};
+    const size_t sizes[]={REIST_X64_PREPARED_V2_BYTES,sizeof(*w),sizeof(*c),sizeof(*t),length};
+    int result=file_objects(objects,sizes,5,3);if(result)return result;
+    result=file_client(c,t);if(result)return result;
+    if(c->sequence || file_path(path,length))return -22;
+    /* Preserve the fresh-client entrypoint and its scrub-on-admitted-failure
+     * contract while sharing the actual new two-stage capture implementation. */
+    reist_file_capture_v1 observation;
+    reist_fs_transport transport=*t;uint64_t owner=c->owner,start=transport.clock(transport.context);
+    if(start>UINT64_MAX-timeout)return -22;
+    file_clear(w,sizeof(*w));
+    result=file_stat_call(&observation,c,&transport,path,length,timeout,start,owner,1);
+    if(!result)result=reist_x64_file_finish_v2(output,w,c,&transport,&observation);
     file_clear(w,sizeof(*w));return result;
 }

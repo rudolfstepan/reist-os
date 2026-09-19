@@ -9,6 +9,27 @@ typedef struct {
     reist_fs_frame frame;
     uint8_t prepared[REIST_X64_PREPARED_V2_BYTES];
 } reist_file_image_workspace;
+/* An observation of one actual STAT, not a capability or kernel attestation.
+ * Ring3 callers own this ordinary value. The immutable-media, exact EOF/ELF
+ * and kernel admission checks remain mandatory, including if it is modified.
+ * Units are absolute monotonic milliseconds; separating stages never renews
+ * the original deadline or resets the FS generation's eight-request budget. */
+typedef struct {
+    uint32_t version,struct_size;
+    uint64_t owner,sequence,deadline_ms,observed_ms;
+    reist_fs_frame frame;
+} reist_file_capture_v1;
+typedef char reist_file_capture_size_check[sizeof(reist_file_capture_v1)==552?1:-1];
+/* Output observation remains unchanged on error. Accept an already-used FS
+ * client, but never an exhausted/poisoned generation. No retry or rebind. */
+int reist_x64_file_stat_v1(reist_file_capture_v1 *,reist_fs_client *,
+    const reist_fs_transport *,const char *path,unsigned length,unsigned timeout_ms);
+/* Accept only the exact current observation and enough remaining FS capacity.
+ * Prepared output unchanged on error; pre-admission leaves workspace intact,
+ * all admitted paths scrub it. Successful reads consume the observation via
+ * the client's real sequence progress; it cannot be used a second time. */
+int reist_x64_file_finish_v2(void *prepared,reist_file_image_workspace *,
+    reist_fs_client *,const reist_fs_transport *,const reist_file_capture_v1 *);
 /* All objects mapped and disjoint where mutable. Caller supplies fixed storage;
  * no heap or CREATE here. Fresh FS client, immutable medium, eight RPC maximum.
  * Prepared output unchanged on error; admitted workspace scrubbed on return.
