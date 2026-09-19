@@ -1,5 +1,11 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Naechster aktiver Schnitt19.September: R8.3ay integriert normale Shell und
+generationengebundene, endliche Dienstsitzungen unter einem ausdruecklichen
+persistenten Rootprofil. Namespace/Dateistart/Identitaet/Terminal/Wait und
+Recovery werden gemeinsam qualifiziert; ein Image fuer18 Gastfaelle.
+[Eingefrorener Vertrag](../architecture/NATIVE_SHELL_SESSION_CONTRACT.md).
+
 19.September, nach AW: Nutzerfreigabe fuer ein separates dauerhaftes Shell-/
 Supervisorprofil erteilt. R8.3ax ist qualifiziert, dessen Kernelgrenze versioniert und
 generationsgebunden acht Konstruktionen pro Sekunde zulaesst, ohne alte Profile,

@@ -2,6 +2,17 @@
 
 Stand: 19. September 2026
 
+## R8.3ay aktiv: echte Shell und begrenzte Dienstsitzungen
+
+Nach sauberem AX-Commit69282e76 ist der naechste zusammenhaengende Schnitt
+eingefroren: persistente normale Shell, echte schreibgeschuetzte Namespace-/
+Dateiabfrage, Start/Identitaet/Terminal/Wait und generationsgebundene ATA-/FS-
+Erneuerung. Keine neue Treiberautoritaet oder Quotenlockerung. Ein gemeinsames
+Image, zehn Gates,18 Gastfaelle; alle Medienvarianten bleiben zusammen.
+Noch keine AY-Implementierungsabnahme. Die neue native Identitaetsabfrage
+verwendet vorhandenes ABI114 und darf nur selbst/eigene lebende Kinder melden.
+Details: [Sitzungsvertrag](../architecture/NATIVE_SHELL_SESSION_CONTRACT.md).
+
 ## R8.3ax qualifiziert: begrenzte Erzeugung im Dauerbetriebsprofil
 
 Die ausdrueckliche Lebensdauerfreigabe ist am19.September durch das erneute
