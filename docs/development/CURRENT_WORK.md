@@ -2,6 +2,36 @@
 
 Stand: 20. September 2026
 
+## Sauber abgeschlossen; neue Anwendungs-Dateirechte noch nicht freigegeben
+
+R8.3bb ist lokal als `813606cf7f6fcd6eb42fe8e8a38658f8ce2cf0e7` angenommen,
+Worktree am Abschluss sauber. Finaler gebundener Nachweis:
+`build/codex-agent/r83bb-wide-shell-media/candidate02/verification-status-wide-shell-media-final.json`,
+SHA256 `496442d7a594b347915ad28313474ab6bec2728e84d80e74bd33acd61d7ae4d4`.
+Alle acht Gates, zehn voll ausgewertete BIOS-Faelle, kein Kernel-Neubau.
+
+Anschliessende reine Bestandspruefung: Der AY-Vertrag verbietet Vordergrund-
+programmen ausdruecklich FS-Endpunkte/Rechte (Abschnitt Lifetime, Zeilen573-574).
+Der Spawnadapter in `userspace/sdk/lib/x86_64/shell_session.c` delegiert nur
+das bisherige Programm-/Terminalprofil. `cat` und `ls` nutzen hingegen alte
+Storage-Clientadapter (`STORAGE_SUBMIT67`, `COLLECT71`, `CANCEL118`); diese
+Aufrufe sind nicht im zugelassenen nativen Kindprofil. Native FS-IPC bietet
+STAT/READ/READDIR, noch keine delegierten Dateiobjekte fuer Anwendungen.
+Reines Neuuebersetzen, stilles Endpoint-Kopieren oder ein Ring0-VFS waere keine
+korrekte Loesung. Shell-eigener Dateistart ist bereits abgenommen und ersetzt
+keine Leseberechtigung des gestarteten Programms.
+
+Naechster zusammenhaengender Vorschlag: separates versioniertes Read-only-
+Anwendungsprofil fuer ausdruecklich von der Shell ausgewaehlte unveraenderliche
+Datei-/Verzeichnisobjekte, an die exakte eigene Vordergrundgeneration gebunden.
+SDK, normale cat/ls-Aufloesung, beide Medien-/Buildpfade und vollstaendige
+Widerrufs-/Fehler-/Recoverybeweise gemeinsam; keine ambienten Pfadrechte,
+direkten FS-/Geraete-Endpunkte, Schreib-/PIO-/DMA-/Taskverwaltungsrechte.
+Alte Profile und CPU-/ATA-/IPC-/Erzeugungs-/Restartgrenzen bleiben unveraendert.
+Diese echte neue Rechtefreigabe steht aus; keine Folgeimplementierung, kein
+Build und kein Gast reserviert. `active_id` bleibt leer, R3.6b deferred.
+Die folgenden Eintraege sind die historische Abnahme-/Arbeitsfolge.
+
 ## R8.3bb bestanden: signierte Wide-Shell-BIOS-Medien
 
 Kandidat02 besteht alle acht Gates und die vollstaendige unabhaengige

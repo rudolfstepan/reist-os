@@ -1,5 +1,21 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Sauberer Abschluss20.09.2026: R8.3bb `813606cf`, finaler Nachweis
+`build/codex-agent/r83bb-wide-shell-media/candidate02/verification-status-wide-shell-media-final.json`
+SHA256 `496442d7a594b347915ad28313474ab6bec2728e84d80e74bd33acd61d7ae4d4`.
+Die anschliessende Bestandspruefung identifiziert die naechste echte Rechte-
+grenze: AY verbietet Vordergrundprogrammen explizit FS-Endpunkte; vorhandene
+cat/ls-Adapter rufen die alte Storage-ABI auf, die native Kindprofile nicht
+zulassen. Root-eigener Dateistart erteilt dem Kind keine Datenleserechte.
+Vorgeschlagen ist ein eigenes versioniertes, generations-/objektgebundenes
+Read-only-Anwendungsprofil mit SDK/normalen Tools/Buildmedien und vollstaendiger
+Fehler-/Widerrufs-/Recoveryabnahme in einem Schnitt. Nur explizit ausgewaehlte
+unveraenderliche Dateien/Verzeichnisse, keine ambienten Namespace-, Schreib-,
+PIO/DMA- oder Taskverwaltungsrechte; alte Profile/Sicherheitsgrenzen bleiben.
+Freigabe dieser neuen Autoritaet steht aus: kein Folgepaket aktiviert, keine
+Build-/Gastreservierung, keine Implementierung. [Befund](CURRENT_WORK.md).
+R3.6b bleibt deferred; die gesamte native Systemabnahme ist weiterhin offen.
+
 Abnahme20.09.2026: R8.3bb/Kandidat02 besteht alle acht Gates samt kompletter
 unabhaengiger Zehn-Fall-BIOS-/Runtime-/No-write-Auswertung. Der korrigierte
 signierte EXT2-Negativtest erreicht tatsaechlich den Inode-Pruefer bei6528.
