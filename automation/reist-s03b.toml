@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3bb-wide-shell-media"
+active_id = ""
 wide_shell_media_inventory = "2026-09-20 clean accepted BA02202bd37e46683bc85b92307dfc9c4582d78afc, final470f37033ca735de54c0d044b7a1b50b5592691e12cff6dc38c9503e917736c0. Existing AZ producer/consumer intentionally admits only1280-byte external files/128KiB EXT2. BA already qualifies the larger immutable Ring3 capture, same BIOS kernel slot fits. Next cohesive integration is a separately named signed wide shell package, using the exact accepted BA image and unchanged BIOS/Manifest3/devices. No kernel build, new device rights, writes, guest format or runtime quota change. Old package and default consumers stay strict."
 wide_file_authority = "2026-09-20 renewed ja mach weiter explicitly approves preceding separate bounded read/load profile up to512KiB, with its own request/rate/whole-file budgets. Existing profiles, CPU/individual ATA/IPC limits and device rights remain unchanged. R8.3ba freezes one cohesive Ring3 block/FS/capture/shell/media/recovery transaction; no agents or push."
 current_native_authority_boundary = "2026-09-20 AZ accepted clean local implementation commit5db38510b205d1a8fdcecc28bdf437fac5978212; all eight gates/full ten-case BIOS-shell/recovery/corruption matrix and independent raw review pass, zero qualification builds. Final receipt build/codex-agent/r83az-shell-boot-media/candidate10/verification-status-shell-boot-media-final.json SHA256 f38a35397b14d6073e5c99f289ab6d7ede550fd55348b6b3e1705731b169b79f. Post-commit read-only inventory identifies a genuine new file/service resource-profile boundary below; no next implementation active, build or guest reserved. Research two-media BIOS shell acceptance, not complete OS/desktop/hardware; R3.6b remains deferred."
@@ -23,7 +23,8 @@ push = false
 
 [[packages]]
 id = "R8.3bb-wide-shell-media"
-status = "active"
+status = "done"
+acceptance_evidence = "2026-09-20 candidate02 passes all eight frozen gates and full independent ten-case BIOS/raw/no-write review. The re-signed malformed EXT2 now fails the actual inode predicate at6528, not JSON/signature admission. Candidate01 direct-review rejection and all evidence retained; exact complete source/tool/media/all-raw-bound ten-case reuse, zero additional builds/media/guests. Cumulative zero kernel builds, one signed paired-media publication, ten physical guests521.0947888000519s. Seal build/codex-agent/r83bb-wide-shell-media/candidate02/acceptance-seal.json SHA256 259fb787ff83399a97a4c32779950b3a533fd5d1db961fd5009da4545b1775ee. Direct review complete; outcome-only closure before clean local commit/final bound receipt. Separate research wide-shell BIOS profile, not complete OS/desktop/hardware or production trust. R3.6b deferred. Empty active_id is the next clean inventory boundary."
 title = "Signed BIOS media for the accepted wide-file native shell without a kernel rebuild"
 baseline = "02202bd37e46683bc85b92307dfc9c4582d78afc"
 contract = "docs/architecture/NATIVE_WIDE_SHELL_MEDIA_CONTRACT.md"

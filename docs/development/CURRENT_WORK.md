@@ -2,6 +2,34 @@
 
 Stand: 20. September 2026
 
+## R8.3bb bestanden: signierte Wide-Shell-BIOS-Medien
+
+Kandidat02 besteht alle acht Gates und die vollstaendige unabhaengige
+Auswertung der zehn BIOS-/Recovery-/Korruptionsfaelle. Der neu signierte
+EXT2-Negativfall scheitert nachweislich am Inode bei6528, nicht vorher am JSON.
+Die erste, bei direkter Pruefung abgelehnte Hostbehauptung bleibt dokumentiert.
+Keine weiteren Builds oder Gaststarts; zehn exakt gebundene Laufzeitbelege
+wiederverwendet. Gesamt: kein Kernelbuild, ein Medienpaar, zehn physische Gaeste
+521.0947888000519s. Seal `candidate02/acceptance-seal.json` im BB-Beweisordner,
+SHA256 `259fb787ff83399a97a4c32779950b3a533fd5d1db961fd5009da4545b1775ee`.
+Queue abgeschlossen; sauberer lokaler Commit und finaler Beleg folgen dieser
+reinen Ergebnisschliessung. Danach naechste native Bestandspruefung. Kein
+vollstaendiges OS/kein Desktop-/Hardware- oder Produktionsvertrauensnachweis.
+Die folgenden Abschnitte bewahren die vorherigen Arbeitsfenster.
+
+## R8.3bb: gezielte Prueferkorrektur ohne neue Builds/Gaeste
+
+Kandidat01 bestand acht Gates und zehn BIOS-Gaeste (521.0947888000519s).
+Die direkte Abschlusskontrolle fand jedoch einen falsch positiven Hosttest:
+Ein neu signiertes, beschaedigtes EXT2 wurde bereits wegen CRLF im signierten
+JSON statt wegen der Dateisystemstruktur abgewiesen. Keine Paketabnahme und
+kein Implementierungscommit; der unakzeptierte Seal und der Ablehnungsbeleg
+bleiben erhalten. Kandidat02 serialisiert nur diesen Quarantaene-Test korrekt
+als Bytes und fordert die tatsaechliche EXT2-Fehlerklasse. Acht Gates erneut,
+keine neuen Kernel-/Medienbuilds und keine neuen Gaeste; zehn unveraenderte
+Rohbeweise exakt an Quellen/Werkzeuge/Images/Dateien gebunden und voll erneut
+ausgewertet. Produktcode, publizierte Medien und Sicherheitsgrenzen unveraendert.
+
 ## Naechste aktive Integration: R8.3bb, signierte Wide-Shell-Medien
 
 R8.3ba sauber lokal abgeschlossen als `02202bd3`, finaler Nachweis

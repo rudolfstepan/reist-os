@@ -704,6 +704,14 @@ x86_64-shell-media:
 	@$(PYTHON) scripts/build_x86_64_shell_media.py --input-directory "$(X86_64_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 # End AZ packaging-only target.
 
+# BB packaging only: exact accepted WideFile input; no kernel dependency.
+.PHONY: x86_64-wide-shell-media
+X86_64_WIDE_SHELL_MEDIA_INPUT ?= build/x86_64
+X86_64_WIDE_SHELL_MEDIA_OUTPUT ?= build/codex-agent/native-wide-shell-media
+x86_64-wide-shell-media:
+	@$(PYTHON) scripts/build_x86_64_wide_shell_media.py --input-directory "$(X86_64_WIDE_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_WIDE_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+# End BB packaging-only target.
+
 x86_64-bootstrap:
 	@$(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),$(if $(filter 11110,$(X86_64_NATIVE_PROCESSES)$(X86_64_NATIVE_IPC)$(X86_64_NATIVE_RAM)$(X86_64_NATIVE_HEAP)$(X86_64_NATIVE_BULK_IPC)),,$(error NativeRuntime requires Processes/IPC/RAM/Heap and excludes BulkIPC))) :
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)

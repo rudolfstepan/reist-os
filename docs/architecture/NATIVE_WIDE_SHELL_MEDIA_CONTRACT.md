@@ -2,6 +2,18 @@
 
 ## Inventory and scope
 
+Accepted qualification20 September2026: candidate02 passes all eight frozen
+gates and independent full ten-case BIOS/runtime/no-write replay. The signed
+malformed EXT2 test reaches the actual inode predicate at6528. Candidate01's
+false-positive host claim stays rejected; ten original complete runtime cases
+are explicitly reused through full source/tool/media/raw binding. No additional
+kernel/media builds or guests; cumulative zero kernel builds, one media pair,
+ten physical guests521.0947888000519s. Seal:
+`build/codex-agent/r83bb-wide-shell-media/candidate02/acceptance-seal.json`,
+SHA256 `259fb787ff83399a97a4c32779950b3a533fd5d1db961fd5009da4545b1775ee`.
+Outcome-only closure precedes the clean local commit and final bound receipt.
+The original freeze and correction history below remain unchanged.
+
 Frozen on clean accepted BA `02202bd37e46683bc85b92307dfc9c4582d78afc`.
 Final BA receipt: `build/codex-agent/r83ba-wide-file/candidate12/verification-status-wide-file-final.json`,
 SHA256 `470f37033ca735de54c0d044b7a1b50b5592691e12cff6dc38c9503e917736c0`.
@@ -75,3 +87,28 @@ frozen scope are required before done transition and clean local commit. Only
 generated media under ignored build/codex-agent, no real/user disks, visible VM,
 host shares, network, nested agents or push. R3.6b stays deferred. This completes
 one bounded research BIOS integration, not the64-bit OS/desktop/hardware release.
+
+## Candidate01 direct-review rejection; candidate02 bounded correction
+
+Candidate01 passed all eight gates and all ten BIOS cases521.0947888000519s,
+but final direct review found a false-positive host mutation: the re-signed
+malformed EXT2 was rejected for `signed index identity`, before the filesystem
+predicate. Inherited `Path.write_text` emits Windows CRLF whereas the signed
+consumer requires canonical LF bytes. The published package itself already
+uses correct byte serialization; kernel, media, consumers and runtime are not
+changed. Preserve the unaccepted seal95a67f49f05341c6052bdb7c9b826fc2c4e9d20cf59db7d84d05a758def576ad
+and `candidate01/direct-review-rejected.json`08872e9545a2df1f05088d984ac670ed161b8be1712da7e9006d2af13ea588c1.
+No acceptance/queue transition/implementation commit occurred.
+
+Standing evidence-directed correction authority applies. Candidate02 changes
+only the verifier's quarantine descriptor serialization to exact canonical
+bytes and requires the actual `wide EXT2` rejection class, with a regression
+rejecting JSON/crypto errors as substitutes. Freeze all eight unchanged gates
+again, first failure stops. Zero new kernel builds, media builds or guests.
+Reuse the same media pair and ten complete cases only through exact complete
+runtime/producer/consumer/source/tool/artifact/all-raw-file binding to the
+original freeze and unaccepted seal. Keep original evidence directories and
+explicit reused flags; perform the full independent ten-case raw replay again.
+Only verifier/test/outcome documentation may differ from candidate01. Cumulative
+cost remains zero kernel builds, one media pair, ten guests521.0947888000519s.
+The original failed host-test claim is preserved, never relabeled successful.

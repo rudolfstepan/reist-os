@@ -1,5 +1,27 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Abnahme20.09.2026: R8.3bb/Kandidat02 besteht alle acht Gates samt kompletter
+unabhaengiger Zehn-Fall-BIOS-/Runtime-/No-write-Auswertung. Der korrigierte
+signierte EXT2-Negativtest erreicht tatsaechlich den Inode-Pruefer bei6528.
+Alle zehn originalen Gastbelege exakt quell-/werkzeug-/medien-/rohdateigebunden
+wiederverwendet, keine neuen Builds oder Gaeste. Kumulativ null Kernelbuilds,
+ein signiertes Medienpaar, zehn physische Gaeste521.0947888000519s. Seal
+`build/codex-agent/r83bb-wide-shell-media/candidate02/acceptance-seal.json`,
+SHA256 `259fb787ff83399a97a4c32779950b3a533fd5d1db961fd5009da4545b1775ee`.
+Die urspruengliche falsch positive Hostbehauptung bleibt abgelehnt erhalten.
+Ergebnis-/Queue-Abschluss, danach sauberer lokaler Commit/finaler Beleg und
+naechste Bestandspruefung; noch kein vollstaendiges OS/Hardware/Production Trust.
+Historische Arbeitsfenster folgen unveraendert, R3.6b bleibt deferred.
+
+R8.3bb/Kandidat02: Nach acht gruenen Gates/zehn bestandenen BIOS-Faellen fand
+die direkte Abschlusskontrolle einen Hosttest, dessen CRLF-JSON schon vor der
+beabsichtigten EXT2-Pruefung abgewiesen wurde. Kein Abschlusscommit. Korrektur
+nur am Pruefadapter (kanonische Bytes plus zwingende EXT2-Fehlerklasse), acht
+Gates erneut, null neue Builds/Medien/Gaeste. Alle zehn alten Laufzeitbelege
+werden vollstaendig und exakt quell-/werkzeug-/image-/rohdatengebunden erneut
+geprueft. Produktcode und publizierte Medien bleiben unveraendert; keine
+Umdeutung des fehlerhaften Hostnachweises. Bisher ein Medienpaar/zehn Gaeste.
+
 Aktiv nach sauberem BA-Commit `02202bd3`: R8.3bb bindet das unveraenderte,
 abgenommene Wide-File-Image an signierte BIOS-HDD-/Floppy-Medien. Bestehende
 AZ-Publikation/Verifikation/BIOS-Handshake und komplette BA-Rohbeweise gemeinsam
