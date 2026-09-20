@@ -1,3 +1,6 @@
+#ifdef REIST_NATIVE_SHELL_SESSION
+#include "shell_session.c"
+#else
 /* Console-only normal-shell platform, not a complete x86os SDK.
  * NATIVE_SHELL_CONTRACT.md: no implicit namespace or terminal delegation. */
 #include <x86os.h>
@@ -132,3 +135,4 @@ int reist_vfs_stat(const char *path,x86os_file_info_t *info,uint32_t timeout_ms)
 int reist_vfs_readdir_at(const char *path,uint32_t index,x86os_file_info_t *info,uint32_t timeout_ms) {
     (void)path;(void)index;(void)info;(void)timeout_ms;return -38;
 }
+#endif

@@ -1,6 +1,446 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 19. September 2026
+Stand: 20. September 2026
+
+R8.3ay: vollstaendige Abnahme bestanden. Candidate17 besteht alle zehn Gates
+und18 frische Gastfaelle (370.020897600014s), einschliesslich langer Sitzung,
+fuenf Medienvarianten/8GiB, Dienst-/Anwendungsfehlern, Wiederanlauf-Erschoepfung,
+Eigentuemer-Verlust und echtem OOM-Rollback. Unabhaengiger Speichervergleich,
+vollstaendiger Rohdaten-Replay und Scope-Pruefung bestanden.
+Normale Ring3-Shell: echter lesender Namensraum, Dateistart, Identitaet,
+Vordergrund-Terminal und Wait; begrenzte generationengebundene Dienst-Recovery.
+Debugtransport jetzt mit echten RET-Zieltreffern und persistenten Haltepunkten;
+keine erdachten Returns, Ereignisfilter, gelockerten Fristen oder Quoten.
+Vorhandenes siebentes Image unveraendert; keine Qualifikations-Neubauten.
+Gesamt141 physische Gaeste2862.51474020019s/sieben Images plus ein Vorstart
+0.38712120000855066s; alle Fehlversuche bleiben erhalten. Abnahmesiegel:
+`build/codex-agent/r83ay-shell-session/candidate17/acceptance-seal.json`,
+SHA256 `08cc05c7442b00644aab4d9a61fa09a84409669e63f74221a6a8bbf6f611701a`.
+Queue-Status done fuer lokalen Abschluss; anschliessend naechste native
+Bestandsaufnahme. R3.6b bleibt zurueckgestellt. Kein fertiges Gesamt-OS,
+keine reale Plattformabnahme und keine Zertifizierungsbehauptung.
+
+Die folgenden Fenster sind historische, unveraendert erhaltene Nachweise.
+
+Diagnostic38 besteht den langen Fall6 vollstaendig in36.573199900012696s mit
+2437 echten RET-Zieltreffern und allen alten Rohdatenpruefungen. Candidate17
+uebernimmt nur always-inserted on plus Host-Erwartung, keine Guardaenderung.
+Zehn Gates/18 frische45s-Faelle inkl3s Cleanup/810s Summe/900s Runtime, erster
+Fehler stoppt, vorhandenes Image ohne Neubau.123 Gaeste2492.493842600176s/
+sieben Images plus0.38712120000855066s Vorstart erhalten. Keine Abnahme/Commit
+aus Diagnoseerfolg ableiten.
+
+Candidate16: sechs Gates/Faelle0..5 bestanden; langer Fall6 stoppt korrekt
+bei42.008s Beobachtung/44.178s inklusive Cleanup.2429 echte RET-Zieltreffer,
+kein Fortschrittsguardfehler; Debugger verbraucht25.906s CPU.122 Gaeste
+2455.920642700163s/sieben Images plus0.38712120000855066s Vorstart erhalten.
+Diagnostic38 aendert nur den GDB-Einfuegemodus auf always-inserted on: alle
+anderen Haltepunkte bleiben ueber Stopps erhalten, der aktuelle Cold-Hook
+wird weiterhin deaktiviert und das echte RET-Ziel separat geprueft/entfernt.
+Alle Callbacks/Guards/Rohdaten/Fristen unveraendert, normaler Adapter bleibt.
+Host red/green300s, genau ein langer Fall6 je45s inkl3s Cleanup/90s Host,
+kein Build/Toolwechsel/Fristlockerung und kein Abnahmeersatz.
+
+Diagnostic37 besteht alle drei Faelle2/13/15 mit962/821/751 echten RET-
+Zieltreffern und allen bisherigen Rohdatenpruefungen (66.83003739998094s).
+Candidate16 uebernimmt nur den bewiesenen Wrapper in den normalen Beobachter.
+Vollstaendige zehn Gates/18 frische45s-Faelle inkl3s Cleanup/810s Summe/900s
+Runtime, erster Fehler stoppt, vorhandenes siebentes Image ohne Neubau.
+115 Gaeste2273.6467948001523s/sieben Images plus0.38712120000855066s Vorstart
+bleiben erhalten. Noch keine Abnahme/Commit; Diagnose ersetzt keine Qualifikation.
+
+Diagnostic36 stoppt nach2.830s im fruehen Scheduler-Schlafselbsttest (Stufe159),
+noch vor den Shell-Probes. Globale TB-Link-Logs werden trotz Adressfilter
+geschrieben; kein Ursachenbeweis.112 Gaeste2206.8167574001714s/sieben Images,
+plus ein Vorstart0.38712120000855066s erhalten.
+Diagnostic37 prueft lokal die Alternative zum fehlerhaften stepi: genau ein
+Hardwarehaltepunkt am echten gespeicherten RET-Ziel, einmal continue, exakt
+ein Treffer/PC/SP+8/unveraenderte Register, Loeschen und Hook-Restore im finally.
+Originalcallbacks/Guards/Quoten bleiben, normaler Beobachter unveraendert,
+kein QEMU-Trace/PC-Schreiben/Return-Erfinden. Host red/green300s zuerst, maximal
+Faelle2/13/15 je45s inkl3s Cleanup/135s Summe/240s Host, erster Fehler stoppt.
+Kein Build/Toolwechsel/Abnahmeersatz.
+
+Candidate15 ist gescheitert: Gates1..6 und Faelle0/1 bestanden, Fall2 stoppt
+nach13.951s am echten RET-Fortschrittsguard; angezeigter PC bleibt am Request-
+Pruefpunkt.111 physische Gaeste2203.9868998001916s/sieben Images plus ein
+Vorstart0.38712120000855066s. Kein Commit/Abschluss, Faelle3..17/Gates8..10 NOT_RUN.
+Diagnostic36 isoliert den passenden QEMU-Verdacht: nur drei exakte RET-Adressen
+mit exec-Log sowie zwei GDB-Traceereignisse, bestehender8MiB/131072-Zeilen-Puffer.
+Host red/green300s zuerst, dann hoechstens Faelle2/13/15 je45s inkl3s Cleanup,
+135s Summe/240s Host, erster Fehler stoppt. Siebentes Image wiederverwenden,
+kein Build. Kein Guard/Callback/Quota/Toolwechsel, kein Abnahmeersatz.
+Upstream-Code ist nur Ursachenhypothese, nicht Beweis fuer installierte Binaerdatei.
+
+Candidate15: neuer Transport nach vollstaendig bestandenem Fall13/822 echten
+RET-Schritten21.838s. Normaler Beobachter erhaelt expliziten Schritt und
+aeussere Steuerung nach Speicheradapter; alle alten Guards bleiben. Kompakte
+Schrittbelege<=192Byte statt Registerwortbuch (Registergleichheit weiterhin
+geprueft), zusaetzlicher Rohdaten-Replay mit Abschlusszaehler;8MiB bleibt.
+Ein gezielter Host red/green, danach zehn Gates/18 frische45s-Gaeste inkl3s
+Cleanup/810s Summe/900s Runtime, kein Build.108 Gaeste2146.2288713001476s/
+sieben Images plus ein Vorstart0.3871212s erhalten. Noch keine Abnahme/Commit.
+
+Diagnostic34 startet keinen Gast: Speicheradapter lehnt geaenderten Skript-
+abschluss ab (spawned=false).107 physische Gaeste2124.3906322001426s/sieben
+Images, zusaetzlich ein Vorstartversuch0.3871212s. Diagnostic35 wendet die
+unveraenderte aeussere Schleife erst NACH Initialisierung des Speicherpruefers
+an. Echter Adapterintegrationstest bis Skriptausgabe ohne Prozessstart zuerst,
+dann ein Fall13-Gast45s inkl3s Cleanup/90s Host. Kein Build/gemeinsamer Dateieingriff.
+
+Diagnostic33 belegt ersten echten RET samt Registererhalt, danach endet GDB
+mit0; sein restliches Haltepunktkommando continue wird nach stepi verworfen.
+Gastfrist42.162s erreicht.107 Gaeste2124.3906322001426s/sieben Images erhalten.
+Diagnostic34 ergaenzt nur aeussere begrenzte Steuerung: jedes zurueckgekehrte
+continue braucht genau einen frisch bewiesenen RET, sonst quit71. Max8192,
+keine Wiederholung fehlgeschlagener Schritte/Callbacks. Host red/green, ein
+Fall13-Gast45s inkl3s Cleanup/90s Host, kein Build; alle alten Guards bleiben.
+
+Candidate14 stoppt wieder am Pending-Guard: sechs Gates/13 Gaeste bestanden,
+Fall13 scheitert6.705s. Standard-Haltepunkteinfügung allein ist keine Reparatur.
+106 Gaeste2082.2285526001365s/sieben Images erhalten. Diagnostic33 prueft einen
+echten einzelnen RET-Schritt nach jedem unveraenderten Cold-Callback, im
+Command-Kontext mit voruebergehend entferntem eigenem Hardwarehaltepunkt.
+Ruecksprung-PC/SP+8/Register/Flags/CR3 muessen exakt stimmen; kein PC-Schreiben,
+uebersprungener Aufruf, Duplikatfilter oder synthetischer Return. Host red/green,
+ein Fall13-Gast45s inkl3s Cleanup/90s Host, kein Build, keine Abnahmewertung.
+
+Candidate14: GDB-Standardmodus wird vollstaendig qualifiziert. Diagnostic32
+besteht Fall15/Root-Absturz18.140s mit unveraenderten Rohdatenpruefungen.
+Normale Adapterzeile jetzt always-inserted off; keine Callback-/Guardaenderung.
+Zehn Gates/18 frische Faelle, normaler Beobachter ohne Diagnosewrapper;
+siebentes Image wiederverwenden, kein Build.45s inkl3s Cleanup/810s Summe/
+900s Runtimegate, erster Fehler stoppt.92 Gaeste1798.9659774001343s/sieben
+Images bleiben verbraucht. Diagnoseerfolg allein ist keine Abnahme/Reparatur.
+
+Ursachenabgrenzung gelungen: Diagnostic31 meldet denselben echten READ zweimal,
+Pending-/frische Zaehler beide[14,13], Root0/gen8/tick572. Kein zweiter Kernel-
+Eintritt/Return. Fall5 bestanden17.859s, Fall15 gescheitert11.323s, Rest NOT_RUN.
+91 Gaeste1780.8258845001405s/sieben Images erhalten. Diagnostic32 isoliert nur
+die Debugger-Einfuegepolitik: dokumentierter Standard always-inserted off statt
+erzwungenem on, ausschliesslich Diagnose. Unveraenderte Callback-/Guardkoerper,
+ein Hosttest red/green300s, ein Fall15-Gast45s inkl3s Cleanup/90s Host, kein Build.
+Noch keine Reparatur-/Abnahmebehauptung und keine Ereignis-Deduplizierung.
+
+Diagnostic30 besteht: vier Hosttests1.165s, ein Build10.130s, Fall3-Gast19.019s.
+Keine Reproduktion/Reparatur des sporadischen Fehlers.89 Gaeste1751.6440516001317s/
+sieben Images verbraucht. Diagnostic31 nutzt dasselbe Image und unveraenderte
+Zaehler/Beobachter fuer andere Faelle5,15,16,17: je45s inkl.3s Cleanup,
+180s Summe/270s Host, Stopp beim ersten Fehler, kein Build/Hosttestduplikat.
+Keine Abnahmewertung; kein erneuter Fall3-Versuch oder gelockerter Guard.
+
+Diagnostic30 ergaenzt den fehlenden unabhaengigen Ausfuehrungsbeleg: zwei
+private Kernel-Pruefzaehler fuer Root-READ-Eintritt und echte Rueckkehr.
+16 feste Bytes, Saettigung8193/gueltig bis8192, vollstaendige Nullung im
+bestehenden Cleanup. Beobachter vergleicht echte Zaehler beim Request und
+Fehler, ohne den Pending-Guard zu lockern. Hostregression zuerst, genau ein
+gemeinsamer Neubau und ein Fall3-Gast45s inkl.3s Cleanup/90s Host. Keine
+Abnahme;88 Gaeste1732.6248232001385s/sechs Images bleiben verbraucht.
+
+Aktuelles Ergebnis: OOM-Korrektur in Host und Gast vollstaendig nachgewiesen,
+genau ein neues gemeinsames Image in diesem Arbeitsabschnitt. Candidate13:
+Gates1..6 und Gastfaelle0..2 bestanden; Fall3 stoppt am alten Pending15-Guard.
+Diagnostic29 reproduziert ihn nach PATH im zweiten Rootlauf bei5730ms, bereits
+vor History (12.4850385s Gast; neue Hostregression0.205s bestanden).
+Frischer GDB-Schnappschuss: Root0/gen10 RUNNING, echter Request-Pruefpunkt,
+IF0, Kernel-Pending0100010100000000, beide Haltepunkte aktiv (Hits399/309).
+Damit keine Erklaerung durch abgeschalteten Return-Haltepunkt/falsche Identitaet;
+erneute Request-Meldung versus fehlende Return-Meldung bleibt ungeklärt.
+Rohbeleg: `build/codex-agent/r83ay-shell-session/diagnostic29/result.json`,
+SHAea709d470653f75fc2fc1dd3cde84993b60918cab0527e009952395f8f2e5a65.
+88 Gaeste1732.6248232001385s/sechs Images erhalten. Kein laufender Gast,
+neues Ausfuehrungsfenster, Commit oder Abschluss. Beweisluecke blockiert die
+Gesamtabnahme; kein synthetischer Return, keine Deduplication/Quotenlockerung
+oder unveraenderte Wiederholung. OOM-Fix und alle Belege bleiben erhalten.
+
+Candidate13 stoppt an Gate7/Fall3: sechs Gates und Gaeste0..2 bestanden,
+danach erneut gen10 READ15 bei noch offenem READ15 nach zweiter History;
+letzter erfasster Request6780ms. Weitere Gates/Gaeste nicht gestartet.
+87 Gaeste1720.1397847001503s/sechs Images verbraucht, keine Abnahme/Commit.
+Diagnostic29 liest ausschliesslich beim Fehler frischen Kernelzustand ueber
+GDB (max2048 Rohbytes/4096 JSONbytes), ohne normalen Ablauf zu instrumentieren.
+Ein Hosttest300s, ein Fall3-Gast45s inkl.3s Cleanup/90s Host, kein Build;
+urspruenglicher Guard/Fehler/Abbruch bleiben selbst bei Lesefehlern erhalten.
+
+Correction28 bestanden: vier Hostmethoden7.760s, ein Build10.681s, vollstaendiger
+OOM-Gast18.0846604s. Echte100ms-Blockierung ohne Root-CPU-Charges, beide Treiber-
+Ablehnungen vor OOM, alle drei Frames zurueck, spaeter App82 und saubere Roots/
+Peers nachgewiesen. Candidate13: vollstaendige zehn Gates/18Faelle, sechstes
+Image exakt wiederverwenden, keine Neubauten.45s je Gast inkl.3s Cleanup,
+810s Summe/900s Runtimegate, erster Fehler stoppt.83 Gaeste1648.5452671001553s/
+sechs Images bisher; alter Pending-Beobachterfehler nicht als behoben behauptet.
+
+Correction27 stoppt im Hosttest ohne Build/Gast. Zwei neue Rohdatenmethoden
+bestehen; zwei Testfehler korrigiert: Dienstfrist vor Initialisierung noch0,
+und SIMD-Ausrichtung des Assembler-Testarrays nach neuer Variable. Correction28
+prueft100ms Zeitdelta/unpublizierte Frist und richtet das Testarray16-Byte aus.
+Produktionskorrektur/Build-/Gastgrenzen unveraendert, Fehlbeleg27 erhalten.
+
+Correction26-Freeze verwarf die Selbstbindung seines noch geschriebenen Logs,
+ohne Neubau/Gast. Correction27 uebernimmt unveraenderte Korrektur und Grenzen
+mit separatem Belegordner; Freeze-Ausgabe ist jetzt kein gebundener Eingang.
+
+Diagnostic25: OOM gibt alle drei Frames zurueck; danach verhindert die sofortige
+Treiberbeendigung dessen zweiten Konsolen-Ablehnungstest. Fall17 scheitert
+deshalb nach19.8001366s, Fall0 nicht gestartet. Correction26 korrigiert nur
+die Testlast:100ms blockieren vor FS-Erzeugung im zweiten Aufbau von Fall17,
+unveraenderte1000ms Gesamtfrist. Hostregression mit Fehler-/Kontrollfaellen,
+ein gemeinsamer Neubau und genau ein45s-Gast inkl.3s Cleanup (Host90s).
+Alle alten Assertions plus Rohbelege fuer Pause/CPU/Pruefreihenfolge.
+82 Gaeste1630.46060670013s/fuenf Images verbraucht, keine Abnahme/Commit.
+Inventarzusatz: Der private Kernel-Pruefpunkt erfasst bisher keinen SLEEP.
+Nur Root0/SLEEP100ms wird zusaetzlich beobachtet, keine Scheduler-/Sleep-
+Implementierung geaendert. Assemblerregression prueft Slots/Opcodes/Dauern
+und Register-/Flag-Erhalt; zwei rote Hostlaeufe, danach vier Methoden zu pruefen.
+
+Diagnostic24 stoppt erneut vor der spaeten Diagnose: Root-CPU256/32 nach
+IPC_CLOSE (RIP413d1f),13.3841795s. Der vorherige RIP4136fc gehoert zum
+TASK_CONTROL-Return; keine Endlosschleife als Ursache belegt. Diagnostic25
+schaltet nur die optionale QEMU-Fortsetzungs-/IRQ-Ereignisspur ab; normaler
+Capture, exakter24-Beobachter und alle nativen Rohpruefungen bleiben. Zuerst
+OOM-Fall17, dann Normalfall0, je einmal/erster Fehler stoppt. Zwei45s-Gaeste
+inkl.3s Cleanup/90s Summe/180s Host, kein Build/Abnahmeersatz.81 Gaeste
+1610.6604701001493s/fuenf Images historisch erhalten.
+
+Diagnostic23 stoppt schon in Fall0 (11.3816693s): Rootgen1 CPU-Quotenfehler256
+bei32 Charges/RIP4136fc waehrend boot, noch vor Watch-Aktivierung. Restliche
+vier Gaeste nicht gestartet. Diagnostic24 entfernt auch die fruehen zusaetzlichen
+Registerlesevorgaenge: Original-complete genau einmal, Aktivierung allein aus
+bereits erfasster erfolgreicher History-WRITE-Rueckkehr im zweiten Rootlauf.
+Vier gezielte Hosttests bestehen; keine Kernel-/Quoten-/Oracle-Aenderung.
+Ein45s-Diagnosegast Fall0 inkl.3s Cleanup/90s Host, kein Build/Abnahmeersatz.
+80 historische Gaeste1597.2762906001594s/fuenf Images bleiben erhalten.
+
+Diagnostic22 besteht Fall5 in23.3830029s,16 echte Root-Pending-Uebergaenge,
+alle urspruenglichen Fallpruefungen bestanden. Keine Ursachen-/Reparaturbehauptung.
+Diagnostic23 prueft einmalig fuenf andere Diagnosefaelle0,6,15,16,17 mit exakt
+demselben eingegrenzten Beobachter: Normalbetrieb, lange Sitzung, Rootabsturz,
+Restart-Erschoepfung und korrigierter OOM-Rollback. Keine Wiederholung von5,
+Stopp beim ersten Fehler, kein Build. Je45s inkl.3s Cleanup/225s Summe/300s
+Host, niemals Abnahmeersatz.79 Gaeste1585.8946213001622s/fuenf Images bisher.
+
+Diagnostic21 scheitert nach31.299875s im ersten Gast am unveraenderten App-
+Konstruktionsnachweis; zweiter Gast nicht gestartet.3390 zusaetzliche Daten-
+Stops, dabei Service-CPU-Quotenfehler256; keine reproduzierte Pending-Luecke.
+Diagnostic22 beschraenkt den Hardware-Watchpoint auf das Root0-Byte NACH der
+History-Ausgabe im zweiten Lauf, unmittelbar vor der alten Fehlerstelle.
+Kein Service-/Frueh-Watchpoint, Idle-Zustand vor Aktivierung zwingend. Neue
+Hostregression besteht. Ein Fall5/8GiB45s inkl.3s Cleanup/90s Host, kein Build,
+keine Abnahme.78 Gaeste1562.5116184001675s/fuenf Images historisch erhalten.
+
+Diagnostic21 ergaenzt den bisher fehlenden direkten Zustandsbeleg: Hardware-
+Schreibhaltepunkt auf die vorhandenen acht Pending-Bytes, erst nach aktivem
+Kernelmapping. Kein Gastschreiben/Neubau; nur begrenzte Leseaufzeichnung im
+Befehlsdispatcher, Software-Watchpoint wird abgewiesen. Hostregression besteht.
+Maximal zwei Diagnosegaeste (Fall5, dann15), Stopp beim ersten Fehler; je45s
+inkl.3s Cleanup,90s Gastsumme/180s Host. Keine Abnahme oder unveraenderte
+Wiederholung.77 Gaeste1531.2117434001705s/fuenf Images bleiben verbraucht.
+
+Neuester Stand: Beide Diagnosefenster19/20 geschlossen, beide bestanden,
+NICHT abgenommen. Fall5/8GiB23.0154972s und Fall15/Rootabsturz20.6698347s;
+Cleanup0.074512s/0.034602s. Vier unterschiedliche gezielte Hosttests bestehen,
+davon zwei neue Adapterregressionen. Kein Kernel-/SDK-Umbau oder neuer Build.
+Registeraudit und1.459.055 Bytes QEMU-Fortsetzungsspur erhalten. Die sporadische
+fehlende Syscall-Rueckkehr aus Candidate12 trat nicht auf; Ursache/Reparatur
+bleiben unbewiesen.77 Gaeste1531.2117434001705s/fuenf Images insgesamt.
+Kein weiterer Gast reserviert, kein QEMU/GDB aktiv, kein Commit/Queueabschluss.
+Sicherheitsstopp bei offener Ursachenmehrdeutigkeit; keine Gluecks-Wiederholung
+oder Aufwertung einzelner Diagnosen zur vollen18-Faelle-/10-Gruppen-Abnahme.
+
+Diagnostic19 besteht Fall5/8GiB in23.015497200016398s ohne Build. Der Fehler
+ist nicht reproduziert, nicht behoben: tatsaechliches qqemu.sstep=0x7 und
+gepaarte Request/Return-Haltepunkte belegt. Diagnostic20 reserviert einmal
+Fall15 (Rootabsturz), nun mit unabhaengiger QEMU-Fortsetzungs-/Haltespur ueber
+den bestehenden8MiB/131072-Zeilen-Sink. Nur separater Diagnoseadapter; normale
+Capture-/Pruefpfade unveraendert.45s inkl.3s Cleanup,90s Host,kein Build,
+keine Abnahme.76 Gaeste1510.541908700194s/fuenf Images bisher.
+
+Diagnostic19: Wiederaufnahme mit genau einem Diagnosegast (Fall5/8GiB), kein
+Neubau. Begrenzter16-Ereignis-Puffer erfasst Register, Task-/Syscall-Zustand,
+Pending-Bytes und GDB-Trefferzaehler. Spaetes infrun-Log nach History, maximal64
+kalte Callbacks; bestehende8MiB/45s inkl.3s Cleanup bleiben. Nur read-only
+Beobachtung, keinerlei ergaenzte/ignorierte Syscall-Abschluesse. Hostregression
+zuerst; Gast niemals Abnahme.75 Gaeste1487.5264115001776s/fuenf Images behalten.
+Dieses neue Diagnosefenster ersetzt nur den bisherigen Reservierungsstopp.
+
+Aktueller Verifikationsblocker: Candidate12 endet in Gate7/Fall5 (8GiB) am
+unveraenderten Guard `request s=0 g=10 op=15 live=True pending=15`. Gates1..6
+und Faelle0..4 bestehen; nach READ bei6910ms fehlt ein Abschlussbeleg vor dem
+naechsten Request-Callback. Der Fehler tritt unter beiden Dispatchervarianten
+auf: reine Befehlsausfuehrung ist somit KEINE nachgewiesene Loesung. Ob die
+Debuggermeldung doppelt oder die Rueckkehrmeldung verloren ist, bleibt offen.
+Sicherheitsstopp gemaess Paketprotokoll: keine spekulative weitere Aenderung,
+kein Retry auf Glueck, kein Commit/Queueabschluss; Quellen und Belege erhalten.
+75 Gaeste1487.5264115001776s/fuenf Images insgesamt. OOM-Messpunkt nur host-
+geprueft, volle18-Faelle-Abnahme weiterhin offen. Kein neues Fenster reserviert.
+
+Candidate12 vereinheitlicht den Beobachter-Kontext: ColdHook.stop sammelt nur,
+der bestehende Befehlsdispatcher fuehrt unveraenderte Lese-/Pruefcallbacks aus.
+Keine verlorenen/doppelten Ereignisse werden ignoriert oder ergaenzt. Echte
+Hostregression prueft spaetes Lesen, unveraenderte Ereignisanzahl und Abbruch.
+Diagnostic18 bestand zwar Fall15 in22.2978565s, erklaert/behebt den sporadischen
+Fehler allein aber nicht und bleibt unqualifiziert. Volle zehn Gates/18 frische
+Gaeste, null Neubauten;69 bisherige Gaeste1347.4950213001287s/fuenf Images.
+
+Diagnostic17 lokalisiert den Fehler am Live-/Pending-Guard des Syscall-
+Beobachters. Diagnostic18 ergaenzt nur die vorhandenen Aufrufkennungen im
+Assertion-Fehlertext; keine neue Gastabfrage oder geaenderte Pruefbedingung.
+Ein45s-Diagnosegast, kein Build;68 bisherige Gaeste1325.1971648001347s/fuenf
+Images. Erst mit den konkreten Identitaeten wird eine Korrektur gewaehlt.
+
+Candidate11: Gates1..6 und Faelle0..14 bestanden; Dauersitzung jetzt32.384s.
+Fall15 stoppt an bisher unlokalisierter statischer Beobachter-Assertion im
+zweiten gesunden Root. Diagnostic17 ergaenzt nur begrenzten Hook/Stack-Kontext
+im Fehlerpfad und reserviert einen45s-Gast ohne Neubau, keine Abnahme.
+Kernel/Callbacks/Assertions/Eingabeplaene bleiben unveraendert. Historisch67
+Gaeste1307.0037873001422s/fuenf Images; keine spekulative Korrektur.
+
+Candidate10: Gates1..6/Faelle0..5 bestanden; Fall6 erreicht die42s-Beobachter-
+grenze nach regulaerem Ende beider Shells, vor vollstaendigem Cleanupnachweis.
+Candidate11 beseitigt wiederholtes Decodieren des gesamten Hostprotokolls;
+nur neue vollstaendige Zeilen werden verarbeitet, alle kumulativen Grenzen und
+Praefix-/Generationen-/Bytepruefungen bleiben erhalten.18-Plan-Hostregression
+und exakter Alt/Neu-Vergleich aller17 gespeicherten erfolgreichen Gastbelege
+bestehen. Keine Kernel-/Beobachter-/Imageaenderung, keine Fristlockerung.
+Null Neubauten, zehn Gates/18 frische Gaeste; bisher51 Gaeste979.5447680000507s,
+fuenf Images. Paket weiterhin aktiv; keine unvollstaendige Abnahme.
+
+Candidate09: sechs Gates und17 Laufzeitfaelle bestanden, darunter alle fuenf
+Medienlayouts und Dienstfehler. Letzter OOM-Fall stoppt im Beobachter: dessen
+Frame-Baseline lag vor regulaerer Freigabe des alten ELF-Zwischenspeichers.
+Candidate10 korrigiert nur den Messpunkt nach dieser Freigabe; alle Rollback-
+Gleichheiten bleiben bestehen. Hostregression einschliesslich negativer Bilanzen
+besteht. Kein neuer Build; exaktes fuenftes Image und Buildbeleg wiederverwenden,
+zehn Gates/18 frische begrenzte Gaeste, erster Fehler stoppt. Historisch44 Gaeste,
+797.1512432000309s/fuenf Images. AY noch nicht abgenommen oder committed.
+
+Candidate08: neue Parser-Verhaltenstests O0/O2 bestehen; Gate1 stoppt allein
+an alter Anzahl7 statt8 der Default-Projektionen. Candidate09 prueft jetzt
+deren genaue acht Dateipfade. Keine Produktionsaenderung, kein Build/Gast
+verbraucht; unveraenderte gesamte Prueffolge folgt im neuen Fenster.
+
+Freigegeben: ext2-Parser und beide Hosttests jetzt im AY-Paketumfang. Candidate08
+optimiert ausschliesslich das opt-in Verzeichnislesen; keine Frist-/Quotenaenderung.
+Zuerst Grenz-/Fehler-/Sektoruebergangstests, dann ein gemeinsames Image und18
+frische Abnahmefaelle. Historischer Verbrauch26 Gaeste392.6945861999993s/vier Images.
+
+Aktueller Stopp: Candidate07 besteht Gates1..6 und Gastfaelle0..2, inklusive
+ext2-1KiB mit vollstaendiger Beobachtung. Fall3/ext2-2KiB scheitert am ersten
+Datenlesen: vier Initialisierungs-, vier Verzeichnis- und ein Inode-Sektor
+verbrauchen die Frist; Anfrage10 wird wegen100ms Mindestabstand abgelehnt.
+Root/Peer geordnet beendet, kein CPU-Quotenfehler. Eine echte Korrektur muss
+den gemeinsamen ext2-Verzeichnislesepfad samt Hosttests einbeziehen; diese drei
+Dateien liegen ausserhalb allowed_files. Umfangserweiterung erforderlich,
+keine stillschweigende Parseraenderung oder Fristlockerung. Kein weiterer
+Build/Gast reserviert;26 Gaeste392.6945861999993s/vier Images verbraucht.
+Alle Belege erhalten, AY weiterhin aktiv/unqualifiziert, kein Commit.
+
+Candidate06 vor Neubau an alter Terminal-Quellreihenfolgepruefung gestoppt.
+Candidate07 behaelt deren Eintrittssequenz unveraendert und setzt die neue
+Meldestelle unmittelbar hinter den vorhandenen PIO-Fence-Hook. Alte Pruefung
+bleibt exakt; kein Build/Gast verbraucht, gleiche begrenzte Abnahmereservierung.
+
+Diagnostic16 bestanden: beide ext2-Shelllaeufe/Dateiprogramme ohne laufende
+Debuggerstopps korrekt,9.794583s, Root8/6 CPU-Ticks. Keine OS-Abnahme daraus.
+Naechste gezielte Korrektur: die zwei verbleibenden Lebenszyklus-Haltepunkte
+von Validierungs-/Schlafpfad-Seiten auf die vorhandene private Beobachterseite
+verlegen. Ein gemeinsamer Build, unveraenderte Fristen/Quoten und18 frische
+Abnahmefaelle; Stopp beim ersten Fehler.22 Gaeste322.3623714999703s/drei Builds
+verbraucht; alle Vorbelege bleiben erhalten.
+
+Candidate05: Gates1..6 und Medienlayouts0/1 vollstaendig bestanden; Layout2
+stoppt beim Dateistart. STAT728 und512 Dateibytes korrekt, danach blockseitige
+Fristablehnung bei vorgeschriebenem100ms-Leseabstand, keine CPU-Erschoepfung.
+21 Gaeste312.56778849996044s/drei Builds verbraucht. Diagnostic16 prueft genau
+einen unbeobachteten Layout2-Kontrollgast am gleichen Image, beide Shelllaeufe
+mit passendem Medium; kein Neubau, keine Abnahme aus seriellen Teilbelegen.
+
+Candidate05 vorbereitet: Diagnostic15 laeuft in17.198884999990696s mit beiden
+Shells/Dateiprogrammen durch; nach Ergaenzung des fehlenden PIO-End-Tags besteht
+die vollstaendige Offline-Auswertung (18 Tasks,324 Snapshots, CPU/PIO/Terminal/
+Speicher/Cleanup). Das fehlgeschlagene Original bleibt erhalten/unqualifiziert.
+Jetzt alle zehn Gates und18 frische Faelle, gleicher dritter Build ueber
+explizite Hash-/Quellen-/ELF-Wiederverwendung, kein Neubau. Verbraucht18 Gaeste
+260.68762609994155s/drei Builds. Noch kein Commit oder Paketabschluss.
+
+Aktuell: Diagnostic14 belegt am dritten Image den kompletten ersten Shelllauf
+mit allen sechs Befehlen, echtem SESSION64/Exit82 und Root-Exit0 bei12 CPU-Ticks,
+ohne laufende Debugger-Haltepunkte. Unter Vollbeobachtung erreicht derselbe
+Root CPU32 bei Tick88. Feederbefehlsgrenzen und Dispatcherbindung sind korrigiert.
+Der Kontrolllauf selbst bleibt fehlgeschlagen: zweiter Root nutzt Standardlayout2
+auf Layout0-Medium, daher kein gesunder Prompt; Ende nach42.18977359999553s.
+Insgesamt17 Gaeste243.48874109995086s, drei Images. Kein weiterer Build/Gast
+reserviert, kein Commit. Alle18 Vollnachweisfaelle bleiben offen; naechster
+Arbeitsgegenstand ist vollstaendige Rohdatenerfassung mit weniger Messeinfluss,
+nicht Lockerung von Quoten, Uhren oder Abnahmekriterien.
+
+Diagnostic11: Feeder korrigiert, Root-CPU32 bei Tick88 vor Budgeterneuerung;
+12.261055099981604s, zusammen14 Gaeste188.78968269994948s/drei Images.
+Diagnostic12 prueft unveraenderte Datenaufnahme mit bestehendem schnellem
+Lese-Beobachter; TASK_CONTROL bleibt wegen Haltepunktverwaltung im deferred
+Kontext. Vier Hostregressionen bestanden, ein45s Gast, kein Neubau.
+
+Candidate04: Gates1..6 bestanden, drittes Image startet SESSION64 mit Exit82.
+Gate7 nach42.35775470000226s gestoppt: vorzeitig gesendete Folgebefehlszeichen
+werden beim vorgeschriebenen Terminalwechsel verworfen. Diagnostic11 korrigiert
+nur den Feeder: befehlsweise RX-Bestaetigung plus neuer echter Root-Prompt.
+Kein Build; ein45s Gast inklusive Cleanup. Bisher13 Gaeste176.52862759996788s,
+drei Images. Paket weiter aktiv, keine vollstaendige Abnahme/Commit.
+
+Candidate04 vorbereitet: Diagnostic10 endet nach24.49165240000002s mit
+vollstaendigen Roots, aber fehlender Vordergrundkonstruktion nach PIO-CPU32.
+Die Aufnahme enthaelt1470 ABI113-Aufruf-/Rueckgabe-Haltepunkte. Der neue
+rein private AY-Puffer erfasst dieselben Daten in32 festen384-Byte-Saetzen,
+maximal2048 pro Lauf, mit bestehender Zeigervalidierung und vollstaendigem
+Register-/Flag-Erhalt. Keine neuen Rechte/Fristen/Quoten. Erfassung wird an
+kalten Grenzen gelesen und auf Overflow, Reihenfolge, Besitzer und Cleanup
+geprueft; verweigerte Profile behalten den bisherigen Ohne-Zeigerzugriff-Pfad.
+Echter Assembler O0/O2 sowie Decoder-/Manipulations-/Dispatch-Regressionen
+bestehen. Ein Host-O2-Testfehler wurde auf falsch ausgerichtete C-Testarrays
+eingegrenzt und nur in der Testanordnung korrigiert; alle roten Logs bleiben.
+Noch kein dritter OS-Build/Gast: jetzt zehn volle Gates, genau ein gemeinsames
+native-pio-capture Image und18 neue Gaeste reserviert. Zwoelf bisherige
+Versuche134.17087289996562s/zwei Images, keine Teilabnahme.
+
+Diagnostic09 beendet beide Roots regulaer und erfasst291 CPU-Ereignisse samt
+Cleanup. Initialmounts funktionieren, aber beim Dateistart erreichen Treiber7
+und15 noch CPU32; keine erfolgreiche Programmausfuehrung. Die anschliessend
+erkannte CRLF/Textoffset-Differenz im Feeder-Replay ist korrigiert; alle18
+Eingabeplaene und manipulierte Offsets hostgeprueft. Unveraenderte Rohdaten
+bestehen offline bis zur fehlenden Vordergrundprogrammkonstruktion.
+Diagnostic10 kombiniert die kalten Lebenszyklushooks mit gebuendelten
+Lesezugriffen innerhalb der drei reinen Syscall-Datencallbacks; ein45s-Gast,
+kein Build. Elf bisherige Gaeste109.6792204999656s/zwei Images bleiben erhalten.
+
+Fortsetzung: Diagnostic09 uebernimmt die bereits abgenommenen kalten
+Fatal-/Exception-/Revoke-Routen des Block-Pruefadapters. Bisher fehlen diese
+im AY-Beobachter; dessen dauernde Haltepunkte teilen Codepages mit laufenden
+Syscall-/PIO-/Validatorpfaden. CREATE-Hooks werden vom echten Request bis
+zur Antwort, PIO-Cleanup-Hooks erst nach dem letzten Reap aktiviert. Alle
+Callbacks/Rohdaten bleiben erhalten. Regression gruen0.220s; ein45s-Gast
+am vorhandenen Image reserviert, kein Build. Noch keine Laufzeitabnahme.
+
+AY-Pruefstand: candidate03 besteht Gates1..6 mit268 Hostmethoden und dem
+zweiten gemeinsamen Image cb61ac05. Die Laufzeitabnahme ist weiterhin offen.
+Eine nachgewiesene GDB-Fehlzuordnung benachbarter Einbyte-Haltepunkte ist durch
+Hardware-Haltepunkte und echte CALL-Zielbindung korrigiert. Das CPU32-Limit
+wird auch mit direkt lesenden Aufruf-/Rueckgabeproben erreicht; diese
+Transportkorrektur allein reicht nicht. Acht Gastversuche64.85462879997795s
+und zwei Images bleiben erhalten. Diagnostic07 vergleicht dasselbe zweite
+Image/layout0 ohne dauernde Debuggerbeobachtung (einmal10s, kein Neubau).
+Diagnostic07 ist bestanden: dasselbe Image/layout0 erreicht C:\>, Treiber3
+und FS1 CPU-Ticks, kein Root-Reap in7.170160899986513s. Damit ist fuer den
+Initialmount der Einfluss der Dauerbeobachtung eingegrenzt. Diagnostic08
+buendelt unveraenderte Leseinhalte nur innerhalb eines angehaltenen Zustands,
+stoppt aber ebenfalls am CPU32-/Eingabeplanfehler nach12.093142700003227s.
+Zehn Versuche84.11793239996769s/zwei Images bleiben erhalten; kein neuer
+Gast/Build reserviert. Separater bestaetigter Adapterfehler korrigiert:
+before_release erfasst jetzt ausschliesslich Prozessmodus8, keine fremden
+Bootstrap-Selbsttests. Echte Callback-Regression erst rot, dann gruen0.096s;
+im Prozessmodus bleiben Abbruch-/CPU-/Fencing-/Reap-Nachweise unveraendert.
+Offen ist ein deutlich stoppaermerer vollstaendiger Beobachtungspfad. Weitere
+kleine Varianten desselben gescheiterten Dauerbeobachters sind keine Abnahme.
+Kein AY-Abschluss, keine gelockerten Quoten oder uebersprungenen Rohdatengates.
 
 ## R8.3ay aktiv: echte Shell und begrenzte Dienstsitzungen
 
@@ -12,6 +452,93 @@ Image, zehn Gates,18 Gastfaelle; alle Medienvarianten bleiben zusammen.
 Noch keine AY-Implementierungsabnahme. Die neue native Identitaetsabfrage
 verwendet vorhandenes ABI114 und darf nur selbst/eigene lebende Kinder melden.
 Details: [Sitzungsvertrag](../architecture/NATIVE_SHELL_SESSION_CONTRACT.md).
+
+AY-Arbeitsstand im sichtbaren Worktree (noch nicht abgenommen/committet):
+Die normale Shell ist an echte Namespace-/STAT-/Dateierfassung, Kindstart,
+ABI114, Terminal und begrenztes Wait/Cancel angebunden. Die Ring3-Sitzung
+implementiert Generationserneuerung, Fencing vor Bereinigung und ein haftendes
+DEGRADED nach verbrauchtem Wiederanlaufbudget. Das alte Shellprofil bleibt
+unveraendert hinter seiner bisherigen Implementierung.
+Sechzehn gezielt ausgefuehrte Entwicklungstestmethoden decken u.a. sechzehn reale
+Shell-/Adapter-Szenarien und C/Assembler in O0/O2, echte Identitaets-Publikation,
+das normale Testprogramm,18 Eingabeplaene und17 alte Erzeugerprofile ab.
+Dabei behoben: ungueltige negative FS-Selbsttestcodes wurden durchgereicht;
+die neue Make-Profilpruefung stand vor benoetigten Standardwerten; ungültige
+64-bit-Spawnantworten konnten verkuerzt werden und Zwischenaufrufe die
+STAT-/Erfassungsfrist verschieben. Diese Regressionen erst rot, dann gruen.
+Fehlerauswahl erfolgt nach dem gesunden Mount; echte READDIR-Abfrage ist
+eingebunden. Besitzerverlust blockiert vor UD2 einmal10ms, damit das Kind
+nachweislich anlaeuft, ohne bereits Terminalrechte zu besitzen. Alle Versuche bleiben unter
+build/codex-agent/r83ay-development-*.log und r83ay-shell-session/ erhalten.
+Gastbeobachter, IPC/PIO-/Dateibyte- und Fehlerfolgenpruefung sowie der Ablauf
+fuer alle zehn Gates sind angelegt. Hosttests pruefen auch manipulierte
+Rohdaten, wartende READY-Identitaeten vor erstem Eintritt, unveraenderte alte
+Profile und die absolute Gastfrist einschliesslich Medienvorbereitung.
+Das ist noch kein Gastnachweis oder eine Paketabnahme.
+
+AY candidate01 ist gebunden und bei Gate4 gestoppt: Gates1..3 bestehen
+(16 neue,8 alte native Shell- und33 normale Shelltests). Im Subsystemmanifest
+bestehen10 AX-Tests und16 von17 Terminaltests. Der verbleibende historische
+Terminal-Quellvergleich scheitert zuerst am neuen bedingten Identity-Include.
+Die getrennte Diagnose mit der unveraenderten Baseline f7566ac3 bestaetigt
+zusaetzlich den bereits vorhandenen Konflikt dieses Vergleichs mit AX in
+task_family.inc; ein Umhaengen allein der neuen Includes reicht daher nicht.
+Stopped-Beleg: candidate01/stopped.json SHA256
+5e791946b749d1c014d1819e6f827228cd630b93da87b3229b96362f24387261.
+Diagnose03 unter build/codex-agent/r83ay-baseline-terminal-diagnosis03.log,
+SHA256 e43d058b20e06961db72f473f068bfc6cfa2a915741005522704c051fcbbb953.
+Gates5..10 nicht ausgefuehrt; null AY-OS-Builds und null AY-Gaeste.
+Das erneute Nutzer-Ja gibt die Aufnahme von scripts/verify_x86_64_terminal.py
+frei. Candidate02 korrigiert nur dessen historische Opt-in-Projektion:
+AY, AX, dann AV werden deaktiviert; der uebrige Quelltext muss weiterhin
+bytegenau der AU-Referenz entsprechen. Regression erst rot, dann mit alten
+AV-/AX-/AY-Baselines und manipulierten Quellen pruefen. Alle Produktions- und
+Gastpruefquellen bleiben exakt an candidate01 gebunden. Alle zehn Gates und
+die ungenutzte Ein-Image-/18-Gast-Reservierung bleiben unveraendert;
+kein Test wird ausgelassen oder als neue Ausfuehrung wiederverwendet.
+
+Candidate02 ist inzwischen bei Gate7 gestoppt. Gates1..6 bestehen:
+263 Hostmethoden, genaue Altprofilpruefung und ein gemeinsames OS-Image
+8535a0e5432ce38dc087ba8511fdeb0ceb429b5b1d712b7e4c55e2db55f47527.
+Der erste Gast (Fall0/layout0/4GiB) verbraucht10.080940099986037s;
+kein weiterer Gast, keine Abnahme/kein Implementierungscommit.
+Stopped-SHA256844dd1fbe9902794c86a93814f250d17197db264c8470c0db5a96e30a6b0bf72.
+Die Meldung "session feeder incomplete prior run" ist ein Folgefehler:
+vollstaendige CPU-Rohrecords belegen fuer Rootgeneration1 und Treibergeneration3
+je32 Charges und result2 bei Tick73 bzw.52. Die Reap-Belege melden jeweils
+Status256/Zustand3. Der Treiber erreicht keinen gesunden Mount; Root1 verbraucht
+seine Quote noch vor einem erfolgreichen READ. Im zweiten Lauf trifft auch
+Treibergeneration7 dieselbe Quote. Quoten und Fristen bleiben unveraendert.
+Beobachter verursacht viele Stopps: allein38 PIO-Aufrufe im ersten Treiber,
+plus Task-Eintrittsprobe auch fuer bereits bekannte Generationen. Deren Einfluss
+auf den Quotenverbrauch ist eine zu pruefende Hypothese, noch kein nachgewiesener
+alleiniger Fehlergrund. Keine spekulative Produktionskorrektur oder Wiederholung.
+Diagnose01 SHA256a18fef5e454dc9a0543e70bb87deca89a0e9bc34b2d41be53f8646914161c3ef
+unter build/codex-agent/r83ay-candidate02-diagnosis01.log. Alle Quellen,
+Rohdaten und Fehler bleiben erhalten; kein QEMU/GDB-Prozess verbleibt.
+Naechste begrenzte Korrektur muss zuerst die Beobachtereingriffe untersuchen,
+alle Rohdaten-/Quotenassertions erhalten und das vorhandene Image nutzen;
+das gestoppte Fenster darf nicht unveraendert wiederholt werden.
+
+Fortsetzung: Drei getrennt gebundene Diagnosen ohne Neubau abgeschlossen.
+Diagnose01 (nur kalte PIO-Proben) und02 (reduzierte Lebenszyklus-/Konsolenproben)
+scheitern weiterhin an CPU32;11.43782769999234s und9.993530499981716s.
+Diagnose03 ohne laufende Haltepunkte, Standardmedium2 statt0, erreicht
+den Shell-Prompt und bleibt7s aktiv; ATA-Dienst2 CPU-Ticks, FS0, kein
+Root-Quotenabbruch. Gastzeit7.14698980000685s; nur Diagnose, kein
+Medien-uebergreifender Kausal- oder Abnahmenachweis.
+Codeinspektion bestaetigt zudem: die alte Eintrittsprobe lag vor dem
+Copyout blockierter IPC-Antworten. Candidate03 fuehrt daher private,
+seitengetrennte No-op-Proben mit begrenztem72-Byte-Zustand ein und beobachtet
+blockierte Antworten nach dem Copyout. Vollstaendige bisherige Rohdaten-
+Pruefungen bleiben erhalten, Cleanup wird um diese72 Nullbytes verschaerft.
+Ausgefuehrte Assemblerregression O0/O2 prueft alle160 Opcodewerte, acht Slots,
+ungueltigen Slot/Modus, Generation und Register/Flags. Ein zuerst gefundenes
+indiziertes RIP-Adressierungsproblem ist korrigiert; alle Testlogs bleiben.
+Sechs gezielte Integrationsmethoden bestehen, inklusive alter Quellprojektion.
+Jetzt zehn Gates, ein separates neues Image und18 Gaeste, Stopp beim ersten
+Fehler. Bisher insgesamt ein OS-Image/vier Gaeste38.65928809996694s.
+Keine Paketabnahme oder Implementierungscommit.
 
 ## R8.3ax qualifiziert: begrenzte Erzeugung im Dauerbetriebsprofil
 

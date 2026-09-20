@@ -48,7 +48,7 @@ def build_file_program(directory,cc,nasm,ld):
     environment.setdefault('ZIG_LOCAL_CACHE_DIR',str(directory/'zig-cache'))
     start=directory/'file-start.o';obj=directory/'file-program.o';elf=directory/'file-program.prg'
     commands=[[*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start],
-        ([*nasm,'-f','elf64','arch/x86_64/user/terminal_program.asm','-o',obj] if '-DREIST_NATIVE_TERMINAL=1' in cc else
+        ([*nasm,'-f','elf64','arch/x86_64/user/shell_session_program.asm' if '-DREIST_NATIVE_SHELL_SESSION=1' in cc else 'arch/x86_64/user/terminal_program.asm','-o',obj] if '-DREIST_NATIVE_TERMINAL=1' in cc else
          [*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/file_program.c','-o',obj]),
         [*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined','-z','noexecstack','--strip-all','-T','config/x86_64_file_program.ld','-o',elf,start,obj]]
     for command in commands:
@@ -60,7 +60,9 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False):
+    if type(shell_session) is not bool or shell_session and (not terminal or session or native_shell or service_cpu):
+        raise ValueError('shell session requires explicit terminal service profile, excludes old shell/session fixtures')
     if type(session) is not bool or session and not service_cpu:raise ValueError('session requires explicit device-free service CPU')
     if type(terminal) is not bool or terminal and not service_console:raise ValueError('terminal requires explicit service console')
     if type(service_console) is not bool or service_console and (not live_file or console or native_shell):
@@ -108,6 +110,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if service_console:cc=[*cc,'-DREIST_NATIVE_SERVICE_CONSOLE=1']
     if terminal:cc=[*cc,'-DREIST_NATIVE_TERMINAL=1']
     if session:cc=[*cc,'-DREIST_NATIVE_SESSION=1']
+    if shell_session:cc=[*cc,'-DREIST_NATIVE_SESSION=1','-DREIST_NATIVE_SHELL_SESSION=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -121,13 +124,17 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     for n in ([2,3,0,1] if filesystem else [2,0,1,3] if import_image else range(4)):
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
         extra=[];objects=[]
-        shell_root=native_shell and n==0
+        shell_root=(native_shell or shell_session) and n==0
         if shell_root:
             for index,source in enumerate(('userspace/bin/shell_vfs.c','userspace/sdk/lib/x86_64/shell_platform.c')):
                 unit=attempt/f'shell-{index}.o'
                 run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-fstack-usage','-Iuserspace/sdk/include','-Iuserspace/storage/include','-c',source,'-o',unit])
                 objects.append(unit)
-        if console:
+            if shell_session:
+                unit=attempt/'service-session.o'
+                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/service_session.c','-o',unit])
+                objects.append(unit)
+        if console or shell_session and n==0:
             unit=attempt/f'console-{n}.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/console.c','-o',unit])
             objects.append(unit)
@@ -141,6 +148,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
                 fs_blob=(attempt/'program3.prg').read_bytes()
                 with header.open('a',encoding='ascii') as output:
                     output.write('static const unsigned char filesystem_blob[] __attribute__((section(".data.import_blob")))={'+','.join(str(b) for b in fs_blob)+'};\n')
+            if shell_session and n==0:
+                with header.open('a',encoding='ascii') as output:
+                    output.write('#include <reist/x86_64/shell_session.h>\nconst reist_shell_images reist_native_shell_images={import_blob,sizeof(import_blob),filesystem_blob,sizeof(filesystem_blob)};\n')
             extra=['-DNATIVE_IMPORT=1','-include',str(header)]
             parser=attempt/'image.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/image.c','-o',parser])
@@ -173,8 +183,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--wrap=main'] if session and n<2 else []),
+             *(['--wrap=main'] if shell_session and n==0 else []),
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
-             '-T','config/x86_64_native_shell.ld' if shell_root else 'config/x86_64_wide_program.ld' if wide else 'config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
+             '-T','config/x86_64_native_shell.ld' if shell_root and not shell_session else 'config/x86_64_wide_program.ld' if wide else 'config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
         records[n]=prepare(elf.read_bytes(),[f'program{n}.prg',str(n)],wide)
         if shell_root:
             install=attempt/'root/bin';install.mkdir(parents=True)
@@ -213,6 +224,7 @@ if __name__=='__main__':
     p.add_argument('--service-console',action='store_true')
     p.add_argument('--terminal',action='store_true')
     p.add_argument('--session',action='store_true')
+    p.add_argument('--shell-session',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -220,4 +232,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session)

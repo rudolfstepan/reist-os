@@ -42,6 +42,14 @@ const reist_u64 native_task_pool_capacity=8;
 /* Immutable boot-policy witness: version, bytes, owner slot, quota, period ms. */
 const reist_u64 native_session_profile_v1[5]={1,40,0,8,1000};
 #endif
+#if REIST_NATIVE_SHELL_SESSION
+#if !REIST_NATIVE_SESSION || !REIST_NATIVE_TERMINAL || !REIST_NATIVE_SERVICE_CONSOLE
+#error "NativeShellSession requires explicit session, terminal and service-console mediation"
+#endif
+/* Private boot-policy witness: version, bytes, owner, IO period, recovery
+ * attempts/period. Existing device, CPU and operation profiles are unchanged. */
+const reist_u64 native_shell_session_profile_v1[6]={1,48,0,1000,2,10000};
+#endif
 #if REIST_NATIVE_SERVICE_CPU
 #if REIST_NATIVE_SERVICE_CONSOLE
 #if !REIST_NATIVE_CONSOLE

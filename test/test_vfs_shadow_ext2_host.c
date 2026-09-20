@@ -1,6 +1,7 @@
 /** Host behavior test for the bounded Ring-3 EXT2 stat parser. */
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "userspace/storage/include/reist/vfs_shadow_ext2.h"
 
@@ -212,7 +213,117 @@ static int readdir_path(test_context_t *context, const char *path,
         &io, path, (uint32_t)strlen(path), index, info);
 }
 
+#ifdef REIST_NATIVE_SHELL_SESSION
+/* Exercise public parser calls with real ext2 layouts and observed sector I/O. */
+typedef struct {
+    test_context_t media;
+    unsigned block_size, directory_reads, seen[TEST_SECTORS];
+    int failed_sector;
+} sector_context_t;
+static int sector_read(void *opaque,uint32_t resource,uint32_t lba,uint8_t *out) {
+    sector_context_t *c=opaque;
+    if(resource!=1 || lba>=TEST_SECTORS)return -5;
+    ++c->seen[lba];
+    if(lba>=21*c->block_size/512 && lba<22*c->block_size/512)++c->directory_reads;
+    if((int)lba==c->failed_sector)return -110;
+    memcpy(out,c->media.image+lba*512,512);return 0;
+}
+static void sector_image(sector_context_t *c,unsigned size,unsigned offset) {
+    memset(c,0,sizeof(*c));c->block_size=size;c->failed_sector=-1;
+    uint8_t *super=c->media.image+1024;
+    put32(super,128);put32(super+4,sizeof(c->media.image)/size);
+    put32(super+20,size==1024);put32(super+24,size==1024?0:size==2048?1:2);
+    put32(super+28,size==1024?0:size==2048?1:2);
+    put32(super+32,sizeof(c->media.image)/size);put32(super+36,sizeof(c->media.image)/size);
+    put32(super+40,128);put16(super+56,0xef53);put16(super+58,1);
+    put32(super+76,1);put32(super+84,11);put16(super+88,128);put32(super+96,2);
+    uint8_t *group=c->media.image+(size==1024?2:1)*size;
+    put32(group,3);put32(group+4,4);put32(group+8,5);
+    uint8_t *root=c->media.image+5*size+128;
+    put16(root,0x41ed);put32(root+4,size);put16(root+26,2);put32(root+40,21);
+    uint8_t *file=c->media.image+5*size+11*128;
+    put16(file,0x81a4);put32(file+4,728);put16(file+26,1);put32(file+40,22);
+    uint8_t *dir=c->media.image+21*size;
+    if(offset)add_entry(dir,0,0,"",0,(uint16_t)offset);
+    add_entry(dir,offset,12,"readme.txt",1,(uint16_t)(size-offset));
+    for(unsigned n=0;n<728;n++)c->media.image[22*size+n]=(uint8_t)(n*7+3);
+}
+#define SECTOR_CHECK(v) do { if(!(v)){fprintf(stderr,"directory sector line %d\n",__LINE__);return 70;} } while(0)
+static int sector_cases(void) {
+    static sector_context_t c;
+    const char *path="/mnt/ext2/readme.txt";
+    for(unsigned size=1024;size<=4096;size*=2) {
+        for(unsigned variant=0;variant<4;variant++) {
+            unsigned offset=variant==0?0:variant==1?496:variant==2?508:size-20;
+            unsigned expected=variant==0?1:2;
+            sector_image(&c,size,offset);reist_vfs_shadow_io_t io={&c,drive_info,sector_read};
+            x86os_file_info_t info;memset(&info,0xa5,sizeof(info));
+            SECTOR_CHECK(!reist_vfs_shadow_ext2_stat(&io,path,(uint32_t)strlen(path),&info));
+            SECTOR_CHECK(info.size==728 && !strcmp(info.name,"readme.txt") && c.directory_reads==expected);
+            for(unsigned n=0;n<size/512;n++)SECTOR_CHECK(c.seen[21*size/512+n]<=1);
+            memset(c.seen,0,sizeof(c.seen));c.directory_reads=0;
+            SECTOR_CHECK(!reist_vfs_shadow_ext2_readdir(&io,"/mnt/ext2",9,0,&info));
+            SECTOR_CHECK(!strcmp(info.name,"readme.txt") && c.directory_reads==expected);
+            for(unsigned n=0;n<size/512;n++)SECTOR_CHECK(c.seen[21*size/512+n]<=1);
+            uint8_t data[256];uint32_t got=0;
+            SECTOR_CHECK(!reist_vfs_shadow_ext2_read(&io,path,(uint32_t)strlen(path),500,data,sizeof(data),&got));
+            SECTOR_CHECK(got==228 && !memcmp(data,c.media.image+22*size+500,228));
+        }
+        /* Unused padding is not I/O authority; a required split sector is. */
+        sector_image(&c,size,0);reist_vfs_shadow_io_t io={&c,drive_info,sector_read};
+        x86os_file_info_t info;c.failed_sector=(int)(21*size/512+1);
+        SECTOR_CHECK(!reist_vfs_shadow_ext2_stat(&io,path,(uint32_t)strlen(path),&info));
+        for(unsigned offset=496;offset<=508;offset+=12) {
+            sector_image(&c,size,offset);c.failed_sector=(int)(21*size/512+1);
+            memset(&info,0xa5,sizeof(info));
+            SECTOR_CHECK(reist_vfs_shadow_ext2_stat(&io,path,(uint32_t)strlen(path),&info)==-110);
+            SECTOR_CHECK(!info.name[0]);
+            reist_vfs_shadow_ext2_readdir_cursor_t cursor={0};cursor.active=1;
+            SECTOR_CHECK(reist_vfs_shadow_ext2_readdir_continue(&io,"/mnt/ext2",9,0,&cursor,&info)==-110);
+            SECTOR_CHECK(!cursor.active && !info.name[0]);
+        }
+        for(unsigned fault=0;fault<6;fault++) {
+            sector_image(&c,size,0);uint8_t *dir=c.media.image+21*size;
+            if(fault==0)put16(dir+4,4);
+            if(fault==1)put16(dir+4,(uint16_t)(size+4));
+            if(fault==2)put16(dir+4,19);
+            if(fault==3){put16(dir+4,12);dir[6]=9;}
+            if(fault==4)put32(dir,129);
+            if(fault==5)put32(c.media.image+5*size+128+40,sizeof(c.media.image)/size);
+            SECTOR_CHECK(reist_vfs_shadow_ext2_stat(&io,path,(uint32_t)strlen(path),&info)==-5);
+            SECTOR_CHECK(!info.name[0]);
+            SECTOR_CHECK(reist_vfs_shadow_ext2_readdir(&io,"/mnt/ext2",9,0,&info)==-5);
+            SECTOR_CHECK(!info.name[0]);
+        }
+        for(unsigned typed=0;typed<2;typed++) {
+            sector_image(&c,size,0);
+            put32(c.media.image+1024+96,typed?2:0);
+            char name[256],long_path[266];memset(name,'n',255);name[255]=0;
+            memcpy(long_path,"/mnt/ext2/",10);memcpy(long_path+10,name,256);
+            uint8_t *dir=c.media.image+21*size;
+            add_entry(dir,0,0,"",0,508);
+            add_entry(dir,508,12,name,typed?1:0,(uint16_t)(size-508));
+            SECTOR_CHECK(reist_vfs_shadow_ext2_stat(&io,long_path,265,&info)==-22);
+            SECTOR_CHECK(!info.name[0] && !c.directory_reads);
+            SECTOR_CHECK(!reist_vfs_shadow_ext2_readdir(&io,"/mnt/ext2",9,0,&info));
+            SECTOR_CHECK(!strcmp(info.name,name) && c.directory_reads==2);
+            SECTOR_CHECK(reist_vfs_shadow_ext2_stat(&io,"/mnt/ext2/absent",16,&info)==-2);
+            SECTOR_CHECK(reist_vfs_shadow_ext2_readdir(&io,"/mnt/ext2",9,1,&info)==1);
+            if(!typed) {
+                put16(dir+508+6,256);
+                SECTOR_CHECK(reist_vfs_shadow_ext2_stat(&io,"/mnt/ext2/absent",16,&info)==-5);
+                SECTOR_CHECK(!info.name[0]);
+            }
+        }
+    }
+    puts("EXT2_DIRECTORY_SECTORS_OK");return 0;
+}
+#endif
+
 int main(void) {
+#ifdef REIST_NATIVE_SHELL_SESSION
+    int sector_result=sector_cases();if(sector_result)return sector_result;
+#endif
     static test_context_t context;
     x86os_file_info_t info;
     initialize(&context);

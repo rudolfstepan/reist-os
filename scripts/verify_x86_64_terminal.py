@@ -86,11 +86,31 @@ def default_sources():
         'arch/x86_64/user/file_program.c','userspace/sdk/lib/x86_64/shell_platform.c')
     for name in names:
         before=subprocess.check_output(['git','show',BASELINE+':'+name],cwd=ROOT,timeout=10).decode('utf-8').replace('\r\n','\n')
-        after=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL',name.endswith(('.inc','.asm')))
+        after=(ROOT/name).read_text(encoding='utf-8')
+        # Versioned opt-in successors compose above AV, never replace the AU
+        # reference. Everything outside these disabled branches remains exact.
+        for macro in ('REIST_NATIVE_SHELL_SESSION','REIST_NATIVE_SESSION','REIST_NATIVE_TERMINAL'):
+            after=disabled(after,macro,name.endswith(('.inc','.asm')))
         need(before==after,'terminal exact disabled source '+name)
     name='scripts/build-x86_64-bootstrap.ps1'
     before=subprocess.check_output(['git','show',BASELINE+':'+name],cwd=ROOT,timeout=10).decode('utf-8').replace('\r\n','\n')
     after=(ROOT/name).read_text(encoding='utf-8')
+    successors=(
+        ('NativeShellSession',('    [switch]$NativeShellSession,\n',
+            'if ($NativeShellSession) {\n'
+            '    if ($NativeSession -or $NativeShell -or $NativeConsole -or $NativeServiceCPU) {\n'
+            "        throw 'NativeShellSession excludes finite shell and device-free session fixtures.'\n"
+            '    }\n    $NativeTerminal = [switch]$true\n}\n',
+            '        "X86_64_NATIVE_SHELL_SESSION=$([int]$NativeShellSession.IsPresent)" `\n')),
+        ('NativeSession',('    [switch]$NativeSession,\n',
+            'if ($NativeSession) { $NativeServiceCPU = [switch]$true }\n',
+            '        "X86_64_NATIVE_SESSION=$([int]$NativeSession.IsPresent)" `\n')))
+    for selector,parts in successors:
+        if '$'+selector not in after:continue
+        for part in parts:
+            need(after.count(part)==1,'terminal PS exact successor '+selector)
+            after=after.replace(part,'')
+        need('$'+selector not in after,'terminal PS unexpected successor use '+selector)
     for line in ('    [switch]$NativeTerminal,\n','if ($NativeTerminal) { $NativeServiceConsole = [switch]$true }\n',
                  '        "X86_64_NATIVE_TERMINAL=$([int]$NativeTerminal.IsPresent)" `\n'):
         need(after.count(line)==1,'terminal PS selector exact addition');after=after.replace(line,'')

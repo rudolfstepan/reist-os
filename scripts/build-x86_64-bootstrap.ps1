@@ -36,6 +36,7 @@ param(
     [switch]$NativePoolPIO,
     [switch]$NativeServiceCPU,
     [switch]$NativeSession,
+    [switch]$NativeShellSession,
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
     [switch]$NativeConsole,
@@ -60,6 +61,12 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeShellSession) {
+    if ($NativeSession -or $NativeShell -or $NativeConsole -or $NativeServiceCPU) {
+        throw 'NativeShellSession excludes finite shell and device-free session fixtures.'
+    }
+    $NativeTerminal = [switch]$true
+}
 if ($NativeSession) { $NativeServiceCPU = [switch]$true }
 if ($NativeTerminal) { $NativeServiceConsole = [switch]$true }
 if ($NativeServiceConsole) {
@@ -425,6 +432,7 @@ try {
         "X86_64_NATIVE_POOL_PIO=$([int]$NativePoolPIO.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
         "X86_64_NATIVE_SESSION=$([int]$NativeSession.IsPresent)" `
+        "X86_64_NATIVE_SHELL_SESSION=$([int]$NativeShellSession.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `

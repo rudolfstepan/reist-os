@@ -404,6 +404,11 @@ family_profile_apply64:
 %ifdef REIST_NATIVE_TERMINAL
     bts rax,63
 %endif
+%ifdef REIST_NATIVE_SHELL_SESSION
+    ; Only the trusted root profile gets the existing identity query. Child
+    ; profile admission above still excludes bit50, so no implicit delegation.
+    bts rax,50
+%endif
 .extended:
 %else
     test rax,rax
@@ -1274,6 +1279,10 @@ family_terminal64:
 %endif
 %ifdef REIST_NATIVE_PIO
     call native_pio_terminal64
+%endif
+%ifdef REIST_NATIVE_SHELL_SESSION
+.session_probe:
+    call native_session_probe_terminal_site64
 %endif
     push rax
     push rdi

@@ -365,6 +365,33 @@ static int ext2_read_block(ext2_shadow_volume_t *volume, uint32_t block,
     return 0;
 }
 
+#ifdef REIST_NATIVE_SHELL_SESSION
+/* Immutable AY directory traversal: admit the entire mapped block before
+ * narrowing I/O to headers/names, never to unchecked record padding. The
+ * caller owns the fixed block buffer and a fresh eight-bit loaded-sector set. */
+static int ext2_directory_range(ext2_shadow_volume_t *volume, uint32_t block,
+        uint32_t offset, uint32_t length, uint8_t *data, uint32_t *loaded) {
+    if ((volume->block_size != 1024U && volume->block_size != 2048U &&
+         volume->block_size != 4096U) ||
+        volume->sectors_per_block != volume->block_size / X86OS_STORAGE_BLOCK_SIZE ||
+        block >= volume->blocks_count || offset > volume->block_size ||
+        length > volume->block_size - offset ||
+        (*loaded & ~((1U << volume->sectors_per_block) - 1U))) return -5;
+    uint64_t first = (uint64_t)block * volume->sectors_per_block;
+    if (first + volume->sectors_per_block > volume->sectors) return -5;
+    if (length == 0U) return 0;
+    uint32_t end = (offset + length + X86OS_STORAGE_BLOCK_SIZE - 1U) /
+        X86OS_STORAGE_BLOCK_SIZE;
+    for (uint32_t index = offset / X86OS_STORAGE_BLOCK_SIZE; index < end; ++index) {
+        if (*loaded & (1U << index)) continue;
+        int status = ext2_read_sector(volume, (uint32_t)first + index,
+                                      data + index * X86OS_STORAGE_BLOCK_SIZE);
+        if (status != 0) return status;
+        *loaded |= 1U << index;
+    }
+    return 0;
+}
+#endif
 static int ext2_mount(ext2_shadow_volume_t *volume, ext2_request_t *request,
                       const char *path, uint32_t path_length,
                       uint32_t *relative_offset) {
@@ -593,7 +620,12 @@ static int ext2_find_entry(ext2_shadow_volume_t *volume,
         uint32_t block = 0U;
         int status = ext2_inode_block(volume, directory, logical, &block);
         if (status != 0) return status;
+#ifdef REIST_NATIVE_SHELL_SESSION
+        uint32_t loaded = 0U;
+        status = ext2_directory_range(volume, block, 0U, 0U, data, &loaded);
+#else
         status = ext2_read_block(volume, block, data);
+#endif
         if (status != 0) return status;
         uint32_t remaining_size = size - logical * volume->block_size;
         uint32_t limit = remaining_size < volume->block_size
@@ -601,6 +633,10 @@ static int ext2_find_entry(ext2_shadow_volume_t *volume,
         uint32_t offset = 0U;
         while (offset < limit) {
             if (limit - offset < 8U) return -5;
+#ifdef REIST_NATIVE_SHELL_SESSION
+            status = ext2_directory_range(volume, block, offset, 8U, data, &loaded);
+            if (status != 0) return status;
+#endif
             uint32_t entry_inode = ext2_get32(data + offset);
             uint32_t record_length = ext2_get16(data + offset + 4U);
             uint32_t name_length = volume->has_file_type != 0U
@@ -610,6 +646,13 @@ static int ext2_find_entry(ext2_shadow_volume_t *volume,
                 name_length > record_length - 8U ||
                 (entry_inode != 0U && entry_inode > volume->inodes_count))
                 return -5;
+#ifdef REIST_NATIVE_SHELL_SESSION
+            if (entry_inode != 0U) {
+                status = ext2_directory_range(volume, block, offset + 8U,
+                                               name_length, data, &loaded);
+                if (status != 0) return status;
+            }
+#endif
             if (entry_inode != 0U && ext2_name_equal(
                     data + offset + 8U, name_length, wanted)) {
                 *inode_number = entry_inode;
@@ -1064,7 +1107,12 @@ int reist_vfs_shadow_ext2_readdir_continue(
             ext2_readdir_cursor_reset(cursor);
             return status;
         }
+#ifdef REIST_NATIVE_SHELL_SESSION
+        uint32_t loaded = 0U;
+        status = ext2_directory_range(&volume, block, 0U, 0U, block_data, &loaded);
+#else
         status = ext2_read_block(&volume, block, block_data);
+#endif
         if (status != 0) {
             ext2_readdir_cursor_reset(cursor);
             return status;
@@ -1082,6 +1130,14 @@ int reist_vfs_shadow_ext2_readdir_continue(
                 ext2_readdir_cursor_reset(cursor);
                 return -5;
             }
+#ifdef REIST_NATIVE_SHELL_SESSION
+            status = ext2_directory_range(&volume, block, block_cursor, 8U,
+                                          block_data, &loaded);
+            if (status != 0) {
+                ext2_readdir_cursor_reset(cursor);
+                return status;
+            }
+#endif
             uint32_t child_number = ext2_get32(block_data + block_cursor);
             uint32_t record_length =
                 ext2_get16(block_data + block_cursor + 4U);
@@ -1095,6 +1151,14 @@ int reist_vfs_shadow_ext2_readdir_continue(
                 ext2_readdir_cursor_reset(cursor);
                 return -5;
             }
+#ifdef REIST_NATIVE_SHELL_SESSION
+            status = ext2_directory_range(&volume, block, block_cursor + 8U,
+                                          name_length, block_data, &loaded);
+            if (status != 0) {
+                ext2_readdir_cursor_reset(cursor);
+                return status;
+            }
+#endif
             const char *name =
                 (const char *)(block_data + block_cursor + 8U);
             int dot = name_length == 1U && name[0] == '.';

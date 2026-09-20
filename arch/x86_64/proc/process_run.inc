@@ -993,9 +993,16 @@ process_run_syscall64:
     jz scheduler_fail
     cmp eax, 2
     je .denied
+%ifdef REIST_NATIVE_SHELL_SESSION
+    call native_session_probe_request64
+%endif
 %ifdef REIST_NATIVE_TERMINAL
     cmp qword [rel syscall_rax],REIST_SYS_TERMINAL_INPUT
     je native_terminal_syscall64
+%endif
+%ifdef REIST_NATIVE_SHELL_SESSION
+    cmp qword [rel syscall_rax],114
+    je native_identity_syscall64
 %endif
 %ifdef REIST_NATIVE_CONSOLE
     cmp qword [rel syscall_rax],REIST_SYS_READ
@@ -1103,10 +1110,16 @@ process_run_syscall64:
     mov rax, REIST_EINVAL
     jmp process_run_resume64
 .denied:
+%ifdef REIST_NATIVE_SHELL_SESSION
+    call native_session_probe_denied64
+%endif
     mov rax, REIST_EACCES
     jmp process_run_resume64
 
 process_run_resume64:
+%ifdef REIST_NATIVE_SHELL_SESSION
+    call native_session_probe_return64
+%endif
     mov r15, rax
     call scheduler_save_syscall_context64
     mov [r12+TASK_RAX], r15
@@ -1119,6 +1132,9 @@ process_run_resume64:
     jmp process_run_dispatch64
 
 process_run_exception64:
+%ifdef REIST_NATIVE_SHELL_SESSION
+    call native_session_probe_fault_site64
+%endif
     call process_run_validate64
     test eax, eax
     jz .bad
@@ -1564,6 +1580,390 @@ process_run_finish64:
     mov ecx, (scheduler_state_end-syscall_rax)/8
     rep stosq
     lea rsi, [rel process_run_ok_message]
+%ifdef REIST_NATIVE_SHELL_SESSION
+    lea rdi,[rel native_session_probe_seen]
+    mov ecx,(72+12320+16)/8
+    rep stosq
+%endif
     call serial_write64
     mov byte [rel scheduler_final_result], 1
     jmp scheduler_return64
+%ifdef REIST_NATIVE_SHELL_SESSION
+; AY_COLD_PROBES_BEGIN
+; Private qualification sites only. Fixed eight-slot bookkeeping never changes
+; authority, counters, saved task registers or deadlines. IF/registers preserved.
+native_session_probe_request64:
+    pushfq
+    push rax
+    push rcx
+    push rdx
+    xor edx,edx
+    jmp native_session_probe_request_common64
+native_session_probe_denied64:
+    pushfq
+    push rax
+    push rcx
+    push rdx
+    mov edx,1
+native_session_probe_request_common64:
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .done
+    mov ecx,[rel scheduler_current_slot]
+    cmp ecx,8
+    jae .done
+    mov rax,[rel syscall_rax]
+    ; Private qualification witness only: retain the actual blocked OOM
+    ; fixture pause without tracing ordinary 10ms shell polling sleeps.
+    cmp rax,41
+    jne .not_fixture_sleep
+    test ecx,ecx
+    jnz .done
+    cmp qword [rel syscall_rdi],100
+    jne .done
+    jmp .watched
+.not_fixture_sleep:
+    cmp rax,63
+    ja .extended
+    mov rcx,(1<<9)|(1<<15)|(1<<20)|(127<<49)
+    bt rcx,rax
+    jnc .done
+    jmp .watched
+.extended:
+    cmp rax,113
+    je .watched
+    cmp rax,114
+    je .watched
+    cmp rax,127
+    je .watched
+    cmp rax,132
+    jne .done
+.watched:
+    mov ecx,[rel scheduler_current_slot]
+    ; Independent, non-authoritative execution tickets for diagnostic READs.
+    ; Saturation is sticky and outside the valid observer bound; never wrap.
+    test ecx,ecx
+    jnz .read_ticket_done
+    cmp rax,15
+    jne .read_ticket_done
+    cmp qword [rel native_session_read_tickets],8193
+    jae .read_ticket_done
+    inc qword [rel native_session_read_tickets]
+.read_ticket_done:
+    cmp rax,113
+    jne .ordinary
+    test edx,edx
+    jnz .ordinary
+    push rdx
+    lea rdx,[rel native_session_probe_pending]
+    mov byte [rdx+rcx],2
+    pop rdx
+    call native_session_pio_enter64
+    jmp .done
+.ordinary:
+    cmp rax,9
+    setne al
+    push rdx
+    lea rdx,[rel native_session_probe_pending]
+    mov [rdx+rcx],al
+    pop rdx
+    test edx,edx
+    jnz .denied
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    jmp native_session_probe_request_site64
+.denied:
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    jmp native_session_probe_denied_site64
+.done:
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    ret
+native_session_probe_return64:
+    pushfq
+    push rax
+    push rcx
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .done
+    mov ecx,[rel scheduler_current_slot]
+    cmp ecx,8
+    jae .done
+    lea rax,[rel native_session_probe_pending]
+    cmp byte [rax+rcx],0
+    je .done
+    cmp byte [rax+rcx],2
+    je .pio
+    test ecx,ecx
+    jnz .read_ticket_done
+    cmp qword [rel syscall_rax],15
+    jne .read_ticket_done
+    cmp qword [rel native_session_read_tickets+8],8193
+    jae .read_ticket_done
+    inc qword [rel native_session_read_tickets+8]
+.read_ticket_done:
+    mov byte [rax+rcx],0
+    pop rcx
+    pop rax
+    popfq
+    jmp native_session_probe_return_site64
+.pio:
+    mov byte [rax+rcx],0
+    pop rcx
+    pop rax
+    popfq
+    jmp native_session_pio_return64
+.done:
+    pop rcx
+    pop rax
+    popfq
+    ret
+native_session_probe_start64:
+    pushfq
+    push rax
+    push rcx
+    push rdx
+    cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
+    jne .done
+    mov ecx,[rel scheduler_current_slot]
+    cmp ecx,8
+    jae .done
+    lea rax,[rel native_session_probe_seen]
+    mov rdx,[r11+TASK_GENERATION]
+    cmp [rax+rcx*8],rdx
+    jne .first
+    lea rax,[rel native_session_probe_pending]
+    cmp byte [rax+rcx],0
+    je .done
+    jmp .observe
+.first:
+    mov [rax+rcx*8],rdx
+    lea rax,[rel native_session_probe_pending]
+.observe:
+    mov byte [rax+rcx],0
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    jmp native_session_probe_start_site64
+.done:
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    ret
+; Keep debugger breakpoints off every ordinary scheduling/syscall code page.
+align 4096,db 0x90
+native_session_probe_page:
+native_session_probe_request_site64:
+    ret
+native_session_probe_denied_site64:
+    ret
+native_session_probe_return_site64:
+    ret
+native_session_probe_start_site64:
+    ret
+native_session_probe_pio_site64:
+    ret
+native_session_probe_terminal_site64:
+    ret
+native_session_probe_fault_site64:
+    ret
+align 4096,db 0x90
+native_session_probe_page_end:
+; AY_COLD_PROBES_END
+; AY_PIO_RECORD_BEGIN
+; Non-authoritative fixed capture, no allocation, acknowledgement or wait.
+; Syscall113 is synchronous with IF=0. Denied profiles keep the original
+; no-user-read observer route. Every GPR/RFLAGS is preserved on every path.
+%macro ay_pio_save 0
+    pushfq
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+%endmacro
+%macro ay_pio_restore 0
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    popfq
+%endmacro
+native_session_pio_enter64:
+    ay_pio_save
+    lea r14,[rel native_session_pio_trace]
+    cmp qword [r14+8],0
+    jne .done
+    cmp qword [r14+16],0
+    jne .error
+    cmp qword [r14+24],0
+    jne .error
+    cmp byte [rel scheduler_mode],8
+    jne .error
+    cmp dword [rel scheduler_current_slot],8
+    jae .error
+    mov rax,[r12+TASK_GENERATION]
+    test rax,rax
+    jz .error
+    shr rax,31
+    jnz .error
+    mov rax,[rel scheduler_last_tick]
+    shr rax,60
+    jnz .error
+    mov rax,[r14]
+    cmp rax,2048
+    jae .error
+    and eax,31
+    imul eax,384
+    lea r13,[r14+rax+32]
+    mov rdi,r13
+    xor eax,eax
+    mov ecx,48
+    rep stosq
+    mov dword [r13],1
+    mov rax,[r14]
+    inc rax
+    mov [r13+8],rax
+    mov eax,[rel scheduler_current_slot]
+    mov [r13+16],rax
+    mov rax,[r12+TASK_GENERATION]
+    mov [r13+24],rax
+    mov rax,[rel scheduler_last_tick]
+    mov [r13+32],rax
+    mov rax,[rel syscall_rdi]
+    mov [r13+64],rax
+    mov rax,[rel syscall_rsi]
+    mov [r13+72],rax
+    mov rax,[rel syscall_rdx]
+    mov [r13+80],rax
+    mov rax,[rel syscall_r10]
+    mov [r13+88],rax
+    mov rax,[rel syscall_r8]
+    mov [r13+96],rax
+    mov rax,[rel syscall_r9]
+    mov [r13+104],rax
+    mov rax,[rsp+120]
+    mov [r13+352],rax
+    test rax,512
+    jnz .error
+    mov qword [r13+368],8
+    mov rax,[r13+72]
+    mov edx,64
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    cmp eax,1
+    jne .error
+    mov rsi,[r13+72]
+    lea rdi,[r13+112]
+    mov ecx,8
+    rep movsq
+    lea rsi,[rel native_terminal_state]
+    lea rdi,[r13+240]
+    mov ecx,3
+    rep movsq
+    mov qword [r14+16],1
+    jmp .done
+.error:
+    mov qword [r14+8],1
+.done:
+    ay_pio_restore
+    ret
+native_session_pio_return64:
+    ay_pio_save
+    lea r14,[rel native_session_pio_trace]
+    cmp qword [r14+8],0
+    jne .done
+    cmp qword [r14+16],1
+    jne .error
+    cmp qword [r14+24],0
+    jne .error
+    cmp byte [rel scheduler_mode],8
+    jne .error
+    mov rax,[r14]
+    cmp rax,2048
+    jae .error
+    and eax,31
+    imul eax,384
+    lea r13,[r14+rax+32]
+    mov eax,[rel scheduler_current_slot]
+    cmp rax,[r13+16]
+    jne .error
+    mov rax,[r12+TASK_GENERATION]
+    cmp rax,[r13+24]
+    jne .error
+    mov rax,[rel scheduler_last_tick]
+    cmp rax,[r13+32]
+    jb .error
+    mov [r13+40],rax
+    shr rax,60
+    jnz .error
+    mov rax,[rsp+112]
+    mov [r13+48],rax
+    mov rax,[rsp+120]
+    mov [r13+360],rax
+    test rax,512
+    jnz .error
+    mov qword [r13+376],8
+    mov rax,[r13+72]
+    mov edx,64
+    mov ecx,PF_R
+    call scheduler_validate_shell_range64
+    cmp eax,1
+    jne .error
+    mov rsi,[r13+72]
+    lea rdi,[r13+176]
+    mov ecx,8
+    rep movsq
+    lea rsi,[rel native_terminal_state]
+    lea rdi,[r13+264]
+    mov ecx,3
+    rep movsq
+    lea rsi,[rel native_pio_state]
+    lea rdi,[r13+288]
+    mov ecx,8
+    rep movsq
+    mov qword [r14+16],0
+    inc qword [r14]
+    test qword [r14],31
+    jz .notify
+    jmp .done
+.error:
+    mov qword [r14+8],1
+.done:
+    ay_pio_restore
+    ret
+.notify:
+    ay_pio_restore
+    jmp native_session_probe_pio_site64
+%unmacro ay_pio_save 0
+%unmacro ay_pio_restore 0
+; AY_PIO_RECORD_END
+%endif

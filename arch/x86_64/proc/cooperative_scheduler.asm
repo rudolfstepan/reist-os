@@ -1847,6 +1847,10 @@ scheduler_enter_task64:
     call process_ipc_take64
 .ipc_take_done:
 %endif
+%ifdef REIST_NATIVE_SHELL_SESSION
+    ; Blocked IPC output is now copied; this is the actual user-entry boundary.
+    call native_session_probe_start64
+%endif
 
     push qword USER_DATA_SELECTOR
     push qword [r11 + TASK_RSP]
@@ -8284,6 +8288,9 @@ scheduler_profile_ranges64:
 %endif
 
 %include "arch/x86_64/proc/process_run.inc"
+%ifdef REIST_NATIVE_SHELL_SESSION
+%include "arch/x86_64/proc/native_identity.inc"
+%endif
 %ifdef REIST_NATIVE_TERMINAL
 %include "arch/x86_64/proc/native_terminal.inc"
 %endif
@@ -8439,6 +8446,17 @@ scheduler_cpu_budgets:
 %ifdef REIST_NATIVE_SERVICE_CPU
 scheduler_cpu_windows:
     resb NATIVE_POOL_TASKS * 32
+%endif
+%ifdef REIST_NATIVE_SHELL_SESSION
+native_session_probe_seen:
+    resq 8
+native_session_probe_pending:
+    resb 8
+native_session_pio_trace:
+    resb 12320
+native_session_pio_trace_end:
+native_session_read_tickets:
+    resq 2
 %endif
 scheduler_syscall_context:
     resq 2

@@ -1,24 +1,39 @@
 import pathlib
 import subprocess
-import tempfile
 import unittest
+import sys
+import uuid
+import os
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
+from build_user_program import find_zig
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class ReistVfsShadowExt2Tests(unittest.TestCase):
+    def test_native_directory_sectors(self):
+        self.parser_cases(True)
+
+    def parser_cases(self,enabled):
+        folder=ROOT/'build/codex-agent/ext2-directory-host'/uuid.uuid4().hex
+        folder.mkdir(parents=True)
+        environment=os.environ.copy()
+        environment['ZIG_GLOBAL_CACHE_DIR']=str(ROOT/'build/zig-global-cache')
+        environment['ZIG_LOCAL_CACHE_DIR']=str(folder/'cache')
+        for opt in ('O0','O2'):
+            executable=folder/(opt+'.exe')
+            command=[find_zig(),'cc','-target','x86_64-windows-gnu','-fno-sanitize=all',
+                '-std=c11','-Wall','-Wextra','-Werror','-Wno-unused-command-line-argument','-'+opt,
+                *(['-DREIST_NATIVE_SHELL_SESSION=1'] if enabled else []),f'-I{ROOT}',f'-I{ROOT / "userspace/sdk/include"}',
+                str(ROOT/'test/test_vfs_shadow_ext2_host.c'),str(ROOT/'userspace/storage/lib/vfs_shadow_ext2.c'),
+                '-o',str(executable)]
+            with (folder/(opt+'.log')).open('xb') as log:
+                subprocess.run(command,check=True,cwd=ROOT,env=environment,stdout=log,stderr=subprocess.STDOUT,timeout=90)
+                subprocess.run([str(executable)],check=True,cwd=ROOT,env=environment,stdout=log,stderr=subprocess.STDOUT,timeout=15)
+
     def test_host_parser_behavior(self):
-        with tempfile.TemporaryDirectory() as directory:
-            executable = pathlib.Path(directory) / "vfs_shadow_ext2.exe"
-            subprocess.run([
-                "gcc", "-std=c11", "-Wall", "-Wextra", "-Werror",
-                f"-I{ROOT}", f"-I{ROOT / 'userspace/sdk/include'}",
-                str(ROOT / "test/test_vfs_shadow_ext2_host.c"),
-                str(ROOT / "userspace/storage/lib/vfs_shadow_ext2.c"),
-                "-o", str(executable),
-            ], check=True, cwd=ROOT)
-            subprocess.run([str(executable)], check=True, cwd=ROOT)
+        self.parser_cases(False)
 
     def test_parser_has_fixed_standard_subset_and_work_bounds(self):
         source = (ROOT / "userspace/storage/lib/vfs_shadow_ext2.c").read_text()

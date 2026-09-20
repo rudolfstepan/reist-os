@@ -267,6 +267,13 @@ X86_64_NATIVE_TASK_POOL ?= 0
 X86_64_NATIVE_POOL_PIO ?= 0
 X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SESSION ?= 0
+X86_64_NATIVE_SHELL_SESSION ?= 0
+ifneq ($(words $(X86_64_NATIVE_SHELL_SESSION)),1)
+$(error NativeShellSession selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_SHELL_SESSION),0 1),$(X86_64_NATIVE_SHELL_SESSION))
+$(error NativeShellSession selector must be 0 or 1)
+endif
 ifneq ($(words $(X86_64_NATIVE_SESSION)),1)
 $(error NativeSession selector must be one explicit value)
 endif
@@ -284,6 +291,11 @@ X86_64_NATIVE_CONSOLE ?= 0
 X86_64_NATIVE_SHELL ?= 0
 X86_64_NATIVE_SERVICE_CONSOLE ?= 0
 X86_64_NATIVE_TERMINAL ?= 0
+ifeq ($(X86_64_NATIVE_SHELL_SESSION),1)
+ifneq ($(X86_64_NATIVE_TERMINAL)$(X86_64_NATIVE_SESSION)$(X86_64_NATIVE_SHELL)$(X86_64_NATIVE_SERVICE_CPU),1000)
+$(error NativeShellSession requires terminal service profile and excludes finite shell/session fixtures)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_TERMINAL)),1)
 $(error NativeTerminal selector must be one explicit value)
 endif
@@ -372,6 +384,8 @@ endif
 X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_SERVICE_CPU=1,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SESSION)),-DREIST_NATIVE_SESSION=1,)
 X86_64_SESSION_ARG = $(if $(filter 1,$(X86_64_NATIVE_SESSION)),--session,)
+X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),-DREIST_NATIVE_SESSION=1 -DREIST_NATIVE_SHELL_SESSION=1,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),--shell-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
