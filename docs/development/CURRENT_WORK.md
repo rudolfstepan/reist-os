@@ -4,6 +4,14 @@ Stand: 20. September 2026
 
 ## Aktuelle Abschluss- und Umfangsgrenze
 
+Nutzerfreigabe20.09.2026 erteilt: R8.3ba setzt jetzt das eigene begrenzte
+512KiB-Lese-/Ladeprofil als gemeinsame Ring3-Block/FS/SDK/Shell-Transaktion um.
+Feste Grenzen und neun Gates im [Vertrag](../architecture/NATIVE_WIDE_FILE_CONTRACT.md)
+und der Queue. Alte Profile/CPU-/ATA-/IPC-/Geraeterechte bleiben erhalten.
+Maximal zwei gebuendelte Images; keine Builds/Gaeste vor vollstaendigem
+Kandidaten-Freeze, erster Gatefehler stoppt. Noch keine BA-Abnahme.
+Die nachstehende offene Freigabegrenze ist damit historische Bestandsaufnahme.
+
 R8.3az ist mit `5db38510b205d1a8fdcecc28bdf437fac5978212` lokal abgeschlossen;
 der Arbeitsbaum war danach sauber. Acht Gates und alle zehn BIOS-/Shellfaelle
 bestanden, vier frische Gaeste und sechs exakt gebundene Altbelege, kein Neubau.
