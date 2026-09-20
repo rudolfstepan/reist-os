@@ -1,5 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Folgetransaktion R8.3az auf sauberem AY-Abschluss `455fbb9d`: signierten
+BIOS-Start und normale Shell gemeinsam integrieren, ohne den bestehenden
+primaeren ATA-Lesevertrag zu erweitern. Eigenes Start-HDD als Slave oder
+Rettungsfloppy, bestehendes unveraendertes EXT2-Systemmedium als Master;
+Kernel/Shell/Dienste bleiben bytegleich. Ein neuer Medienbau, null Kernel-
+Neubauten, acht eingefrorene Gates und maximal zehn Gaeste/325s. Details im
+[Bootmedienvertrag](../architecture/NATIVE_SHELL_BOOT_MEDIA_CONTRACT.md).
+Das schliesst die Bootintegration, nicht die noch offenen allgemeinen Datei-,
+Schreib-, Desktop-, Browser- und Plattformgrenzen. Paket ist noch nicht abgenommen.
+
 R8.3ay-Abnahme bestanden am20.09.2026: zehn Gates/18 frische Gastfaelle,
 370.020897600014s, kompletter Rohdaten- und unabhaengiger Speicher-Replay.
 Normale Ring3-Shell mit echtem lesendem Dateisystem/Dateistart, Identitaet,

@@ -2,6 +2,16 @@
 
 Stand: 20. September 2026
 
+R8.3ay ist lokal abgeschlossen: Commit `455fbb9d`, sauberer Worktree und
+akzeptierter Finalbeleg Candidate17. R8.3az-shell-boot-media ist jetzt das
+einzige aktive Folgepaket: signierter BIOS-Start der unveraenderten normalen
+Shell, separates Bootmedium neben der bisherigen lesenden ATA-Systemplatte.
+Kein Kernel-Neubau, keine neuen Treiberrechte, kein MBR-Parser oder gelockerter
+Schreibschutz. Ein gemeinsamer Medienbau, acht Gates und hoechstens zehn
+Gaeste/325s sind vorab begrenzt. Vertrag:
+`docs/architecture/NATIVE_SHELL_BOOT_MEDIA_CONTRACT.md`.
+Noch keine AZ-Implementierung oder Abnahme; R3.6b bleibt zurueckgestellt.
+
 R8.3ay: vollstaendige Abnahme bestanden. Candidate17 besteht alle zehn Gates
 und18 frische Gastfaelle (370.020897600014s), einschliesslich langer Sitzung,
 fuenf Medienvarianten/8GiB, Dienst-/Anwendungsfehlern, Wiederanlauf-Erschoepfung,
