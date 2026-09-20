@@ -1,5 +1,114 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+R8.3az qualifiziert: acht Gates/20 Hosts, vollstaendige Zehnfall-BIOS-Matrix
+und unabhaengige Rohdaten-/Scopepruefung bestehen. Vier frische Gaeste
+80.15325149998534s plus sechs exakt gebundene Altbelege, keine Neubauten;
+313.5655415999354s Fallmatrix. HDD-/Floppy-Boot bis normale Ring3-Shell und
+Recovery sowie alle Korruptionsablehnungen belegt, unveraenderte Kernelgrenzen.
+Siegel `build/codex-agent/r83az-shell-boot-media/candidate10/acceptance-seal.json`
+SHA256 `d252b4215feb18d317992531691a91f06a384dd2345854ae97465178ca56966d`.
+Sauberer lokaler Paketcommit ist die Abschlussgrenze; danach naechste native
+Bestandsaufnahme ohne Routine-Handoff. Noch kein allgemeines Dateisystem-/
+Desktop-/Browser-/Plattform- oder Gesamt-OS-Abschluss; R3.6b bleibt vertagt.
+Alle frueheren Fehlfenster bleiben nachfolgend als Historie erhalten.
+
+Kandidat10: Nutzerfreigabe fuer HDD-Doppel-SHA30s gesamt/27s Beobachtung/3s
+Cleanup umgesetzt. Vier verbleibende neue Negativgaeste90s, sechs vollstaendig
+quelltext-/werkzeug-/image-/rohdatengenau gebundene Altbelege mit unabhaengiger
+Vollauswertung, acht Gates/Matrix455s/Gate600s, null Builds. Alle sonstigen
+Fristen/Assertions bleiben; erster Fehler stoppt. Noch kein AZ-/OS-Abschluss.
+
+Aktuell Kandidat09 gestoppt: HDD-Doppelsignatur besteht jetzt; Doppel-SHA
+scheitert an unvollstaendiger zweiter Ablehnung im alten17s-Beobachtungsfenster.
+Kein Kerneleintritt, keine nachfolgenden Gaeste/Gates. Sechs Fallidentitaeten
+belegt, nicht volle AZ-/OS-Abnahme.18 physische Gaeste562.2795722998272s,
+ein Medienpaar/null Kernelbauten und Vorstart2.088810800021747s separat erhalten.
+Offene echte Freigabe: auch HDD-Doppel-SHA30s gesamt,27s Beobachtung/3s Cleanup;
+sonst unveraenderte Grenzen/Assertions. Sechs Belege exakt wiederverwenden und
+voll auswerten, vier neue Negativfaelle90s/Matrix455s/Gate600s, null Builds.
+Vorschlag ist nicht umgesetzt oder freigegeben. Historie folgt.
+
+Kandidat09: Erneutes `ja mach weiter` gibt nur den HDD-Doppelsignatur-Negativfall
+mit30s Gesamtzeit frei (27s Beobachtung/3s Cleanup). Sonstige Fristen und alle
+Assertions bleiben. Fuenf neue Negativgaeste110s, fuenf exakt gebundene positive
+Altbelege mit unabhaengiger Vollauswertung, acht Gates/Matrix445s/Gate600s,
+null Builds, erster Fehler stoppt. Keine AZ-/OS-Abnahme aus Teilbelegen.
+
+Aktuell Stop Kandidat08: alle fuenf positiven BIOS-/Shell-/Recoveryfaelle sind
+quellen-/werkzeug-/image-/rohdatengenau erhalten. Im HDD-Doppelsignatur-Negativfall
+fehlt nach17s Beobachtung die zweite Ablehnung; Gesamt17.718055600009393s,
+kein Kerneleintritt und kein weiterer Gast. Vier Gates/18 Hosts bestanden,
+vollstaendige Abnahme weiterhin offen.16 Gaeste516.6674756998837s/ein Medienpaar/
+null Kernelbauten plus separater Vorstart2.088810800021747s erhalten.
+Echte offene Grenze: nur diesen Negativfall30s statt20s gesamt (27s Beobachtung,
+3s Cleanup), Negativmatrix110s/volle Matrix445s/Gate600s; unveraenderte sonstige
+Fristen/Assertions, null Builds. Vorschlag nicht umgesetzt oder freigegeben.
+
+Kandidat08 schliesst nur den leeren seriellen Vorstart im Negativadapter;
+finale Nichtleerpruefung und alle Ablehnungs-/Kapazitaetsgrenzen bleiben.
+Alle fuenf Positivfaelle aus Kandidat07 bestehen und werden quelltext-/werkzeug-/
+image-/rohdatengenau wiederverwendet sowie vollstaendig unabhaengig ausgewertet.
+Keine Neubauten, acht Gates und maximal fuenf neue20s-Negativgaeste, erster
+Fehler stoppt. Vollstaendige Zehnfallmatrix bleibt Voraussetzung. Historisch
+15 Gaeste498.94942009987426s/ein Medienpaar/null Kernelbauten plus Vorstart
+2.088810800021747s erhalten; keine AZ-/OS-Abnahme aus Teilbelegen.
+
+Kandidat07 setzt die ausdruecklich freigegebene A-nach-B-Ausnahme um:30s
+BIOS/Setup +42s alte Laufzeit +3s Cleanup,75s insgesamt; sonst65s positiv/20s
+negativ, zehn Faelle435s/Gate600s. Rueckfall zuerst, acht Gates einmal, erster
+Fehler stoppt. Kein neuer Build, keine Kernel-/Operations-/Assertionsaenderung.
+Vorherige neun Gaeste290.54732029986917s/ein Medienpaar/null Kernelbauten und
+Vorstart2.088810800021747s bleiben erhalten. Noch keine AZ-/OS-Abnahme.
+
+Aktuell Kandidat06 angehalten: Langfall/normal/8GiB bestehen jetzt komplette
+BIOS-/Shell-Rohdatenpruefung. A-nach-B erreicht waehrend zweiter Signaturpruefung
+die freigegebene20s-BIOS-/Setupgrenze. Keine spaeteren Faelle/Gates, kein Commit.
+9 Gaeste290.54732029986917s/ein Medienpaar/null Kernelbauten bleiben erhalten,
+plus separater Vorstart2.088810800021747s. Nur vorgeschlagen: fuer A-nach-B30s
+BIOS/Setup, sonst unveraendert42s Laufzeit/3s Cleanup, Gesamt75s/Matrix435s.
+Keine Erlaubnis zur Umsetzung oder weiteren Ausfuehrung dieser Aenderung.
+Die drei Erfolge sind keine volle AZ-/OS-Abnahme. Historie folgt.
+
+Kandidat06: quittierter echter Kerneleintritt statt unzulaessigem Vergleich
+absoluter GDB-/Hostzeit. Beide Phasen nur auf der Eltern-QPC-Uhr; GDB wartet
+begrenzt am ersten Kernelbefehl auf die SHA-gebundene Quittung. Kein Zeitausgleich,
+kein neuer Build und keine weitere Fristaenderung. Kandidat05 und seine
+9.367075299960561s bleiben erhalten:5 physische Gaeste156.73826279994682s,
+ein Medienpaar/null Kernelbauten plus Vorstart2.088810800021747s separat.
+
+Aktuell freigegeben durch `ja mach weiter`: ausschliesslich die zuletzt
+erfragte BIOS-Hostkomposition20s Setup/BIOS +42s alte Laufzeit +3s Cleanup.
+Kandidat05 behaelt alle zehn Faelle, jetzt425s gesamt/65s positiv; Negativ20s
+und Gate600s unveraendert. Kein Kernel-/Operationslimit aendern, keine neuen
+Builds. Echte atomar belegte erste Kernelinstruktion bindet den Phasenwechsel;
+kein laufender Zaehler wird zurueckgesetzt. Acht Gates einmal, Stopp beim
+ersten Fehler. Noch keine AZ-/OS-Abnahme. Folgende Stopps sind Historie.
+
+Aktuell angehalten nach AZ-Kandidat04: BIOS kostet gemessen8.218s vor der
+ersten Kernelinstruktion, Langfall scheitert erneut am unveraenderten42s-
+Beobachterlimit. Kalte Haltepunkte reichen nicht; keine AZ-Abnahme/Commit.
+4 physische Gaeste147.37118749998626s/ein Medienpaar/null Kernel-Neubauten und
+ein Vorstart2.088810800021747s bleiben getrennt dokumentiert. Echtes offenes
+Freigabethema: ausschliesslich fuer die neue BIOS-Komposition20s Boot/Setup
+plus alte42s Laufzeit/3s Cleanup (65s positive Gaeste,425s Zehnfallmatrix),
+600s-Gate/20s-Negativfaelle und alle Kernel-/Operationsgrenzen unveraendert.
+Vorschlag, keine Erlaubnis; vorhandene Medien wiederverwenden, keine Neubauten.
+Erst nach ausdruecklicher Richtung neues endliches Fenster einfrieren.
+
+AZ-Kandidat04 korrigiert ausschliesslich die physische Eintrittsadressbindung
+nach Kandidat03-Vorstartabweisung: ELF32-Header/Rohsymbol0x101000 gegen den
+bisherigen Higher-Half-Beobachter0xffffffff80101000. Kein weiterer VM-Start im
+Fehlfenster;2.088810800021747s Vorstart separat erhalten. Alte Guards, acht Gates,
+zehn Faelle und Fristen bleiben; bestehendes Medienpaar ohne Neubau verwenden.
+
+AZ-Kandidat02 beweist BIOS bis normale Shell bei4/8GiB, scheitert jedoch am
+Langlauf-Hostlimit42s. Kandidat03 prueft kalten BIOS-Eintritt mit nur einem
+echten Hardwarehalt an der ersten Kernelinstruktion, danach unveraenderter
+vollstaendiger AY-Beobachter. Keine erhoehten Grenzen oder Zielschreibzugriffe;
+alle acht Gates/zehn Faelle bleiben, Langfall zuerst.3 Gaeste104.50407969998196s
+und ein Medienbau erhalten; derselbe signierte Mediensatz wird ohne Neubau
+wiederverwendet. Keine Fertigstellungsbehauptung aus den beiden positiven Faellen.
+
 Folgetransaktion R8.3az auf sauberem AY-Abschluss `455fbb9d`: signierten
 BIOS-Start und normale Shell gemeinsam integrieren, ohne den bestehenden
 primaeren ATA-Lesevertrag zu erweitern. Eigenes Start-HDD als Slave oder
@@ -9,6 +118,10 @@ Neubauten, acht eingefrorene Gates und maximal zehn Gaeste/325s. Details im
 [Bootmedienvertrag](../architecture/NATIVE_SHELL_BOOT_MEDIA_CONTRACT.md).
 Das schliesst die Bootintegration, nicht die noch offenen allgemeinen Datei-,
 Schreib-, Desktop-, Browser- und Plattformgrenzen. Paket ist noch nicht abgenommen.
+AZ-Kandidat01 stoppt vor Medienbau/Gast an einem ANSI/UTF8-Fehler des neuen
+Defaultvergleichs. Alte Make-Konfiguration ist bei korrekter Kodierung exakt
+gleich. Kandidat02 ist eine reine Prueferkorrektur mit Regression, unveraendertem
+achtteiligen Gateplan und erhaltenem Fehlbeleg; bisher null neue Medien/Gaeste.
 
 R8.3ay-Abnahme bestanden am20.09.2026: zehn Gates/18 frische Gastfaelle,
 370.020897600014s, kompletter Rohdaten- und unabhaengiger Speicher-Replay.

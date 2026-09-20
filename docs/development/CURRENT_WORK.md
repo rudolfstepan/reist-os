@@ -2,6 +2,142 @@
 
 Stand: 20. September 2026
 
+R8.3az ist vollstaendig qualifiziert: acht Gates/20 Hosttests und alle zehn
+BIOS-Faelle bestehen, inklusive HDD-/Floppy-Start, A-nach-B-Rueckfall, echter
+Shell-/Dienst-Recovery, 8GiB und aller Signatur-/SHA-/Manifestablehnungen.
+Vier neue Gaeste80.15325149998534s, sechs exakt gebundene Altbelege mit voller
+unabhaengiger Rohdatenauswertung; kein neuer Build. Gesamte Fallmatrix
+313.5655415999354s. Unveraenderte Kernel-/Operationsgrenzen, keine Medienwrites.
+Abnahmesiegel `build/codex-agent/r83az-shell-boot-media/candidate10/acceptance-seal.json`,
+SHA256 `d252b4215feb18d317992531691a91f06a384dd2345854ae97465178ca56966d`.
+Queueabschluss und sauberer lokaler Implementierungscommit folgen nur mit
+Dokumentationsdelta. Alle22 historischen Gaeste642.4328237998125s/ein Medienpaar/
+null Kernelbauten und Vorstart2.088810800021747s separat erhalten. Dies ist
+das abgenommene Forschungs-Bootprofil, nicht das fertige OS/Desktop/Hardware.
+Naechste native Bestandsaufnahme nach sauberem Commit; R3.6b bleibt vertagt.
+Nachfolgend ausschliesslich historische Fenster/Stopps.
+
+Aktuell Kandidat10: Erneutes `ja mach weiter` gibt HDD-Doppel-SHA30s gesamt
+(27s Beobachtung/3s Cleanup) frei; andere Grenzen/Assertions bleiben exakt.
+Vier neue Negativgaeste maximal90s, sechs exakt gebundene bestehende Belege
+voll auswerten, acht Gates/komplette Zehnfallmatrix455s/Gate600s, null Builds.
+Erster Fehler stoppt. Alle bisherigen Fehllauefe und18 physische Gaeste
+562.2795722998272s bleiben erhalten. Noch keine AZ-/OS-Abnahme.
+
+Aktueller Stop Kandidat09:19 Hosttests/vier Gates bestanden; HDD-Doppelsignatur
+besteht vollstaendig in27.80692529998487s. HDD-Doppel-SHA erreicht seine alte17s-
+Beobachtungsgrenze vor der zweiten Ablehnung, korrekter Zaehlerfehler, kein
+Kerneleintritt; gesamt17.8051712999586s. Keine weiteren Gaeste/Gates/Prozesse.
+18 physische Gaeste562.2795722998272s/ein Medienpaar/null Kernelbauten und
+Vorstart2.088810800021747s separat erhalten. Sechs von zehn Fallidentitaeten
+positiv belegt, aber weiterhin keine AZ-Abnahme/Commit.
+Nur vorgeschlagen: auch HDD-Doppel-SHA30s gesamt/27s Beobachtung/3s Cleanup.
+Sonst unveraendert, sechs exakte Altbelege voll auswerten, vier neue Negativfaelle
+90s/Matrix455s/Gate600s, null Builds. Nicht freigegeben oder implementiert.
+
+Aktuell Kandidat09: Nutzer gibt per `ja mach weiter` ausschliesslich dem
+HDD-Doppelsignatur-Negativfall30s gesamt (27s Beobachtung/3s Cleanup) frei.
+Sonstige Grenzen und alle Assertions unveraendert. Acht Gates, fuenf neue
+Negativgaeste maximal110s; fuenf Positivfaelle aus Kandidat07 quelltext-/werkzeug-/
+image-/rohdatengenau wiederverwenden und vollstaendig unabhaengig auswerten.
+Keine Builds, komplette Zehnfallmatrix445s/Gate600s, erster Fehler stoppt.
+Fruehere Stopps und16 Gaeste516.6674756998837s bleiben erhalten. Noch keine Abnahme.
+
+Aktueller Stop Kandidat08:18 Hosttests/vier Vorpruefgruppen bestanden. Leere
+Startdatei korrigiert; HDD-Doppelsignatur-Negativfall erreicht17s Beobachtung
+noch waehrend der zweiten Pruefung. Nur erste Ablehnung vorhanden, deshalb
+korrekter Fehler der unveraenderten Zaehlerassertion; kein Kerneleintritt.
+Gesamt17.718055600009393s, keine spaeteren Gaeste/Gates, Prozesse beendet.
+Fuenf bestandene Positivfaelle exakt gebunden erhalten, nicht neu gestartet.
+16 physische Gaeste516.6674756998837s/ein Medienpaar/null Kernelbauten plus
+Vorstart2.088810800021747s separat. Noch keine AZ-Abnahme oder Commit.
+Nur vorgeschlagen, nicht freigegeben: HDD beide Signaturen30s statt20s gesamt
+(27s Beobachtung/3s Cleanup); sonst unveraendert. Fuenf Negativgaeste maximal
+110s, Zehnfallmatrix445s/Gate600s, keine Builds; alle Assertions beibehalten.
+Nachfolgend historische Zwischenstaende.
+
+Kandidat08: Alle fuenf BIOS-/Shell-Positivfaelle aus Kandidat07 bestanden.
+Erster Negativgast stoppt nach2.7967350000399165s an leerer serieller Startdatei;
+das ist ein Pruefadapterfehler, keine Kernelausfuehrung oder bestandene Ablehnung.
+Nur laufende Dateilesung darf leer sein; finale Nichtleer-/Kapazitaets- und
+Ablehnungsassertions bleiben. Acht Gates, hoechstens fuenf neue20s-Negativgaeste,
+keine Builds. Die fuenf Positivbelege werden exakt an gesamten unveraenderten
+Positivcode, Werkzeuge, Image und alle Rohdateien gebunden und vollstaendig
+erneut ausgewertet, nicht erneut gestartet oder als frisch ausgegeben.
+15 physische Gaeste498.94942009987426s/ein Medienpaar/null Kernelbauten und
+Vorstart2.088810800021747s separat erhalten. Noch keine volle AZ-Abnahme.
+
+Aktuell freigegeben: Nutzerantwort `ja mach weiter` erlaubt ausschliesslich
+dem A-nach-B-Rueckfall30s BIOS/Setup, unveraendert42s Laufzeit/3s Cleanup,
+also75s Gesamtgast. Andere Positivfaelle65s/Negativ20s, Matrix435s/Gate600s.
+Kandidat07: acht Gates und zehn frische Faelle, Rueckfall zuerst, Stopp beim
+ersten Fehler. Keine neuen Builds, identische Medien und Kernelgrenzen.
+Die folgenden Stop-/Freigabeangaben bleiben als Historie erhalten.
+
+Aktueller Stop nach Kandidat06:15 Hosttests und vier Vorpruefgruppen bestehen;
+BIOS-Langlauf48.242s, normal31.745s und8GiB30.995s bestehen vollstaendige
+AY-Rohdatenpruefung. Langlaufbeobachtung36.933266s liegt unter unveraenderten42s.
+Der A-nach-B-Rueckfall erreicht jedoch20s BIOS/Setup noch in der zweiten
+Signaturpruefung; sofort gestoppt, gesamt22.827613200002816s mit Cleanup.
+Keine weiteren Faelle/Gates, keine laufenden Gaeste.9 physische AZ-Gaeste
+290.54732029986917s, ein Medienpaar/null Kernelbauten; Vorstart2.088810800021747s
+separat. Alle Fehlbelege und Quellen erhalten, keine AZ-Abnahme oder Commit.
+Offene eng begrenzte Entscheidung: ausschliesslich A-nach-B30s statt20s BIOS,
+damit75s Gesamtgast/435s Matrix; alte42s Laufzeit/3s Cleanup, alle anderen
+Faelle/Kernelgrenzen unveraendert. Nur Vorschlag, nicht umgesetzt/freigegeben.
+Nachfolgend historische Zwischenstaende.
+
+Kandidat06 korrigiert den in Kandidat05 erkannten Host-Uhrenvergleich:
+GDB/Win-Python haben verschiedene monotone Uhren. Statt Epochenausgleich bleibt
+GDB am echten ersten Kernelbefehl bis zur SHA-gebundenen Hostquittung stehen;
+beide Phasen misst ausschliesslich dieselbe Hostuhr. Hostregression mit bewusst
+verschobener GDB-Uhr besteht. Kandidat05: vier Gates bestanden, ein Gast
+9.367075299960561s gestoppt; insgesamt5 Gaeste156.73826279994682s, unveraendert
+ein Medienpaar/null Kernelbauten plus separater Vorstart. Alle Belege erhalten.
+Gleiche freigegebene Grenzen, acht Gates/zehn Faelle, keine Neubauten.
+
+Aktuell: Die erneute Antwort `ja mach weiter` gibt die zuvor erfragte reine
+BIOS-Hostkomposition frei. Kandidat05:20s BIOS/Setup am echten Kerneleintritt,
+unveraenderte42s Laufzeit und3s Cleanup, maximal65s/positiv,425s/zehn Faelle.
+Negativ20s, Gate600s und alle Kernel-/Operationsgrenzen bleiben unveraendert.
+Vorhandene Medien wiederverwenden, null neue Builds; acht Gates einmal,
+Langfall zuerst, erster Fehler stoppt. Noch keine AZ-Abnahme. Die folgenden
+Stop-/Freigabeaussagen sind unveraenderte historische Staende vor der Antwort.
+
+**Aktueller Stop:** AZ-Kandidat04 besteht Gates1..4, erreicht im ersten Langfall
+aber erneut die unveraenderte Beobachtungsfrist42s (gesamt42.867107800004305s).
+Echter BIOS-Kerneleintritt nach8.21799999999348s bewiesen; kalte Haltepunkte
+reichen nicht als Beschleunigung. Kein weiterer Gast/Gate, keine Prozesse mehr.
+Vier physische AZ-Gaeste147.37118749998626s, ein Medienpaar, null Kernelbauten;
+Vorstart2.088810800021747s separat. Alle Fehlfenster/Quellen bleiben erhalten.
+Vorige BIOS4/8GiB-Faelle und AY-Abschluss `455fbb9d` bleiben gueltig, sind aber
+keine vollstaendige AZ-/OS-Abnahme. Implementierung sichtbar und uncommitted.
+
+Echte Vertragsentscheidung offen: nur fuer neue BIOS-Gesamtpruefung ein eigener
+20s-BIOS-/Setupanteil plus bisherige42s Laufzeitbeobachtung/3s Cleanup, maximal
+65s pro positivem Gast; zehn Faelle425s, Gate600s, Negativfaelle20s. Alle Kernel-,
+CPU-, Dienst-, Geraete- und Operationsgrenzen unveraendert; identische Medien,
+keine neuen Builds. Dieser Vorschlag ist NICHT freigegeben oder implementiert.
+Keine neue Ausfuehrungsreservierung oder unveraenderte Wiederholung. Letzter
+Fehlbeleg: `build/codex-agent/r83az-shell-boot-media/candidate04/stopped.json`,
+SHA256 `81916f586d4f6127295bfc98e69befdc41c1c7b720d234a1bcb67ea1de0b1b11`.
+
+Nachfolgend unveraendert erhaltene Zwischenstaende.
+
+AZ-Kandidat03 stoppt vor VM/GDB-Start am korrekten Adressguard: AY-Symbole sind
+Higher-Half, der erste BIOS-Kerneleintritt ist physisch0x101000. Kandidat04
+bindet den Halt an ELF32-Header und Rohsymbol plus Higher-Half-Gegenvergleich;
+alle Guards/Gates/Fristen bleiben. Vorstart2.088810800021747s separat erhalten,
+weiterhin3 physische Gaeste104.50407969998196s/ein Medienpaar/null Kernelbauten.
+
+AZ-Kandidat02: vier Gates bestanden, echter BIOS-Start mit normaler Shell bei
+4/8GiB vollstaendig bewiesen. Langlauf stoppt an der unveraenderten42s-Frist;
+3 Gaeste104.50407969998196s, ein Medienpaar, null Kernel-Neubauten bleiben
+erhalten. Kandidat03 prueft nur die spaetere Installation der Kernel-Haltepunkte
+nach echtem Halt an der ersten Kernelinstruktion. Alle bisherigen Pruefungen
+und Fristen bleiben; kompletter Acht-Gate-/Zehn-Gastlauf, Langfall zuerst,
+vorhandenes Medienpaar wiederverwenden. Noch keine AZ-Abnahme.
+
 R8.3ay ist lokal abgeschlossen: Commit `455fbb9d`, sauberer Worktree und
 akzeptierter Finalbeleg Candidate17. R8.3az-shell-boot-media ist jetzt das
 einzige aktive Folgepaket: signierter BIOS-Start der unveraenderten normalen
@@ -11,6 +147,11 @@ Schreibschutz. Ein gemeinsamer Medienbau, acht Gates und hoechstens zehn
 Gaeste/325s sind vorab begrenzt. Vertrag:
 `docs/architecture/NATIVE_SHELL_BOOT_MEDIA_CONTRACT.md`.
 Noch keine AZ-Implementierung oder Abnahme; R3.6b bleibt zurueckgestellt.
+AZ-Kandidat01 ist inzwischen implementiert, aber Gate2 stoppt vor Build/Gast:
+neuer Make-Pruefer las UTF8 mit Windows-ANSI. Explizites UTF8 ergibt exakt den
+alten Stand. Neun Hosttests bestanden; null Medienbauten/Gaeste. Fehlfenster und
+Quellen gesichert. Kandidat02 korrigiert nur Kodierung samt Regression; alle
+acht Gates und alten Grenzen bleiben. Noch keine AZ-Abnahme.
 
 R8.3ay: vollstaendige Abnahme bestanden. Candidate17 besteht alle zehn Gates
 und18 frische Gastfaelle (370.020897600014s), einschliesslich langer Sitzung,
