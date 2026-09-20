@@ -1839,7 +1839,11 @@ native_session_pio_enter64:
     shr rax,60
     jnz .error
     mov rax,[r14]
+%ifdef REIST_NATIVE_WIDE_FILE
+    cmp rax,262144
+%else
     cmp rax,2048
+%endif
     jae .error
     and eax,31
     imul eax,384
@@ -1908,7 +1912,11 @@ native_session_pio_return64:
     cmp byte [rel scheduler_mode],8
     jne .error
     mov rax,[r14]
+%ifdef REIST_NATIVE_WIDE_FILE
+    cmp rax,262144
+%else
     cmp rax,2048
+%endif
     jae .error
     and eax,31
     imul eax,384

@@ -55,4 +55,11 @@ int reist_service_session_open(reist_service_session_v1 *,const reist_service_se
 /* Physical fence precedes every cancel/reap. Idempotent only after successful
  * complete cleanup. Historical handles and cumulative counters survive. */
 int reist_service_session_retire(reist_service_session_v1 *,const reist_service_session_ops *);
+/* Profile2 changes only local admission, not rights or restart/creation policy.
+ * Existing retirement handles both admitted versions using the same fencing.
+ * Startup has its own<=1000ms end inside the original whole-file deadline. */
+typedef reist_service_session_v1 reist_service_session_v2;
+int reist_service_session_init_v2(reist_service_session_v2 *,uint64_t owner,unsigned layout);
+int reist_service_session_open_v2(reist_service_session_v2 *,const reist_service_session_ops *,
+    uint64_t startup_deadline_ms,uint64_t capture_deadline_ms,unsigned fault_mode);
 #endif

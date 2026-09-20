@@ -79,6 +79,32 @@ def prior():
     verify_files(old['evidence_sha256']);verify_files(old['tools'])
     return old
 
+def without_wide_build_selector(source,make=False):
+    """Exact disabled BA additions only; never mask surrounding/default drift."""
+    if make:
+        parts=(
+            'X86_64_NATIVE_WIDE_FILE ?= 0\n'
+            'ifneq ($(words $(X86_64_NATIVE_WIDE_FILE)),1)\n'
+            '$(error NativeWideFile selector must be one explicit value)\nendif\n'
+            'ifneq ($(filter $(X86_64_NATIVE_WIDE_FILE),0 1),$(X86_64_NATIVE_WIDE_FILE))\n'
+            '$(error NativeWideFile selector must be 0 or 1)\nendif\n'
+            'ifeq ($(X86_64_NATIVE_WIDE_FILE),1)\n'
+            'ifneq ($(X86_64_NATIVE_SHELL_SESSION),1)\n'
+            '$(error NativeWideFile requires explicit NativeShellSession)\nendif\nendif\n',
+            'X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),-DREIST_NATIVE_WIDE_FILE=1,)\n',
+            'X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)\n')
+    else:
+        parts=('    [switch]$NativeWideFile,\n',
+            'if ($NativeWideFile) { $NativeShellSession = [switch]$true }\n',
+            '        "X86_64_NATIVE_WIDE_FILE=$([int]$NativeWideFile.IsPresent)" `\n')
+    tokens=('NativeWideFile','NATIVE_WIDE_FILE','--wide-file')
+    if not any(token in source for token in tokens):return source
+    for part in parts:
+        need(source.count(part)==1,'BA exact disabled build selector')
+        source=source.replace(part,'')
+    need(not any(token in source for token in tokens),'BA unexpected build selector use')
+    return source
+
 def default_sources():
     names=('arch/x86_64/proc/cooperative_scheduler.asm','arch/x86_64/proc/process_run.inc',
         'arch/x86_64/proc/task_family.inc','arch/x86_64/proc/native_console.inc',
@@ -94,7 +120,7 @@ def default_sources():
         need(before==after,'terminal exact disabled source '+name)
     name='scripts/build-x86_64-bootstrap.ps1'
     before=subprocess.check_output(['git','show',BASELINE+':'+name],cwd=ROOT,timeout=10).decode('utf-8').replace('\r\n','\n')
-    after=(ROOT/name).read_text(encoding='utf-8')
+    after=without_wide_build_selector((ROOT/name).read_text(encoding='utf-8'))
     successors=(
         ('NativeShellSession',('    [switch]$NativeShellSession,\n',
             'if ($NativeShellSession) {\n'

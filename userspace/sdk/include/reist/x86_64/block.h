@@ -33,6 +33,12 @@ typedef struct {
 } reist_block_profile_v1;
 typedef char reist_block_profile_size_check[sizeof(reist_block_profile_v1)==24?1:-1];
 int reist_block_profile_admit(const reist_block_profile_v1 *,uint64_t now);
+/* Explicit profile2, same24-byte local layout, different version admission.
+ * Fixed4096 reads/120s; no extension to legacy profile1. */
+typedef reist_block_profile_v1 reist_block_profile_v2;
+int reist_block_profile_admit_v2(const reist_block_profile_v2 *,uint64_t now);
+int reist_block_dispatch_profile_v2(reist_block_server *,const reist_block_profile_v2 *,
+    const reist_block_backend *,const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
 int reist_block_dispatch_profile(reist_block_server *,const reist_block_profile_v1 *,
     const reist_block_backend *,const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
 /* Zero-initialize client storage once; rebind only to a newer generation. */

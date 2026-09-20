@@ -623,7 +623,11 @@ native_pio_trace_capture64:
     cmp qword [rel native_pio_trace+8],0
     jne .done
     mov r9,[rel native_pio_trace]
+%ifdef REIST_NATIVE_WIDE_FILE
+    cmp r9,262144
+%else
     cmp r9,4096
+%endif
     jae .error
     ; Bounds BEFORE either diagnostic task/family indexing, including fatal OUT.
     mov ecx,[rel scheduler_current_slot]

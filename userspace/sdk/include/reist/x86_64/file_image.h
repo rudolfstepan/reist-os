@@ -38,4 +38,17 @@ int reist_x64_file_finish_v2(void *prepared,reist_file_image_workspace *,
 int reist_x64_file_prepare_v2(void *prepared,reist_file_image_workspace *,
     reist_fs_client *,const reist_fs_transport *,const char *path,unsigned length,
     unsigned timeout_ms);
+/* Explicit wide observation2/workspace2. Old versions are not convertible.
+ * deadline_ms is an already established absolute bound, never renewed by STAT.
+ * Every individual RPC remains<=1000ms. */
+typedef reist_file_capture_v1 reist_file_capture_v2;
+typedef struct {
+    uint8_t file[524288];
+    reist_fs_frame frame;
+    uint8_t prepared[REIST_X64_PREPARED_V2_BYTES];
+} reist_file_image_workspace_v2;
+int reist_x64_file_stat_v2(reist_file_capture_v2 *,reist_fs_client *,
+    const reist_fs_transport *,const char *path,unsigned length,uint64_t deadline_ms);
+int reist_x64_file_finish_v3(void *prepared,reist_file_image_workspace_v2 *,
+    reist_fs_client *,const reist_fs_transport *,const reist_file_capture_v2 *);
 #endif

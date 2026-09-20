@@ -268,6 +268,18 @@ X86_64_NATIVE_POOL_PIO ?= 0
 X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SESSION ?= 0
 X86_64_NATIVE_SHELL_SESSION ?= 0
+X86_64_NATIVE_WIDE_FILE ?= 0
+ifneq ($(words $(X86_64_NATIVE_WIDE_FILE)),1)
+$(error NativeWideFile selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_WIDE_FILE),0 1),$(X86_64_NATIVE_WIDE_FILE))
+$(error NativeWideFile selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_WIDE_FILE),1)
+ifneq ($(X86_64_NATIVE_SHELL_SESSION),1)
+$(error NativeWideFile requires explicit NativeShellSession)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_SHELL_SESSION)),1)
 $(error NativeShellSession selector must be one explicit value)
 endif
@@ -386,6 +398,8 @@ X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SESSION)),-DREIST_NA
 X86_64_SESSION_ARG = $(if $(filter 1,$(X86_64_NATIVE_SESSION)),--session,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),-DREIST_NATIVE_SESSION=1 -DREIST_NATIVE_SHELL_SESSION=1,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),--shell-session,)
+X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),-DREIST_NATIVE_WIDE_FILE=1,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif

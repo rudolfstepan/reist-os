@@ -2,6 +2,190 @@
 
 Stand: 20. September 2026
 
+## Abnahme bestanden: R8.3ba, Dateien bis512KiB
+
+Kandidat12 besteht alle neun eingefrorenen Gates: Hosttests, alle12 Wide-File-
+und18 Legacy-Gastfaelle, unabhaengige vollstaendige Rohdatenauswertung und Scope.
+Der volle512KiB-Zwei-Durchlauf-Fall besteht in577.539s mit18 Prozessen. Auch alle
+fuenf Fehlerfaelle bestehen; Datentraeger unveraendert, CPU-/Kernel-/Einzel-
+fristen und Rechte erhalten. Kein neuer Kernel-Build in dieser Transaktion.
+Sechs exakt gebundene Normalfaelle wurden wiederverwendet,24 Gaeste neu gestartet.
+Versiegelter Nachweis: `build/codex-agent/r83ba-wide-file/candidate12/acceptance-seal.json`,
+SHA256 `1143439f309e95a9b8d1142a3ddd9c846c420ce488c9829591322b024e23f122`.
+Gesamtpaket einschliesslich aller erhaltenen Fehlschlaege: vier Builds/48 echte
+Gaeste3080.7771372999996s plus0.11856989999068901s Vorstartversuch. Nach dieser
+reinen Ergebnis-/Queue-Schliessung folgt der lokale Commit samt finalem Beleg.
+Noch keine neue BIOS-Medien-, Desktop-, Hardware- oder gesamte OS-Abnahme;
+EXT2-1k-Doppelindirektion fuer die volle Datei bleibt nicht unterstuetzt.
+Naechster nativer Schnitt wird erst am sauberen Commit inventarisiert. R3.6b
+bleibt zurueckgestellt.
+
+## Historische Freigabe: Kandidat12, kein Neubau
+
+Der Nutzer hat die unten vorgeschlagene reine Vollgroessen-Hostfrist freigegeben:
+nur dieser Zwei-Root-Test900s gesamt/897s Beobachtung/3s Cleanup. Alle anderen
+Fristen und Sicherheitsassertions bleiben unveraendert. Sechs vollstaendig
+bestandene Kandidat11-Normalfaelle werden quell-/werkzeug-/image-/rohdatengebunden
+und erneut voll ausgewertet; sechs neue BA- und18 Legacy-Gaeste sind reserviert
+(3210s, neun Gates einmalig, Stopp beim ersten Fehler). Kein Neubau und keine
+Umetikettierung des gescheiterten Vollgroessenfalls. Paket weiterhin aktiv,
+noch keine Abnahme oder Fertigstellungsaussage.
+
+## Historischer Befund: Kandidat11, Vollgroessen-Hostfrist erreicht
+
+Anlaufwartezeit korrigiert, neue O0/O2-/Codec-/Mutationshosts und alle alten
+Hostmanifeste gruen. Gates1..5 bestanden; korrigiertes Image
+`2fb2abf870364be311cc69d2979215b9c28fb7703ed2100c5828e37db5314df9`.
+Sechs frische Normalfaelle bestehen (235.9782201999915s). Der512KiB-Gast erreicht
+im ersten Root die EOF-Anfrage bei Offset524288/Gastzeit89820ms und den echten
+App-Eintritt (Generation9) bei89830ms; Ausgabe SESSION64, App-Exit82, Root-Exit0.
+Der zweite Root beginnt, die vollstaendige Zwei-Root-Rohabnahme fehlt jedoch.
+
+Abbruch an der unveraenderten297s Beobachtungsfrist,299.24216690001776s inklusive
+Aufraeumen; Cleanup2.036394s. Kein Log-Kapazitaetsabbruch:60556364 gespeicherte
+Tracebytes und2118 vollstaendige CPU-Diagnosesaetze. GDB-CPU196.359375s,
+QEMU-CPU102.109375s; der erste Root endet bei287.161466s Hostzeit. Fuenf komplette
+Offline-Live-Trace-Snapshots benoetigen0.342s; der fruehere wachsende Textleser
+ist nicht erneut blockiert. Letzte Datei-Anfrage bereits Root2/Offset9728.
+Das ist ein Teilbefund, keine nachtraeglich bestandene Vollgroessen-Abnahme.
+
+Stop `build/codex-agent/r83ba-wide-file/candidate11/stopped.json`, SHA256
+`12842bf6de4f6a24fff803a99b18bd32352490a1078389a7143034be4cf72582`;
+Freeze `b9e55dc9371503127b100c63d5256af069a25c7d683156083318686abef95868`.
+Keine weiteren Gaeste/Gates7..9, kein Implementierungscommit oder Paketabschluss.
+Kumulativ vier Builds,24 physische Gaeste1932.9222295999061s sowie erhaltener
+Vorstartabbruch0.11856989999068901s. Kein laufender QEMU/GDB-Prozess.
+
+Vorgeschlagene echte Pruefvertragsaenderung, noch NICHT freigegeben/eingefroren:
+nur der vollstaendige Zwei-Root-512KiB-Fall erhaelt900s Hostzeit einschliesslich
+3s Cleanup (897s Beobachtung). Alle uebrigen300/45s-Grenzen, Kernel-Capture120s,
+CPU32/1000ms, einzelne ATA-/IPC-Fristen, Rechte, Rohkapazitaeten und saemtliche
+semantischen Assertions bleiben bestehen. Kein neuer Build. Sechs bestandene
+Normalfaelle nur mit exakter Quellen-/Werkzeug-/Image-/Rohdatenbindung und
+vollstaendiger Wiederpruefung wiederverwenden; sechs neue BA-Faelle (Vollgroesse
+und fuenf Fehlerfaelle) plus18 alte Gaeste, maximal3210s neue Gastzeit. Mit den
+gebundenen235.9782201999915s liegt die volle Matrix unter dem bisherigen4410s-
+Gesamtbudget; Runtimegate4800s bleibt. Alle neun Gates einmal, erster Fehler
+stoppt; maximal weiterhin vier Builds/48 physische Gaeste5142.922229599906s.
+Keine Frist ohne Freigabe erhoeht, keine Belege gekuerzt. BA bleibt aktiv und
+unabgenommen; R3.6b bleibt vertagt. Die folgenden Fenster sind Historie.
+
+Kandidat11-Korrektur: Kandidat10 besteht Gates1..5, neuen Diagnosebuild und
+alle sechs Normalgaeste (239.38784969999688s). Direkte Quellpruefung plus echter
+C-Test zeigen aber einen separaten Fehler: Eine abgewiesene erste Blockanfrage
+verkuerzt den ersten tatsaechlichen Zugriff auf50 statt100ms. Neue rote Regression
+stoppt das laufende Fenster durch die Quellbindung nach dem bereits gestarteten
+8GiB-Fall, vor Vollgroesse/Fehlerfaellen/Altgaesten. Kein erfolgreicher Abschluss.
+Stop87f0a0935308067f7cc5611cb6a5d01e7c782cef34d82f94ce6370c887829e72.
+
+Im bereits erlaubten Blockmodul bleibt die Anlaufwache jetzt bis zum ersten
+erfolgreichen physischen Lesen bestehen; erst danach50ms. Alte Pfade weiterhin
+100ms/ready1, ABI und alle Quoten exakt. O0/O2-Regression fuer fuenf abgewiesene
+Erstanfragen und Folgezugriffe, plus Altpfad. Unter bestehender Arbeitsanweisung
+folgt ein begrenztes neues Korrekturfenster ohne Routine-Freigabefrage: genau ein
+zusaetzliches korrigiertes BA-Image, Altimage gebunden, volle neun Gates/12+18
+frische Gaeste,300/45s inklusive3s Cleanup, erster Fehler stoppt. Bisher drei
+Builds/17 physische Gaeste1397.7018424998969s, alle Belege erhalten. Die vorherige
+Ein-Build-Planung reichte wegen dieses neu nachgewiesenen Quellfehlers nicht aus.
+Die nachfolgenden Kandidat10/09-Abschnitte sind Historie; BA bleibt unabgenommen.
+
+Fortsetzung: Erneutes `ja mach weiter` genehmigt die nachstehende begrenzte
+Diagnose-Erweiterung. Kandidat10 setzt nur die beiden BA-selektierten privaten
+CPU-Trace-Grenzen in `cpu_trace.inc` und den verlustfreien Host-Belegtransport
+um. Alte CPU-Abrechnung/Quoten und256-Eintrag-Ring exakt; kein allgemeiner
+Kernelumbau. GDB besitzt kein Python-zlib/_ctypes; deshalb eigener begrenzter
+Dictionary-/Nullfolgen-Belegadapter mit Standard-Base64/CRC32, kompletter
+Rueckdekodierung und unveraenderten semantischen Assertions. Keine Installation.
+Host-/echte GDB-Codec-/Mutationspruefung vor genau einem neuen gemeinsamen Image;
+altes Regressionimage bleibt gebunden. Volle12+18-Gastmatrix/neun Gates bleiben
+erforderlich, keine bisherigen Normalfaelle auf neues Image umetikettieren.
+Der folgende Stopbefund bleibt Historie, noch keine erfolgreiche Neuabnahme.
+
+## R8.3ba: sechs Normalfaelle bestanden, Vollgroessen-Nachweis offen
+
+Kandidat09 besteht Gates1..5: neue Hosts, vollstaendige alte Hostmanifestliste,
+Abhaengigkeiten und exakte Wiederverwendung beider Images. Keine Neubauten seit
+Kandidat03. FAT12 (vollstaendiger Rohbeleg aus Kandidat06), FAT32, EXT2 mit
+1/2/4KiB Bloecken und 8GiB RAM bestehen beide Root-Lebenszyklen samt normalem
+Shell-Dateistart, CPU-/PIO-/IPC-/Identitaets-/Terminal-/Reap-Nachweisen.
+Die fuenf frischen Normalfaelle dauern38.365/46.777/46.797/45.550/48.020s.
+
+Der folgende volle512KiB-Fall stoppt nach192.9664159999811s an der festen
+128MiB-Textprotokollgrenze (`wide live trace capacity`), noch im ersten Root.
+Gate6 bleibt FAIL; Fehler-/Recoveryfaelle,18 alte Gaeste und Gates7..9 sind
+nicht ausgefuehrt. Kein Paketabschluss, Implementierungscommit oder OS-Abnahme.
+Alle Quellen, Images und Fehlbelege bleiben erhalten.
+
+Freeze `0774ecb81471c503e0532898c4b1ce4d6f0956d7d2b47261b76b87216fe97b8b`;
+Stop `build/codex-agent/r83ba-wide-file/candidate09/stopped.json`, SHA256
+`ba4a78d0242f865e6218f99dad57edf70ed7e854b23ea527c668e2cc2aab8504`.
+Kumulativ zwei OS-Builds, elf physische Gaeste1158.313992799900s sowie
+0.11856989999068901s Vorstartabbruch; wiederverwendete Faelle nicht doppelt
+gezaehlt. Kein weiterer Gast oder Build gestartet, keine laufenden QEMU/GDB.
+
+Read-only Diagnose:134334666 gespeicherte Textbytes,78865 SHELL_SESSION-Zeilen;
+Dateioffset298240, letzter Root-Aufruf50740ms bei Capture-Ende120850ms.
+Dies belegt keine Kernel-/Capture-Fristverletzung. Verlustfreie zlib-Stufe1
+komprimiert genau dieses vorhandene Protokoll auf5075920 Byte; das ist nur
+eine Offline-Groessenmessung, kein neuer Belegtransport oder Abnahmeersatz.
+CPU-Rohdatei279552 Byte enthaelt1456 vollstaendige192-Byte-Diagnosesaetze
+(Root638/Treiber257/FS561). Der unveraenderte private CPU-Trace endet bei2048
+Saetzen ueber beide Roots; ein kuenftiger Ueberlauf ist ein begruendetes Risiko,
+aber nicht die beobachtete Ursache dieses Abbruchs. CPU32/1000ms ist eine
+separate Laufzeitquote und bleibt unveraendert.
+
+Naechste echte Umfangsgrenze: `arch/x86_64/proc/cpu_trace.inc` ist nicht im
+freigegebenen Paket. Vorschlag zur einmaligen Freigabe: nur diese Datei fuer
+die BA-selektierte endliche private Diagnose-Sequenzgrenze262144 aufnehmen,
+alter Pfad2048 und256-Eintrag-Ring unveraendert; zugehoerige Transport-/Oracle-
+Anpassung ausschliesslich im bereits erlaubten BA-Adapter/Test. Dazu verlustfrei
+versionierter Host-Belegtransport mit vollstaendiger Rueckdekodierung und
+Mutationspruefung, weiterhin128MiB gespeicherter Trace/128MiB Snapshots und
+256MiB Gesamtausgabe; separat begrenzte Offline-Dekodierung maximal512MiB.
+Keine verworfenen Ereignisse, erneuerten Fristen oder veraenderten CPU-/ATA-/
+IPC-/Rechte-/Bytegleichheits-/Recovery-Praedikate.
+
+Erst nach Freigabe: genau ein neues gemeinsames BA-Image (kumulativ drei Builds),
+altes Regressionimage unveraendert wiederverwenden, alle neun Gates einmal;
+vollstaendige zwoelf neue BA-Gaeste<=300s und18 alte<=45s einschliesslich3s
+Cleanup,4410s reserviert, erster Fehler stoppt. Die bisherigen sechs
+Normalbelege bleiben am alten Image; keine Umdeklaration als neuer Kernelbeweis.
+Noch kein solches Fenster eingefroren oder ausgefuehrt. R3.6b bleibt vertagt.
+
+Die folgenden Kandidat02-Umfangsangaben sind historisch: Die anschliessende
+Nutzerfreigabe nahm beide Pruefadapter auf; ihre exakten historischen
+Projektionen und Mutationsregressionen bestehen inzwischen unveraendert.
+
+## Historie R8.3ba: Kandidat02-Umfangsblockade vor jedem OS-Build
+
+Vertragscommit `ccd6ff46`, sichtbarer Implementierungskandidat noch nicht
+abgenommen/committet. Kandidat02 besteht neue C-/Beobachter-Gates1/2 sowie alte
+Capture-, Launch-, FS- und Blockprofil-Hosts. Die zehn FS-O0/O2-Medienfaelle sind
+nach Wiederherstellung des privaten Callbackvertrags gruen. Kandidat01 bleibt
+mit Absturzbelegen erhalten, kein nachtraegliches Ueberschreiben.
+
+Gate3 stoppt Kandidat02 nach59.705770s:60 von62 ShellSession-Tests bestehen;
+zwei historische Quelltextprojektionen lehnen den neuen Opt-in-Buildschalter ab:
+`verify_x86_64_shell_session.py`: `AY Make selector block`;
+`verify_x86_64_terminal.py`: `terminal PS unexpected successor use NativeShellSession`.
+Beide Adapter pruefen die exakte Gleichheit mit ihren historischen Quellen,
+kennen aber die neuen BA-Make-/Windows-Selektoren noch nicht. Unveraenderte
+Wiederholung, Ueberspringen oder Abschwaechen waere keine korrekte Abnahme.
+
+Stopbeleg `build/codex-agent/r83ba-wide-file/candidate02/stopped.json`, SHA256
+`9aaa93c0be6375f711dd60acde5aa4ed209eadf4783d4ad0261be4a7f1091b3b`;
+Kandidat `9eed4546cf56de9109b7ff0060511a51c579817bc76085fa885c2f5314f4096b`.
+Kumulativ null OS-Images/null Gaeste, keine spaeteren Gates, kein Paketabschluss.
+
+Erforderliche eng begrenzte Umfangsfreigabe: ausschliesslich
+`scripts/verify_x86_64_shell_session.py` und
+`scripts/verify_x86_64_terminal.py` zusaetzlich aufnehmen, um den neuen
+deaktivierten Selektor exakt zu projizieren; historische Gleichheits- und
+Mutationspruefungen erhalten. Regression im bereits erlaubten BA-Testumfang.
+Danach neuer vollstaendiger Freeze/neun Gates; unveraendert maximal zwei Builds,
+12 neue Profil-/18 Altprofilgaeste, alle CPU-/ATA-/IPC-/Rechte-/Zeitgrenzen.
+Die beiden Adapter sind nicht geaendert. BA bleibt aktiv, aber hier blockiert.
+
 ## Aktuelle Abschluss- und Umfangsgrenze
 
 Nutzerfreigabe20.09.2026 erteilt: R8.3ba setzt jetzt das eigene begrenzte

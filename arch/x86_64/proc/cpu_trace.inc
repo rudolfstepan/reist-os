@@ -51,7 +51,11 @@ native_cpu_trace_before64:
     cmp qword [rel native_cpu_trace+24],0
     jne .error
     mov r10,[rel native_cpu_trace]
+%ifdef REIST_NATIVE_WIDE_FILE
+    cmp r10,262144
+%else
     cmp r10,2048
+%endif
     jae .error
     lea r11,[rel scheduler_cpu_budgets]
     mov r8,rdi
@@ -107,7 +111,11 @@ native_cpu_trace_after64:
     cmp qword [rel native_cpu_trace+24],0
     jne .error
     mov r10,[rel native_cpu_trace]
+%ifdef REIST_NATIVE_WIDE_FILE
+    cmp r10,262144
+%else
     cmp r10,2048
+%endif
     jae .error
     lea r11,[rel native_cpu_trace_pending]
     mov r8d,[r11+12]

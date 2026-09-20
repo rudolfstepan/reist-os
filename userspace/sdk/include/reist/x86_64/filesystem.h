@@ -57,6 +57,13 @@ int reist_fs_client_bind(reist_fs_client *,uint64_t owner);
 int reist_fs_request_init(reist_fs_frame *,unsigned operation,const char *,unsigned path_length,
                           uint32_t offset_or_index,uint32_t requested);
 int reist_fs_call(reist_fs_client *,const reist_fs_transport *,reist_fs_frame *,unsigned timeout_ms);
+/* Profile2 keeps wire-v1 and old public objects unchanged. The distinct server
+ * owns a16-sector FIFO; it never rebinds/reset budgets during a capture. */
+typedef reist_fs_profile_v1 reist_fs_profile_v2;
+typedef struct { reist_fs_server state; uint32_t next_slot,reserved; } reist_fs_server_v2;
+int reist_fs_server_init_v2(reist_fs_server_v2 *,const reist_fs_profile_v2 *,const reist_block_transport *);
+int reist_fs_server_fence_v2(reist_fs_server_v2 *);
+int reist_fs_dispatch_v2(reist_fs_server_v2 *,const x86os_ipc_bulk_message_t *,x86os_ipc_bulk_message_t *);
 #ifdef __cplusplus
 }
 #endif

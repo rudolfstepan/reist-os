@@ -9,6 +9,16 @@
 #include <reist/x86_64/console.h>
 #include <reist/x86_64/file_image.h>
 #include <reist/x86_64/pio.h>
+#ifdef REIST_NATIVE_WIDE_FILE
+#include <reist/x86_64/wide_file.h>
+#define reist_file_image_workspace reist_file_image_workspace_v2
+#define reist_service_session_init reist_service_session_init_v2
+#define reist_x64_file_finish_v2 reist_x64_file_finish_v3
+#define REIST_FS_SESSION_REQUESTS REIST_WIDE_FS_REQUESTS
+#define SESSION_CAPTURE_VERSION 2
+#else
+#define SESSION_CAPTURE_VERSION 1
+#endif
 #define SESSION_S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
 #define SESSION_S1(n,a) reist_x64_syscall1(REIST_X64_SYS_##n,(uintptr_t)(a))
 #define SESSION_S3(n,a,b,c) reist_x64_syscall3(REIST_X64_SYS_##n,(uintptr_t)(a),(uintptr_t)(b),(uintptr_t)(c))
@@ -140,7 +150,11 @@ static int session_ensure(uint64_t deadline,int fresh_stat) {
     if(session_service.starts==1 || session_case==16)
         fault=session_case==7?5:session_case==8?6:session_case==9 || session_case==16?1:
             session_case==10?2:session_case==11?4:0;
+#ifdef REIST_NATIVE_WIDE_FILE
+    int result=reist_service_session_open_v2(&session_service,&session_ops,deadline,now+REIST_WIDE_FILE_MS,fault);
+#else
     int result=reist_service_session_open(&session_service,&session_ops,deadline,fault);
+#endif
     if(result==-117)session_stop(result);
     if(result){if(result!=-11 && result!=-12)session_failed=1;return result;}
     result=reist_fs_client_bind(&session_fs,session_service.filesystem);
@@ -264,19 +278,31 @@ int x86os_getcwd(char *out,size_t size) {
 int reist_vfs_stat(const char *path,x86os_file_info_t *out,uint32_t timeout) {
     if(!out || !timeout || timeout>1000)return -22;
     char canonical[192];int length=session_path(path,canonical);if(length<0)return length;
-    uint64_t deadline=session_now()+timeout;int result=session_ensure(deadline,1);if(result)return result;
+    uint64_t deadline=session_now()+timeout;
+#ifdef REIST_NATIVE_WIDE_FILE
+    /* Establish the whole-file end before dependency startup or STAT. */
+    uint64_t capture_end=deadline-timeout+REIST_WIDE_FILE_MS;
+#endif
+    int result=session_ensure(deadline,1);if(result)return result;
     uint64_t now=session_now();if(now>=deadline)return -110;
     reist_file_capture_v1 observation;
     if(session_operation_deadline)session_stop(-5);
     session_operation_deadline=deadline;
+#ifdef REIST_NATIVE_WIDE_FILE
+    if(capture_end>session_service.deadline_ms)capture_end=session_service.deadline_ms;
+    result=reist_x64_file_stat_v2(&observation,&session_fs,&session_transport,canonical,(unsigned)length,capture_end);
+#else
     result=reist_x64_file_stat_v1(&observation,&session_fs,&session_transport,canonical,(unsigned)length,(unsigned)(deadline-now));
+#endif
     session_operation_deadline=0;
     if(!result && session_now()>=deadline)result=-110;
     if(result)return session_operation_result(result);
     /* Relative-time SDK entrypoints must not replenish time spent constructing
      * dependencies. Narrow the ordinary observation to this operation's
      * original absolute end; later SPAWN capture inherits that same bound. */
+#ifndef REIST_NATIVE_WIDE_FILE
     if(observation.deadline_ms>deadline)observation.deadline_ms=deadline;
+#endif
     session_bytes(&session_observation,&observation,sizeof(observation));
     session_bytes(out,&observation.frame.stat.info,sizeof(*out));return 0;
 }
@@ -314,7 +340,7 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(argc<1 || argc>8 || !argv)return -22;
     char canonical[192];int length=session_path(path,canonical);if(length<0)return length;
     if(session_service.phase!=REIST_SESSION_HEALTHY || session_fs.failed)return -116;
-    if(session_observation.version!=1 || session_observation.frame.stat.path_length!=(unsigned)length)return -116;
+    if(session_observation.version!=SESSION_CAPTURE_VERSION || session_observation.frame.stat.path_length!=(unsigned)length)return -116;
     for(int n=0;n<length;n++)if(session_observation.frame.stat.path[n]!=canonical[n])return -116;
     reist_task_startup_v1_t startup;int result=reist_x64_startup_init(&startup,(unsigned)argc,argv);if(result)return result;
     if(session_operation_deadline)session_stop(-5);

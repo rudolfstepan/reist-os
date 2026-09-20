@@ -1,5 +1,73 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Abnahme20.09.2026: R8.3ba/Kandidat12 besteht alle neun Gates und die komplette
+12+18-Gastmatrix samt unabhaengiger Rohdaten-/Scope-Pruefung.512KiB in beiden
+Root-Durchlaeufen geladen und gestartet (577.539s), alle fuenf Fehlerfaelle gruen.
+Kein Neubau; sechs exakt gebundene Normalfaelle wiederverwendet,24 neue Gaeste.
+Seal `build/codex-agent/r83ba-wide-file/candidate12/acceptance-seal.json`,
+SHA256 `1143439f309e95a9b8d1142a3ddd9c846c420ce488c9829591322b024e23f122`.
+Alle Grenzen/Rechte/Legacy-APIs erhalten; kumulativ vier Builds/48 physische
+Gaeste3080.7771372999996s, Fehlschlaege erhalten. Ergebnis-/Queue-Schliessung,
+danach sauberer lokaler Commit und finaler gebundener Beleg. Kein neuer BIOS-
+Medienbeleg und noch keine gesamte64-Bit-OS-/Desktop-/Hardware-Abnahme. EXT2-1k
+voll512KiB mit Doppelindirektion bleibt ausgeschlossen. R3.6b weiter deferred.
+
+Historische Freigabe20.09.2026: Nutzerfreigabe fuer Kandidat12 umgesetzt: ausschliesslich
+Voll512KiB-Zwei-Root-Hostfrist900s/897s Beobachtung/3s Cleanup; sonst300/45s und
+alle Kernel-/CPU-/ATA-/IPC-/Beweisgrenzen unveraendert. Kein Neubau. Sechs exakt
+gebundene bestandene Kandidat11-Normalfaelle mit vollstaendigem Rohreplay, sechs
+neue BA- plus18 Legacy-Gaeste/3210s reserviert; neun Gates einmalig, erster Fehler
+stoppt. Vier Builds/24 physische Gaeste1932.9222295999061s bleiben verbucht.
+Das ist eine Pruefvertragsfreigabe, noch keine Paket- oder OS-Abnahme.
+
+Historischer Befund20.09.2026: Kandidat11 Gates1..5 und sechs Normalfaelle bestanden.
+Anlaufwartezeit-Fehler korrigiert. Voll512KiB erreicht im ersten Root EOF und
+echten Programmeintritt bei89830ms Gastzeit; die volle Zwei-Root-Abnahme stoppt
+danach an297s Beobachtung/299.242s gesamt. Zweiter Root bereits gestartet, kein
+Kapazitaetsfehler (ca58MiB Trace,2118 CPU-Saetze), aber noch kein voller Nachweis.
+Stop12842bf6de4f6a24fff803a99b18bd32352490a1078389a7143034be4cf72582;
+vier Builds/24 physische Gaeste1932.9222295999061s. Vorschlag: ausschliesslich
+Vollgroessen-Hostfrist900s inklusive3s Cleanup, unveraenderte Kernel-/Einzel-
+fristen und Assertions, kein Neubau, sechs exakt gebundene Normalbelege plus
+sechs neue BA-/18 Altgaeste. Neun Gates/Gesamtbudgets bleiben. Noch keine
+Freigabe/Ausfuehrung dieser Aenderung; [aktueller Befund](CURRENT_WORK.md).
+Keine BA-/Gesamt-OS-Abnahme; nachfolgende Fenster sind Historie.
+
+Kandidat11: Diagnosekorrektur und sechs neue Normalgaeste bestehen; direkte
+Quellpruefung bestaetigt jedoch einen bisher ungetesteten ersten Lesezugriff
+nach abgewiesener Anfrage bei50 statt100ms. Kandidat10 ist deshalb nach sechs
+Gaesten fail-closed gestoppt, kein Vollgroessen-/Paketabschluss. In-scope
+Korrektur/rote-gruene echte C-Regression und ein neuer begrenzter Abnahmelauf
+folgen unter bestehender Fortsetzungsautoritaet. Bisher drei Builds/17 Gaeste,
+keine Altbelege fuer korrigiertes Image umetikettiert; [Arbeitsstand](CURRENT_WORK.md).
+
+Fortsetzung20.09.2026: Nutzer genehmigt die unten beschriebene eng begrenzte
+Diagnose-Erweiterung. Kandidat10 bereitet BA-only CPU-Sequenz262144 (alter Pfad
+2048, Ring256 unveraendert), verlustfreien begrenzten Host-Belegtransport und
+genau ein neues gemeinsames Image vor. Kein CPU-/ATA-/IPC-/Gastfristwechsel,
+keine Abnahme aus alten Normalbelegen fuer das neue Image. Vollstaendige
+neun Gates und12+18 Gaeste bleiben erforderlich; aktueller Fortschritt im
+[Arbeitsstand](CURRENT_WORK.md), noch kein BA-/OS-Abschluss.
+
+20.09.2026: R8.3ba unter Vertragscommit `ccd6ff46` bleibt aktiv/unabgenommen.
+Kandidat09 besteht Gates1..5 und sechs vollstaendige Normalfaelle: FAT12/FAT32,
+EXT2-1/2/4KiB und8GiB RAM. Historische Selektorprojektionen sind nach expliziter
+Zwei-Dateien-Freigabe korrigiert; alte Hostmanifestliste ebenfalls gruen.
+Der volle512KiB-Gast stoppt nach192.966s an128MiB Textprotokoll, nicht an einer
+nachgewiesenen Kernel-Fristverletzung. Nachfolgende Fehler-/Recovery-/Altgaeste
+und Gates7..9 nicht ausgefuehrt. Zwei Builds insgesamt (seit Kandidat03 exakt
+wiederverwendet), elf physische Gaeste1158.313992799900s; alle Fehler erhalten.
+Stop-SHA `ba4a78d0242f865e6218f99dad57edf70ed7e854b23ea527c668e2cc2aab8504`.
+Offline-Diagnose zeigt verlustfreie Komprimierbarkeit und bereits1456 von2048
+CPU-Diagnosesaetzen im unvollstaendigen ersten Root. Die separate CPU-Quote
+bleibt32/1000ms; Trace-Ueberlauf ist noch kein beobachteter Gastfehler.
+Vorgeschlagene begrenzte Umfangsfreigabe fuer `arch/x86_64/proc/cpu_trace.inc`,
+BA-only Diagnosekapazitaet, verlustfreien begrenzten Belegtransport und genau
+ein neues BA-Image steht aus. Keine solche Aenderung/Neuausfuehrung erfolgt.
+[Aktueller Befund, Grenzen und konkrete Freigabe](CURRENT_WORK.md).
+Keine BA-/Gesamt-OS-Abnahme; sichtbare Kandidatenaenderungen bleiben erhalten.
+Die nachstehende fehlende Profilfreigabe ist historische Bestandsaufnahme vor BA.
+
 Aktuell nach sauberem AZ-Abschluss `5db38510` am20.09.2026: acht Gates und
 volle Zehnfallmatrix abgenommen, finaler Beleg SHA256
 `f38a35397b14d6073e5c99f289ab6d7ede550fd55348b6b3e1705731b169b79f`.

@@ -888,13 +888,25 @@ def correction():
 
 def default_projection():
     from run_qemu_x86_64_runtime_clock import once
+    from verify_x86_64_terminal import without_wide_build_selector
     names=('arch/x86_64/proc/cooperative_scheduler.asm','arch/x86_64/proc/process_run.inc',
            'arch/x86_64/proc/task_family.inc','arch/x86_64/kernel/bootstrap_core.c','userspace/sdk/lib/x86_64/shell_platform.c',
            'userspace/storage/lib/vfs_shadow_ext2.c')
     for name in names:
         after=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_SHELL_SESSION',name.endswith(('.inc','.asm')))
         need(after==original(name),'AY disabled production exact '+name)
-    name='Makefile';after=(ROOT/name).read_text(encoding='utf-8')
+    name='Makefile';after=without_wide_build_selector((ROOT/name).read_text(encoding='utf-8'),make=True)
+    # Accepted AZ adds a separate packaging target, not a default recipe change.
+    # Match its full body, not a wildcard section that could hide altered rules.
+    if 'x86_64-shell-media' in after:
+        az=('\n# AZ packaging only: explicit already-built ShellSession input; no kernel dependency.\n'
+            '.PHONY: x86_64-shell-media\n'
+            'X86_64_SHELL_MEDIA_INPUT ?= build/x86_64\n'
+            'X86_64_SHELL_MEDIA_OUTPUT ?= build/codex-agent/native-shell-media\n'
+            'x86_64-shell-media:\n'
+            '\t@$(PYTHON) scripts/build_x86_64_shell_media.py --input-directory "$(X86_64_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"\n'
+            '# End AZ packaging-only target.\n')
+        after=once(after,az,'')
     first=after[after.index('X86_64_NATIVE_SHELL_SESSION ?= 0\n'):after.index('ifneq ($(words $(X86_64_NATIVE_SESSION)),1)')]
     need(first.count('endif\n')==2,'AY Make selector block');after=once(after,first,'')
     first=after[after.index('ifeq ($(X86_64_NATIVE_SHELL_SESSION),1)'):after.index('ifneq ($(words $(X86_64_NATIVE_TERMINAL)),1)')]
@@ -903,7 +915,7 @@ def default_projection():
                  'X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),--shell-session,)\n'):
         after=once(after,line,'')
     need(after==original(name),'AY exact old Make recipes')
-    name='scripts/build-x86_64-bootstrap.ps1';after=(ROOT/name).read_text(encoding='utf-8')
+    name='scripts/build-x86_64-bootstrap.ps1';after=without_wide_build_selector((ROOT/name).read_text(encoding='utf-8'))
     first=after[after.index('if ($NativeShellSession) {'):after.index('if ($NativeSession) {')]
     need(first.count('$NativeTerminal = [switch]$true')==1,'AY PS selector block');after=once(after,first,'')
     for line in ('    [switch]$NativeShellSession,\n',

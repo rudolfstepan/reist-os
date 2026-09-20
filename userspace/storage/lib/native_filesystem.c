@@ -1,4 +1,5 @@
 #include <reist/x86_64/filesystem.h>
+#include <reist/x86_64/wide_file.h>
 #include "../include/reist/vfs_shadow_ext2.h"
 
 typedef uint64_t fs_word __attribute__((may_alias,aligned(1)));
@@ -68,8 +69,9 @@ int reist_fs_server_fence(reist_fs_server *s) {
     if(s->busy) return -16;
     fs_poison(s); return 0;
 }
+typedef struct { reist_fs_server *server; uint32_t *next_slot; } fs_io_context;
 static int fs_drive(void *v,uint32_t resource,x86os_drive_info_t *info) {
-    reist_fs_server *s=v;
+    reist_fs_server *s=((fs_io_context*)v)->server;
     int result=fs_deadline(s);
     if(result) { fs_poison(s); return result; }
     fs_zero(info,sizeof(*info));
@@ -77,47 +79,63 @@ static int fs_drive(void *v,uint32_t resource,x86os_drive_info_t *info) {
     info->type=X86OS_DRIVE_ATA; info->sectors=s->profile.sectors;
     info->name[0]='n'; info->mount_point[0]='/'; return 1;
 }
-static int fs_sector(void *v,uint32_t resource,uint32_t lba,uint8_t *data) {
-    reist_fs_server *s=v;
+static int fs_sector_read(reist_fs_server *s,uint32_t *cursor,uint32_t resource,uint32_t lba,uint8_t *data) {
     int result=fs_deadline(s);
     if(result) { fs_poison(s); return result; }
     if(resource || lba>=s->profile.sectors || s->used>16) { fs_poison(s); return -5; }
     for(unsigned n=0;n<s->used;n++) if(s->lba[n]==lba) {
         fs_copy(data,s->data[n],512); return 0;
     }
-    if(s->used==16) { fs_poison(s); return -11; }
+    if(s->used==16 && !cursor) { fs_poison(s); return -11; }
     uint64_t remaining=s->request_deadline-s->last_clock;
     if(remaining>s->profile.deadline_ms-s->last_clock) remaining=s->profile.deadline_ms-s->last_clock;
-    unsigned index=s->used;
+    unsigned index=s->used==16?*cursor:s->used;
+    if(index>=16) {fs_poison(s);return -5;}
     result=reist_block_read(&s->block,&s->transport,lba,s->data[index],remaining>1000?1000:(unsigned)remaining);
     if(!result) result=fs_deadline(s);
     if(result) { fs_poison(s); return result; }
-    s->lba[index]=lba; s->used=index+1;
+    s->lba[index]=lba;
+    if(s->used<16)s->used++;
+    if(cursor)*cursor=(index+1)%16;
     fs_copy(data,s->data[index],512); return 0;
 }
-int reist_fs_server_init(reist_fs_server *s,const reist_fs_profile_v1 *p,const reist_block_transport *t) {
-    if(!s || !p || !t || !t->clock || !t->send || !t->receive || p->version!=1 || p->size!=40 ||
+/* Preserve the legacy private callback's server-pointer contract as well. */
+static int fs_sector(void *v,uint32_t resource,uint32_t lba,uint8_t *data) {
+    return fs_sector_read(v,0,resource,lba,data);
+}
+static int fs_sector_context(void *v,uint32_t resource,uint32_t lba,uint8_t *data) {
+    fs_io_context *context=v;
+    return context->next_slot?fs_sector_read(context->server,context->next_slot,resource,lba,data):
+        fs_sector(context->server,resource,lba,data);
+}
+static int fs_init(reist_fs_server *s,const reist_fs_profile_v1 *p,const reist_block_transport *t,
+    unsigned version,unsigned lifetime,uint32_t *cursor) {
+    if(!s || !p || !t || !t->clock || !t->send || !t->receive || p->version!=version || p->size!=40 ||
        (p->filesystem!=REIST_FS_FAT && p->filesystem!=REIST_FS_EXT2) || !p->sectors ||
        p->sectors>0x10000000U || !fs_owner(p->owner,3) || !fs_owner(p->block_owner,2) ||
        p->owner<=s->profile.owner || p->block_owner<=s->profile.block_owner) return -22;
     if(s->busy) return -16;
     reist_fs_profile_v1 profile=*p; reist_block_transport transport=*t;
     uint64_t now=transport.clock(transport.context);
-    if(profile.deadline_ms<=now || profile.deadline_ms-now>3000) return -22;
+    if(profile.deadline_ms<=now || profile.deadline_ms-now>lifetime) return -22;
     fs_zero(s,sizeof(*s)); s->profile=profile; s->transport=transport;
+    if(cursor)*cursor=0;
     s->last_clock=now; s->request_deadline=profile.deadline_ms; s->next_sequence=1; s->ready=1; s->busy=1;
     int result=reist_block_client_bind(&s->block,profile.block_owner);
-    reist_vfs_shadow_io_t io={s,fs_drive,fs_sector}; x86os_file_info_t info;
+    fs_io_context context={s,cursor};
+    reist_vfs_shadow_io_t io={&context,fs_drive,fs_sector_context}; x86os_file_info_t info;
     if(!result) result=profile.filesystem==REIST_FS_EXT2?
         reist_vfs_shadow_ext2_stat(&io,"/",1,&info):reist_vfs_shadow_fat_stat(&io,"/",1,&info);
     if(!result && info.type!=X86OS_DIRECTORY) result=-5;
     if(!result) result=fs_deadline(s);
     s->busy=0;
-    if(result) fs_poison(s); else s->ready=2;
+    if(result) { fs_poison(s); if(cursor)*cursor=0; } else s->ready=2;
     return result;
 }
-int reist_fs_dispatch(reist_fs_server *s,const x86os_ipc_bulk_message_t *q,x86os_ipc_bulk_message_t *reply) {
+static int fs_dispatch(reist_fs_server *s,const x86os_ipc_bulk_message_t *q,x86os_ipc_bulk_message_t *reply,
+    unsigned version,unsigned limit,unsigned rpc_ms,uint32_t *cursor) {
     if(!s || !q || !reply || q==reply || !s->transport.clock) return -22;
+    if(s->profile.version!=version)return -22;
     if(s->busy) return -16;
     reist_fs_header h; reist_fs_frame frame;
     fs_copy(&h,q->payload,64); fs_copy(&frame,q->payload+64,512);
@@ -126,7 +144,7 @@ int reist_fs_dispatch(reist_fs_server *s,const x86os_ipc_bulk_message_t *q,x86os
     reist_fs_header r={1,64,h.operation,1,s->profile.owner,h.sequence,h.deadline_ms,0,0,-22,0};
     int result=-22;
     if(s->ready!=2 || s->failed) { result=-116; goto done; }
-    if(s->requests>=8) { result=-11; goto done; }
+    if(s->requests>=limit) { result=-11; goto done; }
     s->requests++;
     if(q->version!=2 || q->struct_size!=sizeof(*q) || q->length!=576 ||
        !fs_empty(q->payload+576,1472) || h.version!=1 || h.size!=64 || h.flags || h.length!=512 ||
@@ -135,10 +153,11 @@ int reist_fs_dispatch(reist_fs_server *s,const x86os_ipc_bulk_message_t *q,x86os
     if(!h.sequence || h.sequence!=s->next_sequence || h.sequence==UINT64_MAX) { result=-116; goto done; }
     result=fs_deadline(s); if(result) goto done;
     if(h.deadline_ms<=s->last_clock) { result=-110; goto done; }
-    if(h.deadline_ms-s->last_clock>3000) { result=-22; goto done; }
+    if(h.deadline_ms-s->last_clock>rpc_ms) { result=-22; goto done; }
     s->request_deadline=h.deadline_ms<s->profile.deadline_ms?h.deadline_ms:s->profile.deadline_ms;
     s->next_sequence++; s->busy=1;
-    reist_vfs_shadow_io_t io={s,fs_drive,fs_sector};
+    fs_io_context context={s,cursor};
+    reist_vfs_shadow_io_t io={&context,fs_drive,fs_sector_context};
     int ext=s->profile.filesystem==REIST_FS_EXT2;
     if(h.operation==5) result=ext?reist_vfs_shadow_ext2_stat(&io,frame.stat.path,frame.stat.path_length,&frame.stat.info):
         reist_vfs_shadow_fat_stat(&io,frame.stat.path,frame.stat.path_length,&frame.stat.info);
@@ -159,6 +178,28 @@ done:
         if(!fs_application_error(result)) fs_poison(s);
     }
     r.status=result; fs_copy(reply->payload,&r,64); return result;
+}
+int reist_fs_server_init(reist_fs_server *s,const reist_fs_profile_v1 *p,const reist_block_transport *t) {
+    return fs_init(s,p,t,1,3000,0);
+}
+int reist_fs_dispatch(reist_fs_server *s,const x86os_ipc_bulk_message_t *q,x86os_ipc_bulk_message_t *r) {
+    return fs_dispatch(s,q,r,1,8,3000,0);
+}
+int reist_fs_server_init_v2(reist_fs_server_v2 *s,const reist_fs_profile_v2 *p,const reist_block_transport *t) {
+    if(!s || s->reserved)return -22;
+    return fs_init(&s->state,p,t,2,REIST_WIDE_FILE_MS,&s->next_slot);
+}
+int reist_fs_dispatch_v2(reist_fs_server_v2 *s,const x86os_ipc_bulk_message_t *q,x86os_ipc_bulk_message_t *r) {
+    if(!s || s->reserved || s->next_slot>=16)return -22;
+    int result=fs_dispatch(&s->state,q,r,2,REIST_WIDE_FS_REQUESTS,1000,&s->next_slot);
+    if(s->state.failed)s->next_slot=0;
+    return result;
+}
+int reist_fs_server_fence_v2(reist_fs_server_v2 *s) {
+    if(!s || s->reserved)return -22;
+    int result=reist_fs_server_fence(&s->state);
+    if(!result)s->next_slot=0;
+    return result;
 }
 int reist_fs_client_bind(reist_fs_client *c,uint64_t owner) {
     if(!c || !fs_owner(owner,3) || owner<=c->owner) return -22;
