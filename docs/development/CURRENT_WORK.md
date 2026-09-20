@@ -2,6 +2,19 @@
 
 Stand: 20. September 2026
 
+## Naechste aktive Integration: R8.3bb, signierte Wide-Shell-Medien
+
+R8.3ba sauber lokal abgeschlossen als `02202bd3`, finaler Nachweis
+`build/codex-agent/r83ba-wide-file/candidate12/verification-status-wide-file-final.json`
+(SHA256 `470f37033ca735de54c0d044b7a1b50b5592691e12cff6dc38c9503e917736c0`).
+Anschliessende Bestandspruefung: der alte BIOS-Paketverbraucher akzeptiert nur
+1280 externe Dateibytes. R8.3bb verbindet das bereits gebaute BA-Image mit der
+bestehenden signierten HDD-/Floppy-Vertrauenskette und einem separat benannten
+read-only1MiB-EXT2-1k-Profil. Kein Kernel-Neubau, ein Medienpaar, zehn BIOS- /
+Recovery-/Korruptionsfaelle, acht Gates. Keine neuen Laufzeitrechte oder Quoten.
+Alter Profilverbraucher bleibt strikt; volle EXT2-1k-Doppelindirektion weiterhin
+ausgeschlossen. Vertrag: [NATIVE_WIDE_SHELL_MEDIA_CONTRACT](../architecture/NATIVE_WIDE_SHELL_MEDIA_CONTRACT.md).
+
 ## Abnahme bestanden: R8.3ba, Dateien bis512KiB
 
 Kandidat12 besteht alle neun eingefrorenen Gates: Hosttests, alle12 Wide-File-

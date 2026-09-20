@@ -1,5 +1,13 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Aktiv nach sauberem BA-Commit `02202bd3`: R8.3bb bindet das unveraenderte,
+abgenommene Wide-File-Image an signierte BIOS-HDD-/Floppy-Medien. Bestehende
+AZ-Publikation/Verifikation/BIOS-Handshake und komplette BA-Rohbeweise gemeinsam
+wiederverwenden; getrennte Profilidentitaet und1MiB-EXT2-1k-Datenmedium mit
+direkter/einfach-indirekter Datei. Kein Kernel-Neubau, ein Medienpaar, zehn
+neue begrenzte BIOS-/Recovery-/Korruptionsgaeste, acht eingefrorene Gates.
+Noch keine Abnahme dieses neuen Pakets oder des gesamten OS. R3.6b deferred.
+
 Abnahme20.09.2026: R8.3ba/Kandidat12 besteht alle neun Gates und die komplette
 12+18-Gastmatrix samt unabhaengiger Rohdaten-/Scope-Pruefung.512KiB in beiden
 Root-Durchlaeufen geladen und gestartet (577.539s), alle fuenf Fehlerfaelle gruen.
