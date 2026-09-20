@@ -2,6 +2,18 @@
 
 Stand: 20. September 2026
 
+## Aktiv: R8.3bc, freigegebene Read-only-Anwendungsobjekte
+
+Erneutes `ja mach weiter` erteilt die zuvor angefragte begrenzte Rechtefreigabe.
+Ein Paket verbindet explizite Datei-/Verzeichnisobjekte, nativen SDK-Adapter,
+normale cat/ls-Programme, Windows-/Make-Datenlayouts und Fehler/Recovery.
+Ring3-Snapshotbroker, maximal16KiB Dateidaten oder32 Verzeichniseintraege,
+kein direkter FS-/Geraetezugriff; bestehende Kernelmechanismen und Quoten.
+Vertrag: [NATIVE_APPLICATION_FILES_CONTRACT](../architecture/NATIVE_APPLICATION_FILES_CONTRACT.md).
+Zuerst Hosttests/Implementierung, danach ein gemeinsames Image und eingefrorene
+16-Fall-Abnahme. Noch kein Build/Gast gestartet, keine Paketabnahme behauptet.
+Die folgende offene Freigabe beschreibt den historischen Stand vor diesem Ja.
+
 ## Sauber abgeschlossen; neue Anwendungs-Dateirechte noch nicht freigegeben
 
 R8.3bb ist lokal als `813606cf7f6fcd6eb42fe8e8a38658f8ce2cf0e7` angenommen,

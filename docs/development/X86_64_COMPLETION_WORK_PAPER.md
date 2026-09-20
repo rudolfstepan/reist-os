@@ -1,5 +1,12 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+20.09.2026: Read-only-Anwendungsrechte ausdruecklich freigegeben. R8.3bc ist
+der naechste aktive gemeinsame Schnitt: Ring3-Objektbroker, nativer SDK-Adapter,
+echte cat/ls, Windows/Make-Medien und komplette Fehler-/Widerrufs-/Recovery-
+Nachweise. Kein Kernel-VFS, keine ambienten oder Schreib-/Geraeterechte.
+Ein gemeinsames Image erst nach Host-/Abhaengigkeitspruefung,16 begrenzte
+Gastfaelle; bisher keine Builds/Gaeste. [Vertrag](../architecture/NATIVE_APPLICATION_FILES_CONTRACT.md).
+
 Sauberer Abschluss20.09.2026: R8.3bb `813606cf`, finaler Nachweis
 `build/codex-agent/r83bb-wide-shell-media/candidate02/verification-status-wide-shell-media-final.json`
 SHA256 `496442d7a594b347915ad28313474ab6bec2728e84d80e74bd33acd61d7ae4d4`.
