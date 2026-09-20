@@ -1,5 +1,22 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Aktuell nach sauberem AZ-Abschluss `5db38510` am20.09.2026: acht Gates und
+volle Zehnfallmatrix abgenommen, finaler Beleg SHA256
+`f38a35397b14d6073e5c99f289ab6d7ede550fd55348b6b3e1705731b169b79f`.
+Die naechste Bestandsaufnahme ist erfolgt, ohne Build oder Gast: normaler
+Dateistart bleibt auf1536 Byte/FS8/Block16 und gemeinsame1000ms Shellfrist
+begrenzt; die reale eingebettete Shell hat163160 Byte, das externe Testprogramm
+728 Byte. Der vorhandene ELF-Adapter allein hebt diese Dienstgrenzen nicht auf.
+Ein eigener versionierter Nur-Lese-/Dateistartprofil-Vertrag bis zum bestehenden
+512KiB-ELF-Eingabelimit muss feste Capture-/Cache-/Anfragen-/Leseraten-/
+Gesamtdateibudgets definieren. Dafuer ist eine echte neue Ressourcen-/
+Lebensdauerfreigabe erforderlich, nicht ein routinemaessiges Weiter-Signal.
+Alte Profile und CPU-/ATA-/einzelne IPC-/Erstellungs-/Restartgrenzen sowie
+Geraeterechte bleiben unveraendert. Kein nachtraegliches Frist-/Zaehlererneuern.
+Noch kein Folgepaket aktiviert oder Ausfuehrungsfenster reserviert;
+[Befund und genaue Grenze](CURRENT_WORK.md). R3.6b bleibt vertagt.
+Die nachfolgenden AZ-Fenster sind historische Nachweise, keine offenen Gates.
+
 R8.3az qualifiziert: acht Gates/20 Hosts, vollstaendige Zehnfall-BIOS-Matrix
 und unabhaengige Rohdaten-/Scopepruefung bestehen. Vier frische Gaeste
 80.15325149998534s plus sechs exakt gebundene Altbelege, keine Neubauten;

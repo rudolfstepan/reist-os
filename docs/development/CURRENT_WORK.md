@@ -2,6 +2,42 @@
 
 Stand: 20. September 2026
 
+## Aktuelle Abschluss- und Umfangsgrenze
+
+R8.3az ist mit `5db38510b205d1a8fdcecc28bdf437fac5978212` lokal abgeschlossen;
+der Arbeitsbaum war danach sauber. Acht Gates und alle zehn BIOS-/Shellfaelle
+bestanden, vier frische Gaeste und sechs exakt gebundene Altbelege, kein Neubau.
+Finaler Beleg:
+`build/codex-agent/r83az-shell-boot-media/candidate10/verification-status-shell-boot-media-final.json`,
+SHA256 `f38a35397b14d6073e5c99f289ab6d7ede550fd55348b6b3e1705731b169b79f`.
+
+Die anschliessende reine Bestandsaufnahme findet die naechste echte
+Profilgrenze, keinen Fehler im abgenommenen Bootpfad: Dateicapture maximal1536
+Byte, acht FS-Anfragen mit256-Byte-Daten,16 unterschiedliche Cache-Sektoren,
+Blockprofil maximal16 Anfragen/3000ms mit100ms Leseabstand, Treiber2800ms.
+Die normale Shell bindet STAT und SPAWN an dieselbe absolute1000ms-Frist.
+Im akzeptierten AY-Eingabebaum ist `program0.prg` (normale Shell)163160 Byte
+gross, SHA256 `e791b4cef839ba84dc436fe424dc36a7c717d023caf45d139969dbda63a4e4f9`;
+das bisherige externe `file-program.prg` hat728 Byte. Die eingebettete Shell
+umgeht diese Dateigroessenbegrenzung nicht als normaler Dateistart.
+
+Der vorhandene Ring3-ELF-Adapter akzeptiert bereits bis524288 Eingabebytes,
+weiterhin nur64 Seitenslots samt reserviertem Stack/Guards und W^X. Er erteilt
+keine zusaetzliche Datei-/Dienstautoritaet. Nur die1536-Konstante zu vergroessern
+oder nach Ausschoepfung heimlich Dienste/Zaehler neu zu starten waere falsch.
+
+Erforderliche Richtungsentscheidung: eigenes versioniertes, begrenztes
+Nur-Lese-/Dateistartprofil bis zum vorhandenen512KiB-ELF-Eingabelimit; feste
+Speicher-, Anfragen-, Leseraten- und Gesamtdateifrist vor Implementierung
+einfrieren. Alte Profile/Defaults, CPU32/1000ms, Erstellung8/1000ms,
+Restart2/10000ms, ATA200ms, einzelne IPC1000ms und ausschliesslich lesende
+primaere Master-PIO-Rechte bleiben. Kein DMA, Schreibrecht, weiterer Controller
+oder Ring0-Dateiparser. Eine zusammenhaengende Ring3-FS/Block/SDK/Shell-/Medien-
+Transaktion mit atomarer Capture-Publikation, Rollback und Crash/Hang/Recovery.
+Diese neue Ressourcen-/Lebensdauerfreigabe liegt noch nicht vor: kein neues
+Paket aktiv, keine Builds oder Gaeste reserviert. R3.6b bleibt vertagt;
+das gesamte64-Bit-OS ist weiterhin nicht fertig. Folgendes ist AZ-Historie.
+
 R8.3az ist vollstaendig qualifiziert: acht Gates/20 Hosttests und alle zehn
 BIOS-Faelle bestehen, inklusive HDD-/Floppy-Start, A-nach-B-Rueckfall, echter
 Shell-/Dienst-Recovery, 8GiB und aller Signatur-/SHA-/Manifestablehnungen.
