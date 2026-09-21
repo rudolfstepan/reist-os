@@ -2,6 +2,29 @@
 
 Stand: 21. September 2026
 
+## Starter-Integration R8.3bf abgenommen
+
+Kandidat02 besteht sechs Gates, zwoelf Hostmethoden und zwei echte
+HDD4GiB-/Diskette8GiB-Sitzungen samt unabhaengigem Rohdatenreview.
+Zwei Grafikstarts und zwei Dateioperationen pro Sitzung, vier verschiedene
+Vordergrundgenerationen, zwei saubere Shell-Abschluesse, unveraenderte Medien
+und Cleanup unter3s sind nachgewiesen. Zwei Gaeste115.25183679995826s,
+keine Builds oder Medienpublikationen. Kandidat01 stoppte vor Gaststart;
+seine Fehlerbelege und alle Hostkorrekturen bleiben erhalten.
+Start: `scripts/start-x86_64-display.ps1`; Anleitung:
+[Native64 Grafik](../NATIVE64_DISPLAY_QUICKSTART.md).
+Seal und finaler Commit-Beleg unter
+`build/codex-agent/r83bf-display-delivery/candidate02/`.
+
+### Entwicklungshistorie
+
+Auf sauberem Grafikabschluss `17d12819` und Vertragscommit `9a331894` folgt
+der normale Windows-/Python-Starter fuer exakt dieselben signierten Medien.
+Feste Index-/Eingabehashes, private Medien,30..320s mit3s Cleanup, serielle
+Shell und expliziter GTK-/Headless-Modus. Zehn erste Hostmethoden bestehen;
+zwei60s-Gaeste (HDD4GiB/Diskette8GiB) und sechs Gates sind eingefroren.
+Keine Kernel-/Programm-/Medien-Neubauten oder neuen Geraeterechte.
+
 ## R8.3be: native64-Grafikvermittlung abgenommen
 
 Kandidat03 besteht alle zwoelf eingefrorenen Gates, neun Grafikfaelle und zehn

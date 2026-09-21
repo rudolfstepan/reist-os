@@ -53,3 +53,31 @@ scope/diff review, local commit and clean final receipt; never push.
 
 R3.6b stays deferred. Desktop/input/network, writable filesystems and additional
 hardware/platform acceptance remain subsequent independent boundaries.
+
+Candidate01 gates1/2 passed; gate3 stopped before QEMU start because the old
+CLI fixture admits only20/30/320/330 seconds. Zero physical guests, complete
+private boot-medium cleanup, original failed capture retained. Three initial
+host commands spent. Reserve two further300s host commands for actual fixture
+red/green, then candidate02 same six gates/two60s guests. A private exact helper
+adapter admits only integer30..320; the existing absolute started+limit tool
+deadline, bytes, device paths and all prior checks remain unchanged. The old
+CLI implementation is not modified. No guest/runtime resource change.
+
+Both correction host commands spent; the first new-helper absence and the
+second test-directory setup error are retained. Production creates that
+directory already. One additional300s host command fixes only the test setup;
+no guest/build/media consumed and candidate02 gates remain unexecuted.
+
+## Accepted candidate02
+
+All six frozen gates pass: twelve host methods, actual Python/PowerShell
+check-only entries and old CLI admission, two complete real headless sessions,
+reference artifacts, independent raw replay and exact scope. Each session
+contains two successful display launches, two file outputs, four distinct
+foreground generations and two clean roots, followed by owned QEMU termination
+and full unchanged-media proof. HDD4GiB/floppy8GiB total115.25183679995826s;
+zero builds/publications. Candidate01 consumed zero guests. All failure and
+host-correction evidence remains under `build/codex-agent/r83bf-display-delivery/`.
+Seal and final clean implementation-commit receipt: `candidate02/seal.json`
+and `candidate02/final.json`. GTK command selection is host-tested; actual
+sessions were headless, without a manual window/input acceptance claim.

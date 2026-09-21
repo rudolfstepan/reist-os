@@ -1,5 +1,24 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Normaler Grafikstarter R8.3bf abgenommen
+
+Kandidat02 besteht sechs Gates/zwoelf Hostmethoden und zwei echte Sitzungen
+HDD4GiB/Diskette8GiB,115.25183679995826s. Normaler Ring3-Programmstart,
+Grafik und Dateiausgabe, Generationen/Reap, beide Root-Abschluesse sowie
+unveraenderte Medien und begrenztes Cleanup sind vollstaendig nachgeprueft.
+Keine Builds/Medienpublikationen; vorheriger Startfehler verbrauchte null
+Gaeste und bleibt erhalten. Einstieg `scripts/start-x86_64-display.ps1`,
+Anleitung `docs/NATIVE64_DISPLAY_QUICKSTART.md`, Belege
+`build/codex-agent/r83bf-display-delivery/candidate02/`.
+
+### Entwicklungshistorie
+
+Sauberer BE-Abschluss `17d12819`, Vertragscommit `9a331894`: separater
+Windows-/Python-Starter fuer die exakt abgenommenen Grafikmedien. Signaturen,
+Index und alle Eingaben vor Start pruefen; private Medien vor/nach Sitzung,
+feste30..320s samt3s Cleanup, serielle Shell. Sechs Gates, zwei60s-Gaeste,
+kein neuer Kernel, keine Medienpublikation oder Erweiterung der Gastautoritaet.
+
 ## Grafikvermittlung R8.3be abgenommen, 21. September 2026
 
 Kandidat03: zwoelf Gates, neun Grafik- und zehn CLI-/BIOS-Faelle inklusive
