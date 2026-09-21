@@ -2,6 +2,19 @@
 
 Stand: 21. September 2026
 
+## R8.3bi: Dauerhafte grafische Sitzung in Umsetzung
+
+Saubere Grundlage: BH `63e20d3d`, zehn Gates und25 frische Gaeste bestanden.
+Der neue [Paketvertrag](../architecture/NATIVE_GRAPHICAL_SESSION_CONTRACT.md)
+friert die bereits freigegebene Ring3-Sitzung ein: gepruefte Dienstdateien,
+direkter Eingabekanal zum Compositor, zwei lokale Surface-Anwendungen und
+gemeinsame Fehlerbehandlung. Bestehende Kernelmechanismen werden wiederverwendet.
+Aktiver Elternausfall wird erst nach READY geprueft. Noch keine BI-Abnahme.
+
+Anfangsfenster:16 Hostkommandos, ein Build, ein Medienlauf mit drei BIOS-
+Assemblierungen und ein180s-Diagnosegast. Acht Gates und18+10 frische Gaeste
+sind eingefroren. Keine weitere Routinefreigabe; R3.6b bleibt vertagt.
+
 ## R8.3bh: Terminal-Dienstberechtigung abgenommen
 
 Candidate02 besteht alle zehn Gates:15 Eingabe-/Dienstgaeste und zehn
