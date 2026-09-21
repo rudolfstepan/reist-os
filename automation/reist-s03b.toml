@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bf-display-delivery"
 native_display_authority = "2026-09-21 user mach weiter explicitly authorizes the proposed bounded QEMU native64 framebuffer, generation-scoped Ring3 access, revocation on crash and actual guest proof; renewed mach weiter bis alles fertig ist requires continuous completion. One opt-in display profile, no DMA, arbitrary MMIO, input devices, network or persistent writes. Main interactive worktree only, no agents or push. Earlier unfrozen parser prototype is preserved by path/hash under build/codex-agent/r83be-display/prototype-20260921 and is not accepted evidence."
 native_cli_delivery_authority = "2026-09-20 user explicitly selected limited bootable QEMU CLI research version first; standing continuous interactive completion reiterated. After clean accepted BCabe3cc7d7016671e5b644e01fb73976680f5ca0c/finalb2efe4c60b7894b188084dbe09bf8d1aed24f84a765fb69ed2334f9072246326, publish the exact normal shell/cat/ls/readonly tools as separate signed BIOS two-media profile with launcher/quickstart. Desktop/browser/network/remaining platform work subsequent, R3.6b deferred. No waiver of safety, production signing authority, device rights, new kernel build, push or nested agents."
 native_application_file_authority = "2026-09-20 renewed ja mach weiter approves the immediately preceding question: a separately versioned profile for explicitly selected immutable read-only file/directory objects, exact-generation-bound and revocable, with SDK, normal cat/ls and fault/recovery tests. No ambient namespace, write, raw FS/device, PIO/DMA or task-management rights; existing profiles and safety limits unchanged. Main interactive agent, one cohesive transaction, no push or nested agents."
@@ -24,6 +24,18 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3bf-display-delivery"
+status = "active"
+title = "Validated native64 display starter and bounded serial session"
+authority = "Standing native64 completion instruction; inventory after clean accepted17d12819/final6c584e979e3cbf56dbf35f53aadf949b8d205481865159b1d4a0cd9b20ff4df8. Deliver the already accepted display profile through a normal Windows/Python starter. No new guest/device/resource authority, builds or media publications. Existing CLI and display runtime/validators stay byte-identical."
+execution_window = "At most four development host commands300s; six frozen gates once, limits300/180/210/180/180/60s. Zero builds/media; exactly two fresh headless real BIOS starter sessions, HDD4GiB and floppy8GiB,60s each including3s cleanup,120s aggregate. Full admission/cleanup host faults and independent serial/media/deadline review. Preserve23 prior display guests1003.9200396001688s/four kernels/twelve BIOS assemblies/four media attempts; no unchanged retry."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_DISPLAY_DELIVERY_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/NATIVE64_DISPLAY_QUICKSTART.md", "scripts/start-x86_64-display.ps1", "scripts/run_x86_64_display.py", "scripts/verify_x86_64_display_delivery.py", "test/test_x86_64_display_delivery.py"]
+invariants = ["Exact accepted BE inputs, signed index and all media checks before any QEMU/session side effect; malformed or foreign inputs fail closed.", "One CPU/qemu64/TCG,4 or8GiB, no network/host shares/new device rights, immutable two-media BIOS layout, private overlays and full before/after verification.", "Explicit GTK view for user launch or headless mode; serial Ring3 shell, existing boot.prg/cat/ls/probe dispatch, two root runs; no GUI input/desktop claim.", "Whole-session deadline30..320s including3s cleanup; bounded termination of owned QEMU only, preserve errors and evidence on every failure.", "No kernel/program/media builds, no modification of accepted sources or artifacts; no nested agents/push, R3.6b remains deferred."]
+targeted_tests = ["python test/test_x86_64_display_delivery.py -v"]
+package_tests = ["python scripts/verify_x86_64_display_delivery.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_display_delivery.py --runtime", "python scripts/verify_x86_64_reference_artifacts.py", "python scripts/verify_x86_64_display_delivery.py --review", "python scripts/verify_x86_64_display_delivery.py --scope"]
 
 [[packages]]
 id = "R8.3be-native-display"
