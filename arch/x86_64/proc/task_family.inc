@@ -168,6 +168,10 @@ family_profile_admit64:
     test rax,rdx
     jnz .denied
     mov rax,[rdi+16]
+%ifdef REIST_NATIVE_NETWORK_DMA
+    mov rdx,~(1<<49)
+    test rax,rdx
+%else
 %ifdef REIST_NATIVE_PIO
 %ifdef REIST_NATIVE_TERMINAL
     mov rdx,~((1<<49)|(1<<63))
@@ -177,6 +181,7 @@ family_profile_admit64:
     test rax,rdx
 %else
     test rax,rax
+%endif
 %endif
     jnz .denied
     cmp qword [rdi+24],0
@@ -396,6 +401,15 @@ family_profile_apply64:
     test rax,rax
     jnz .invalid_binding
 .child_extended:
+%ifdef REIST_NATIVE_NETWORK_DMA
+    mov r10,~(1<<49)
+    test rax,r10
+    jnz .invalid_binding
+    test edi,edi
+    jnz .network_extended
+    bts rax,49
+.network_extended:
+%else
 %ifdef REIST_NATIVE_PIO
 %ifdef REIST_NATIVE_TERMINAL
     mov r10,~((1<<49)|(1<<63))
@@ -419,6 +433,7 @@ family_profile_apply64:
 %else
     test rax,rax
     jnz .invalid_binding
+%endif
 %endif
     mov [rsp+32],rax
     xor eax,eax
@@ -1296,6 +1311,9 @@ family_terminal64:
 %ifdef REIST_NATIVE_INPUT
     call native_input_terminal64
 %endif
+%ifdef REIST_NATIVE_NETWORK_DMA
+    call native_network_terminal64
+%endif
     push rax
     push rdi
     push r10
@@ -1545,6 +1563,9 @@ family_finish64:
 %endif
 %ifdef REIST_NATIVE_INPUT
     call native_input_finish64
+%endif
+%ifdef REIST_NATIVE_NETWORK_DMA
+    call native_network_finish64
 %endif
 %ifdef REIST_NATIVE_TERMINAL_SERVICE
     call native_terminal_service_finish64

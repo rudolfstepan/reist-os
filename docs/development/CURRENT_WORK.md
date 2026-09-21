@@ -2,14 +2,25 @@
 
 Stand: 21. September 2026
 
-## R8.3bj: Netzwerk-/DMA-Vermittlung autorisiert
+## R8.3bj: Native Netzwerk-/DMA-Grenze abgenommen
 
-Der erneute Fortsetzungsauftrag gibt die zuvor konkret angefragte native
-QEMU-Netzwerk-/DMA-Grenze frei. Zuerst generationsgebundene RTL8139-Mediation
-mit ausschliesslich kernel-eigenen DMA-Puffern und echtem Ring3-Verbraucher.
+Candidate02 besteht fünf Gates und acht frische QEMU-Fälle in der
+Laufzeitmatrix (23,154 s): 4/8 GiB, Treiberabsturz/-hänger/CPU32,
+Elternabsturz, IO-Quote und fehlende NIC. Echte Ethernet-Rundläufe,
+generationsgebundene Wiederherstellung, gesperrte/gelöschte DMA-Puffer und
+vollständig zurückgegebene Frames sind durch Rohdaten geprüft.
+
+Build03; Abnahmesiegel unter
+`build/codex-agent/r83bj-network-dma/candidate02/acceptance-seal.json`,
+SHA256 `20f6a40ae3d469ee8ca6a7430cdb37729f8e94f56d8d0199a7e3da26c83ac996`.
+Neun Entwicklungshostläufe, zehn Diagnoseversuche, insgesamt 23 echte Gäste
+und drei Builds; fehlgeschlagene Versuche bleiben erhalten.
+
+Das Paket stellt den begrenzten RTL8139-DMA-Mechanismus mit getrenntem
+Ring3-Verbraucher bereit. Netzwerkstack und normale Shell-Einbindung folgen
+innerhalb der bestehenden Freigabe. Kein vollständiges Netzwerk-/OS-Release,
+keine physische DMA-Isolationszusage. R3.6b bleibt zurückgestellt.
 Vertrag: [Native network DMA](../architecture/NATIVE_NETWORK_DMA_CONTRACT.md).
-Gezielte fuenf Gates, gemeinsames Image, acht kurze Gaeste; unveraenderte
-GUI-/BIOS-Matrizen werden nicht erneut ausgefuehrt. Noch keine BJ-Abnahme.
 
 ## R8.3bi: Grafische native64-Sitzung abgenommen
 

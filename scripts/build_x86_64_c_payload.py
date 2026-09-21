@@ -20,7 +20,7 @@ BINDINGS={'x86_64_c_core_entry':HIGH+0x185000,
 OUTPUTS=('bootstrap_core_text.bin','bootstrap_core_rodata.bin','bootstrap_core_data.bin',
          'bootstrap_core_layout.inc','bootstrap_core_layout.json')
 CALL_EXPORTS={'reist_native_ipc':'C_NATIVE_IPC_ENTRY','reist_native_memory':'C_NATIVE_MEMORY_ENTRY',
-              'reist_native_heap':'C_NATIVE_HEAP_ENTRY'}
+              'reist_native_heap':'C_NATIVE_HEAP_ENTRY','reist_native_network':'C_NATIVE_NETWORK_ENTRY'}
 # Private layout3 only; exact shared C/assembly arena, never generic extra ELF loads.
 MEMORY_STATE_BYTES=4531096
 MEMORY_LAYOUT=(HIGH+0x200000,5*1024*1024,3,8,6)
@@ -202,7 +202,7 @@ def outputs(data):
         (f'%define C_NATIVE_HEAP_STATE_BYTES {POOL_HEAP_STATE_BYTES if version==5 else HEAP_STATE_BYTES}\n' if version in (4,5) else '')+
         ('%define C_NATIVE_TASK_POOL_CAPACITY 8\n' if version==5 else '')+
         ''.join(f'%define {define} {p["symbols"].get(name,{}).get("value",0):#x}\n'
-                for name,define in CALL_EXPORTS.items())).encode('ascii')
+                for name,define in CALL_EXPORTS.items() if name!='reist_native_network' or name in p["symbols"])).encode('ascii')
     result['bootstrap_core_layout.json']=(json.dumps(metadata,indent=2,sort_keys=True)+'\n').encode('ascii')
     return result
 

@@ -1,5 +1,20 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## R8.3bj: Native Netzwerk-/DMA-Vermittlung abgenommen
+
+Fünf Gates und acht frische QEMU-Fälle bestanden; Runtime 23,154 s,
+unabhängige Rohdatenprüfung 5,471 s. Build03/Candidate02 verbindet einen
+getrennten Ring3-Verbraucher mit festen kernel-eigenen RTL8139-DMA-Puffern.
+Absturz, Hänger, CPU-Erschöpfung und Elternverlust sperren den alten Besitzer;
+frische Generationen übertragen danach wieder geprüfte Ethernet-Frames.
+Fehlende Hardware und IO-Quoten werden begrenzt behandelt.
+
+Siegel: `build/codex-agent/r83bj-network-dma/candidate02/acceptance-seal.json`
+(`20f6a40ae3d469ee8ca6a7430cdb37729f8e94f56d8d0199a7e3da26c83ac996`).
+Nächster offener Teil: separater Ring3-Netzwerkstack und normale Shell-Nutzung.
+Dies ist eine Mechanismusabnahme, keine vollständige native64-Systemabnahme.
+Physische Hardware, öffentliche Netze, SMP und R3.6b bleiben außerhalb.
+
 ## R8.3bi: Grafische native64-Sitzung abgenommen
 
 Candidate07 besteht alle acht Gates und28 frische QEMU-Gaeste:18 GUI- und

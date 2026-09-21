@@ -1014,6 +1014,13 @@ process_run_syscall64:
     cmp qword [rel syscall_rax],132
     je family_syscall64
 %endif
+%ifdef REIST_NATIVE_NETWORK_DMA
+    cmp qword [rel syscall_rax],113
+    jne .not_network_control
+    cmp qword [rel syscall_rdi],32
+    je native_network_syscall64
+.not_network_control:
+%endif
 %ifdef REIST_NATIVE_PIO
     cmp qword [rel syscall_rax],113
 %ifdef REIST_NATIVE_DISPLAY

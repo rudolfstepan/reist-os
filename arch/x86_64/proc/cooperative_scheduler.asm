@@ -8069,6 +8069,9 @@ scheduler_force_cleanup64:
     ret
 
 scheduler_fail:
+%ifdef REIST_NATIVE_NETWORK_DMA
+    call native_network_emergency64
+%endif
 %ifdef REIST_NATIVE_PIO
     ; Unknown kernel state must not be repaired or returned to its caller.
     jmp native_pio_fail64
@@ -8665,3 +8668,7 @@ alignb 16
 scheduler_kernel_stack_bottom:
     resb 16384
 scheduler_kernel_stack_top:
+
+%ifdef REIST_NATIVE_NETWORK_DMA
+%include "arch/x86_64/devices/network_domain.inc"
+%endif

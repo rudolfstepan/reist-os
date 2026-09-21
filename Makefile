@@ -282,6 +282,21 @@ $(error NativeDisplay requires explicit NativeAppFiles)
 endif
 endif
 X86_64_DISPLAY_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),-DREIST_NATIVE_DISPLAY=1,)
+# NativeNetworkDMA: independent hardware-mediation profile.
+X86_64_NATIVE_NETWORK_DMA ?= 0
+ifneq ($(words $(X86_64_NATIVE_NETWORK_DMA)),1)
+$(error NativeNetworkDMA selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_NETWORK_DMA),0 1),$(X86_64_NATIVE_NETWORK_DMA))
+$(error NativeNetworkDMA selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_NETWORK_DMA),1)
+ifneq ($(X86_64_NATIVE_TASK_POOL),1)
+$(error NativeNetworkDMA requires NativeTaskPool)
+endif
+endif
+X86_64_NETWORK_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),-DREIST_NATIVE_NETWORK_DMA=1,)
+# End NativeNetworkDMA selector.
 X86_64_NATIVE_INPUT ?= 0
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
@@ -468,6 +483,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -501,6 +517,7 @@ X86_64_POOL_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),-DREIST_NATIVE_T
 X86_64_POOL_FLAGS += $(X86_64_SERVICE_CPU_FLAGS)
 X86_64_POOL_FLAGS += $(X86_64_DISPLAY_FLAGS)
 X86_64_POOL_FLAGS += $(X86_64_INPUT_FLAGS)
+X86_64_POOL_FLAGS += $(X86_64_NETWORK_FLAGS)
 X86_64_POOL_FLAGS += $(X86_64_TERMINAL_SERVICE_FLAGS)
 ifeq ($(X86_64_NATIVE_FILE_LAUNCH),1)
 ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_FILESYSTEM_CASE),10)
@@ -882,9 +899,13 @@ ifneq ($(filter 1,$(X86_64_NATIVE_IPC) $(X86_64_NATIVE_RAM)),)
 	@$(LD) -m elf_x86_64 -r --gc-sections --undefined=memcpy --undefined=memset \
 		-o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory.o $(X86_64_BOOTSTRAP_DIR)/native_ipc_memory_full.o
 endif
+ifeq ($(X86_64_NATIVE_NETWORK_DMA),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. $(X86_64_NETWORK_FLAGS) -c arch/x86_64/devices/network_dma.c -o $(X86_64_BOOTSTRAP_DIR)/network_dma.o
+endif
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
+		$(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),$(X86_64_BOOTSTRAP_DIR)/network_dma.o,) \
 		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
 		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o,) \
 		$(if $(filter 1,$(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_memory.o,) \

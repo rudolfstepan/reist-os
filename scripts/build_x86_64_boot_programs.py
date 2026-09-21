@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False):
+    if type(network_dma) is not bool or network_dma and (not task_pool or any((pool_pio,service_cpu,service_pio,console,graphical_session))):raise ValueError("network DMA requires separate plain task pool")
     if type(graphical_session) is not bool or graphical_session and not terminal_service:raise ValueError("graphical session requires terminal service profile")
     if type(terminal_service) is not bool or terminal_service and not input:raise ValueError("terminal service requires input profile")
     if type(input) is not bool or input and not display:raise ValueError("input requires display profile")
@@ -114,6 +115,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if pio_case not in range(4) or (pio_case and not pio):raise ValueError('PIO case')
     if import_image and not startup:raise ValueError('import requires startup')
     if startup and (not family or family_case or case):raise ValueError('startup requires normal family')
+    if network_dma:cc=[*cc,'-DREIST_NATIVE_NETWORK_DMA=1']
     if pool_pio:cc=[*cc,'-DREIST_NATIVE_POOL_PIO=1']
     if service_cpu:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-Dmain=reist_pool_finite_fixture_main']
     if service_pio:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_SERVICE_PIO=1']
@@ -225,7 +227,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              *([f'-DFILE_LAUNCH_CASE={file_launch_case}'] if file_launch else []),
              *(['-fstack-usage'] if shell_root else []),
              *(['-DREIST_SESSION_GUEST=1'] if session and n<2 else []),
-             *extra,'-c','test/x86_64_session_admission_host.c' if session and n<2 else 'userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/service_console.c' if service_console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','arch/x86_64/user/network_dma.c' if network_dma else 'test/x86_64_session_admission_host.c' if session and n<2 else 'userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/service_console.c' if service_console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--wrap=main'] if session and n<2 else []),
@@ -316,6 +318,7 @@ elif __name__=='__main__':
     p.add_argument('--input',action='store_true')
     p.add_argument('--terminal-service',action='store_true')
     p.add_argument('--graphical-session',action='store_true')
+    p.add_argument('--network-dma',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -323,4 +326,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma)
