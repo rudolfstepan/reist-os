@@ -2,7 +2,16 @@
 
 Stand: 21. September 2026
 
-## Naechster Schnitt: grafische Sitzungsautoritaet noch offen
+## R8.3bh: Terminal-Dienstberechtigung autorisiert und aktiv
+
+Der erneute Fortsetzungsauftrag gibt die grafische Sitzungsdomaene frei.
+Zuerst wird die geschuetzte exklusive Dienstzulassung samt Widerruf und realem
+Ring3-Fehlernachweis umgesetzt. Vertrag: `NATIVE_TERMINAL_SERVICE_CONTRACT.md`.
+Die anschliessende dauerhafte Ring3-Sitzung/Fokusintegration bleibt Teil des
+Auftrags; Paketgrenzen erfordern keine Routinefreigabe. Noch kein Desktop-
+oder Systemabschluss. R3.6b bleibt vertagt.
+
+## Historie vor erneuter Freigabe: grafische Sitzungsautoritaet noch offen
 
 Nach sauberem Eingabecommit `fd7a2f77` zeigt die Bestandspruefung eine echte
 neue Rechtevergabe: Der vorhandene Desktop verwendet Terminal-Dienstuebernahme

@@ -1,5 +1,11 @@
 # Native64: grafische Sitzung und exklusive Eingabeverteilung
 
+Freigegeben durch den erneuten Fortsetzungsauftrag nach der konkreten Frage.
+R8.3bh prueft zuerst die geschuetzte Terminal-Dienstberechtigung einschliesslich
+echtem Ring3-Verbraucher und Fehlerlebensdauer. Danach folgt ohne Routinefrage
+die separate Ring3-Fokus-/Sitzungsintegration. Der folgende Vorschlag bleibt
+als Freigabehistorie erhalten, nicht als erneute Freigabeanforderung.
+
 ## Abgenommene Grundlage
 
 Stand21. September2026, sauberer Implementierungscommit
