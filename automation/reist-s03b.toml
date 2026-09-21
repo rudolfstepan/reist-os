@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bj-network-dma"
 native_graphical_session_authority_boundary = "2026-09-21 accepted BG fd7a2f7786f6905b928bbe9912590e0f950664fa, final5e26802cdeface9717909f60dd8d5bd45c37d05eb643ec51b1be085ed09f3453, ten gates/22 fresh guests/clean worktree. Next inventory: existing desktop requires TERMINAL_ACQUIRE_SERVICE4, explicitly unsupported(-95) in native_terminal.inc; BG is fixed5000ms/32events with driver5/foreground4, no persistent GUI focus authority. AGENTS new-authority stop requires explicit authorization for exclusive Ring3 graphical-session/terminal-service takeover, generationscoped focus/capture and bounded persistent driver/compositor roles. Concrete proposal docs/architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md. No implementation/build/guest activated; old profiles and deferred R3.6b preserved. Native OS completion remains open."
 compaction_correction_window = "Eight hosts/two builds/13.597538999980316s second build/one media/three BIOS/zero guests spent. Build02 correctly fails exact PT_LOAD audit: GNU objcopy canonicalizes only the zero-filesz scratch segment file offset1261568 to4096; every allocated section and retained symbol identical, compact file1387904bytes. Preserve raw tool output and original; restore only that nonloaded offset after checking all other header fields, then require complete old layout/loaded bytes/retained symbols unchanged. Freeze two host commands<=600s, one fresh build03<=300s and original unspent media02<=180s/three BIOS plus healthy90s. No relaxed audit, changed media format or guest limit; cumulative ceilingthree builds/two media/six BIOS/one guest."
 floppy_capacity_window = "Seven hosts spent; host07 passes actual assembly/decoder/controller/consumer O0/O2 plus freestanding source and exact disabled projection. Kernelbuild01 passes 14.6175774000003s/1392012bytes. Media01 fails0.8133354000165127s after3 BIOS assemblies: reserved kernel plus FAT12 metadata leaves no data sector. No guest. Inventory37 new local input debug symbols occupy1774bytes; remove only those nonloaded local names with objcopy while retaining untrimmed ELF and proving every PT_LOAD byte/layout/other symbol exact. Preserve disk formats/limits. Reserve one additional common build02<=300s, one media02<=180s/3 BIOS assemblies; healthy90s original guest remains unspent. Cumulative ceiling2 builds/2 media/6 BIOS/1 diagnostic guest; no qualification yet."
@@ -32,6 +32,18 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3bj-network-dma"
+status = "active"
+title = "Native RTL8139 bounded kernel-owned DMA and Ring3 consumer containment"
+authority = "2026-09-21 renewed mach weiter bis alles fertig ist directly approves preceding native QEMU network/DMA with isolated Ring3 services proposal. Establish safe device-resource/DMA mediation first, then Ring3 network stack and normal shell integration in successive packages without routine questions. No public-network traffic, physical hardware, persistent writes, SMP or deferred R3.6b authority."
+contract = "docs/architecture/NATIVE_NETWORK_DMA_CONTRACT.md"
+execution_window = "Main interactive worktree only. At most6 development host commands600s, one common build300s, one diagnostic guest45s including cleanup. Freeze before execution; preserve failures and spent counts. Five qualification gates once: actual host600s, complete disabled projection180s, bound package180s, eight fresh guests45s/360s aggregate under600s runtime, independent review/scope180s. Exact existing CPU32, task/IPC/heap/image limits; no full GUI or BIOS matrix because new explicit kernel device profile is disabled in existing artifacts. No media publication or user-facing command in this mechanism prerequisite. First failure stops for bounded evidence-directed correction."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_NETWORK_DMA_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py", "scripts/build_x86_64_c_payload.py", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/proc/process_run.inc", "arch/x86_64/proc/task_family.inc", "arch/x86_64/devices/network_dma.c", "arch/x86_64/devices/network_dma.h", "arch/x86_64/devices/network_domain.inc", "arch/x86_64/user/network_dma.c", "userspace/sdk/include/reist/x86_64/network.h", "test/test_x86_64_network_dma.py", "test/x86_64_network_dma_host.c", "scripts/verify_x86_64_network_dma.py", "scripts/run_qemu_x86_64_network_dma.py"]
+targeted_tests = ["python test/test_x86_64_network_dma.py -v", "python scripts/verify_x86_64_network_dma.py --defaults"]
+package_tests = ["python scripts/verify_x86_64_network_dma.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_network_dma.py --runtime", "python scripts/verify_x86_64_network_dma.py --review"]
 
 [[packages]]
 id = "R8.3bi-graphical-session"

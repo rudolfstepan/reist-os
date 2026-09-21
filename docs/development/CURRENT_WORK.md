@@ -2,6 +2,15 @@
 
 Stand: 21. September 2026
 
+## R8.3bj: Netzwerk-/DMA-Vermittlung autorisiert
+
+Der erneute Fortsetzungsauftrag gibt die zuvor konkret angefragte native
+QEMU-Netzwerk-/DMA-Grenze frei. Zuerst generationsgebundene RTL8139-Mediation
+mit ausschliesslich kernel-eigenen DMA-Puffern und echtem Ring3-Verbraucher.
+Vertrag: [Native network DMA](../architecture/NATIVE_NETWORK_DMA_CONTRACT.md).
+Gezielte fuenf Gates, gemeinsames Image, acht kurze Gaeste; unveraenderte
+GUI-/BIOS-Matrizen werden nicht erneut ausgefuehrt. Noch keine BJ-Abnahme.
+
 ## R8.3bi: Grafische native64-Sitzung abgenommen
 
 Candidate07 besteht alle acht Gates und28 frische QEMU-Gaeste:18 GUI- und
