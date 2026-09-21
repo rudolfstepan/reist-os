@@ -1,6 +1,7 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3be-native-display"
+native_display_authority = "2026-09-21 user mach weiter explicitly authorizes the proposed bounded QEMU native64 framebuffer, generation-scoped Ring3 access, revocation on crash and actual guest proof; renewed mach weiter bis alles fertig ist requires continuous completion. One opt-in display profile, no DMA, arbitrary MMIO, input devices, network or persistent writes. Main interactive worktree only, no agents or push. Earlier unfrozen parser prototype is preserved by path/hash under build/codex-agent/r83be-display/prototype-20260921 and is not accepted evidence."
 native_cli_delivery_authority = "2026-09-20 user explicitly selected limited bootable QEMU CLI research version first; standing continuous interactive completion reiterated. After clean accepted BCabe3cc7d7016671e5b644e01fb73976680f5ca0c/finalb2efe4c60b7894b188084dbe09bf8d1aed24f84a765fb69ed2334f9072246326, publish the exact normal shell/cat/ls/readonly tools as separate signed BIOS two-media profile with launcher/quickstart. Desktop/browser/network/remaining platform work subsequent, R3.6b deferred. No waiver of safety, production signing authority, device rights, new kernel build, push or nested agents."
 native_application_file_authority = "2026-09-20 renewed ja mach weiter approves the immediately preceding question: a separately versioned profile for explicitly selected immutable read-only file/directory objects, exact-generation-bound and revocable, with SDK, normal cat/ls and fault/recovery tests. No ambient namespace, write, raw FS/device, PIO/DMA or task-management rights; existing profiles and safety limits unchanged. Main interactive agent, one cohesive transaction, no push or nested agents."
 native_application_file_authority_boundary = "2026-09-20 read-only inventory after clean accepted BB813606cf7f6fcd6eb42fe8e8a38658f8ce2cf0e7, final496442d7a594b347915ad28313474ab6bec2728e84d80e74bd33acd61d7ae4d4. AY contract explicitly denies foreground applications any FS endpoint, PIO or task-management authority (NATIVE_SHELL_SESSION_CONTRACT.md573-574). shell_session.c338-364 imports the child with ordinary/terminal profile and no FS delegation; its FS client is root-owned. Existing cat uses vfs_file_client, ls uses read/stat clients; those invoke legacy STORAGE_SUBMIT67/COLLECT71/CANCEL118, which native child-profile admission excludes. Native filesystem.h names a distinct immutable IPC-v1, not that legacy ABI; native_filesystem.c admits only STAT5/READ6/READDIR7, not object-open rights. Thus linking existing tools or copying an endpoint would not establish the required bounded file authority. Proposed next cohesive slice, pending explicit authority: separate versioned application read-only object profile, explicit root-selected immutable file/directory grants to its own exact foreground generation, bounded STAT/READ/READDIR and close/revoke, no ambient namespace or raw FS/device endpoint. Reuse Ring3 parsing, IPC and existing lifecycle; couple SDK adapters, normal cat/ls dispatch and both build/media layouts with wrong/stale/foreign object, crash/hang/quota/recovery/no-write proof. No writes, PIO/DMA, task-management, automatic inheritance or weakening old profiles/CPU/ATA/IPC/creation/restart limits. Freeze exact scope and finite budgets only after this genuine authority decision. No next package active, build/media/guest reserved or candidate implementation. R3.6b stays deferred; native OS/desktop/hardware completion remains open."
@@ -23,6 +24,45 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3be-native-display"
+status = "active"
+title = "Bounded native64 VBE mediation and recoverable Ring3 display client"
+baseline = "a8cfbde4"
+contract = "docs/architecture/NATIVE_DISPLAY_CONTRACT.md"
+scope = "One explicit NativeDisplay profile on the accepted native application-file CLI. Validate the existing signed BIOS Multiboot-v1 VBE handoff; create a fixed supervisor-only NX uncached mapping without RAM/user aliases; append DEVICE_CONTROL113 operation30 with fixed generation-scoped bind, info, commit and fence operations. A normal shell-launched /boot.prg display client receives only explicit foreground display authority, bounded staged tiles and unchanged CPU/IPC/file/terminal quotas. Exit, crash, hang, quota, stale identity and root loss fence before retirement, permit bounded recreation and self-test, and preserve the serial shell. Qualify real pixels, both VBE resolutions, denial and recovery plus the complete existing CLI safety predicates. No desktop/input/network/DMA/physical-platform claim."
+allowed_files = [
+  "automation/reist-s03b.toml", "docs/architecture/NATIVE_DISPLAY_CONTRACT.md",
+  "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md",
+  "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py",
+  "arch/x86_64/boot/entry.asm", "arch/x86_64/proc/cooperative_scheduler.asm",
+  "arch/x86_64/proc/process_run.inc", "arch/x86_64/proc/task_family.inc",
+  "arch/x86_64/video/boot_framebuffer.c", "arch/x86_64/video/boot_framebuffer.h",
+  "arch/x86_64/video/boot_capture.c", "arch/x86_64/video/display_core.inc",
+  "arch/x86_64/video/display_core.h", "arch/x86_64/video/display_domain.inc",
+  "arch/x86_64/user/display_probe.c", "userspace/sdk/lib/x86_64/shell_session.c",
+  "userspace/sdk/include/reist/x86_64/display.h",
+  "scripts/build_x86_64_display_media.py", "scripts/check_x86_64_display_media.py",
+  "scripts/run_qemu_x86_64_display.py", "scripts/verify_x86_64_display.py",
+  "test/test_x86_64_boot_framebuffer.py", "test/x86_64_boot_framebuffer_host.c",
+  "test/test_x86_64_display.py", "test/x86_64_display_host.c"
+]
+invariants = [
+  "One explicit profile; all old selectors, syscall numbers and signing/ELF/ABI/device/CPU/IPC/ATA/terminal limits retain their existing semantics.",
+  "Only validated Multiboot-v1 direct RGB32 1024x768 or800x600 data below4GiB, with complete bounded E820 and no usable-RAM overlap, may publish a supervisor-only NX UC LFB mapping.",
+  "Only root0 binds its own exact live child; ordinary and stale generations cannot write, map, inherit or transfer display authority; no raw address or port reaches userspace.",
+  "Every commit validates complete pointers, rectangle, stride, canonical request, generation and absolute deadline before at most16384 bytes of staged output;64 commits/1MiB per100ms with fixed storage.",
+  "Exit fault hang quota cancellation and parent loss converge on idempotent generation fence before task/profile/frame retirement; new owner requires prior reap and fresh self-test.",
+  "Actual QMP pixel readback and complete kernel-state/lifecycle observations, host behavior tests and full existing CLI predicates are mandatory; no marker-only runtime acceptance.",
+  "One active implementation package, retained failed evidence, clean accepted local commit only after frozen gates, no push or nested agents; R3.6b stays deferred."
+]
+targeted_tests = ["python test/test_x86_64_boot_framebuffer.py -v", "python test/test_x86_64_display.py -v", "python test/test_x86_64_pio.py -v", "python test/test_x86_64_task_family.py -v", "python test/test_x86_64_terminal.py -v", "python test/test_x86_64_shell_session.py -v"]
+package_tests = ["python scripts/verify_x86_64_display.py --build", "python scripts/verify_x86_64_display.py --media"]
+runtime_tests = ["python scripts/verify_x86_64_display.py --runtime", "python scripts/verify_x86_64_reference_artifacts.py", "python scripts/verify_x86_64_display.py --review", "python scripts/verify_x86_64_display.py --scope"]
+execution_window = "candidate01: first host development window at most12 commands600s each, no kernel builds/media/guests. Preserve prior prototype failures (Zig cache access, disabled assert compile) and its O0/O2 pass as development observations only. Final gates exactly once after candidate freeze; later build/media/guest reservation recorded before execution without altering these acceptance predicates. Stop first unexpected gate failure, diagnose and freeze a focused correction window rather than unchanged retry."
+stop_conditions = ["required source outside allowed_files or unrelated overlapping change", "device mapping aliases usable RAM or exposes MMIO to userspace", "bounded display mechanism needs new authority outside the approved framebuffer domain", "guest proof needs relaxed CPU IPC ATA lifecycle or whole-operation limits", "kernel/MMIO fault is treated as recoverable process failure", "a frozen gate fails; preserve evidence and inventory the focused next correction before proceeding"]
+commit_message = "feat(x86_64): mediate bounded Ring3 framebuffer output"
 
 [[packages]]
 id = "R8.3bd-cli-delivery"

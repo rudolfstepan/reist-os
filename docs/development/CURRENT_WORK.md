@@ -2,6 +2,19 @@
 
 Stand: 21. September 2026
 
+## R8.3be: freigegebene native64-Grafikvermittlung in Arbeit
+
+Der Nutzer hat den begrenzten QEMU-Framebuffer-Schnitt und die durchgehende
+Weiterarbeit ausdruecklich freigegeben. Die Queue friert R8.3be als einziges
+aktives Implementierungspaket ein. Der fruehe, noch nicht eingebundene
+Parserentwurf ist unter `build/codex-agent/r83be-display/prototype-20260921/`
+mit Dateihashes erhalten; dessen O0/O2-Pass ist keine Paketabnahme.
+Vertrag: [NATIVE_DISPLAY_CONTRACT](../architecture/NATIVE_DISPLAY_CONTRACT.md).
+Boot-Handoff, supervisor-only NX/UC-Abbildung, begrenzte generationsgebundene
+Ausgabe, normal gestarteter Ring3-Client und echte Pixel-/Fehlernachweise
+bilden einen gemeinsamen Schnitt. Noch kein Grafikbuild, Gast oder Commit
+einer Implementierung; die angenommene CLI-Version bleibt `a8cfbde4`.
+
 ## CLI-Erstlieferung R8.3bd abgeschlossen
 
 Alle neun Gates und zehn BIOS-/Gastfaelle bestanden, einschliesslich kompletter
