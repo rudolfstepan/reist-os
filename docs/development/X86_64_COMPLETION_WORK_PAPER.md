@@ -1,5 +1,14 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Neue Eingabedomaene noch nicht freigegeben
+
+Nach sauberem BF-Abschluss `c33943da` ist Tastatur/Pointer die naechste
+inventarisierte neue Geraeteautoritaet: native COM1-Konsole, ATA-Portwhitelist
+und IRQ0-only reichen dafuer nicht. Der geschuetzte PS/2-Ring3-Schnitt ist in
+`docs/architecture/NATIVE_INPUT_PROPOSAL.md` konkret beschrieben. AGENTS.md
+behaelt hier einen echten Autoritaetsstopp bei; kein weiterer Build/Gast oder
+Implementierungspaket ist aktiv. Desktop/Browser und Systemabnahme bleiben offen.
+
 ## Normaler Grafikstarter R8.3bf abgenommen
 
 Kandidat02 besteht sechs Gates/zwoelf Hostmethoden und zwei echte Sitzungen

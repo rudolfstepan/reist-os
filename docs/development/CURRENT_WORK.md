@@ -2,6 +2,16 @@
 
 Stand: 21. September 2026
 
+## Naechste Grenze: native Eingabegeraete
+
+Grafikvermittlung `17d12819` und Starter `c33943da` sind lokal abgenommen;
+zwoelf plus sechs Gates bestanden. Native Konsole bleibt COM1, PIO nur ATA,
+PIC nur IRQ0. Fuer Tastatur/Maus ist eine neue geschuetzte Geraetedomaene
+erforderlich, die der bisherige Grafikvertrag ausdruecklich ausschliesst.
+AGENTS.md verlangt fuer solche neuen Autoritaetsdomaenen weiterhin einen Stopp.
+Konkreter Vorschlag: [Native PS/2-Eingabe](../architecture/NATIVE_INPUT_PROPOSAL.md).
+Kein weiteres Paket oder Build/Gast aktiv; R3.6b bleibt vertagt.
+
 ## Starter-Integration R8.3bf abgenommen
 
 Kandidat02 besteht sechs Gates, zwoelf Hostmethoden und zwei echte
