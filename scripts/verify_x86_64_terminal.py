@@ -81,6 +81,8 @@ def prior():
 
 def without_wide_build_selector(source,make=False):
     """Exact disabled BA additions only; never mask surrounding/default drift."""
+    from verify_x86_64_display import without_display_build_selector
+    source=without_display_build_selector(source,make=make)
     from build_x86_64_app_files import without_app_build_selector
     source=without_app_build_selector(source,make=make)
     if make:
@@ -117,7 +119,7 @@ def default_sources():
         after=(ROOT/name).read_text(encoding='utf-8')
         # Versioned opt-in successors compose above AV, never replace the AU
         # reference. Everything outside these disabled branches remains exact.
-        for macro in ('REIST_NATIVE_SHELL_SESSION','REIST_NATIVE_SESSION','REIST_NATIVE_TERMINAL'):
+        for macro in ('REIST_NATIVE_DISPLAY','REIST_NATIVE_SHELL_SESSION','REIST_NATIVE_SESSION','REIST_NATIVE_TERMINAL'):
             after=disabled(after,macro,name.endswith(('.inc','.asm')))
         need(before==after,'terminal exact disabled source '+name)
     name='scripts/build-x86_64-bootstrap.ps1'

@@ -1,5 +1,39 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Grafikvermittlung R8.3be abgenommen, 21. September 2026
+
+Kandidat03: zwoelf Gates, neun Grafik- und zehn CLI-/BIOS-Faelle inklusive
+unabhaengigem Rohdatenreview bestanden. Nachgewiesen sind feste Ring3-Kacheln,
+NX/UC-Kernelvermittlung, Generationen, Quota und Recovery in beiden VBE-Modi.
+Fuenf neue Negativgaeste107.87658979999833s;14 vollstaendig nachgepruefte,
+unveraenderte Aufzeichnungen wiederverwendet. Insgesamt23 physische Gaeste
+1003.9200396001688s/vier Kernelbuilds/zwoelf BIOS-Assemblierungen/vier Medien.
+Seal/Commitbeleg unter `build/codex-agent/r83be-display/candidate03/`;
+alle gestoppten Kandidaten bleiben unveraendert. Naechste Arbeit erst nach
+sauberem lokalem Implementierungscommit. Desktop/Eingabe/Netzwerk und weitere
+Plattformabnahme offen, R3.6b bleibt vertagt.
+
+### Entwicklungshistorie
+
+Explizit freigegebenes QEMU-Profil auf der angenommenen CLI. Build04 und
+signierte Medien04 sowie ein vollstaendig nachgepruefter Grafiklauf bestehen:
+drei Ring3-Kacheln/Generationen, zwei Shell-Laeufe, unberuehrte Medien.
+Kandidat01 prueft zwoelf Gates und19 frische Grafik-/CLI-Gaeste. Terminalrecht
+und Anzeigerecht werden nur im Opt-in kombiniert; der bestehende Zeigerpruefer
+wird in hoechstens16 Teilbereichen vor jeder Ausgabe angewandt. Vier Builds,
+zwoelf BIOS-Assemblierungen, vier Medienversuche und vier Entwicklungsgaste
+samt allen Fehlerbelegen sind erhalten. Noch keine Grafikpaketabnahme;
+Desktop, Eingabe, Netzwerk und weitere Plattformabnahme bleiben offen.
+
+Fortsetzung Kandidat03: nach dokumentiertem Timing-Entscheid und erneuter
+Fertigstellungsanweisung private Display-Neubewertung mit unveraenderter
+Verarbeitungs-/Kindfrist und ausschliesslich zwei erfolgreichen CLOSE-Paaren
+zwischen Timeout und Wecken. Fuenf Hostmethoden/Gegenproben bestehen; alter
+CLI-Fehler bleibt archiviert. Hashgebundene komplette Neubewertung von14
+vorhandenen Gaesten und genau fuenf noch fehlende BIOS-Negativgaeste, keine
+Builds oder Medien. Kandidat02 bleibt gestoppt,18 physische Gaeste insgesamt
+896.0434498001705s verbraucht. Zwoelf Gates vor jeder Annahme verpflichtend.
+
 ## Vereinbarte CLI-Erstlieferung abgeschlossen, 21. September 2026
 
 R8.3bd/Kandidat02 besteht neun Gates und alle zehn BIOS-/Gastfaelle samt

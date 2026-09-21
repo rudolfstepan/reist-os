@@ -2,7 +2,23 @@
 
 Stand: 21. September 2026
 
-## R8.3be: freigegebene native64-Grafikvermittlung in Arbeit
+## R8.3be: native64-Grafikvermittlung abgenommen
+
+Kandidat03 besteht alle zwoelf eingefrorenen Gates, neun Grafikfaelle und zehn
+CLI-/BIOS-Faelle samt unabhaengigem vollstaendigem Rohdatenreview. Native
+Ring3-Ausgabe ist fuer QEMU1024x768/800x600 mit festen Kacheln, Generationen,
+Rechteentzug und Wiederanlauf nach Crash/Hang/Quota/Elternverlust nachgewiesen.
+Vierzehn unveraenderte Aufzeichnungen wurden hashgebunden vollstaendig neu
+bewertet, fuenf fehlende negative BIOS-Gaeste107.87658979999833s neu ausgefuehrt.
+Gesamtverbrauch23 physische Gaeste1003.9200396001688s, vier Kernelbuilds,
+zwoelf BIOS-Assemblierungen und vier Medienversuche; jeder Fehlversuch bleibt.
+Abnahme und Commit-Bindung:
+`build/codex-agent/r83be-display/candidate03/acceptance-seal.json` und
+`verification-status-display-final.json` im selben Verzeichnis.
+Signierte Medien: `build/codex-agent/r83be-display/media04/display-media.json`.
+Keine Desktop-, Eingabe-, Netzwerk- oder weitere Hardwareabnahme; R3.6b vertagt.
+
+### Erhaltene Entwicklungshistorie
 
 Der Nutzer hat den begrenzten QEMU-Framebuffer-Schnitt und die durchgehende
 Weiterarbeit ausdruecklich freigegeben. Die Queue friert R8.3be als einziges
@@ -12,8 +28,36 @@ mit Dateihashes erhalten; dessen O0/O2-Pass ist keine Paketabnahme.
 Vertrag: [NATIVE_DISPLAY_CONTRACT](../architecture/NATIVE_DISPLAY_CONTRACT.md).
 Boot-Handoff, supervisor-only NX/UC-Abbildung, begrenzte generationsgebundene
 Ausgabe, normal gestarteter Ring3-Client und echte Pixel-/Fehlernachweise
-bilden einen gemeinsamen Schnitt. Noch kein Grafikbuild, Gast oder Commit
-einer Implementierung; die angenommene CLI-Version bleibt `a8cfbde4`.
+bilden einen gemeinsamen Schnitt. Entwicklungsbuild04 und signierte Medien04
+bestehen. Gast04 samt unabhaengigem Rohdatenreview weist drei echte Kacheln,
+drei Besitzer-Generationen, zwei Shell-Laeufe und unveraenderte Medien nach.
+Fruehere Medien-/Terminal-/Zeiger-/Prueferfehler bleiben archiviert. Kandidat01
+friert jetzt zwoelf Gates und19 frische Grafik-/CLI-Gaeste ein. Noch keine
+Paketabnahme oder Implementierungscommit; akzeptierte CLI bleibt `a8cfbde4`.
+
+Kandidat02: Gates1..8 und alle neun Grafikgaeste bestehen (228.86469410010614s),
+ebenso vier vollstaendige CLI-Positivfaelle. Der fuenfte CLI-Fall stoppt Gate9:
+Broker-Timeout4840ms, erste und zweite IPC-Schliessung4850ms, urspruengliche
+Kindfrist4890ms. Das vorhandene CLI-Gate verlangt die erste Schliessung exakt
+im Timeout-Tick. Rohdaten und unveraenderte Fehlbewertung sind unter
+`build/codex-agent/r83be-display/candidate02/runtime/floppy-app-hang/` und
+`build/codex-agent/r83be-display/hang02-diagnosis.json` erhalten. Eine Aenderung
+dieser ausdruecklich eingefrorenen Anforderung benoetigt eine Vertragsentscheidung;
+sie wird nicht als bestandene Abnahme umgedeutet. Noch keine negativen CLI-Gaeste,
+Referenz-/Endreview-/Scope-Gates oder Implementierungscommit. Insgesamt18 reale
+Gaeste896.0434498001705s, vier Kernelbuilds/zwoelf BIOS-Assemblierungen/vier
+Medienversuche; alle frueheren Fehler bleiben erhalten.
+
+Fortsetzung nach erneuter Fertigstellungsanweisung: Kandidat03 trennt die
+urspruengliche Verarbeitungsfrist vom anschliessenden begrenzten Schliessen.
+Der private Display-Pruefer verlangt exakt den urspruenglichen Timeout,
+ausschliesslich zwei erfolgreiche CLOSE-Paare bis zum Wecken und EPIPE strikt
+vor der unveraenderten Kindfrist. Alter CLI-Pruefer und Fehlerbeleg bleiben.
+Regression: erster Hostaufruf Importfehler, zweiter reproduziert den Fehler,
+dritter besteht alle fuenf Testmethoden samt Gegenproben (14.655s).
+Neun Grafik- und fuenf CLI-Aufzeichnungen werden vollstaendig hashgebunden
+neu geprueft; nur fuenf fehlende BIOS-Negativgaeste werden neu gestartet.
+Keine neuen Builds/Medien; zwoelf Gates bleiben vor dem Commit verpflichtend.
 
 ## CLI-Erstlieferung R8.3bd abgeschlossen
 

@@ -193,7 +193,13 @@ family_profile_admit64:
     cmp edx,(1<<15)|(1<<20)
     jne .denied
     mov rdx,1<<63
+%ifdef REIST_NATIVE_DISPLAY
+    mov rax,[rdi+16]
+    btr rax,49
+    cmp rax,rdx
+%else
     cmp [rdi+16],rdx
+%endif
     jne .denied
 .admitted:
 %endif
@@ -1284,6 +1290,9 @@ family_terminal64:
 .session_probe:
     call native_session_probe_terminal_site64
 %endif
+%ifdef REIST_NATIVE_DISPLAY
+    call native_display_terminal64
+%endif
     push rax
     push rdi
     push r10
@@ -1527,6 +1536,9 @@ family_finish64:
 %endif
 %ifdef REIST_NATIVE_PIO
     call native_pio_finish64
+%endif
+%ifdef REIST_NATIVE_DISPLAY
+    call native_display_finish64
 %endif
     call family_initialize64
 .done:

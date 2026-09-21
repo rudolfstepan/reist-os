@@ -83,7 +83,13 @@ native_terminal_plan64:
     cmp eax,(1<<15)|(1<<20)
     jne .denied
     mov rax,1<<63
+%ifdef REIST_NATIVE_DISPLAY
+    mov r9,[rsi+64]
+    btr r9,49
+    cmp r9,rax
+%else
     cmp [rsi+64],rax
+%endif
     jne .denied
     cmp dword [rdx+8],5
     je .check_child
@@ -126,7 +132,13 @@ native_terminal_plan64:
     cmp eax,(1<<15)|(1<<20)
     jne .denied
     mov rax,1<<63
+%ifdef REIST_NATIVE_DISPLAY
+    mov r9,[rsi+48]
+    btr r9,49
+    cmp r9,rax
+%else
     cmp [rsi+48],rax
+%endif
     jne .denied
     mov rax,[rsi+24]
     cmp qword [rdi+8],0
@@ -270,7 +282,13 @@ native_terminal_validate64:
     cmp eax,(1<<15)|(1<<20)
     jne .bad
     mov rax,1<<63
+%ifdef REIST_NATIVE_DISPLAY
+    mov r9,[r8+rcx+16]
+    btr r9,49
+    cmp r9,rax
+%else
     cmp [r8+rcx+16],rax
+%endif
     jne .bad
     cmp qword [r8+rcx+24],0
     jne .bad

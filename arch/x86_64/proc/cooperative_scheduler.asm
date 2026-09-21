@@ -8301,6 +8301,9 @@ scheduler_profile_ranges64:
 %include "arch/x86_64/proc/task_family.inc"
 %ifdef REIST_NATIVE_PIO
 %include "arch/x86_64/devices/pio_domain.inc"
+%ifdef REIST_NATIVE_DISPLAY
+%include "arch/x86_64/video/display_domain.inc"
+%endif
 %endif
 %endif
 %ifdef REIST_NATIVE_HEAP_BINDING

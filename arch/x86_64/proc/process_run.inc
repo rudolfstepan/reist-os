@@ -1016,7 +1016,15 @@ process_run_syscall64:
 %endif
 %ifdef REIST_NATIVE_PIO
     cmp qword [rel syscall_rax],113
+%ifdef REIST_NATIVE_DISPLAY
+    jne .not_display_control
+    cmp qword [rel syscall_rdi],30
+    je native_display_syscall64
+    jmp native_pio_syscall64
+.not_display_control:
+%else
     je native_pio_syscall64
+%endif
 %endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     cmp qword [rel syscall_rax],4

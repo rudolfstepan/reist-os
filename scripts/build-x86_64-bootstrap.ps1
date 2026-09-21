@@ -39,6 +39,7 @@ param(
     [switch]$NativeShellSession,
     [switch]$NativeWideFile,
     [switch]$NativeAppFiles,
+    [switch]$NativeDisplay,
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
     [switch]$NativeConsole,
@@ -63,6 +64,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeDisplay) { $NativeAppFiles = [switch]$true }
 if ($NativeAppFiles) { $NativeWideFile = [switch]$true }
 if ($NativeWideFile) { $NativeShellSession = [switch]$true }
 if ($NativeShellSession) {
@@ -439,6 +441,7 @@ try {
         "X86_64_NATIVE_SHELL_SESSION=$([int]$NativeShellSession.IsPresent)" `
         "X86_64_NATIVE_WIDE_FILE=$([int]$NativeWideFile.IsPresent)" `
         "X86_64_NATIVE_APP_FILES=$([int]$NativeAppFiles.IsPresent)" `
+        "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `

@@ -9,6 +9,9 @@
 #include <reist/x86_64/console.h>
 #include <reist/x86_64/file_image.h>
 #include <reist/x86_64/pio.h>
+#ifdef REIST_NATIVE_DISPLAY
+#include <reist/x86_64/display.h>
+#endif
 #ifdef REIST_NATIVE_WIDE_FILE
 #include <reist/x86_64/wide_file.h>
 #define reist_file_image_workspace reist_file_image_workspace_v2
@@ -355,6 +358,10 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     session_operation_deadline=0;
     session_zero(&session_observation,sizeof(session_observation));if(result)return session_operation_result(result);
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK|(1ULL<<15)|(1ULL<<20),1ULL<<63,0},0};
+#ifdef REIST_NATIVE_DISPLAY
+    int display_program=session_app_equal(canonical,"/boot.prg");
+    if(display_program)profile.masks[1]|=1ULL<<49;
+#endif
 #ifdef REIST_NATIVE_APP_FILES
     int64_t child=session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
 #else
@@ -364,6 +371,20 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(child<-4095)session_stop(-5);
     if(child<0)return (int)child;
     if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+#ifdef REIST_NATIVE_DISPLAY
+    if(display_program) {
+        reist_display_request_v1 request;session_zero(&request,sizeof(request));
+        request.version=1;request.size=64;request.operation=REIST_DISPLAY_BIND;
+        request.owner=(uint64_t)child;
+        int64_t bound=reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&request);
+        if(bound<=0) {
+            if(service_task(0,3,(uint64_t)child,0))session_stop(-5);
+            int64_t retired=service_task(0,2,(uint64_t)child,1000);
+            if(retired<0 || (uint64_t)retired>>32>3)session_stop(-5);
+            return bound>=-4095 && bound<0?(int)bound:-5;
+        }
+    }
+#endif
     session_child=(uint64_t)child;
     if(session_case==15) {
         /* Owner-loss qualification includes an actually entered foreground

@@ -126,6 +126,11 @@ global x86_64_c_serial_write64
 global x86_64_c_process_shell64
 extern x86_64_exception_init
 extern x86_64_physical_memory_init32
+%ifdef REIST_NATIVE_DISPLAY
+extern reist_x64_display_capture32
+global native_display_boot, native_display_boot_inverse
+global native_display_pd, native_display_pts, pdpt_table
+%endif
 extern x86_64_physical_memory_selftest64
 extern physical_frame_test_high_window64
 extern physical_frame_test_window_clear64
@@ -216,6 +221,9 @@ x86_64_bootstrap_start:
     call x86_64_physical_memory_init32
     test eax, eax
     jz .memory_map_error
+%ifdef REIST_NATIVE_DISPLAY
+    call native_display_init32
+%endif
 
     mov eax, pdpt_table
     or eax, PAGE_PRESENT_WRITE
@@ -422,6 +430,57 @@ cpu_has_long_mode:
     xor eax, eax
     ret
 
+%ifdef REIST_NATIVE_DISPLAY
+; No visible device effect. Publish only a complete, E820-disjoint LFB map.
+native_display_init32:
+    xor eax,eax
+    mov edi,native_display_boot
+    mov ecx,16
+    rep stosd
+    mov edi,native_display_pd
+    mov ecx,7*4096/4
+    rep stosd
+    push dword native_display_boot
+    push dword [boot_info_value]
+    call reist_x64_display_capture32
+    add esp,8
+    test eax,eax
+    jz .unavailable
+    mov esi,native_display_boot
+    mov edi,native_display_boot_inverse
+    mov ecx,8
+.inverse:
+    lodsd
+    not eax
+    stosd
+    loop .inverse
+    mov ecx,[native_display_boot+28]
+    shr ecx,12
+    mov eax,[native_display_boot+24]
+    or eax,0x1b ; supervisor RW, PWT/PCD: PAT index3 (checked UC in64bit)
+    mov edi,native_display_pts
+.leaf:
+    stosd
+    mov dword [edi],0x80000000
+    add edi,4
+    add eax,4096
+    loop .leaf
+    mov eax,native_display_pts
+    or eax,3
+    mov edi,native_display_pd
+    mov ecx,6
+.directory:
+    stosd
+    add edi,4
+    add eax,4096
+    loop .directory
+    mov eax,native_display_pd
+    or eax,3
+    mov [pdpt_table+509*8],eax
+.unavailable:
+    ret
+%endif
+
 serial_init32:
     mov dx, COM1_DATA + 1
     xor al, al
@@ -548,6 +607,20 @@ higher_half_entry:
     rdmsr
     test eax, EFER_NXE_BIT
     jz higher_half_state_error
+%ifdef REIST_NATIVE_DISPLAY
+    cmp qword [rel native_display_boot],0
+    je .display_pat_ready
+    mov eax,1
+    cpuid
+    test edx,1<<16
+    jz higher_half_state_error
+    mov ecx,0x277
+    rdmsr
+    shr eax,24
+    test eax,eax
+    jnz higher_half_state_error
+.display_pat_ready:
+%endif
 
     mov esi, higher_half_entry
     mov edx, PAGE_PRESENT
@@ -1290,6 +1363,14 @@ high_page_directory:
 alignb 4096
 high_page_table:
     resb (1 + 7 * X86_64_NATIVE_RAM) * 4096
+%ifdef REIST_NATIVE_DISPLAY
+alignb 8
+native_display_boot: resb 32
+native_display_boot_inverse: resb 32
+alignb 4096
+native_display_pd: resb 4096
+native_display_pts: resb 6*4096
+%endif
 alignb 4096
 bootstrap_stack_bottom:
     resb 16384
