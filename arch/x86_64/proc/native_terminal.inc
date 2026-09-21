@@ -324,6 +324,11 @@ native_terminal_io_admit64:
     call native_terminal_validate64
     test eax,eax
     jz scheduler_fail
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    call native_terminal_service_io64
+    test rax,rax
+    jnz .service_denied
+%endif
     mov esi,[rel scheduler_current_slot]
     mov rax,[r12+TASK_GENERATION]
     shl rax,32
@@ -333,6 +338,9 @@ native_terminal_io_admit64:
     call native_terminal_io64
     cmp rax,-117
     je scheduler_fail
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+.service_denied:
+%endif
     ret
 
 native_terminal_syscall64:
@@ -379,6 +387,11 @@ native_terminal_syscall64:
     mov rdx,[rsi+rax+16]
     mov [rsp+96],rdx
     cmp dword [rsp+8],2
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    je .service_target
+    cmp dword [rsp+8],6
+.service_target:
+%endif
     jne .plan
     xor ecx,ecx
     lea r8,[rel scheduler_tasks]
@@ -416,11 +429,26 @@ native_terminal_syscall64:
     lea rsi,[rsp+32]
     mov rdx,rsp
     lea rcx,[rsp+104]
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    call native_terminal_service_runtime_plan64
+%else
     call native_terminal_plan64
+%endif
     cmp rax,-117
     je scheduler_fail
     test rax,rax
     jnz .result
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    call native_terminal_service_publish64
+    test rax,rax
+    jnz .result
+    cmp dword [rsp+8],4
+    jne .result
+    cmp qword [rel native_terminal_service_acquisitions],-1
+    je .result
+    inc qword [rel native_terminal_service_acquisitions]
+    jmp .result
+%endif
     mov r13,[rsp+104]
     cmp [rel native_terminal_state+8],r13
     je .result
@@ -429,6 +457,9 @@ native_terminal_syscall64:
     jnz .result
     mov [rel native_terminal_state+8],r13
 .result:
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    call native_terminal_service_scrub64
+%endif
     add rsp,128
     jmp process_run_resume64
 .invalid: mov rax,-22
@@ -454,6 +485,12 @@ native_terminal_retire_hook64:
     mov rax,[r12+TASK_GENERATION]
     shl rax,32
     or rsi,rax
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    lea rdi,[rel native_terminal_service_state]
+    call native_terminal_service_retire64
+    test rax,rax
+    jnz scheduler_fail
+%endif
     lea rdi,[rel native_terminal_state]
     call native_terminal_retire64
     cmp rax,-117
@@ -472,3 +509,6 @@ native_terminal_retire_hook64:
     pop rcx
     pop rax
     ret
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+%include "arch/x86_64/proc/terminal_service_domain.inc"
+%endif

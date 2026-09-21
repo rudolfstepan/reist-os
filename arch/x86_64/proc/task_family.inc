@@ -1546,6 +1546,9 @@ family_finish64:
 %ifdef REIST_NATIVE_INPUT
     call native_input_finish64
 %endif
+%ifdef REIST_NATIVE_TERMINAL_SERVICE
+    call native_terminal_service_finish64
+%endif
     call family_initialize64
 .done:
     ret

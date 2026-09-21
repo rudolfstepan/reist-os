@@ -26,6 +26,15 @@ static int record(const reist_input_event_v1 *e) {
     text[at++]='\n';return output(text,at);
 }
 
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+/* Private diagnostic modes: the supervisor keeps the ordinary fixed budgets. */
+static int service_fault(unsigned mode) {
+    if(mode=='c')__builtin_trap();
+    if(mode=='d')for(;;)__asm__ volatile("pause");
+    for(unsigned n=0;n<60;n++)if(reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,100))return 5;
+    return 110;
+}
+#endif
 int main(int argc,char **argv) {
     uint32_t endpoint,hi,lo;if(argc!=5||!argv||hex(argv[2],&endpoint)||hex(argv[3],&hi)||hex(argv[4],&lo))return 22;
     int64_t pid=reist_x64_syscall0(REIST_X64_SYS_GETPID);if(pid<=0||pid>0x7fffffff)return 22;
@@ -36,12 +45,20 @@ int main(int argc,char **argv) {
     int64_t display=-13;int lease=-11;
     for(unsigned n=0;n<100&&now()<startup_end;n++) {
         display=reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&r);
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+        if(display>0)lease=reist_x64_terminal_input(REIST_TERMINAL_ACQUIRE_SERVICE,0,0);
+        if(lease==-13)lease=-11;
+#else
         if(display>0)lease=reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0);
+#endif
         if(display>0&&!lease)break;
         if((display<=0&&display!=-13)||(lease&&lease!=-11))return 71;
         if(reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,10))return 5;
     }
     if(display<=0||lease)return 110;
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    if(reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0) || !output("TERMINAL_SERVICE_OK\n",20))return 71;
+#endif
     for(unsigned y=0;y<64;y++)for(unsigned x=0;x<64;x++)pixels[y*64+x]=(x*4u<<16)|(y*4u<<8)|0x5a;
     r.operation=REIST_DISPLAY_COMMIT;r.epoch=(uint64_t)display;r.deadline_ms=now()+200;
     r.pixels=(uintptr_t)pixels;r.x=32;r.y=32;r.width=64;r.height=64;r.stride=256;
@@ -62,6 +79,10 @@ int main(int argc,char **argv) {
         owner=e.owner;epoch=e.epoch;sequence=e.sequence;
         if(!record(&e)){status=71;break;}
         if(e.type==REIST_INPUT_HEALTHY){if(!output("INPUT_READY\n",12)){status=71;break;}}
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+        if(e.type==REIST_INPUT_HEALTHY && argv[1] && !argv[1][1] &&
+           (argv[1][0]=='c'||argv[1][0]=='d'||argv[1][0]=='e'))return service_fault((unsigned char)argv[1][0]);
+#endif
         if(e.type==REIST_INPUT_ERROR){status=e.code==-122?122:e.code==-110?110:71;break;}
         if(e.type==REIST_INPUT_POINTER) {
             px+=e.dx;py-=e.dy;if(px<0)px=0;if(px>736)px=736;if(py<0)py=0;if(py>536)py=536;

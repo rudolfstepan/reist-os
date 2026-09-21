@@ -6,6 +6,10 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+#include <reist/x86_64/terminal_service.h>
+static uint64_t session_terminal_service,session_previous_terminal_service,session_input_service_pending;
+#endif
 #include <reist/x86_64/console.h>
 #include <reist/x86_64/file_image.h>
 #include <reist/x86_64/pio.h>
@@ -243,6 +247,21 @@ void x86os_print_number(int value) {
     session_write(text,length);
 }
 int x86os_terminal_input(uint32_t operation,int pid,uint32_t generation) {
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    if(operation==REIST_TERMINAL_TRANSFER && session_child &&
+       (unsigned)pid==session_child>>32 && generation==(unsigned)pid &&
+       session_input_service_pending) {
+        if(session_terminal_service)session_stop(-5);
+        if(reist_x64_terminal_service(6,session_input_service_pending)!=-13)session_stop(-5);
+        int r=reist_x64_terminal_service(6,session_child);if(r)return r;
+        session_terminal_service=session_child;
+        if(reist_x64_terminal_service(6,session_child)!=-16 ||
+           reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0)!=-11 ||
+           reist_x64_syscall3(REIST_X64_SYS_READ,0,0,0)!=-11)session_stop(-5);
+        if(session_previous_terminal_service &&
+           reist_x64_terminal_service(7,session_previous_terminal_service)!=-116)session_stop(-5);
+    }
+#endif
     (void)session_now();return reist_x64_terminal_input(operation,pid,generation);
 }
 int x86os_process_identity_of(int pid,x86os_process_identity_t *out) {
@@ -267,6 +286,10 @@ static void session_authority_selftest(unsigned owner) {
     /* The explicit two-root boot profile constructs the independent peer
      * immediately after root0, before either root enters userspace. */
     if(owner>=0x7fffffffU)session_stop(-5);
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    reist_terminal_input_request_t service_request={1,24,6,0,(int)(owner+1),owner+1};
+    if(reist_x64_syscall1(REIST_X64_SYS_TERMINAL_INPUT,(uintptr_t)&service_request)!=-13)session_stop(-5);
+#endif
     session_denied_identity(owner+1,-13);
     if(reist_x64_terminal_input(REIST_TERMINAL_TRANSFER,(int)(owner+1),owner+1)!=-13 ||
        reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0))session_stop(-5);

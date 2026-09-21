@@ -2,44 +2,42 @@
 from pathlib import Path
 import argparse,hashlib,json,subprocess,sys,time,shutil,os,tomllib,shlex,types
 ROOT=Path(__file__).resolve().parents[1]
-EVIDENCE=ROOT/'build/codex-agent/r83bg-input'
-BUILD_ID='06'
-MEDIA_ID='05'
-BASE=EVIDENCE/'candidate04'
-HEAD='340da548'
+EVIDENCE=ROOT/'build/codex-agent/r83bh-terminal-service'
+BUILD_ID='04'
+MEDIA_ID='04'
+BASE=EVIDENCE/'candidate02'
+HEAD='7ba673c6'
 def need(ok,message):
     if not ok:raise ValueError(message)
-MAKE_SELECTOR='X86_64_NATIVE_INPUT ?= 0\nifneq ($(words $(X86_64_NATIVE_INPUT)),1)\n$(error NativeInput selector must be one explicit value)\nendif\nifneq ($(filter $(X86_64_NATIVE_INPUT),0 1),$(X86_64_NATIVE_INPUT))\n$(error NativeInput selector must be 0 or 1)\nendif\nifeq ($(X86_64_NATIVE_INPUT),1)\nifneq ($(X86_64_NATIVE_DISPLAY),1)\n$(error NativeInput requires explicit NativeDisplay)\nendif\nendif\nX86_64_INPUT_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_INPUT)),-DREIST_NATIVE_INPUT=1,)\n'
-COMPACT_RECIPE='ifeq ($(X86_64_NATIVE_INPUT),1)\n\t@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY)\nendif\n'
-MAKE_PARTS=(MAKE_SELECTOR,COMPACT_RECIPE,
- 'X86_64_POOL_FLAGS += $(X86_64_INPUT_FLAGS)\n',
- 'X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)\n')
-PS_PARTS=('    [switch]$NativeInput,\n',
- 'if ($NativeInput) { $NativeDisplay = [switch]$true }\n',
- '        "X86_64_NATIVE_INPUT=$([int]$NativeInput.IsPresent)" `\n')
-def without_input_build_selector(source,make=False):
-    need(type(source) is str and type(make) is bool,'input projection types')
-    from verify_x86_64_terminal_service import without_service_build_selector
-    source=without_service_build_selector(source,make)
-    tokens=('NATIVE_INPUT','NativeInput','--input,','X86_64_INPUT_FLAGS')
-    if not any(token in source for token in tokens):return source
-    for part in MAKE_PARTS if make else PS_PARTS:
-        need(source.count(part)==1,'complete exact disabled input addition')
+SERVICE_SELECTOR='X86_64_NATIVE_TERMINAL_SERVICE ?= 0\nifneq ($(words $(X86_64_NATIVE_TERMINAL_SERVICE)),1)\n$(error NativeTerminalService selector must be one explicit value)\nendif\nifneq ($(filter $(X86_64_NATIVE_TERMINAL_SERVICE),0 1),$(X86_64_NATIVE_TERMINAL_SERVICE))\n$(error NativeTerminalService selector must be 0 or 1)\nendif\nifeq ($(X86_64_NATIVE_TERMINAL_SERVICE),1)\nifneq ($(X86_64_NATIVE_INPUT),1)\n$(error NativeTerminalService requires explicit NativeInput)\nendif\nendif\nX86_64_TERMINAL_SERVICE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),-DREIST_NATIVE_TERMINAL_SERVICE=1,)\n'
+SERVICE_PARTS=(SERVICE_SELECTOR,
+ 'X86_64_POOL_FLAGS += $(X86_64_TERMINAL_SERVICE_FLAGS)\n',
+ 'X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)\n',
+ ' $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)')
+SERVICE_PS_PARTS=('    [switch]$NativeTerminalService,\n',
+ 'if ($NativeTerminalService) { $NativeInput = [switch]$true }\n',
+ '        "X86_64_NATIVE_TERMINAL_SERVICE=$([int]$NativeTerminalService.IsPresent)" `\n')
+def without_service_build_selector(source,make=False):
+    tokens=('NATIVE_TERMINAL_SERVICE','NativeTerminalService','--terminal-service')
+    if not any(t in source for t in tokens):return source
+    for part in SERVICE_PARTS if make else SERVICE_PS_PARTS:
+        need(source.count(part)==1,'exact complete service build selector')
         source=source.replace(part,'')
-    need(not any(token in source for token in tokens),'unexpected input selector/recipe')
+    need(not any(t in source for t in tokens),'no unreviewed service recipe')
     return source
 
 def default_projection():
     from verify_x86_64_shell_session import disabled
-    for name in ('arch/x86_64/proc/cooperative_scheduler.asm','arch/x86_64/proc/process_run.inc',
-                 'arch/x86_64/proc/task_family.inc','userspace/sdk/lib/x86_64/shell_session.c'):
+    names=('arch/x86_64/proc/native_terminal.inc','arch/x86_64/proc/task_family.inc',
+           'userspace/sdk/lib/x86_64/shell_session.c','userspace/sdk/lib/x86_64/shell_input.inc',
+           'arch/x86_64/user/input_client.c')
+    for name in names:
         old=subprocess.check_output(['git','show',HEAD+':'+name],cwd=ROOT,timeout=30).decode().replace('\r\n','\n')
-        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL_SERVICE',name.endswith(('.asm','.inc')))
-        current=disabled(current,'REIST_NATIVE_INPUT',name.endswith(('.asm','.inc')))
-        need(current==old,'exact INPUT-disabled accepted source '+name)
+        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL_SERVICE',name.startswith('arch/') and name.endswith('.inc'))
+        need(current==old,'exact service-disabled accepted source '+name)
     for name in ('Makefile','scripts/build-x86_64-bootstrap.ps1'):
         old=subprocess.check_output(['git','show',HEAD+':'+name],cwd=ROOT,timeout=30).decode().replace('\r\n','\n')
-        need(without_input_build_selector((ROOT/name).read_text(encoding='utf-8'),name=='Makefile')==old,'exact INPUT-disabled recipe '+name)
+        need(without_service_build_selector((ROOT/name).read_text(encoding='utf-8'),name=='Makefile')==old,'exact service-disabled recipe '+name)
 
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def save(path,value):
@@ -62,7 +60,7 @@ def development_build():
     output=EVIDENCE/('build'+BUILD_ID);receipt=EVIDENCE/('development-build'+BUILD_ID+'.json')
     need(not output.exists() and not receipt.exists(),'one fresh input build reservation')
     state=build_sources();tools=build_tools();command=[tools['pwsh']['path'],'-NoProfile','-File',
-        'scripts/build-x86_64-bootstrap.ps1','-NativeInput','-OutputDirectory',output.relative_to(ROOT).as_posix()]
+        'scripts/build-x86_64-bootstrap.ps1','-NativeTerminalService','-OutputDirectory',output.relative_to(ROOT).as_posix()]
     row=dict(passed=False,command=command,sources=state,tools=tools,builds=1,limit=300)
     save(EVIDENCE/('development-build'+BUILD_ID+'-started.json'),row)
     start=time.monotonic();log=EVIDENCE/('development-build'+BUILD_ID+'.log')
@@ -93,7 +91,7 @@ def build_binding():
 def development_media():
     image=build_binding();folder=EVIDENCE/('media'+MEDIA_ID)
     need(not folder.exists(),'one fresh signed media reservation')
-    command=[sys.executable,'scripts/build_x86_64_input_media.py','--input-directory',str(image.parent),
+    command=[sys.executable,'scripts/build_x86_64_terminal_service_media.py','--input-directory',str(image.parent),
              '--output-directory',str(folder)]
     row=dict(passed=False,command=command,limit=180,kernel_builds=0,bios_assemblies=3)
     save(EVIDENCE/('development-media'+MEDIA_ID+'-started.json'),row)
@@ -104,10 +102,10 @@ def development_media():
                 creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         row['exit_code']=r.returncode
         need(r.returncode==0,'input media failed: '+log.read_text(errors='replace')[-2400:])
-        import check_x86_64_input_media as check
+        import check_x86_64_terminal_service_media as check
         attempt=check.verify(folder);build_binding()
         row.update(passed=True,attempt=attempt.relative_to(ROOT).as_posix(),
-                   index_sha256=digest(folder/'input-media.json'))
+                   index_sha256=digest(folder/'terminal-service-media.json'))
     except BaseException as error:row['error']=str(error);raise
     finally:
         row.update(elapsed=time.monotonic()-start,log_sha256=digest(log) if log.exists() else None)
@@ -116,10 +114,10 @@ def development_media():
 
 def package():
     default_projection();image=build_binding()
-    import check_x86_64_input_media as check
+    import check_x86_64_terminal_service_media as check
     folder=EVIDENCE/('media'+MEDIA_ID);attempt=check.verify(folder)
     receipt=json.loads((EVIDENCE/('development-media'+MEDIA_ID+'.json')).read_text())
-    need(receipt['passed'] and receipt['index_sha256']==digest(folder/'input-media.json'),'bound input media')
+    need(receipt['passed'] and receipt['index_sha256']==digest(folder/'terminal-service-media.json'),'bound input media')
     return image,attempt
 
 def read(path):return json.loads(Path(path).read_text(encoding='utf-8'))
@@ -130,7 +128,7 @@ def changed():
 def queue_package():
     q=tomllib.loads((ROOT/'automation/reist-s03b.toml').read_text(encoding='utf-8'))
     active=[p for p in q['packages'] if p['status']=='active']
-    need(len(active)==1 and active[0]['id']==q['active_id']=='R8.3bg-native-input','one exact active package')
+    need(len(active)==1 and active[0]['id']==q['active_id']=='R8.3bh-terminal-service','one exact active package')
     return active[0]
 def sources():
     paths=git('ls-files','--cached','--others','--exclude-standard').splitlines()
@@ -157,8 +155,8 @@ def freeze():
                commands=commands,limits=[600]*5+[180,3300,180,600,180],image=link(image),
                build=link(EVIDENCE/('development-build'+BUILD_ID+'.json')),
                media=link(EVIDENCE/('development-media'+MEDIA_ID+'.json')),
-               media_index=link(EVIDENCE/('media'+MEDIA_ID)/'input-media.json'),attempt=attempt.relative_to(ROOT).as_posix(),
-               reserved=dict(kernel_builds=0,media_builds=0,input_guests=12,input_seconds=1080,cli_guests=10,cli_seconds=1730))
+               media_index=link(EVIDENCE/('media'+MEDIA_ID)/'terminal-service-media.json'),attempt=attempt.relative_to(ROOT).as_posix(),
+               reserved=dict(kernel_builds=0,media_builds=0,input_guests=15,input_seconds=1350,cli_guests=10,cli_seconds=1730))
     save(BASE/'frozen.json',value)
     for name in paths:
         target=BASE/'sources'/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/name).read_bytes())
@@ -173,27 +171,25 @@ def binding():
 
 def package_gate():
     binding();image,attempt=package()
-    import run_x86_64_input as starter
-    selected,_=starter.admit(EVIDENCE/('media'+MEDIA_ID));need(selected==attempt,'normal starter binds same signed pair')
     raw=image.with_suffix('.untrimmed.elf').read_bytes();compact=image.read_bytes()
     import build_x86_64_c_payload as elf
     a=elf.elf(raw,32);b=elf.elf(compact,32)
     need(a['programs']==b['programs'] and a['entry']==b['entry'],'compacted outer load topology')
     for part in a['programs']:
         begin=part['offset'];end=begin+part['filesz'];need(raw[begin:end]==compact[begin:end],'all loaded bytes retained')
-    removed={n for n,v in a['symbols'].items() if n.startswith('native_input_') and '.' in n and v['binding']==0}
+    removed={n for n,v in a['symbols'].items() if n.startswith(('native_input_','native_terminal_')) and '.' in n and v['binding']==0}
     need(1<=len(removed)<=128 and b['symbols']=={n:v for n,v in a['symbols'].items() if n not in removed},'only input local debug names removed')
     save(BASE/'package.json',dict(passed=True,image=link(image),attempt=str(attempt),new_builds=0,removed_local_symbols=len(removed)))
 
 def runtime():
     binding();image,attempt=package()
-    import run_qemu_x86_64_input as guest
+    import run_qemu_x86_64_terminal_service as guest
     rows=[];elapsed=0
     try:
         for spec in guest.CASES:
             binding();out=BASE/'input'/spec[0];out.parent.mkdir(exist_ok=True)
             row=guest.run_case(image,attempt,out,spec);rows.append(row);elapsed+=row['elapsed']
-            need(elapsed<=1080,'input aggregate guest limit')
+            need(elapsed<=1350,'input aggregate guest limit')
             row['proof']=guest.review_case(image,attempt,out,spec)
             print('INPUT_CASE_OK',spec[0],round(row['elapsed'],3),flush=True)
         save(BASE/'input-matrix.json',dict(passed=True,cases=rows,guest_seconds=elapsed))
@@ -201,14 +197,14 @@ def runtime():
         save(BASE/'input-stopped.json',dict(passed=False,cases=rows,guest_seconds=elapsed,error=str(error)));raise
     import run_qemu_x86_64_cli_media as cli
     import run_qemu_x86_64_display as display
-    run=types.FunctionType(cli.run_matrix.__code__,dict(vars(cli),namespace=display.cli_namespace),argdefs=cli.run_matrix.__defaults__)
+    run=types.FunctionType(cli.run_matrix.__code__,dict(vars(cli),namespace=guest.cli_namespace),argdefs=cli.run_matrix.__defaults__)
     run.__kwdefaults__=cli.run_matrix.__kwdefaults__
     result=run(image,attempt,BASE/'runtime',binding);save(BASE/'matrix.json',result)
 
 def review():
     binding();image,attempt=package()
-    import run_qemu_x86_64_input as guest
-    matrix=read(BASE/'input-matrix.json');need(matrix['passed'] and len(matrix['cases'])==12 and matrix['guest_seconds']<=1080,'complete input matrix')
+    import run_qemu_x86_64_terminal_service as guest
+    matrix=read(BASE/'input-matrix.json');need(matrix['passed'] and len(matrix['cases'])==15 and matrix['guest_seconds']<=1350,'complete input matrix')
     proofs=[]
     for old,spec in zip(matrix['cases'],guest.CASES):
         proof=guest.review_case(image,attempt,BASE/'input'/spec[0],spec)
@@ -217,8 +213,8 @@ def review():
     import verify_x86_64_shell_boot_media as az
     import run_qemu_x86_64_cli_media as cli
     import run_qemu_x86_64_display as display
-    import check_x86_64_input_media as check
-    selected=types.SimpleNamespace(**dict(vars(cli),namespace=display.cli_namespace))
+    import check_x86_64_terminal_service_media as check
+    selected=types.SimpleNamespace(**dict(vars(cli),namespace=guest.cli_namespace))
     ns=dict(vars(az),binding=binding,package_path=lambda:attempt,BASE=BASE,IMAGE=image,check=check,guest=selected,evidence_origin=lambda spec:BASE)
     replay=cli.bb.function(az.review,ns,[
         ('binding();positive_reuse_projection();negative_reuse_projection();','binding();'),

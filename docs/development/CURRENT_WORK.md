@@ -2,7 +2,60 @@
 
 Stand: 21. September 2026
 
-## R8.3bh: Terminal-Dienstberechtigung autorisiert und aktiv
+## R8.3bh: Terminal-Dienstberechtigung abgenommen
+
+Candidate02 besteht alle zehn Gates:15 Eingabe-/Dienstgaeste und zehn
+vollstaendige CLI-/Mediengaeste frisch, ohne Wiederverwendung. Runtimegate
+1263.880s bei3300s Limit; unabhaengige Rohdaten-, Referenz- und Scope-Pruefung
+bestanden. Explizite Zulassung6, Uebernahme4 und Widerruf7 sind generationsgebunden;
+Root-Eingabeausschluss, Dienstabsturz, CPU32 und beaufsichtigter Haengeabbruch
+sind nachgewiesen. Der Elternausfallgast prueft den Verlust vor der Uebergabe.
+
+Abnahmeseal: `build/codex-agent/r83bh-terminal-service/candidate02/acceptance-seal.json`
+SHA256 `d705d285357821083578fc6d165fd1f4afe5293285d7b4a83a97c5b069b85fae`.
+Build04/media04 bleiben exakt gebunden. Vier Builds, vier Medienversuche,
+zwoelf BIOS-Assemblierungen, zwoelf Entwicklungshost-Kommandos und46 physische
+Gaeste einschliesslich aller Fehler bleiben erhalten. Der CLI-Adapter prueft
+neue abgelehnte Anfragen strikt; die bisherigen Operationen und Grenzen bleiben erhalten.
+
+Die dauerhafte grafische Sitzung samt Fokus/Capture und Anwendungen ist bereits
+freigegeben und folgt nach dem sauberen lokalen Paketcommit. Noch kein Desktop-
+oder OS-Abschluss; R3.6b bleibt vertagt.
+
+## Historie R8.3bh: Candidate02 nach strikter CLI-Adapterkorrektur
+
+Candidate01 bestand Gates1..6 und alle15 Eingabe-/Dienstgaeste. Die erste
+CLI-Aufzeichnung stoppte bei der alten Terminalauswertung, die neue Operation6
+noch nicht kannte. Der neue Adapter akzeptiert ausschliesslich die kanonische,
+abgelehnte Anfrage an den lebenden fremden Root-Peer und unveraenderten Besitz.
+Alle anderen Operationen bleiben beim bisherigen Validator. Vollstaendige
+Wiederauswertung der gespeicherten100.160s-Aufzeichnung und70 Negativmutationen
+bestehen; auch alle bisherigen Hostgruppen sind gruen.
+
+Zwölf Entwicklungshost-Kommandos und21 physische Gaeste einschliesslich der
+Fehler sind erhalten. Build04/media04 bleiben exakt. Candidate02 wiederholt
+alle zehn Gates und25 Gaeste frisch innerhalb unveraenderter Laufzeitgrenzen.
+Die bisherige Paketabnahme bleibt offen; anschliessend folgt die autorisierte
+dauerhafte grafische Sitzungsintegration ohne Routinefreigabe.
+
+## Historie R8.3bh: Implementierung fertig, vollstaendige Abnahme startet
+
+Geschuetzte Dienstzulassung6, Uebernahme4 und Widerruf7 sind implementiert.
+Der normale Ring3-Verbraucher nutzt die Berechtigung; die Shell prueft fremde,
+Treiber- und veraltete Generationen sowie ihren eigenen Eingabeausschluss.
+Hostverhalten O0/O2, unveraenderte deaktivierte Profile und der vollstaendige
+Rohdatenvergleich bestehen. Gesonderte echte Dienstfehler UD/CPU32/Haengen
+kehren jeweils zur Shell, zum Dateizugriff und zu neuen gesunden Diensten zurueck.
+
+Neun Entwicklungshost-Kommandos, vier Builds, vier Medienversuche, zwoelf
+BIOS-Assemblierungen und fuenf Gaeste sind erhalten, einschliesslich FAT12-
+Kapazitaetsfehler und korrigierter Negativpruefung nach beendeter Peer-Generation.
+Build04/media04 werden jetzt fuer Candidate01 unveraenderlich gebunden:
+zehn Gates,15 Eingabe-/Dienstfaelle und zehn bisherige CLI-Faelle frisch,
+anschliessend unabhaengige Rohdaten-, Referenz- und Scope-Pruefung.
+Noch keine Paketabnahme; dauerhafte grafische Sitzung bleibt anschliessender Auftrag.
+
+## Historie R8.3bh: Terminal-Dienstberechtigung autorisiert und aktiv
 
 Der erneute Fortsetzungsauftrag gibt die grafische Sitzungsdomaene frei.
 Zuerst wird die geschuetzte exklusive Dienstzulassung samt Widerruf und realem

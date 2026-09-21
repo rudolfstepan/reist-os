@@ -6,6 +6,14 @@ static uint64_t session_input_driver,session_input_epoch,session_input_end;
 static uint32_t session_input_endpoint,session_input_ingress;
 static char session_input_mode[2];
 static void session_input_retire(void) {
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    if(session_terminal_service) {
+        if(reist_x64_terminal_service(7,session_terminal_service) ||
+           reist_x64_terminal_service(7,session_terminal_service))session_stop(-5);
+        session_previous_terminal_service=session_terminal_service;session_terminal_service=0;
+    }
+    session_input_service_pending=0;
+#endif
     if(session_input_epoch) {
         reist_input_request_v1 q={1,64,REIST_INPUT_FENCE,0,session_input_driver,session_input_epoch,0,0,{0,0}};
         if(reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,31,(uintptr_t)&q))session_stop(-5);
@@ -33,7 +41,11 @@ static int session_input_arguments(int argc,const char *const *argv,reist_task_s
     profile->masks[0]&=~((1ULL<<49)|(1ULL<<52)|(1ULL<<55));
     unsigned mode=argc==2&&argv[1]?(unsigned char)argv[1][0]:0;
     if(argc==2&&(!mode||argv[1][1]))return -22;
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    if(mode&&mode!='u'&&mode!='q'&&mode!='h'&&mode!='b'&&mode!='s'&&mode!='m'&&mode!='c'&&mode!='d'&&mode!='e')return -22;
+#else
     if(mode&&mode!='u'&&mode!='q'&&mode!='h'&&mode!='b'&&mode!='s'&&mode!='m')return -22;
+#endif
     int r=(int)SESSION_S1(IPC_CREATE,&session_input_endpoint);if(r)return r;
     r=(int)SESSION_S1(IPC_CREATE,&session_input_ingress);if(r){session_input_retire();return r;}
     session_input_end=session_now()+5000;session_input_mode[0]=(char)mode;
@@ -59,6 +71,9 @@ static int session_input_start(uint64_t child) {
     if(driver<0)return (int)driver;
     if((uint32_t)driver!=5 || !((uint64_t)driver>>32) || (uint64_t)driver>>32>0x7fffffff)session_stop(-5);
     session_input_driver=(uint64_t)driver;
+#ifdef REIST_NATIVE_TERMINAL_SERVICE
+    session_input_service_pending=session_input_driver;
+#endif
     r=(int)SESSION_S3(IPC_DELEGATE,session_input_ingress,(uint64_t)driver>>32,1);
     if(!r)r=(int)SESSION_S3(IPC_DELEGATE,session_input_endpoint,child>>32,2);
     if(r)return r;

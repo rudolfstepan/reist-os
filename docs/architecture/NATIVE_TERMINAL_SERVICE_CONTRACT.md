@@ -70,3 +70,42 @@ windows may follow. Gates run once per immutable candidate; all must pass before
 queue completion/local commit. R3.6b remains explicitly deferred. Subsequent
 persistent service roles, normal graphical application composition and focus
 distribution remain authorized work after this prerequisite transaction.
+
+### Consumer fault proof extension
+
+The inherited u/q/h cases fault driver5. Three additional c/d/e cases fault
+the actual terminal service4 after it acquired authority and received HEALTHY:
+UD, unchanged CPU32 exhaustion, and sleeping beyond the immutable5000ms end.
+Require actual generation-specific retirement, fencing, subsequent ordinary
+file access and a newly authorized healthy service across both root runs.
+All original cases remain:15 input/service guests90s each/1350s aggregate,
+ten CLI guests1730s, unchanged overall runtime3300s and ten gate commands.
+
+## Development capacity correction
+
+Build01 passes, media01 stops at the unchanged FAT12 limit1391616bytes.
+Only the opt-in service image additionally drops43 unreferenced local
+`native_terminal_` debug labels, alongside its new local labels. Preserve the
+untrimmed ELF, every loaded byte/layout/entry and all other symbols; public
+diagnostic symbols remain. No disk-format or loaded-code change. Failed media
+and three BIOS assemblies are retained; queue freezes the next finite window.
+
+## CLI oracle correction
+
+Candidate01 passes all15 input/service guests but its first complete CLI raw
+replay rejects the new deliberately denied operation6: the old terminal
+oracle accepts only1/2/3/5. The new profile adds one narrow adapter for this
+startup probe: exact live independent root peer, canonical24-byte request,
+EACCES and unchanged root lease. All other requests use the unchanged original
+validator; all full CLI media, memory, lifecycle and deadline checks remain.
+Test the actual retained capture and invalid field/identity/result mutations.
+Candidate02 repeats all25 guests freshly without a new kernel/media build.
+
+## Acceptance
+
+Candidate02 passes allten frozen gates,15 fresh input/service and10 fresh CLI
+guests, full independent raw replay and reference/scope checks. Runtime1263.880s
+within3300s. Seal SHA256 `d705d285357821083578fc6d165fd1f4afe5293285d7b4a83a97c5b069b85fae`.
+The parent-loss guest remains explicitly before terminal handoff; the subsequent
+persistent graphical-session package requires active-supervisor-loss proof.
+No persistent desktop or complete OS claim follows from this prerequisite.

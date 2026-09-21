@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False):
+    if type(terminal_service) is not bool or terminal_service and not input:raise ValueError("terminal service requires input profile")
     if type(input) is not bool or input and not display:raise ValueError("input requires display profile")
     if type(display) is not bool or display and not app_files:raise ValueError("display requires application-file profile")
     if type(app_files) is not bool or app_files and not wide_file:
@@ -124,6 +125,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if app_files:cc=[*cc,'-DREIST_NATIVE_APP_FILES=1']
     if display:cc=[*cc,'-DREIST_NATIVE_DISPLAY=1']
     if input:cc=[*cc,'-DREIST_NATIVE_INPUT=1']
+    if terminal_service:cc=[*cc,'-DREIST_NATIVE_TERMINAL_SERVICE=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -229,13 +231,13 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     staged.write_bytes(catalog.read_bytes());os.replace(staged,directory/'boot-programs.bin')
     print('NATIVE_BOOT_PROGRAMS_PREPARED',attempt)
 
-def compact_input_elf(path,objcopy):
+def compact_input_elf(path,objcopy,terminal_service=False):
     """Drop only new local debug names; preserve every loaded byte and address."""
     from build_x86_64_c_payload import elf,require
     path=Path(path).absolute()
     require(path==path.resolve() and path.is_relative_to(ROOT/'build'),'input ELF output scope')
     raw=path.read_bytes();before=elf(raw,32)
-    removed={n for n,s in before['symbols'].items() if n.startswith('native_input_') and '.' in n and s['binding']==0}
+    removed={n for n,s in before['symbols'].items() if (n.startswith('native_input_') or terminal_service and n.startswith('native_terminal_')) and '.' in n and s['binding']==0}
     require(1<=len(removed)<=128,'bounded input local debug symbols')
     retained=path.with_suffix('.untrimmed.elf');temporary=path.with_suffix('.compact.elf')
     require(not retained.exists() and not temporary.exists(),'fresh compaction artifacts')
@@ -266,8 +268,8 @@ def compact_input_elf(path,objcopy):
     print('NATIVE_INPUT_SYMBOLS_COMPACTED',len(removed),len(raw),len(compact))
 
 if __name__=='__main__' and '--compact-input-elf' in sys.argv:
-    p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True)
-    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy)
+    p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True);p.add_argument('--terminal-service',action='store_true')
+    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy,a.terminal_service)
 elif __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--directory',required=True)
     for tool in ('cc','nasm','ld'):p.add_argument('--'+tool,required=True,nargs='+')
@@ -300,6 +302,7 @@ elif __name__=='__main__':
     p.add_argument('--app-files',action='store_true')
     p.add_argument('--display',action='store_true')
     p.add_argument('--input',action='store_true')
+    p.add_argument('--terminal-service',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -307,4 +310,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service)
