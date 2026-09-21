@@ -1,5 +1,18 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Naechster Schnitt: grafische Sitzungsautoritaet noch offen
+
+Nach sauberem Eingabecommit `fd7a2f77` zeigt die Bestandspruefung eine echte
+neue Rechtevergabe: Der vorhandene Desktop verwendet Terminal-Dienstuebernahme
+(Operation4), die native64 ausdruecklich mit-95 abweist. Die bisherige
+5000ms-Eingabesitzung verteilt nur an einen festen Vordergrundverbraucher.
+Dauerhafter Compositor und Fokus-/Capture-Verteilung brauchen einen eigenen
+begrenzten, generationgebundenen Dienstvertrag. Konkreter Vorschlag:
+[Grafische native Sitzung](../architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md).
+`AGENTS.md` verlangt hier ausdrueckliche Freigabe fuer die neue Autoritaetsdomaene;
+dies ist keine erneute Diagnose-/Paketbestaetigung. Kein neues aktives Paket,
+Build oder Gast reserviert; Eingabeprofil nutzbar, R3.6b weiterhin vertagt.
+
 ## Native PS/2-Eingabe R8.3bg abgenommen, 21. September 2026
 
 Alle zehn Gates von Candidate04 bestanden: zwoelf echte Eingabefaelle und
