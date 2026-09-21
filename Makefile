@@ -282,6 +282,19 @@ $(error NativeDisplay requires explicit NativeAppFiles)
 endif
 endif
 X86_64_DISPLAY_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),-DREIST_NATIVE_DISPLAY=1,)
+X86_64_NATIVE_INPUT ?= 0
+ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
+$(error NativeInput selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_INPUT),0 1),$(X86_64_NATIVE_INPUT))
+$(error NativeInput selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_INPUT),1)
+ifneq ($(X86_64_NATIVE_DISPLAY),1)
+$(error NativeInput requires explicit NativeDisplay)
+endif
+endif
+X86_64_INPUT_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_INPUT)),-DREIST_NATIVE_INPUT=1,)
 # BC explicit Ring3 application objects; old/default profiles remain unchanged.
 X86_64_NATIVE_APP_FILES ?= 0
 ifneq ($(words $(X86_64_NATIVE_APP_FILES)),1)
@@ -428,6 +441,7 @@ X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),-DREIST_
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
@@ -458,6 +472,7 @@ endif
 X86_64_POOL_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),-DREIST_NATIVE_TASK_POOL=1,)
 X86_64_POOL_FLAGS += $(X86_64_SERVICE_CPU_FLAGS)
 X86_64_POOL_FLAGS += $(X86_64_DISPLAY_FLAGS)
+X86_64_POOL_FLAGS += $(X86_64_INPUT_FLAGS)
 ifeq ($(X86_64_NATIVE_FILE_LAUNCH),1)
 ifneq ($(X86_64_NATIVE_FILESYSTEM)$(X86_64_FILESYSTEM_CASE),10)
 $(error NativeFileLaunch requires plain NativeFilesystem)
@@ -883,6 +898,9 @@ endif
 		$(X86_64_PHYSICAL_MEMORY_OBJ) $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),$(X86_64_BOOTSTRAP_DIR)/boot_framebuffer.o $(X86_64_BOOTSTRAP_DIR)/boot_capture.o,) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
 		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ) $(X86_64_ADDRESS_SPACE_OBJ) $(X86_64_TASK_FRAMES_OBJ) $(X86_64_USER_ACCESS_OBJ)
+ifeq ($(X86_64_NATIVE_INPUT),1)
+	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY)
+endif
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 

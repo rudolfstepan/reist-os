@@ -1018,6 +1018,10 @@ process_run_syscall64:
     cmp qword [rel syscall_rax],113
 %ifdef REIST_NATIVE_DISPLAY
     jne .not_display_control
+%ifdef REIST_NATIVE_INPUT
+    cmp qword [rel syscall_rdi],31
+    je native_input_syscall64
+%endif
     cmp qword [rel syscall_rdi],30
     je native_display_syscall64
     jmp native_pio_syscall64

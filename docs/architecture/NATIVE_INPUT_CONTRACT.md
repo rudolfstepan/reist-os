@@ -52,18 +52,21 @@ sufficient for this polled QEMU profile; no asynchronous IRQ guarantee.
 ## Ring3 lifecycle and consumer
 
 The normal shell still starts /boot.prg in foreground slot4, with its existing
-display/terminal rights. For this opt-in image it also creates one IPC endpoint
-and a separate embedded input driver in slot5. Delegate RECEIVE only to4,
-SEND only to5. Root binds input5 and display4, never raw input to the client.
+display/terminal rights. For this opt-in image it also creates two single-peer IPC endpoints
+and a separate embedded input driver in slot5. Delegate SEND only to5 on the ingress endpoint and RECEIVE only
+to4 on the delivery endpoint. The root validates and relays at most32 canonical
+events, including HEALTHY, using its existing IPC authority. Each endpoint has
+exactly one delegated peer; neither child can create/delegate/close endpoints. Root binds input5 and display4, never raw input to the client.
 Capture ordinary service/file2/3 before driver5, preserving old slot behavior.
 Driver uses existing periodic32 samples/1000ms; foreground uses its existing
 32-sample limit. No creation/restart quota increase. SDK records bind target,
 driver,epoch,sequence and canonical size/type; cap32 delivered events.
 
 Only this input command gets a5000ms absolute session, including startup;
-startup<=1000ms and every IPC/wait<=1000ms. Shell waits in at most five bounded
-slices, without renewing the end; all old commands keep their1000ms policy.
-Driver parses keyboard modifiers/extended/release sequences and mouse signs,
+startup<=1000ms and every IPC/wait<=1000ms. The root relays at most32 records with at most50 empty100ms receives,
+then waits in at most five bounded slices, without renewing the end; all old commands keep their1000ms policy.
+Driver retires200ms and client100ms before the immutable end to allow bounded
+ordinary reap without renewing the session. Driver parses keyboard modifiers/extended/release sequences and mouse signs,
 buttons/overflow; incomplete sequences expire, faults clear state and isolate.
 Client displays bounded pointer feedback and serial event records. Its normal
 EXIT, failure, crash/hang/quota and parent loss converge on root fence, cancel,
@@ -85,3 +88,24 @@ CLI runtime/containment matrix. Source patterns alone never establish runtime.
 Ten gates in queue; direct diff/scope review and clean local commit follow
 only after all pass. Development reservations in queue are finite and distinct
 from qualification; every failed command/image/guest is retained. R3.6b deferred.
+
+## Floppy capacity correction
+
+The first1392012-byte input ELF exhausted the unchanged FAT12 data region.
+NativeInput alone removes its own local assembly debug-label names after
+linking. The untrimmed ELF is retained; every PT_LOAD byte, entry, layout and
+all other diagnostic symbols must compare exactly before publication. This
+changes no code, guest mapping, signed-media format or capacity limit.
+
+The first guest exposed the existing one-peer IPC limit before publication.
+Two directional endpoints implement the same authority and event contract;
+no IPC limit, syscall or kernel implementation is changed.
+
+## Accepted evidence
+
+Candidate04 passes all ten gates, twelve input guests and the complete ten-case
+CLI matrix; all22 guests are fresh. Independent raw replay and scope pass.
+Build06/media05 and acceptance-seal.json under build/codex-agent/r83bg-input/
+retain all input, display, lifecycle and immutable-media evidence. Historical
+failed candidates remain recorded. This is the finite QEMU input profile,
+not persistent desktop or whole-system acceptance.

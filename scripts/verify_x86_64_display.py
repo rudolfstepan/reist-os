@@ -42,6 +42,8 @@ def need(ok,message):
 def without_display_build_selector(source,make=False):
     """Strip exact complete opt-in additions; never a regex or a learned body."""
     need(type(source) is str and type(make) is bool,'display projection types')
+    from verify_x86_64_input import without_input_build_selector
+    source=without_input_build_selector(source,make=make)
     tokens=('NATIVE_DISPLAY','NativeDisplay','--display','X86_64_DISPLAY_FLAGS',
             'arch/x86_64/video/boot_framebuffer.c','arch/x86_64/video/boot_capture.c')
     if not any(token in source for token in tokens):return source

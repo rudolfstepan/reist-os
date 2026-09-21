@@ -341,6 +341,9 @@ int x86os_drive_info(uint32_t index,x86os_drive_info_t *out) {
 #ifdef REIST_NATIVE_APP_FILES
 #include "shell_app_files.inc"
 #endif
+#ifdef REIST_NATIVE_INPUT
+#include "shell_input.inc"
+#endif
 int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(session_child)return -16;
     if(argc<1 || argc>8 || !argv)return -22;
@@ -362,6 +365,12 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     int display_program=session_app_equal(canonical,"/boot.prg");
     if(display_program)profile.masks[1]|=1ULL<<49;
 #endif
+#ifdef REIST_NATIVE_INPUT
+    if(display_program) {
+        result=session_input_arguments(argc,argv,&startup,&profile);
+        if(result){session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));return result;}
+    }
+#endif
 #ifdef REIST_NATIVE_APP_FILES
     int64_t child=session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
 #else
@@ -369,6 +378,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #endif
     session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));
     if(child<-4095)session_stop(-5);
+#ifdef REIST_NATIVE_INPUT
+    if(child<0)session_input_retire();
+#endif
     if(child<0)return (int)child;
     if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
 #ifdef REIST_NATIVE_DISPLAY
@@ -378,11 +390,23 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
         request.owner=(uint64_t)child;
         int64_t bound=reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&request);
         if(bound<=0) {
+#ifdef REIST_NATIVE_INPUT
+            session_input_retire();
+#endif
             if(service_task(0,3,(uint64_t)child,0))session_stop(-5);
             int64_t retired=service_task(0,2,(uint64_t)child,1000);
             if(retired<0 || (uint64_t)retired>>32>3)session_stop(-5);
             return bound>=-4095 && bound<0?(int)bound:-5;
         }
+    }
+#endif
+#ifdef REIST_NATIVE_INPUT
+    if(display_program && (result=session_input_start((uint64_t)child))) {
+        session_input_retire();
+        if(service_task(0,3,(uint64_t)child,0))session_stop(-5);
+        int64_t retired=service_task(0,2,(uint64_t)child,1000);
+        if(retired<0 || (uint64_t)retired>>32>3)session_stop(-5);
+        return result;
     }
 #endif
     session_child=(uint64_t)child;
@@ -404,7 +428,12 @@ int x86os_wait(int pid,int *out) {
     if(!session_child || (uint32_t)pid!=session_child>>32)return -3;
 #ifdef REIST_NATIVE_APP_FILES
     int timed_out=0;
+#ifdef REIST_NATIVE_INPUT
+    int64_t result=session_input_end?session_input_wait(session_child):
+        session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
+#else
     int64_t result=session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
+#endif
     if(result==-110)timed_out=1;
     if(result==-110){if(service_task(0,3,session_child,0))session_stop(-5);result=service_task(0,2,session_child,1000);}
 #else
@@ -412,6 +441,9 @@ int x86os_wait(int pid,int *out) {
     if(timed_out){if(service_task(0,3,session_child,0))session_stop(-5);result=service_task(0,2,session_child,1000);}
 #endif
     if(result<0 || (uint64_t)result>>32>3)session_stop(-5);
+#ifdef REIST_NATIVE_INPUT
+    session_input_retire();
+#endif
     session_child=0;
     if(reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0))session_stop(-5);
     session_denied_identity((unsigned)pid,-3);
@@ -450,6 +482,9 @@ int __wrap_main(int argc,char **argv) {
     session_case=selected_case;
     int result=__real_main(argc,argv);
     session_flush();session_retire();
+#ifdef REIST_NATIVE_INPUT
+    if(session_input_driver||session_input_endpoint||session_input_ingress||session_input_epoch||session_input_end)session_stop(-5);
+#endif
     if(session_child)session_stop(-5);
     session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(session_workspace,sizeof(*session_workspace));
     if(SESSION_S1(FREE,session_prepared) || SESSION_S1(FREE,session_workspace))session_stop(-5);

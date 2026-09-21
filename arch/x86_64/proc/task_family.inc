@@ -1293,6 +1293,9 @@ family_terminal64:
 %ifdef REIST_NATIVE_DISPLAY
     call native_display_terminal64
 %endif
+%ifdef REIST_NATIVE_INPUT
+    call native_input_terminal64
+%endif
     push rax
     push rdi
     push r10
@@ -1539,6 +1542,9 @@ family_finish64:
 %endif
 %ifdef REIST_NATIVE_DISPLAY
     call native_display_finish64
+%endif
+%ifdef REIST_NATIVE_INPUT
+    call native_input_finish64
 %endif
     call family_initialize64
 .done:

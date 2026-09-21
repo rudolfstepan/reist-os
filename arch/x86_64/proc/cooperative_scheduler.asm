@@ -8303,6 +8303,9 @@ scheduler_profile_ranges64:
 %include "arch/x86_64/devices/pio_domain.inc"
 %ifdef REIST_NATIVE_DISPLAY
 %include "arch/x86_64/video/display_domain.inc"
+%ifdef REIST_NATIVE_INPUT
+%include "arch/x86_64/devices/input_domain.inc"
+%endif
 %endif
 %endif
 %endif

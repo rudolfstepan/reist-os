@@ -1,13 +1,54 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Neue Eingabedomaene noch nicht freigegeben
+## Native PS/2-Eingabe R8.3bg abgenommen, 21. September 2026
 
-Nach sauberem BF-Abschluss `c33943da` ist Tastatur/Pointer die naechste
-inventarisierte neue Geraeteautoritaet: native COM1-Konsole, ATA-Portwhitelist
-und IRQ0-only reichen dafuer nicht. Der geschuetzte PS/2-Ring3-Schnitt ist in
-`docs/architecture/NATIVE_INPUT_PROPOSAL.md` konkret beschrieben. AGENTS.md
-behaelt hier einen echten Autoritaetsstopp bei; kein weiterer Build/Gast oder
-Implementierungspaket ist aktiv. Desktop/Browser und Systemabnahme bleiben offen.
+Alle zehn Gates von Candidate04 bestanden: zwoelf echte Eingabefaelle und
+zehn vollstaendige bisherige CLI-Faelle, insgesamt 22 frische Gaeste ohne
+Wiederverwendung. Unabhaengige Rohdaten-, Rechte-, Pixel-, Reap- und
+Medienpruefung bestanden. Gastzeit insgesamt 1098.291s; Laufzeitgate1199.729s
+bei3300s Limit. Getrennter Ring3-Treiber, feste Portvermittlung und gerichtete
+IPC-Zustellung funktionieren einschliesslich Absturz, CPU/Hang, Quoten,
+veralteter Generation, Protokollfehler, Flut, fehlendem Geraet und Elternausfall.
+
+Build06 und signierte media05 sind ueber den normalen Eingabestarter gebunden.
+Start und Grenzen: [Native64-Eingabe](../NATIVE64_INPUT_QUICKSTART.md).
+Abnahmeseal: `build/codex-agent/r83bg-input/candidate04/acceptance-seal.json`
+SHA256 `5fe736bff6b34ad5aedfb65633639cfb3d74c9354b3c4de39fbc683bd10c7134`.
+Historie:43 physische Gaeste, sechs Kernelbuilds, fuenf Medienversuche und
+24 Entwicklungshost-Kommandos einschliesslich aller erhaltenen Fehler.
+Noch offen: dauerhafte interaktive Shell/Desktop, Netzwerk und weitere
+Plattform-/Systemabnahme. R3.6b bleibt ausdruecklich vertagt.
+
+## Historie R8.3bg: autorisierte native Eingabe, Abnahme offen
+
+Candidate01 bestand Gates1..6 und fuenf Eingabefaelle; der Haengefall
+stoppte die Abnahme: Der Fehlerfalltreiber verwendete1000ms statt der erlaubten
+maximal100ms pro Schlafaufruf. Ein Test des echten Dienstprogramms reproduziert
+den Fehler und besteht mit sechzig100ms-Schritten. Build06/media05 sind neu
+gebunden; Candidate02 wiederholt alle zehn Gates mit allen22 frischen Gaesten.
+Die strikte Forderung nach beaufsichtigtem Abbruch bleibt unveraendert.
+Candidate02 besteht den echten Haengeabbruch, stoppt aber beim Quotenoracle:
+eine vollstaendige Kernel-Reapmeldung unterbricht die mehrteilige Userausgabe.
+Der Hosttest reproduziert die gespeicherten CRLF-Bytes; die korrigierte
+Auswertung besteht den kompletten gespeicherten Quotenfall. Rohdaten und
+separate Reappruefung bleiben erhalten. Candidate03 wurde vor Gates und Gaesten
+zurueckgezogen. Candidate04 wiederholt alle zehn Gates und22 frische Gaeste.
+
+Der Nutzer hat den konkreten PS/2-Vorschlag durch erneuten Fortsetzungsauftrag
+am21. September freigegeben. Ein aktives Paket verbindet begrenzte Portvermittlung
+mit getrenntem Ring3-Dienst, Tastatur-/Mausdekoder, gerichteter IPC-Zustellung
+und normalem Grafikverbraucher. Die bestehende Ein-Peer-Grenze erfordert zwei
+Endpunkte mit hoechstens32 kanonischen Weiterleitungen durch die Shell.
+
+Hostverhalten und Build/Medien sind geprueft. Der reale Empfangsnachweis
+isolierte einen Fehler bei der seriellen Ausgabe ueber64 Bytes; die Korrektur
+hat einen reproduzierenden Hosttest. Gast08 besteht drei Sitzungen samt
+Tastatur/Maus, Generationen, Aufraeumen und Dateiliveness in40.289335900044534s.
+Die zwoelf Eingabefaelle, volle bisherige CLI-Matrix und zehn eingefrorenen Gates
+stehen als naechste geschlossene Abnahme an.
+Keine Systemabnahme oder fertiger Desktop; historische BE/BF-Nachweise und
+R3.6b-Vertagung bleiben erhalten. Aktueller Vertrag:
+`docs/architecture/NATIVE_INPUT_CONTRACT.md`.
 
 ## Normaler Grafikstarter R8.3bf abgenommen
 

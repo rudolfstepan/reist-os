@@ -2,15 +2,62 @@
 
 Stand: 21. September 2026
 
-## Naechste Grenze: native Eingabegeraete
+## Native PS/2-Eingabe R8.3bg abgenommen, 21. September 2026
 
-Grafikvermittlung `17d12819` und Starter `c33943da` sind lokal abgenommen;
-zwoelf plus sechs Gates bestanden. Native Konsole bleibt COM1, PIO nur ATA,
-PIC nur IRQ0. Fuer Tastatur/Maus ist eine neue geschuetzte Geraetedomaene
-erforderlich, die der bisherige Grafikvertrag ausdruecklich ausschliesst.
-AGENTS.md verlangt fuer solche neuen Autoritaetsdomaenen weiterhin einen Stopp.
-Konkreter Vorschlag: [Native PS/2-Eingabe](../architecture/NATIVE_INPUT_PROPOSAL.md).
-Kein weiteres Paket oder Build/Gast aktiv; R3.6b bleibt vertagt.
+Alle zehn Gates von Candidate04 bestanden: zwoelf echte Eingabefaelle und
+zehn vollstaendige bisherige CLI-Faelle, insgesamt 22 frische Gaeste ohne
+Wiederverwendung. Unabhaengige Rohdaten-, Rechte-, Pixel-, Reap- und
+Medienpruefung bestanden. Gastzeit insgesamt 1098.291s; Laufzeitgate1199.729s
+bei3300s Limit. Getrennter Ring3-Treiber, feste Portvermittlung und gerichtete
+IPC-Zustellung funktionieren einschliesslich Absturz, CPU/Hang, Quoten,
+veralteter Generation, Protokollfehler, Flut, fehlendem Geraet und Elternausfall.
+
+Build06 und signierte media05 sind ueber den normalen Eingabestarter gebunden.
+Start und Grenzen: [Native64-Eingabe](../NATIVE64_INPUT_QUICKSTART.md).
+Abnahmeseal: `build/codex-agent/r83bg-input/candidate04/acceptance-seal.json`
+SHA256 `5fe736bff6b34ad5aedfb65633639cfb3d74c9354b3c4de39fbc683bd10c7134`.
+Historie:43 physische Gaeste, sechs Kernelbuilds, fuenf Medienversuche und
+24 Entwicklungshost-Kommandos einschliesslich aller erhaltenen Fehler.
+Noch offen: dauerhafte interaktive Shell/Desktop, Netzwerk und weitere
+Plattform-/Systemabnahme. R3.6b bleibt ausdruecklich vertagt.
+
+## Historie R8.3bg: native PS/2-Eingabe in Entwicklung
+
+Candidate01 bestand Gates1..6 und fuenf Eingabefaelle; der Haengefall
+stoppte die Abnahme: Der Fehlerfalltreiber verwendete1000ms statt der erlaubten
+maximal100ms pro Schlafaufruf. Ein Test des echten Dienstprogramms reproduziert
+den Fehler und besteht mit sechzig100ms-Schritten. Build06/media05 sind neu
+gebunden; Candidate02 wiederholt alle zehn Gates mit allen22 frischen Gaesten.
+Die strikte Forderung nach beaufsichtigtem Abbruch bleibt unveraendert.
+Candidate02 besteht den echten Haengeabbruch, stoppt aber beim Quotenoracle:
+eine vollstaendige Kernel-Reapmeldung unterbricht die mehrteilige Userausgabe.
+Der Hosttest reproduziert die gespeicherten CRLF-Bytes; die korrigierte
+Auswertung besteht den kompletten gespeicherten Quotenfall. Rohdaten und
+separate Reappruefung bleiben erhalten. Candidate03 wurde vor Gates und Gaesten
+zurueckgezogen. Candidate04 wiederholt alle zehn Gates und22 frische Gaeste.
+
+Der erneute Auftrag vom21. September autorisiert den vorbereiteten
+Tastatur-/Mausbereich. Aktiver Vertrag:
+[Native Input](../architecture/NATIVE_INPUT_CONTRACT.md).
+Implementiert sind feste Kernel-Portvermittlung, ein getrennter Ring3-Dienst,
+Dekoder sowie ein normal gestarteter Eingabe-/Grafikverbraucher. Hosttests
+pruefen echte Assemblerfunktionen, Controllerprotokoll, Dekoder, kanonische
+Ereignisse und den Shell-Aufraeumpfad mit O0/O2.
+
+Der kompakte Kernel und signierte HDD-/Diskettenmedien sind gebaut. Alle
+geladenen Bytes bleiben beim Entfernen lokaler Debugnamen nachweislich gleich.
+Der erste Gast deckte die Ein-Peer-Grenze eines IPC-Endpunkts auf; zwei getrennte
+Endpunkte mit begrenzter Shell-Weiterleitung beheben die falsche Zusammensetzung.
+Der lesende Empfangsnachweis zeigte eine korrekte HEALTHY-Nachricht; der
+Ausgabefehler lag beim64-Byte-Limit der seriellen Konsole. Die Ausgabe ist nun
+begrenzt aufgeteilt und per echtem Verbraucher-Code getestet. Gast08 besteht
+drei Eingabesitzungen ueber zwei Roots,21 echte Eingabeereignisse, nachfolgende
+Dateiausgabe und unveraenderte Medien in40.289335900044534s. Fuenf erweiterte
+Hostmethoden bestehen; jetzt folgen die zehn eingefrorenen Gates mit zwoelf
+Eingabe- und zehn unveraenderten CLI-/BIOS-Faellen.
+Noch keine Paketabnahme, kein Implementierungscommit oder Fertigstellungsnachweis;
+alle fehlgeschlagenen Versuche bleiben unter `build/codex-agent/r83bg-input/`.
+R3.6b bleibt vertagt.
 
 ## Starter-Integration R8.3bf abgenommen
 

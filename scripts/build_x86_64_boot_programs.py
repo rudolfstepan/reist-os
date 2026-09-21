@@ -1,6 +1,6 @@
 """External ELF64 preparation. Never linked into Ring0; no runtime file rights."""
 from pathlib import Path
-import argparse, os, struct, subprocess, uuid
+import argparse, os, struct, subprocess, uuid, sys
 ROOT=Path(__file__).resolve().parents[1]
 SIZE=36896
 
@@ -53,7 +53,7 @@ def build_file_program(directory,cc,nasm,ld):
          [*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/file_program.c','-o',obj]),
         [*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined','-z','noexecstack','--strip-all','-T','config/x86_64_wide_program.ld' if wide_file else 'config/x86_64_file_program.ld','-o',elf,start,obj]]
     if '-DREIST_NATIVE_DISPLAY=1' in cc:
-        commands[1]=[*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/display_probe.c','-o',obj]
+        commands[1]=[*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','arch/x86_64/user/input_client.c' if '-DREIST_NATIVE_INPUT=1' in cc else 'arch/x86_64/user/display_probe.c','-o',obj]
     for command in commands:
         r=subprocess.run(list(map(str,command)),cwd=ROOT,env=environment,capture_output=True,timeout=60,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         with (directory/'file-build.log').open('ab') as log:log.write(r.stdout+r.stderr)
@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False):
+    if type(input) is not bool or input and not display:raise ValueError("input requires display profile")
     if type(display) is not bool or display and not app_files:raise ValueError("display requires application-file profile")
     if type(app_files) is not bool or app_files and not wide_file:
         raise ValueError('application files require explicit wide file')
@@ -122,6 +123,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if wide_file:cc=[*cc,'-DREIST_NATIVE_WIDE_FILE=1']
     if app_files:cc=[*cc,'-DREIST_NATIVE_APP_FILES=1']
     if display:cc=[*cc,'-DREIST_NATIVE_DISPLAY=1']
+    if input:cc=[*cc,'-DREIST_NATIVE_INPUT=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
@@ -134,6 +136,15 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         with (attempt/'build.log').open('ab') as f:f.write(r.stdout+r.stderr)
         if r.returncode:raise RuntimeError((r.stdout+r.stderr).decode(errors='replace')[-2000:])
     start=attempt/'start.o';run([*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start])
+    if input:
+        input_objects=[]
+        for index,source in enumerate(('arch/x86_64/user/input_service.c','userspace/drivers/ps2/native_input.c')):
+            unit=attempt/f'input-{index}.o'
+            run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c',source,'-o',unit])
+            input_objects.append(unit)
+        worker=attempt/'input-service.prg'
+        run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined','-z','noexecstack','--strip-all','-T','config/x86_64_wide_program.ld','-o',worker,start,*input_objects])
+        input_blob=worker.read_bytes();prepare(input_blob,[],True)
     records=[None]*4
     for n in ([2,3,0,1] if filesystem else [2,0,1,3] if import_image else range(4)):
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
@@ -169,6 +180,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             if shell_session and n==0:
                 with header.open('a',encoding='ascii') as output:
                     output.write('#include <reist/x86_64/shell_session.h>\nconst reist_shell_images reist_native_shell_images={import_blob,sizeof(import_blob),filesystem_blob,sizeof(filesystem_blob)};\n')
+            if input and n==0:
+                with header.open('a',encoding='ascii') as output:
+                    output.write('const unsigned char reist_native_input_image[]={'+','.join(str(b) for b in input_blob)+'};\nconst size_t reist_native_input_image_bytes=sizeof(reist_native_input_image);\n')
             extra=['-DNATIVE_IMPORT=1','-include',str(header)]
             parser=attempt/'image.o'
             run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/image.c','-o',parser])
@@ -215,7 +229,46 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     staged.write_bytes(catalog.read_bytes());os.replace(staged,directory/'boot-programs.bin')
     print('NATIVE_BOOT_PROGRAMS_PREPARED',attempt)
 
-if __name__=='__main__':
+def compact_input_elf(path,objcopy):
+    """Drop only new local debug names; preserve every loaded byte and address."""
+    from build_x86_64_c_payload import elf,require
+    path=Path(path).absolute()
+    require(path==path.resolve() and path.is_relative_to(ROOT/'build'),'input ELF output scope')
+    raw=path.read_bytes();before=elf(raw,32)
+    removed={n for n,s in before['symbols'].items() if n.startswith('native_input_') and '.' in n and s['binding']==0}
+    require(1<=len(removed)<=128,'bounded input local debug symbols')
+    retained=path.with_suffix('.untrimmed.elf');temporary=path.with_suffix('.compact.elf')
+    require(not retained.exists() and not temporary.exists(),'fresh compaction artifacts')
+    with retained.open('xb') as out:out.write(raw)
+    command=[str(objcopy),*[arg for n in sorted(removed) for arg in ('--strip-symbol',n)],str(retained),str(temporary)]
+    r=subprocess.run(command,cwd=ROOT,capture_output=True,timeout=30,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+    require(r.returncode==0,'input local symbol compaction: '+r.stderr.decode(errors='replace')[-1200:])
+    compact=bytearray(temporary.read_bytes())
+    # GNU objcopy canonicalizes an empty NOBITS segment's file offset. Retain
+    # even that nonloaded header field so the complete original layout is exact.
+    phoff=struct.unpack_from('<I',raw,28)[0];count=struct.unpack_from('<H',raw,44)[0]
+    require(struct.unpack_from('<I',compact,28)[0]==phoff and struct.unpack_from('<H',compact,44)[0]==count,'exact program-header table')
+    for n in range(count):
+        at=phoff+n*32;original=struct.unpack_from('<8I',raw,at);changed=struct.unpack_from('<8I',compact,at)
+        if original[0]==1 and original[4]==0:
+            require(original[:1]+original[2:]==changed[:1]+changed[2:],'only empty segment file offset may be canonicalized')
+            struct.pack_into('<I',compact,at+4,original[1])
+    compact=bytes(compact);after=elf(compact,32)
+    require(after['entry']==before['entry'] and after['programs']==before['programs'],'exact input load layout')
+    for segment in before['programs']:
+        lo=segment['offset'];hi=lo+segment['filesz']
+        require(raw[lo:hi]==compact[lo:hi],'every loaded input byte unchanged')
+    require(after['symbols']=={n:s for n,s in before['symbols'].items() if n not in removed},'all other diagnostic symbols unchanged')
+    require(len(compact)<len(raw),'input symbol compaction reduced file')
+    checked=path.with_suffix('.checked.elf')
+    with checked.open('xb') as out:out.write(compact)
+    os.replace(checked,path)
+    print('NATIVE_INPUT_SYMBOLS_COMPACTED',len(removed),len(raw),len(compact))
+
+if __name__=='__main__' and '--compact-input-elf' in sys.argv:
+    p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True)
+    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy)
+elif __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--directory',required=True)
     for tool in ('cc','nasm','ld'):p.add_argument('--'+tool,required=True,nargs='+')
     p.add_argument('--case',type=int,choices=range(3),default=0)
@@ -246,6 +299,7 @@ if __name__=='__main__':
     p.add_argument('--wide-file',action='store_true')
     p.add_argument('--app-files',action='store_true')
     p.add_argument('--display',action='store_true')
+    p.add_argument('--input',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -253,4 +307,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input)
