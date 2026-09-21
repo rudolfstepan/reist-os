@@ -27,7 +27,7 @@ static jmp_buf trap;
 static unsigned armed;
 void reist_native_ipc_fault(void){CHECK(armed && !updates && !inits);longjmp(trap,1);}
 static native_ipc_request_t r;
-static uint32_t generations[4]={1,2,3,4};
+static uint32_t generations[REIST_NATIVE_TASKS];
 static uint64_t digest=1469598103934665603ULL;
 static unsigned steps;
 static void hash(const void *p,size_t n){const unsigned char *b=p;while(n--){digest^=*b++;digest*=1099511628211ULL;}}
@@ -43,7 +43,8 @@ static void request(unsigned slot,unsigned tick,unsigned nr,unsigned handle,unsi
     r.message.version=version;r.message.struct_size=version==2?2060:140;
     r.message.length=version==2?2048:128;
     for(unsigned i=0;i<r.message.length;i++)r.bulk.payload[i]=(unsigned char)(i*17+arg);
-    call(NATIVE_IPC_REQUEST,slot,tick,nr==53?"send":nr==54?"receive":nr==55?"delegate":0);
+    call(NATIVE_IPC_REQUEST,slot,tick,nr==53?"send":nr==54?"receive":nr==55?"delegate":
+        nr==99?(version==1?"retry-v1":"retry-v2"):0);
 }
 static void faults(unsigned slot){
     /* Real entry must find corruption even when that operation would publish
@@ -77,23 +78,25 @@ static void faults(unsigned slot){
     check_all();puts("IPC_COST_FAULT_OK");
 }
 int main(int argc,char **argv){
-    for(unsigned s=0;s<4;s++)call(NATIVE_IPC_BIND,s,0,0);
+    for(unsigned s=0;s<REIST_NATIVE_TASKS;s++){generations[s]=s+1;call(NATIVE_IPC_BIND,s,0,0);}
     call(NATIVE_IPC_PUMP,0,0,"idle");
     call(NATIVE_IPC_TAKE,0,0,"empty-take");CHECK(r.result==NATIVE_IPC_PENDING);
     if(argc==2){
-        unsigned s=(unsigned)strtoul(argv[1],0,10);CHECK(s<4);
+        unsigned s=(unsigned)strtoul(argv[1],0,10);CHECK(s<REIST_NATIVE_TASKS);
         request(s,0,49,0,0,0,1);CHECK(!r.result);unsigned h=r.handle;
         request(s,0,54,h,0,100,2);CHECK(r.result==NATIVE_IPC_PENDING);
         faults(s);return 0;
     }
-    for(unsigned cycle=0;cycle<4;cycle++){
-        unsigned sender=cycle,receiver=(cycle+1)%4;
+    for(unsigned cycle=0;cycle<REIST_NATIVE_TASKS;cycle++){
+        unsigned sender=cycle,receiver=(cycle+1)%REIST_NATIVE_TASKS;
         for(unsigned version=1;version<=2;version++){
             request(sender,0,49,0,0,0,version);CHECK(!r.result);unsigned h=r.handle;
             request(sender,0,55,h,generations[receiver],3,version);CHECK(!r.result);
             request(receiver,0,54,h,0,100,version);CHECK(r.result==NATIVE_IPC_PENDING);
             call(NATIVE_IPC_PUMP,sender,0,version==1?"wait-v1":"wait-v2");CHECK(!r.ready);
-            request(sender,0,99,h,0,0,version);CHECK(r.result==-22 && !r.ready); /* Failed pump transfer still sealed. */
+            Pending before=pending[receiver];
+            request(sender,0,99,h,0,0,version);CHECK(r.result==-22 && !r.ready);
+            CHECK(!memcmp(&before,&pending[receiver],sizeof(before))); /* EAGAIN writes no byte. */
             request(sender,0,53,h,17,0,version);CHECK(!r.result && r.ready==(1ULL<<receiver));
             call(NATIVE_IPC_TAKE,receiver,0,"take");CHECK(!r.result && r.message.payload[0]==17);
             request(receiver,0,54,h,0,10,version);CHECK(r.result==NATIVE_IPC_PENDING);
@@ -103,6 +106,9 @@ int main(int argc,char **argv){
             unsigned capacity=version==1?4:1;
             for(unsigned n=0;n<capacity;n++){request(sender,0,53,h,20+n,0,version);CHECK(!r.result);}
             request(sender,0,53,h,44,100,version);CHECK(r.result==NATIVE_IPC_PENDING);
+            before=pending[sender];
+            request(receiver,0,99,h,0,0,version);CHECK(r.result==-22 && !r.ready);
+            CHECK(!memcmp(&before,&pending[sender],sizeof(before))); /* Full send also unchanged. */
             request(receiver,0,54,h,0,0,version);CHECK(!r.result && r.ready==(1ULL<<sender));
             call(NATIVE_IPC_TAKE,sender,0,0);CHECK(!r.result);
             for(unsigned n=0;n<capacity;n++){request(receiver,0,54,h,0,0,version);CHECK(!r.result);}
@@ -113,17 +119,17 @@ int main(int argc,char **argv){
         }
     }
     /* Reap while a peer awaits data; clear pending and generation, then rebind. */
-    for(unsigned s=0;s<4;s++){
-        unsigned peer=(s+1)%4;
+    for(unsigned s=0;s<REIST_NATIVE_TASKS;s++){
+        unsigned peer=(s+1)%REIST_NATIVE_TASKS;
         request(s,0,49,0,0,0,1);CHECK(!r.result);unsigned h=r.handle;
         request(s,0,55,h,generations[peer],3,1);CHECK(!r.result);
         request(peer,0,54,h,0,100,2);CHECK(r.result==NATIVE_IPC_PENDING);
         call(NATIVE_IPC_REAP,s,0,"reap");CHECK(r.ready==(1ULL<<peer));
         call(NATIVE_IPC_TAKE,peer,0,0);CHECK(r.result==-32);
-        generations[s]+=4;call(NATIVE_IPC_BIND,s,0,"bind");
+        generations[s]+=REIST_NATIVE_TASKS;call(NATIVE_IPC_BIND,s,0,"bind");
         request(s,0,54,h,0,0,1);CHECK(r.result==-9);
     }
-    for(unsigned s=0;s<4;s++)call(NATIVE_IPC_REAP,s,0,0);
+    for(unsigned s=0;s<REIST_NATIVE_TASKS;s++)call(NATIVE_IPC_REAP,s,0,0);
     call(NATIVE_IPC_END,0,0,"end");
     printf("SEMANTICS %u %016llx\n",steps,(unsigned long long)digest);
     puts("IPC_COST_HOST_OK");return 0;

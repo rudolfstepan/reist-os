@@ -335,6 +335,9 @@ int x86os_drive_info(uint32_t index,x86os_drive_info_t *out) {
     session_bytes(info.name,"ata0",5);info.mount_point[0]='/';info.sectors=session_sectors;
     session_bytes(out,&info,sizeof(info));return 1;
 }
+#ifdef REIST_NATIVE_APP_FILES
+#include "shell_app_files.inc"
+#endif
 int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(session_child)return -16;
     if(argc<1 || argc>8 || !argv)return -22;
@@ -345,11 +348,18 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     reist_task_startup_v1_t startup;int result=reist_x64_startup_init(&startup,(unsigned)argc,argv);if(result)return result;
     if(session_operation_deadline)session_stop(-5);
     session_operation_deadline=session_observation.deadline_ms;
+#ifdef REIST_NATIVE_APP_FILES
+    uint64_t app_capture_end=session_observation.deadline_ms;
+#endif
     result=reist_x64_file_finish_v2(session_prepared,session_workspace,&session_fs,&session_transport,&session_observation);
     session_operation_deadline=0;
     session_zero(&session_observation,sizeof(session_observation));if(result)return session_operation_result(result);
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK|(1ULL<<15)|(1ULL<<20),1ULL<<63,0},0};
+#ifdef REIST_NATIVE_APP_FILES
+    int64_t child=session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
+#else
     int64_t child=reist_x64_task_import_wide(session_prepared,&profile,32,&startup);
+#endif
     session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));
     if(child<-4095)session_stop(-5);
     if(child<0)return (int)child;
@@ -371,8 +381,15 @@ int x86os_kill(int pid) {
 int x86os_wait(int pid,int *out) {
     if(!out || pid<=0)return -22;
     if(!session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_APP_FILES
+    int timed_out=0;
+    int64_t result=session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
+    if(result==-110)timed_out=1;
+    if(result==-110){if(service_task(0,3,session_child,0))session_stop(-5);result=service_task(0,2,session_child,1000);}
+#else
     int64_t result=service_task(0,2,session_child,1000);int timed_out=result==-110;
     if(timed_out){if(service_task(0,3,session_child,0))session_stop(-5);result=service_task(0,2,session_child,1000);}
+#endif
     if(result<0 || (uint64_t)result>>32>3)session_stop(-5);
     session_child=0;
     if(reist_x64_terminal_input(REIST_TERMINAL_CHECK,0,0))session_stop(-5);

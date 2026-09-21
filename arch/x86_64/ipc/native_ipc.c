@@ -141,11 +141,14 @@ static uint64_t pump(bool deadlines_only,uint32_t *changed) {
             Pending *p=&pending[s];
             if(p->state!=1) continue;
             if(deadlines_only && current_tick<p->request.deadline) continue;
-            /* Even an unsuccessful transfer may touch its output record. */
-            *changed|=1U<<s;
             int result=current_tick>=p->request.deadline ? -110 : transfer(s,&p->request);
+            /* The shared nonblocking send/receive primitives leave the whole
+             * message untouched on EAGAIN. Entry check_all still verifies all
+             * guards; an unchanged waiter needs no new protected publication.
+             * Other errors may touch output and must follow the normal seal. */
             if(result==-11) continue;
             native_ipc_require(result!=IPC_EINTEGRITY);
+            *changed|=1U<<s;
             p->request.result=result==-9 ? -32 : result;
             p->state=2;ready|=UINT64_C(1)<<s;progress=true;
         }

@@ -61,7 +61,9 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False):
+    if type(app_files) is not bool or app_files and not wide_file:
+        raise ValueError('application files require explicit wide file')
     if type(wide_file) is not bool or wide_file and not shell_session:
         raise ValueError('wide file requires explicit shell session')
     if type(shell_session) is not bool or shell_session and (not terminal or session or native_shell or service_cpu):
@@ -115,9 +117,13 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if session:cc=[*cc,'-DREIST_NATIVE_SESSION=1']
     if shell_session:cc=[*cc,'-DREIST_NATIVE_SESSION=1','-DREIST_NATIVE_SHELL_SESSION=1']
     if wide_file:cc=[*cc,'-DREIST_NATIVE_WIDE_FILE=1']
+    if app_files:cc=[*cc,'-DREIST_NATIVE_APP_FILES=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if file_launch:build_file_program(attempt,cc,nasm,ld)
+    if app_files:
+        from build_x86_64_app_files import build_tools
+        build_tools(attempt,cc,nasm,ld)
     def run(args):
         r=subprocess.run(list(map(str,args)),cwd=ROOT,timeout=60,capture_output=True,
                          creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -137,6 +143,10 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             if shell_session:
                 unit=attempt/'service-session.o'
                 run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/service_session.c','-o',unit])
+                objects.append(unit)
+            if app_files:
+                unit=attempt/'app-files.o'
+                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/app_files.c','-o',unit])
                 objects.append(unit)
         if console or shell_session and n==0:
             unit=attempt/f'console-{n}.o'
@@ -230,6 +240,7 @@ if __name__=='__main__':
     p.add_argument('--session',action='store_true')
     p.add_argument('--shell-session',action='store_true')
     p.add_argument('--wide-file',action='store_true')
+    p.add_argument('--app-files',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -237,4 +248,4 @@ if __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files)

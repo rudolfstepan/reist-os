@@ -1,6 +1,63 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 20. September 2026
+Stand: 21. September 2026
+
+## R8.3bc technisch abgenommen: alle neun Gates, alle16 Gastfaelle
+
+Kandidat08 besteht die vollstaendige Matrix samt unabhaengiger Rohdaten- und
+Scope-Pruefung. `cat`/`ls`, unveraenderliche explizite Dateiobjekte, Rechteentzug
+und App-/Treiber-/FS-Wiederherstellung sind nachgewiesen.80 Antworten werden
+bei23 CPU-Ticks empfangen; CPU32 und1000ms bleiben unveraendert.
+Seal `candidate08/acceptance-seal.json` unter
+`build/codex-agent/r83bc-application-files/`, SHA256
+`db3764b54b75fb2204f13fa3c26360a4e6dc47d3c97aae720614acdf7ae7c24b`.
+Gesamtkosten einschliesslich aller Fehler:34 Gaeste2753.232284900034s,
+zwei Kernelimages/zwei Testclient-Builds. In dieser Fortsetzung ein neuer
+Kernelbuild; die abschliessende Korrektur benoetigte keinen weiteren Build.
+Jetzt lokaler Paketabschluss, danach die genehmigte signierte CLI-Auslieferung.
+Keine volle OS-/Desktop-/Hardware-Abnahme; R3.6b bleibt ausdruecklich vertagt.
+
+## Historie der IPC-Korrektur und Prueffenster
+
+Kandidat07 erreicht nun80 tatsaechlich empfangene Antworten bei23 CPU-Ticks.
+Gates1..5 bestanden; Stopp nur an zu enger81.-Anfrage-Ordnungsannahme:
+IPC nimmt sie vor Widerruf in die Queue auf, Broker verarbeitet/beantwortet
+sie nicht. Beleg80.74180430005072s; Gesamt19 Gaeste1669.1003875000752s,
+zwei Kernelimages/zwei Testclient-Builds. Kandidat08 korrigiert ausschliesslich
+diesen Nachweis mit Mutationsregression und kompletter Rohdatenwiederholung;
+danach15 noch erforderliche neue Gaeste, kein weiterer Build. Keine Abnahme,
+kein Commit und keine CLI-Lieferung vor vollstaendig bestandenen Gates.
+
+Die erneute Zustimmung erlaubt die zuvor angefragte IPC-Kernpfad-Erweiterung.
+Inventar: `pump(false)` versiegelt auch bei unveraendertem EAGAIN-Wartezustand
+35 Bulk-Schutzobjekte erneut. Zuerst begrenzte Host-Red/Green-Regressionspruefung
+fuer diese unnoetige Publikation, vier/acht Slots und beide IPC-Versionen;
+danach vorhandene IPC-Fault-/Completion-/Handoff-Tests. Alle Integritaetsleser,
+Quoten und Zeitgrenzen bleiben erhalten. Kein Neubau/Gast in diesem Fenster.
+Die folgenden alten Resultate und Kosten bleiben unveraendert erhalten.
+
+## Abnahme blockiert: letzter Anfragenbudget-Nachweis
+
+R8.3bc hat15 von16 erforderlichen Faellen bestanden. Kandidat06 besteht die
+Gates1..5 und die vollstaendige Wiederholung der15 gespeicherten Auswertungen.
+Der neue Budgetgast endet nach52 Antworten an CPU32 (Status256), nicht an der
+geforderten80-Anfragen-Grenze. Vorherige Varianten erreichten70 bzw.54; eine
+Verbesserung durch die beiden Testclient-Umbauten ist damit nicht nachgewiesen.
+
+Stoppbeleg: `build/codex-agent/r83bc-application-files/candidate06/stopped.json`,
+SHA256 `05383adc4a8735d622bc545f120280c2fa7ed70ce9b4c3b614b5870cf5e49183`.
+Gesamt18 physische Gaeste1588.3585832000244s, ein Kernelimage, zwei separate
+Testclient-Builds. Keine weiteren Tests/Builds reserviert, keine Abnahme,
+kein Implementierungscommit, keine CLI-Lieferung. Alle Fehlerbelege bleiben.
+
+Naechster echter Umfangspunkt ist der native IPC-/CPU-Laufzeitpfad. Dessen
+bestehende Integritaets-/Kostenregressionen liegen ausserhalb dieses Pakets:
+`arch/x86_64/ipc/native_ipc.c`, `kernel/ipc/ipc.c`,
+`test/test_x86_64_ipc_cost.py`, `test/x86_64_ipc_cost_host.c`.
+Noch kein Kerneldefekt oder prinzipielle Unerreichbarkeit bewiesen. Vor dortigen
+Aenderungen ist der Paketumfang ausdruecklich zu erweitern und neu einzufrieren;
+keine blinde weitere Testlastoptimierung, keine Lockerung von CPU32/1000ms oder
+der80-Antworten-Pruefung. Die genehmigte begrenzte CLI-Version bleibt Lieferziel.
 
 ## Aktiv: R8.3bc, freigegebene Read-only-Anwendungsobjekte
 
@@ -10,9 +67,43 @@ normale cat/ls-Programme, Windows-/Make-Datenlayouts und Fehler/Recovery.
 Ring3-Snapshotbroker, maximal16KiB Dateidaten oder32 Verzeichniseintraege,
 kein direkter FS-/Geraetezugriff; bestehende Kernelmechanismen und Quoten.
 Vertrag: [NATIVE_APPLICATION_FILES_CONTRACT](../architecture/NATIVE_APPLICATION_FILES_CONTRACT.md).
-Zuerst Hosttests/Implementierung, danach ein gemeinsames Image und eingefrorene
-16-Fall-Abnahme. Noch kein Build/Gast gestartet, keine Paketabnahme behauptet.
+Kandidat01: Gates1..5 bestanden; ein gemeinsames Image gebaut. Erster FAT12-Gast
+fuehrt echte cat/ls/probe in beiden Runden aus; alle bisherigen Rohpruefungen
+bestehen. Gate6 stoppt an einer neuen Prueferannahme zur relativen IPC-Frist.
+Der Userspace-Uhrwert darf vor dem Kernel-Eintritt liegen; die korrigierte
+Intervallpruefung verlaengert weder absolute Frist noch Einzelaufruf. Voller
+gespeicherter Nachweis besteht nach Red/Green-Regression. Kandidat02 bindet
+Image und komplette Rohdaten exakt: kein Neubau,15 neue Gaeste, danach volle
+16-Fall-Auswertung. Verbraucht: ein Build/ein Gast60.63747690001037s. Noch keine
+Paketabnahme, alle Fehlerbelege bleiben erhalten.
+Kandidat02: sieben Faelle bestanden; der achte vollstaendige Rechtefall endet
+sicher, aber sein Pruefer erwartete Zwangsabbruch statt bereits erfolgtem
+SDK-Fehlerexit. Kandidat03 fordert die exakte rohe Kette: Endpoint-Widerruf,
+RECEIVE-32, kanonischer CLOSE/SEND-9, EXIT1, CANCEL0/WAIT1 und volle Bereinigung.
+Ein Image/acht Gaeste662.6280681999633s verbraucht; acht komplette Nachweise
+gebunden wiederverwenden, acht neue Gaeste, kein Neubau. Gesamtabnahme offen.
+Nutzerfreigabe20.09.: begrenzte bootfaehige QEMU-CLI-Forschungsversion zuerst
+liefern; Desktop/Browser/Netzwerk/weitere Plattformabnahme danach. Publikation
+mit Startweg/Anleitung/Grenzen folgt unmittelbar nach sauberer BC-Abnahme.
 Die folgende offene Freigabe beschreibt den historischen Stand vor diesem Ja.
+Kandidat03: Absturzfall bestanden; Haenger belegt festen Timeout/Widerruf und
+SDK-Fehlerexit. Kandidat04 prueft diese genaue zeitliche Rohkette, unveraenderte
+Fristen/Quoten/Produktionsdateien. Zehn Gaeste847.548560199968s/ein Image
+verbraucht, zehn vollstaendige Replays, hoechstens sechs neue Gaeste, kein Build.
+Alle neun Gates und16 Faelle bleiben Pflicht; noch kein Paketabschluss.
+Kandidat04:15 Faelle bestanden. Letzter Budgetclient erreicht nach70 Antworten
+CPU32 statt80 Anfragen; daher korrekt keine Abnahme. Kandidat05 baut nur einen
+separaten effizienteren Fehler-Testclient, kein Kernel/Normalprogramm.15 exakte
+Replays und ein neuer Budgetgast; alle512-Byte-Antworten und unveraenderte
+Grenzen bleiben Pflicht. Verbraucht16 Gaeste1396.892000199994s/ein Image;
+fehlgeschlagener Budgetfall bleibt als Fehler und Aufwand erhalten.
+Kandidat05 scheitert ebenfalls an CPU32, diesmal54 Antworten; keine Wirkung
+behaupten. Kandidat06 nutzt nur im Testclient seitenausgerichtete feste Puffer
+und die nach echter IPC-Implementierung zulaessige Wiederverwendung des
+Empfangsinhalts. Host prueft erhaltene Vorantwort. Ein neuer Test-ELF/Gast,
+15 exakte Replays, kein Kernel-/Normalprogramm-Build; alle Gates/Grenzen bleiben.
+Verbraucht17 Gaeste1492.2858473000233s/ein Kernelimage/ein Test-ELF; beide
+fehlgeschlagenen Budgetmessungen bleiben erhalten. Abnahme weiter offen.
 
 ## Sauber abgeschlossen; neue Anwendungs-Dateirechte noch nicht freigegeben
 

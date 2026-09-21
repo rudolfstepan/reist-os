@@ -269,6 +269,19 @@ X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SESSION ?= 0
 X86_64_NATIVE_SHELL_SESSION ?= 0
 X86_64_NATIVE_WIDE_FILE ?= 0
+# BC explicit Ring3 application objects; old/default profiles remain unchanged.
+X86_64_NATIVE_APP_FILES ?= 0
+ifneq ($(words $(X86_64_NATIVE_APP_FILES)),1)
+$(error NativeAppFiles selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_APP_FILES),0 1),$(X86_64_NATIVE_APP_FILES))
+$(error NativeAppFiles selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_APP_FILES),1)
+ifneq ($(X86_64_NATIVE_WIDE_FILE),1)
+$(error NativeAppFiles requires explicit NativeWideFile)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_WIDE_FILE)),1)
 $(error NativeWideFile selector must be one explicit value)
 endif
@@ -400,6 +413,7 @@ X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),-DRE
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),--shell-session,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),-DREIST_NATIVE_WIDE_FILE=1,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif

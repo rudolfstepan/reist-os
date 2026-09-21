@@ -81,6 +81,8 @@ def prior():
 
 def without_wide_build_selector(source,make=False):
     """Exact disabled BA additions only; never mask surrounding/default drift."""
+    from build_x86_64_app_files import without_app_build_selector
+    source=without_app_build_selector(source,make=make)
     if make:
         parts=(
             'X86_64_NATIVE_WIDE_FILE ?= 0\n'

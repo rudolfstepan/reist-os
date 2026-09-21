@@ -1,11 +1,70 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Abnahme21.09.: R8.3bc/Kandidat08 besteht alle neun Gates und16 Gastfaelle,
+einschliesslich unabhaengiger Gesamtauswertung.80 echte Antworten bei23
+CPU-Ticks; CPU32/1000ms unveraendert. Normaler cat/ls-Dateizugriff und
+Fehlereindaemmung abgeschlossen, signierte begrenzte CLI-Auslieferung als
+naechste saubere Transaktion. Seal SHA256
+`db3764b54b75fb2204f13fa3c26360a4e6dc47d3c97aae720614acdf7ae7c24b`.
+34 physische Gaeste2753.232284900034s/zwei Kernelimages/zwei Testclient-Builds
+einschliesslich aller erhaltenen Fehler. Kein vollstaendiges Desktop-/Netzwerk-
+oder Hardware-OS behauptet; R3.6b bleibt vertagt. Nachfolgend die Verlaufslage.
+
+Fortsetzung21.09.: gezielte IPC-Kernpfad-Erweiterung ausdruecklich genehmigt.
+Kandidat07 erreicht80 Antworten bei23 CPU-Ticks; Gates1..5 bestanden. Die
+Auswertung stoppt an der81.-Anfrage-Queueordnung, nicht mehr am CPU-Budget.
+Kandidat08 bindet den korrigierten Nachweis an dieselben kompletten Rohdaten
+und dasselbe Image;15 frische restliche Faelle, keine Neubauten reserviert.
+Unveraenderte EAGAIN-Warter werden nicht erneut versiegelt; alle Reads bleiben.
+Vier/acht Slots O0/O2 sowie IPC-Fault-/Completion-/Handoff-Hosttests bestanden.
+Kandidat07 reserviert genau einen Neubau und16 frische Gaeste, Budgetfall zuerst,
+Stopp bei erstem Fehler. Alte Nachweise qualifizieren keinen geaenderten Kernel;
+alle Quoten, Zeitgrenzen und80 realen Antworten unveraendert erforderlich.
+
+Historischer Stopp20.09.: R8.3bc15/16 Faelle bestanden, Kandidat06-Budgetgast
+erreicht52 Antworten vor CPU32 statt erforderlicher80. Gates1..5 bestanden,
+Gates7..9 nicht ausgefuehrt; keine Abnahme/Commit/CLI-Publikation.18 physische
+Gaeste1588.3585832000244s/ein Kernelimage/zwei Testclient-Builds verbraucht,
+saemtliche Fehler erhalten. Weitere kleine Client-Umbauten haben keinen
+nachgewiesenen Nutzen. Native IPC-/CPU-Kernpfad-Arbeit samt bestehenden
+Integritaets-/Kostenregressionen erfordert eine ausdrueckliche Erweiterung des
+aktuellen erlaubten Paketumfangs; keine Sicherheitsgrenze/Pruefung lockern.
+Details und exakter Stoppbeleg: [CURRENT_WORK](CURRENT_WORK.md).
+
 20.09.2026: Read-only-Anwendungsrechte ausdruecklich freigegeben. R8.3bc ist
 der naechste aktive gemeinsame Schnitt: Ring3-Objektbroker, nativer SDK-Adapter,
 echte cat/ls, Windows/Make-Medien und komplette Fehler-/Widerrufs-/Recovery-
 Nachweise. Kein Kernel-VFS, keine ambienten oder Schreib-/Geraeterechte.
-Ein gemeinsames Image erst nach Host-/Abhaengigkeitspruefung,16 begrenzte
-Gastfaelle; bisher keine Builds/Gaeste. [Vertrag](../architecture/NATIVE_APPLICATION_FILES_CONTRACT.md).
+Kandidat01 besteht Host-/Abhaengigkeits-/Build-/Mediengates1..5. Ein Image,
+ein vollstaendiger FAT12-Gast60.63747690001037s; echte cat/ls/probe und alle
+bisherigen Rohpruefungen erfolgreich, neue relative Fristenannahme abgewiesen.
+Kandidat02 korrigiert nur die Zeitstempel-Auswertung: exakter Ablesezeitpunkt
+zwischen letztem Root-Abschluss und Eintritt, Antworten strikt vor gleichem
+absolutem Ende. Voller gebundener Rohdaten-Replay, kein Neubau,15 neue Gaeste;
+volle16-Fall-Abnahme bleibt offen. [Vertrag](../architecture/NATIVE_APPLICATION_FILES_CONTRACT.md).
+Kandidat03: Rechtefall belegt sicheren Fehlerexit nach Endpoint-Widerruf statt
+Zwangsabbruch. Nur Prueferkorrektur mit vollstaendiger negativer IPC-/Exitkette;
+acht vorhandene Gaeste662.6280681999633s voll wiedergeben, acht neue, kein Neubau.
+Neues ausdruecklich genehmigtes erstes Lieferziel: bootfaehige QEMU-CLI-
+Forschungsversion mit Shell/Programmstart/Nur-Lese-Dateien; Desktop, Browser,
+Netzwerk und restliche Plattformabnahme sind nachgelagerter Ausbau. Kein
+vollstaendiges OS behaupten, keine Sicherheitspruefung streichen. Nach sauberem
+BC-Abschluss direkt vorhandenes Image/Medien/Startskript/Anleitung buendeln.
+Kandidat04: Nach bestandenem Absturzfall ist auch der Haenger sicher beendet,
+aber mit SDK-Fehlerexit nach Deadline-Widerruf statt Zwangsabbruch. Nur exakte
+zeitliche Pruefkette korrigieren; zehn gespeicherte Gaeste847.548560199968s
+voll auswerten, sechs neue, weiterhin ein Image und unveraenderte Sicherheits-
+grenzen. Keine Teilabnahme oder vorzeitige Liefermeldung.
+Kandidat05:15 Faelle bestanden; Budget-Testlast lief nach70 statt80 Antworten
+in CPU32. Nur separaten Testclient effizienter bauen, Normalprogramme und
+Kernel exakt behalten. Ein neuer Gast,15 vollstaendige gebundene Replays,
+neun Gates unveraendert.16 Gaeste1396.892000199994s/ein Image verbraucht,
+fehlgeschlagene Messung bleibt unveraendert; kein teilweiser Abschluss.
+Kandidat06: erste Testoptimierung widerlegt (54 Antworten, CPU32). Nur redundant
+geloeschten Empfangspuffer gemaess bestehendem IPC-Vertrag wiederverwenden und
+feste Puffer seitenausrichten; Nachweis des Nutzens erst im neuen Gast.17 Gaeste
+1492.2858473000233s/ein Kernelimage/ein Test-ELF verbraucht; ein weiterer
+Test-ELF/Gast reserviert,15 Replays, keine gelockerte Grenze/Teilabnahme.
 
 Sauberer Abschluss20.09.2026: R8.3bb `813606cf`, finaler Nachweis
 `build/codex-agent/r83bb-wide-shell-media/candidate02/verification-status-wide-shell-media-final.json`
