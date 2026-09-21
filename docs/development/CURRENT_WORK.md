@@ -2,6 +2,16 @@
 
 Stand: 21. September 2026
 
+## Aktives Lieferpaket R8.3bd: signierte native64 CLI-Forschungsversion
+
+BC ist sauber angenommen in `abe3cc7d`, finaler Beleg SHA256
+`b2efe4c60b7894b188084dbe09bf8d1aed24f84a765fb69ed2334f9072246326`.
+Jetzt das vom Nutzer gewaehlte begrenzte CLI-Erstpaket: bestehendes Image,
+signierte BIOS-HDD/Rescue-Diskette, unveraenderliches Datenmedium, Startskript
+und deutsche Kurzanleitung. Ein Medienpaket, kein Kernelneubau; zehn BIOS-
+und Ausfallfaelle mit kompletter BC-Auswertung. Desktop/Browser/Netzwerk und
+weitere Plattformabnahme bleiben nachgelagert. Noch nicht ausgeliefert.
+
 ## R8.3bc technisch abgenommen: alle neun Gates, alle16 Gastfaelle
 
 Kandidat08 besteht die vollstaendige Matrix samt unabhaengiger Rohdaten- und

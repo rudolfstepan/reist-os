@@ -1,5 +1,12 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+Naechste saubere Transaktion21.09.: R8.3bd liefert die ausdruecklich gewaehlte
+QEMU-CLI-Forschungsversion auf dem akzeptierten BC-Stand `abe3cc7d` aus.
+Signierte BIOS-Medien, normale Programme und Nur-Lese-Daten, begrenzter
+Launcher und Kurzanleitung in einem Paket; kein Kernelneubau. Vollstaendige
+zehnteilige BIOS-Abnahme bleibt Pflicht. Desktop/Browser/Netzwerk und weitere
+Plattformabnahme bleiben nachgelagert, R3.6b explizit vertagt.
+
 Abnahme21.09.: R8.3bc/Kandidat08 besteht alle neun Gates und16 Gastfaelle,
 einschliesslich unabhaengiger Gesamtauswertung.80 echte Antworten bei23
 CPU-Ticks; CPU32/1000ms unveraendert. Normaler cat/ls-Dateizugriff und
