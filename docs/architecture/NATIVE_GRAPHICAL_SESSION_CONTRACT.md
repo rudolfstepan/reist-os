@@ -45,10 +45,32 @@ delegates each endpoint only to that role. Root has no raw-input capability.
 All roles, epochs, message sizes and sequences are checked before mutation.
 No sibling identity query or implicit inheritance is assumed.
 
+The HELLO value for a replaced client carries its own previous Surface handle
+as generation:32/id:32, or zero initially. It grants no authority. The normal
+client ignores this diagnostic identity; the private stale-generation case
+submits that exact retired handle and must be isolated before any painting.
+
+Private receive audit v1 uses fixed128-entry overwrite storage (20544 bytes
+per role, included in the component limits). It copies the actual140-byte IPC
+reply only after successful RECEIVE for raw-input or local Surface-input
+messages. It issues no IPC, device operation or policy decision. An observer
+reads the committed sequence and exact-generation address space in one paused
+snapshot; no per-message breakpoint is needed. Sequence exhaustion stops audit
+publication and invalidates diagnostic evidence, without stopping input service.
+This userspace history is diagnostic evidence, never kernel authority.
+
 The common shell remains the launcher and serial recovery interface. Two
 packaged Surface applications exercise text entry and interactive painting;
 normal exit returns to the shell after fencing and reap. This package does not
 claim a port of the full file manager, browser, scripting or all i386 applets.
+
+The native adapter starts with a640x480 viewport, two320x192 client areas,
+move/focus/left-button capture/close, a US ASCII keyboard layout and the
+existing PSF2 8x16 bitmap asset. Resize, maximize, pixel-buffer capabilities,
+font selection and applet launch requests are not advertised; unsupported
+requests fail with `-95`. Surface-v6 itself and the full existing i386 desktop
+remain unchanged. The graphical profile launches `desktop`; the old finite
+`boot` input fixture is rejected there and remains usable in its original profile.
 
 ## Frozen runtime budgets
 
@@ -64,11 +86,14 @@ claim a port of the full file manager, browser, scripting or all i386 applets.
 - After files are admitted, role/endpoint/device/self-test handshake<=3000ms.
   READY requires terminal acquisition, driver self-test, both configured
   applications and first visible committed frame. No READY from profile alone.
+  Private service/client faults trigger no earlier than500ms after that startup deadline;
+  their oracle additionally requires actual READY before the injected failure.
 - Service loops sleep10ms, inspect at most8 messages or controller reads per
   turn. Health every250ms, health expiry1000ms, individual sends<=100ms.
   Input<=128 events/1000ms including health, monotonic64-bit sequence; Surface
   <=128 requests/client/1000ms, pending events<=16. Excess isolates the role.
-- Rendering uses fixed64x64 BGRX tiles, at most4 commits/turn and bounded
+- Rendering uses fixed64x64 BGRX tiles, at most4 commits/turn, at least100ms
+  between admitted batches, no catch-up burst, and bounded
   dirty rectangles. Feedback work precedes bulk redraw. Full redraw is paced;
   no full-screen busy wait or unbounded queued frames.
 - Recovery fence/revoke precedes cancel/reap. Each wait<=1000ms, whole group
@@ -86,6 +111,26 @@ unrelated client or compositor. Driver/compositor loss fences the graphical
 group before recreation, self-test and reintegration. Active root loss AFTER
 READY must prove protected terminal/display/input revocation and child cleanup;
 BH's before-handoff root-loss guest is not substituted for that proof.
+Replacement-client health is published only after the new exact-generation
+Surface is configured/acknowledged, a paint committed, real client health
+received and the first frame drained. Binding alone never reintegrates it.
+The replacement stays STARTING for at most the existing3000ms startup budget
+measured from its successful bind; repeated binds are rejected. Its first real
+ready health changes it to LIVE, whose heartbeat expiry remains1000ms. A late
+first health, stale owner, deadline wrap or missing first frame never renews
+startup. The runtime observer verifies this reintegration before sending input.
+
+GUI recovery charges the unchanged shared root policy: at most two restarts
+per10000ms and unchanged lifetime counters. It evaluates the existing policy
+on a private96-byte proposal. A new exhaustion latch is published into the
+graphical state, while the root receives all spent counters, anchors and time
+with its previous degraded bit preserved. No already published latch or spent
+counter is cleared. The GUI latch survives window rollover and manual entry;
+fencing/reaping remain possible, then GUI reaches DEGRADED. Unrelated normal
+file-service admission remains available. A genuine later filesystem recovery
+still invokes the original shared policy and can exhaust its remaining budget.
+The internal graphical state appends this latch; public control-v1 remains64
+bytes and the original service-policy ABI/implementation remains unchanged.
 
 Host behavior tests execute actual lifecycle, hash admission, WM/Surface and
 input code at O0/O2; reject malformed/stale/foreign messages, partial startup,
@@ -109,6 +154,19 @@ The distinct graphical read-only EXT2-1KiB data volume has32 inodes and fixed
 nine-file set, within1MiB. Old five-file layouts and seven tool bytes remain
 reference artifacts. Both PowerShell and Make paths package the same files.
 The ordinary graphical starter pins accepted artifacts only after all gates.
+
+The inherited ten-case CLI regression deliberately uses its original five-file
+fixture, built from the exact five packaged tool/data bytes. Its directory/EOF,
+binary memory, IPC, CPU and media predicates remain unchanged. The distinct
+nine-file public GUI volume is independently checked by the actual host parser
+and all eighteen GUI guests; it is not substituted into the old directory
+goldens. Both matrices boot the same signed graphical kernel image.
+
+The user starter admits only the complete local final receipt, acceptance seal,
+eight passed gates, accepted source hashes and the frozen signed artifacts.
+Its machine arguments are shared with the graphical matrix; only GTK visibility
+differs. One owned180s session includes cleanup and immutable media checks. No
+automatic rebuild, foreign media fallback or implicit acceptance is permitted.
 
 ## Execution reservation
 

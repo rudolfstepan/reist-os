@@ -296,6 +296,19 @@ endif
 endif
 X86_64_INPUT_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_INPUT)),-DREIST_NATIVE_INPUT=1,)
 X86_64_NATIVE_TERMINAL_SERVICE ?= 0
+# BI explicit Ring3 graphical session; no additional kernel selector.
+X86_64_NATIVE_GRAPHICAL_SESSION ?= 0
+ifneq ($(words $(X86_64_NATIVE_GRAPHICAL_SESSION)),1)
+$(error NativeGraphicalSession selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_GRAPHICAL_SESSION),0 1),$(X86_64_NATIVE_GRAPHICAL_SESSION))
+$(error NativeGraphicalSession selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_GRAPHICAL_SESSION),1)
+ifneq ($(X86_64_NATIVE_TERMINAL_SERVICE),1)
+$(error NativeGraphicalSession requires explicit NativeTerminalService)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_TERMINAL_SERVICE)),1)
 $(error NativeTerminalService selector must be one explicit value)
 endif
@@ -456,6 +469,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
@@ -770,6 +784,13 @@ X86_64_WIDE_SHELL_MEDIA_OUTPUT ?= build/codex-agent/native-wide-shell-media
 x86_64-wide-shell-media:
 	@$(PYTHON) scripts/build_x86_64_wide_shell_media.py --input-directory "$(X86_64_WIDE_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_WIDE_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 # End BB packaging-only target.
+# BI graphical package; caller may select a different admitted build directory.
+.PHONY: x86_64-graphical-media
+X86_64_GRAPHICAL_MEDIA_INPUT ?= build/codex-agent/r83bi-graphical-session/build07/x86_64
+X86_64_GRAPHICAL_MEDIA_OUTPUT ?= build/codex-agent/r83bi-graphical-session/media07
+x86_64-graphical-media:
+	@$(PYTHON) scripts/build_x86_64_graphical_media.py --input-directory "$(X86_64_GRAPHICAL_MEDIA_INPUT)" --output-directory "$(X86_64_GRAPHICAL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+# End BI packaging target.
 
 x86_64-bootstrap:
 	@$(if $(filter 1,$(X86_64_NATIVE_RUNTIME)),$(if $(filter 11110,$(X86_64_NATIVE_PROCESSES)$(X86_64_NATIVE_IPC)$(X86_64_NATIVE_RAM)$(X86_64_NATIVE_HEAP)$(X86_64_NATIVE_BULK_IPC)),,$(error NativeRuntime requires Processes/IPC/RAM/Heap and excludes BulkIPC))) :

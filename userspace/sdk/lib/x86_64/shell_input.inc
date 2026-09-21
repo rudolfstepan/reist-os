@@ -1,5 +1,18 @@
 /* Private opt-in shell ownership; no controller protocol in the root. */
 #include <reist/x86_64/input.h>
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+/* Distinct GUI profile: the old finite /boot consumer is not a service role.
+ * Keep its selectors fail-closed; no embedded worker or ambient fallback. */
+static uint64_t session_input_driver,session_input_epoch,session_input_end;
+static uint32_t session_input_endpoint,session_input_ingress;
+static void session_input_retire(void) { }
+static int session_input_arguments(int argc,const char *const *argv,
+    reist_task_startup_v1_t *startup,reist_task_profile_v1_t *profile) {
+    (void)argc;(void)argv;(void)startup;(void)profile;return -95;
+}
+static int session_input_start(uint64_t child){(void)child;return -95;}
+static int64_t session_input_wait(uint64_t child){(void)child;return -95;}
+#else
 extern const unsigned char reist_native_input_image[];
 extern const size_t reist_native_input_image_bytes;
 static uint64_t session_input_driver,session_input_epoch,session_input_end;
@@ -109,3 +122,4 @@ static int64_t session_input_wait(uint64_t child) {
     }
     return -110;
 }
+#endif

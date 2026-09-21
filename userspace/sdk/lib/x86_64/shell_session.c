@@ -6,6 +6,12 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+static unsigned session_graphical_active;
+static int session_graphical_start(int,uint64_t);
+static int session_graphical_wait(int *);
+static int session_graphical_kill(void);
+#endif
 #ifdef REIST_NATIVE_TERMINAL_SERVICE
 #include <reist/x86_64/terminal_service.h>
 static uint64_t session_terminal_service,session_previous_terminal_service,session_input_service_pending;
@@ -247,6 +253,10 @@ void x86os_print_number(int value) {
     session_write(text,length);
 }
 int x86os_terminal_input(uint32_t operation,int pid,uint32_t generation) {
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+    if(session_graphical_active && operation==REIST_TERMINAL_TRANSFER &&
+       (unsigned)pid==session_child>>32 && generation==(unsigned)pid)return 0;
+#endif
 #ifdef REIST_NATIVE_TERMINAL_SERVICE
     if(operation==REIST_TERMINAL_TRANSFER && session_child &&
        (unsigned)pid==session_child>>32 && generation==(unsigned)pid &&
@@ -367,10 +377,16 @@ int x86os_drive_info(uint32_t index,x86os_drive_info_t *out) {
 #ifdef REIST_NATIVE_INPUT
 #include "shell_input.inc"
 #endif
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+#include "shell_graphical.inc"
+#endif
 int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(session_child)return -16;
     if(argc<1 || argc>8 || !argv)return -22;
     char canonical[192];int length=session_path(path,canonical);if(length<0)return length;
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+    if(graphical.restart_blocked && session_app_equal(canonical,"/desktop.prg"))return -11;
+#endif
     if(session_service.phase!=REIST_SESSION_HEALTHY || session_fs.failed)return -116;
     if(session_observation.version!=SESSION_CAPTURE_VERSION || session_observation.frame.stat.path_length!=(unsigned)length)return -116;
     for(int n=0;n<length;n++)if(session_observation.frame.stat.path[n]!=canonical[n])return -116;
@@ -383,6 +399,13 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     result=reist_x64_file_finish_v2(session_prepared,session_workspace,&session_fs,&session_transport,&session_observation);
     session_operation_deadline=0;
     session_zero(&session_observation,sizeof(session_observation));if(result)return session_operation_result(result);
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+    if(session_app_equal(canonical,"/desktop.prg")) {
+        session_zero(&startup,sizeof(startup));
+        int launched=session_graphical_start(argc,app_capture_end);
+        session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);return launched;
+    }
+#endif
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK|(1ULL<<15)|(1ULL<<20),1ULL<<63,0},0};
 #ifdef REIST_NATIVE_DISPLAY
     int display_program=session_app_equal(canonical,"/boot.prg");
@@ -444,11 +467,17 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 }
 int x86os_kill(int pid) {
     if(pid<=0 || !session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+    if(session_graphical_active)return session_graphical_kill();
+#endif
     int64_t result=service_task(0,3,session_child,0);return result>=-4095 && result<=0?(int)result:-5;
 }
 int x86os_wait(int pid,int *out) {
     if(!out || pid<=0)return -22;
     if(!session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_GRAPHICAL_SESSION
+    if(session_graphical_active)return session_graphical_wait(out);
+#endif
 #ifdef REIST_NATIVE_APP_FILES
     int timed_out=0;
 #ifdef REIST_NATIVE_INPUT

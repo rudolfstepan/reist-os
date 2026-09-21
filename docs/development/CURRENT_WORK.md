@@ -2,7 +2,26 @@
 
 Stand: 21. September 2026
 
-## R8.3bi: Dauerhafte grafische Sitzung in Umsetzung
+## R8.3bi: Grafische native64-Sitzung abgenommen
+
+Candidate07 besteht alle acht Gates und28 frische QEMU-Gaeste:18 GUI- und
+zehn CLI-/Medienfaelle. Runtime1436.462s, unabhaengige Rohdatenpruefung107.509s;
+Referenzartefakte und Umfangskontrolle bestanden. Build07/media07 sind gebunden.
+Die Sitzung bietet zwei getrennte Ring3-Anwendungen, lokalen Fokus/Capture,
+begrenzte Ausgabe sowie gepruefte Fehlerisolation und Wiederherstellung.
+GUI-Neustarterschoepfung sperrt weitere GUI-Starts; normale Dateizugriffe bleiben
+verfuegbar. Alle Fehlversuche und verbrauchten Budgets bleiben erhalten:
+44 Entwicklungshost-Kommandos,88 physische Gaeste,7 Builds/Medien,21 BIOS.
+
+Start: `scripts/start-x86_64-graphical.ps1`; in der seriellen Shell `desktop`.
+[Kurzanleitung](NATIVE_GRAPHICAL_SESSION_QUICKSTART.md). Der Starter prueft den
+lokalen Abnahmecommit und die unveraenderten Artefakte; Laufzeit maximal180s.
+Abnahmebeleg: `build/codex-agent/r83bi-graphical-session/candidate07/acceptance-seal.json`.
+Dies ist die abgenommene begrenzte grafische Forschungssitzung. Netzwerk,
+Browser/JS, weitere Anwendungen und native System-/Hardwareabnahme bleiben offen.
+R3.6b bleibt vertagt; neue Netzwerk-/DMA-/Schreib-/SMP-Rechte sind nicht freigegeben.
+
+## Historie R8.3bi: Umsetzung und gestoppte Prueffenster
 
 Saubere Grundlage: BH `63e20d3d`, zehn Gates und25 frische Gaeste bestanden.
 Der neue [Paketvertrag](../architecture/NATIVE_GRAPHICAL_SESSION_CONTRACT.md)
@@ -11,9 +30,45 @@ direkter Eingabekanal zum Compositor, zwei lokale Surface-Anwendungen und
 gemeinsame Fehlerbehandlung. Bestehende Kernelmechanismen werden wiederverwendet.
 Aktiver Elternausfall wird erst nach READY geprueft. Noch keine BI-Abnahme.
 
-Anfangsfenster:16 Hostkommandos, ein Build, ein Medienlauf mit drei BIOS-
-Assemblierungen und ein180s-Diagnosegast. Acht Gates und18+10 frische Gaeste
-sind eingefroren. Keine weitere Routinefreigabe; R3.6b bleibt vertagt.
+Build07 und Medien07 sind erstellt; elf Diagnosegaeste und44 Hostkommandos
+sind mit allen vorherigen Fehlschlaegen erhalten. Gesunde Sitzung, Compositor-
+und isolierter Clientneustart sind diagnostisch nachgewiesen. Der Renderer
+zeichnet pixelgleich mit begrenzter Fensterarbeit; ersetzte Clients werden
+erst nach Konfiguration, Paint, Health und sichtbarem Frame reintegriert.
+Candidate01 bestand Gates1..4, fand aber beim ersten GUI-Start eine CPU32-
+Ueberschreitung im Zeichnen. Der Kachelversand ist jetzt auf vier Kacheln pro
+100ms begrenzt; Diagnose09 und unabhaengige Rohdaten-/Pixelpruefung bestehen.
+Das CPU-Budget und die3000ms-Startfrist bleiben unveraendert.
+Candidate02 bestand HDD4GiB und Diskette8GiB; der Fokus-/Capture-Gast lief
+korrekt, seine Nachpruefung fand einen Tupel-/JSON-Listenvergleich. Dessen
+kanonische Darstellung ist korrigiert und mit den echten Rohdaten geprueft.
+Beide gestoppten Kandidaten bleiben erhalten. Candidate03 wiederholt die
+vollstaendige frische Matrix; noch keine BI-Abnahme.
+Candidate03 bestand neun GUI-Faelle einschliesslich aller Compositor-/Treiber-
+Fehler. Beim Clientneustart zeigte sich eine zu fruehe Gesundheitsfrist waehrend
+STARTING:70 neue Kacheln brauchen mit begrenztem Versand mehr als eine Sekunde.
+Die bestehende3000ms-Startfrist gilt jetzt bis zur echten ersten Reintegration,
+danach unveraendert1000ms fuer LIVE. Diagnose10 bestaetigt den isolierten
+Clientneustart samt gemessener Reintegration vor Eingabe. Candidate04 bestand
+16 GUI-Faelle. Erschoepftes GUI-Neustartbudget sperrte danach auch normale
+Dateizugriffe. Der GUI-Adapter nutzt weiter das gemeinsame Budget, haelt seine
+Sperre aber getrennt vom Elternzustand. Diagnose11 zeigt drei Abstuerze, zwei
+Neustarts, dauerhafte GUI-Sperre und erfolgreichen cat-Aufruf. Eine nachfolgende
+Auswertungsabweichung durch Wiederverwendung von Prozessplatz4 ist anhand
+der Generationen und der Befehlsgrenze korrigiert und regressionsgeprueft.
+Candidate06 bestand17 GUI-Faelle; beim letzten Fall verweigerte das System
+die beschaedigte Dienstdatei korrekt. Die Nachpruefung zaehlte den spaeteren
+cat-Prozess auf Platz4 faelschlich als GUI. Diese zweite Befehlsgrenze wird
+an echten Rohdaten und Negativmutationen korrigiert. Vollstaendige Offline-
+Nachpruefung beider Ablehnungsfaelle besteht; Candidate07 wiederholt
+die volle frische Matrix. Candidate05 wurde
+vor allen Gates nach einer fehlgeschlagenen Dokumentationsaenderung verworfen.
+Keine frueheren Gaeste werden als Abnahme uebernommen. Alle Fehlschlaege bleiben erhalten.
+
+Die vollstaendige Abnahme steht noch aus: acht Gates,18 GUI- und zehn CLI-
+Gaeste. Unabhaengige Eingabe-/Fokus-/Capture- und Schriftpixelpruefung sowie
+der bis zur Abnahme gesperrte Starter sind vorbereitet. Keine weitere
+Routinefreigabe; R3.6b bleibt vertagt.
 
 ## R8.3bh: Terminal-Dienstberechtigung abgenommen
 

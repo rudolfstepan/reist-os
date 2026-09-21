@@ -894,7 +894,8 @@ def default_projection():
            'arch/x86_64/proc/task_family.inc','arch/x86_64/kernel/bootstrap_core.c','userspace/sdk/lib/x86_64/shell_platform.c',
            'userspace/storage/lib/vfs_shadow_ext2.c')
     for name in names:
-        source=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL_SERVICE',name.endswith(('.inc','.asm')))
+        source=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_GRAPHICAL_SESSION',False)
+        source=disabled(source,'REIST_NATIVE_TERMINAL_SERVICE',name.endswith(('.inc','.asm')))
         source=disabled(source,'REIST_NATIVE_INPUT',name.endswith(('.inc','.asm')))
         source=disabled(source,'REIST_NATIVE_DISPLAY',name.endswith(('.inc','.asm')))
         after=disabled(source,'REIST_NATIVE_SHELL_SESSION',name.endswith(('.inc','.asm')))

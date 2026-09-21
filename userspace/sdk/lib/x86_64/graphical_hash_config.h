@@ -1,0 +1,7 @@
+#ifndef REIST_GRAPHICAL_HASH_CONFIG_H
+#define REIST_GRAPHICAL_HASH_CONFIG_H
+/* Private, SHA-256-only use of the pinned TF-PSA/Mbed TLS implementation. */
+#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+#define MBEDTLS_SHA256_C
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+#endif

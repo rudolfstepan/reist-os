@@ -1,5 +1,24 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## R8.3bi: Grafische native64-Sitzung abgenommen
+
+Candidate07 besteht alle acht Gates und28 frische QEMU-Gaeste:18 GUI- und
+zehn CLI-/Medienfaelle. Runtime1436.462s, unabhaengige Rohdatenpruefung107.509s;
+Referenzartefakte und Umfangskontrolle bestanden. Build07/media07 sind gebunden.
+Die Sitzung bietet zwei getrennte Ring3-Anwendungen, lokalen Fokus/Capture,
+begrenzte Ausgabe sowie gepruefte Fehlerisolation und Wiederherstellung.
+GUI-Neustarterschoepfung sperrt weitere GUI-Starts; normale Dateizugriffe bleiben
+verfuegbar. Alle Fehlversuche und verbrauchten Budgets bleiben erhalten:
+44 Entwicklungshost-Kommandos,88 physische Gaeste,7 Builds/Medien,21 BIOS.
+
+Start: `scripts/start-x86_64-graphical.ps1`; in der seriellen Shell `desktop`.
+[Kurzanleitung](NATIVE_GRAPHICAL_SESSION_QUICKSTART.md). Der Starter prueft den
+lokalen Abnahmecommit und die unveraenderten Artefakte; Laufzeit maximal180s.
+Abnahmebeleg: `build/codex-agent/r83bi-graphical-session/candidate07/acceptance-seal.json`.
+Dies ist die abgenommene begrenzte grafische Forschungssitzung. Netzwerk,
+Browser/JS, weitere Anwendungen und native System-/Hardwareabnahme bleiben offen.
+R3.6b bleibt vertagt; neue Netzwerk-/DMA-/Schreib-/SMP-Rechte sind nicht freigegeben.
+
 ## R8.3bh: Terminal-Dienstberechtigung abgenommen
 
 Candidate02 besteht alle zehn Gates:15 Eingabe-/Dienstgaeste und zehn

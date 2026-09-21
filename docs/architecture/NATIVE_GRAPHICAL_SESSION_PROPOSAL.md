@@ -1,5 +1,19 @@
 # Native64: grafische Sitzung und exklusive Eingabeverteilung
 
+## Umsetzung abgeschlossen
+
+R8.3bh und R8.3bi sind abgenommen. BI Candidate07 besteht acht Gates und28
+frische Gaeste (18 GUI/10 CLI), einschliesslich aktivem Elternausfall und
+GUI-Budgeterschoepfung mit weiter nutzbarer serieller Dateidiagnose.
+[Vertrag](NATIVE_GRAPHICAL_SESSION_CONTRACT.md) und
+[Startanleitung](../development/NATIVE_GRAPHICAL_SESSION_QUICKSTART.md).
+Der folgende Vorschlag dokumentiert die historische Freigabe; seine damaligen
+offenen Voraussetzungen sind durch BH/BI innerhalb ihres Vertrags geschlossen.
+Netzwerk, DMA, persistierende Schreibrechte, SMP und physische Plattformen
+waren nicht Teil dieser Freigabe. Die gesamte native64-Abnahme bleibt offen.
+
+## Historischer Vorschlag und Freigabe
+
 Freigegeben durch den erneuten Fortsetzungsauftrag nach der konkreten Frage.
 R8.3bh prueft zuerst die geschuetzte Terminal-Dienstberechtigung einschliesslich
 echtem Ring3-Verbraucher und Fehlerlebensdauer. Danach folgt ohne Routinefrage

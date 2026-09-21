@@ -34,7 +34,8 @@ def default_projection():
     for name in ('arch/x86_64/proc/cooperative_scheduler.asm','arch/x86_64/proc/process_run.inc',
                  'arch/x86_64/proc/task_family.inc','userspace/sdk/lib/x86_64/shell_session.c'):
         old=subprocess.check_output(['git','show',HEAD+':'+name],cwd=ROOT,timeout=30).decode().replace('\r\n','\n')
-        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL_SERVICE',name.endswith(('.asm','.inc')))
+        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_GRAPHICAL_SESSION',False)
+        current=disabled(current,'REIST_NATIVE_TERMINAL_SERVICE',name.endswith(('.asm','.inc')))
         current=disabled(current,'REIST_NATIVE_INPUT',name.endswith(('.asm','.inc')))
         need(current==old,'exact INPUT-disabled accepted source '+name)
     for name in ('Makefile','scripts/build-x86_64-bootstrap.ps1'):

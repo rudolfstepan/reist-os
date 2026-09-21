@@ -18,6 +18,8 @@ SERVICE_PS_PARTS=('    [switch]$NativeTerminalService,\n',
  'if ($NativeTerminalService) { $NativeInput = [switch]$true }\n',
  '        "X86_64_NATIVE_TERMINAL_SERVICE=$([int]$NativeTerminalService.IsPresent)" `\n')
 def without_service_build_selector(source,make=False):
+    from build_x86_64_graphical_programs import without_graphical_build_selector
+    source=without_graphical_build_selector(source,make)
     tokens=('NATIVE_TERMINAL_SERVICE','NativeTerminalService','--terminal-service')
     if not any(t in source for t in tokens):return source
     for part in SERVICE_PARTS if make else SERVICE_PS_PARTS:
@@ -33,7 +35,8 @@ def default_projection():
            'arch/x86_64/user/input_client.c')
     for name in names:
         old=subprocess.check_output(['git','show',HEAD+':'+name],cwd=ROOT,timeout=30).decode().replace('\r\n','\n')
-        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_TERMINAL_SERVICE',name.startswith('arch/') and name.endswith('.inc'))
+        current=disabled((ROOT/name).read_text(encoding='utf-8'),'REIST_NATIVE_GRAPHICAL_SESSION',False)
+        current=disabled(current,'REIST_NATIVE_TERMINAL_SERVICE',name.startswith('arch/') and name.endswith('.inc'))
         need(current==old,'exact service-disabled accepted source '+name)
     for name in ('Makefile','scripts/build-x86_64-bootstrap.ps1'):
         old=subprocess.check_output(['git','show',HEAD+':'+name],cwd=ROOT,timeout=30).decode().replace('\r\n','\n')

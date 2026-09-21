@@ -40,6 +40,7 @@ param(
     [switch]$NativeWideFile,
     [switch]$NativeAppFiles,
     [switch]$NativeTerminalService,
+    [switch]$NativeGraphicalSession,
     [switch]$NativeInput,
     [switch]$NativeDisplay,
     [switch]$NativeServicePIO,
@@ -66,6 +67,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeGraphicalSession) { $NativeTerminalService = [switch]$true }
 if ($NativeTerminalService) { $NativeInput = [switch]$true }
 if ($NativeInput) { $NativeDisplay = [switch]$true }
 if ($NativeDisplay) { $NativeAppFiles = [switch]$true }
@@ -446,6 +448,7 @@ try {
         "X86_64_NATIVE_WIDE_FILE=$([int]$NativeWideFile.IsPresent)" `
         "X86_64_NATIVE_APP_FILES=$([int]$NativeAppFiles.IsPresent)" `
         "X86_64_NATIVE_TERMINAL_SERVICE=$([int]$NativeTerminalService.IsPresent)" `
+        "X86_64_NATIVE_GRAPHICAL_SESSION=$([int]$NativeGraphicalSession.IsPresent)" `
         "X86_64_NATIVE_INPUT=$([int]$NativeInput.IsPresent)" `
         "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
