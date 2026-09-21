@@ -2,6 +2,14 @@
 
 Stand: 21. September 2026
 
+## R8.3bk: Kernel-Fatalpfad bei aktivem DMA
+
+Nach sauberem Commit `97412dfe`: Allgemeine Kernel-Ausnahmen erreichen bisher
+nur die alte PIO-Sperre. Vor dem Ring3-Netzwerkstack wird die native DMA-Sperre
+in beide Fatalpfade eingebunden, unabhängig von beschädigten Besitzerdaten
+und C-Payload-Verfügbarkeit. Elf frische Gäste sind als Abnahme eingefroren;
+keine neue Geräte-, Netzwerk- oder Schreibberechtigung.
+
 ## R8.3bj: Native Netzwerk-/DMA-Grenze abgenommen
 
 Candidate02 besteht fünf Gates und acht frische QEMU-Fälle in der

@@ -72,3 +72,29 @@ Five gates as frozen in the queue; one common image, no per-case build.
 All old disabled sources and existing reference artifacts are checked once.
 Unchanged GUI/BIOS suites are not rerun for this opt-in mechanism boundary.
 No nested agent, push or full OS completion claim. R3.6b remains deferred.
+
+## R8.3bk: all native kernel-fatal transitions, frozen21 September2026
+
+Inventory after97412dfe: scheduler_fail invokes emergency mode4, but general
+exception_fatal only invokes the legacy PIO fence. C mode4 also discards PCI
+readback. Before network-stack integration, both paths must share a bounded
+assembly fence independent of C payload availability and corrupt domain state.
+
+Use only fixed PCI00:04.0. Inspect RTL8139 identity and current BAR; clear PCI
+bus mastering and verify readback. With an admitted aligned IO BAR, mask IMR,
+disable RX/TX and verify both registers. Never trust stored IO metadata or
+walk owner/task structures. No calls, allocation, wait, retry, device reset,
+DMA clearing, owner cleanup or return to userspace from the fatal transition.
+Preserve all damaged state and DMA buffers. Fixed64-byte supervisor receipt
+records identity, BAR, command before/after, RX/TX command, IMR and status;
+publish its version tag last. Distinguish fenced, absent, unsupported device
+and failed readback. A failure still halts; it never certifies safe DMA reuse.
+Existing operational limits and normal driver lifecycle remain unchanged.
+
+Three real active-device faults: supervisor NX exception, scheduler invariant
+failure, one-bit protected IO-metadata corruption. Inject only after real TX
+and observed unfenced active generation. Require actual port/readback receipt,
+unchanged damaged records/DMA, fence before serial diagnostics, CLI/HLT path
+and no cleanup/resume. Eight fresh ordinary network cases reprove normal
+operation. Old accepted raw failures stay historical; no public-network or
+physical defective-device containment claim. R3.6b remains deferred.
