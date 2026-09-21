@@ -1,4 +1,9 @@
-# Native64 input boundary — proposal awaiting authority
+# Native64 input boundary — accepted proposal history
+
+The renewed completion instruction after the explicit approval question on
+21 September2026 authorizes this proposal. R8.3bg/NATIVE_INPUT_CONTRACT.md
+now freezes its bounded implementation and proof; the inventory below is
+retained history, not a renewed approval requirement.
 
 Inventory21 September2026 on clean accepted display starter `c33943da`,
 final receipt SHA256
