@@ -90,3 +90,66 @@ host tests, this contract, German quickstart and two status documents plus
 queue. No Makefile or existing source adapter change is needed: ordinary
 shell commands and both build layouts were already accepted by BC. Document
 the exact published index/attempt and ready-to-run command after acceptance.
+
+## Candidate02: separate close observations, unchanged lifetime and cleanup
+
+Candidate01 passed gates1..5 and four complete positives, then stopped in
+the fifth positive's post-capture outcome proof. No negative guests or gates7..9
+ran. Preserve all five physical guests477.85895260004327s, the single media
+pair/three BIOS assemblies and zero kernel/program/test-client builds.
+Original stop SHA256
+`b69ecb7b565499bc60ebc0972e873f8357bdeca2145a8fc9f3b650b5d36a2d76`.
+
+Read-only raw diagnosis binds root1/child7, request261/reply262: the original
+broker end4550ms is met exactly by receive timeout and the first request CLOSE.
+The distinct reply CLOSE occurs4560ms; its successful return releases the
+already blocked child with EPIPE/-32 at4560ms, before its unchanged3590+1000ms
+receive end. Both closes succeed; the child explicitly exits1 and subsequent
+commands/both root runs complete. `shell_app_files.inc`7..17 contains two
+separate syscalls, not an atomic pair. The existing application contract164..170
+separates absolute broker lifetime from bounded cleanup. The old outcome
+oracle incorrectly required both close calls and child wakeup to share end's
+exact clock sample. This is not evidence of a renewed broker lifetime.
+
+Under standing17 September continuation authority, correct only the new CLI
+private outcome adapter and its host tests, within the same thirteen files.
+The old BC source/default oracle remains unchanged. This narrowly supersedes
+the blanket observation-identity statement above, not any runtime limit:
+retain exact original broker timeout and first request fence; require both
+complete successful closes in causal order, no other root operation between
+them and no successful broker operation after end. Bind wakeup to the actual
+reply-close return, strictly before the child's original1000ms receive end;
+keep the existing bounded explicit error exit, cancel, fence/reap, CPU, IPC,
+byte, identity, terminal, PIO and no-write proofs. No arbitrary tick tolerance,
+new lifetime, skipped syscall or inferred completion. Mutation regressions
+reject missing/failed closes, early fence/wakeup, extra broker work, mismatch
+of actual close/wakeup and exhaustion of the original child deadline.
+
+The expected-red regression rejects a real separated-close ordering; green
+covers equal and distinct timestamps and negative mutations. A first unittest
+module-discovery typo started no test and is recorded separately. Then freeze
+candidate02: the same nine gate commands/limits, exact predecessor tools,
+sources and all original raw evidence. Fully re-evaluate all five positive
+captures, including the corrected fifth; keep its original `passed=false` and
+record the new independent result separately. Run only the remaining five
+unchanged BIOS negatives, <=120s fresh, zero new media or builds. Full ten-case
+independent raw replay, direct scope review and clean local commit still gate
+delivery. Never rerun unchanged guests or relabel the original failed attempt.
+
+## Technical acceptance21 September2026
+
+Candidate02 `df5676bec04c855a20a73b3bef150a952f69b92681ec9d98f7e0c28acbebe288`
+passes all nine gates and all ten cases, including independent full raw review.
+Seal SHA256 `53465d21bb9809cfb1a1d515fa036a27ae133a7262d6a4ad936f53fc6780752c`.
+Ten total physical guests585.8585124001256s: five original positive captures
+fully replayed and five fresh negatives107.99955980008235s. Original failure
+and evidence remain immutable. Exactly one media pair and three original BIOS
+assemblies; zero kernel, program or test-client builds throughout BD.
+
+Published index `candidate01/media/cli-media.json` SHA256
+`f1c2d433430ce3d367dbfc0d4c2d7d19fd04e2867df57d5ca469df95c1c941c2`,
+attempt `shell-media-18c7322802ed49f9a8c1abb1b1d52c2a`. All paths beneath
+`build/codex-agent/r83bd-cli-delivery/`. Final clean implementation commit and
+evidence receipt: `candidate02/verification-status-cli-delivery-final.json`.
+This completes the explicitly selected local CLI research delivery only;
+desktop, network and broader OS/platform completion are not claimed.

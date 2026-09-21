@@ -1,5 +1,38 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Vereinbarte CLI-Erstlieferung abgeschlossen, 21. September 2026
+
+R8.3bd/Kandidat02 besteht neun Gates und alle zehn BIOS-/Gastfaelle samt
+unabhaengigem Rohdatenreview. Die signierte lokale QEMU-CLI-Version verwendet
+den unveraenderten akzeptierten BC-Kernel und normale Shell/cat/ls/probe.
+Start und Grenzen: `docs/NATIVE64_CLI_QUICKSTART.md`,
+`scripts/start-x86_64-cli.ps1`. Zwei Shell-Laeufe/320s-Sitzung, Nur-Lese-Objekte;
+keine Desktop-/Netzwerk-/Hardware- oder Produktionsfreigabe. Uebrige Plattform-
+arbeit nachgelagert, R3.6b ausdruecklich vertagt; kein neues aktives Paket.
+
+Seal SHA256 `53465d21bb9809cfb1a1d515fa036a27ae133a7262d6a4ad936f53fc6780752c`.
+Finalbeleg mit lokalem Commit:
+`build/codex-agent/r83bd-cli-delivery/candidate02/verification-status-cli-delivery-final.json`.
+BD insgesamt zehn physische Gaeste585.8585124001256s/ein Medienpaar/drei
+unveraenderte BIOS-Assemblierungen, kein Kernel-/Programm-/Testclient-Build.
+Der Nachweis getrennter erfolgreicher CLOSE-Aufrufe korrigiert nur die falsche
+atomare Zeitstempelannahme; urspruengliche Broker-/Kindfristen und alle
+CPU-/IPC-/Rechteentzugs-/Cleanup-Pflichten bleiben bestehen. Alte Fehlbelege
+bleiben erhalten, fuenf vorhandene Positivaufzeichnungen vollstaendig neu
+ausgewertet, nur fuenf zuvor fehlende Negativgaeste107.99955980008235s neu.
+
+## Historie vor der begrenzten Erstlieferung
+
+BD-Fortsetzung21.09.: Kandidat01 stoppt nach Gates1..5/vier bestandenen
+Positivfaellen im Hang-Ausgangsnachweis. Absolute Brokerfrist/erste Sperre4550ms
+korrekt; getrennte zweite Kanalschliessung/Wecken4560ms vor originaler
+Kindfrist4590ms. Kein atomarer Zwei-Syscall-Zeitstempel garantiert. Begrenzte
+Korrektur nur im neuen CLI-Pruefadapter mit Red/Green-Mutationsregression;
+unveraenderte BC-/Kernel-/Programmbinaerdateien und alle Sicherheitsfristen.
+Kandidat02 bindet fuenf originale Aufzeichnungen477.85895260004327s und
+ein Medienpaar; volle Neubewertung plus genau fuenf restliche Negativgaeste,
+keine neuen Builds. Neun Gates/komplette Rohdatenabnahme bleiben Pflicht.
+
 Naechste saubere Transaktion21.09.: R8.3bd liefert die ausdruecklich gewaehlte
 QEMU-CLI-Forschungsversion auf dem akzeptierten BC-Stand `abe3cc7d` aus.
 Signierte BIOS-Medien, normale Programme und Nur-Lese-Daten, begrenzter

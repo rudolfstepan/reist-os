@@ -2,6 +2,43 @@
 
 Stand: 21. September 2026
 
+## CLI-Erstlieferung R8.3bd abgeschlossen
+
+Alle neun Gates und zehn BIOS-/Gastfaelle bestanden, einschliesslich kompletter
+unabhaengiger Rohdaten- und Scope-Pruefung. Start: `scripts/start-x86_64-cli.ps1`;
+Anleitung: `docs/NATIVE64_CLI_QUICKSTART.md`. Signierter Index unter
+`build/codex-agent/r83bd-cli-delivery/candidate01/media/cli-media.json`, SHA256
+`f1c2d433430ce3d367dbfc0d4c2d7d19fd04e2867df57d5ca469df95c1c941c2`.
+Seal Kandidat02 SHA256
+`53465d21bb9809cfb1a1d515fa036a27ae133a7262d6a4ad936f53fc6780752c`;
+finaler Commit-Beleg: `candidate02/verification-status-cli-delivery-final.json`
+unter `build/codex-agent/r83bd-cli-delivery/`.
+
+Die begrenzte native64-Forschungsversion bietet normale Ring3-Shell, Programmstart,
+`cat`/`ls`/`probe` und explizite Nur-Lese-Dateiobjekte. Zwei Shell-Laeufe, dann
+Qualifikationshalt; Starter maximal320s inklusive Cleanup. QEMU pc/TCG qemu64,
+eine CPU4/8GiB; kein Desktop/Browser/Netzwerk, Schreibbetrieb oder allgemeiner
+Hardware-/Produktionsnachweis. Diese nachgelagerten Bereiche bleiben offen,
+R3.6b explizit vertagt. Kein neues aktives Implementierungspaket.
+
+Gesamtkosten BD: zehn physische Gaeste585.8585124001256s, ein Medienpaar,
+drei BIOS-Assemblierungen, kein Kernel-/Programm-/Testclient-Neubau. Kandidat02
+hat alle fuenf alten Positivaufzeichnungen vollstaendig nachgeprueft und nur
+fuenf fehlende Negativgaeste107.99955980008235s gestartet. Der urspruengliche
+Fehlversuch bleibt unveraendert erhalten; keine Frist oder CPU-Quote geaendert.
+
+## Historischer Verlauf vor der CLI-Annahme
+
+BD/Kandidat01: Gates1..5 und vier positive BIOS-Faelle bestanden; fuenfter
+Gast vollstaendig aufgezeichnet87.609385s, alte Auswertung verlangt faelschlich
+atomare Zeitstempel zweier CLOSE-Syscalls. Broker/erste Sperre4550ms korrekt,
+zweiter erfolgreicher CLOSE/Wecken4560ms innerhalb des unveraenderten
+3590+1000ms-Empfangs. Alle fuenf Gaeste477.85895260004327s bleiben erhalten.
+Kandidat02 korrigiert nur den neuen CLI-Pruefadapter; Mutationstest Red/Green
+bestanden. Alle fuenf Rohaufzeichnungen vollstaendig neu auswerten, dann nur
+fuenf fehlende BIOS-Negativgaeste120s; kein weiterer Build/Medienbau. Noch keine
+Lieferfreigabe oder Implementierungs-Commit vor allen neun Gates.
+
 ## Aktives Lieferpaket R8.3bd: signierte native64 CLI-Forschungsversion
 
 BC ist sauber angenommen in `abe3cc7d`, finaler Beleg SHA256
