@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bq-application-http"
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
 native_graphical_session_authority_boundary = "2026-09-21 accepted BG fd7a2f7786f6905b928bbe9912590e0f950664fa, final5e26802cdeface9717909f60dd8d5bd45c37d05eb643ec51b1be085ed09f3453, ten gates/22 fresh guests/clean worktree. Next inventory: existing desktop requires TERMINAL_ACQUIRE_SERVICE4, explicitly unsupported(-95) in native_terminal.inc; BG is fixed5000ms/32events with driver5/foreground4, no persistent GUI focus authority. AGENTS new-authority stop requires explicit authorization for exclusive Ring3 graphical-session/terminal-service takeover, generationscoped focus/capture and bounded persistent driver/compositor roles. Concrete proposal docs/architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md. No implementation/build/guest activated; old profiles and deferred R3.6b preserved. Native OS completion remains open."
 compaction_correction_window = "Eight hosts/two builds/13.597538999980316s second build/one media/three BIOS/zero guests spent. Build02 correctly fails exact PT_LOAD audit: GNU objcopy canonicalizes only the zero-filesz scratch segment file offset1261568 to4096; every allocated section and retained symbol identical, compact file1387904bytes. Preserve raw tool output and original; restore only that nonloaded offset after checking all other header fields, then require complete old layout/loaded bytes/retained symbols unchanged. Freeze two host commands<=600s, one fresh build03<=300s and original unspent media02<=180s/three BIOS plus healthy90s. No relaxed audit, changed media format or guest limit; cumulative ceilingthree builds/two media/six BIOS/one guest."
@@ -33,6 +33,18 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3bq-application-http"
+status = "active"
+phase = "native64-userspace"
+title = "Ordinary bounded native curl over explicit local TCP authority"
+risk = "HTTP framing, output quota, deadline and generation-scoped transport recovery"
+scope = "Implement NATIVE_APPLICATION_HTTP_CONTRACT after accepted clean7465e3df. Reuse ordinary curl/shared HTTP and accepted TCP/DNS profile; exact local peer80, numeric URL, bounded stdout, signed eleven-file media and full Ring3 fault recovery. No TLS/file/browser/new kernel authority. Initial16 hosts/3 builds/3 media/6 diagnostics; five frozen gates and25 fresh guests. R3.6b deferred."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_APPLICATION_HTTP_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py", "scripts/build_x86_64_network_programs.py", "scripts/build_x86_64_application_http.py", "scripts/build_x86_64_application_http_media.py", "scripts/check_x86_64_application_http_media.py", "scripts/build-x86_64-application-http-media.ps1", "scripts/run_qemu_x86_64_application_http.py", "scripts/verify_x86_64_application_http.py", "userspace/programs/curl.c", "userspace/programs/curl_http.c", "userspace/programs/curl_http.h", "userspace/sdk/include/reist/x86_64/application_http.h", "userspace/sdk/lib/x86_64/application_http.c", "userspace/sdk/lib/x86_64/application_tcp_platform.c", "userspace/sdk/lib/x86_64/shell_session.c", "userspace/sdk/lib/x86_64/shell_application_tcp.inc", "test/test_x86_64_application_http.py", "test/x86_64_application_http_host.c", "test/x86_64_application_http_platform_host.c", "test/test_curl_http_host.c", "test/test_curl_stream_host.c"]
+targeted_tests = ["python test/test_x86_64_application_http.py -v", "python scripts/verify_x86_64_application_http.py --defaults"]
+package_tests = ["python scripts/verify_x86_64_application_http.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_application_http.py --runtime", "python scripts/verify_x86_64_application_http.py --review"]
 
 [[packages]]
 id = "R8.3bp-application-dns"

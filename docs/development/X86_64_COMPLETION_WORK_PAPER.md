@@ -1,5 +1,14 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Aktiv: R8.3bq – normales curl im nativen HTTP-Profil
+
+Sauberer DNS-Abschluss `7465e3df`. Nächster vertikaler Schnitt: vorhandenes
+`curl.prg` und HTTP-Parser über ziel-/generationsgebundene TCP-Rechte zum
+lokalen Testserver, begrenzte stdout-Ausgabe, signierte Medien und Fehlererholung.
+Bestehende Netzwerkfreigabe gilt. HTTPS, Dateischreiben und Browserrechte sind
+separate Grenzen. Vertrag: [NATIVE_APPLICATION_HTTP_CONTRACT](../architecture/NATIVE_APPLICATION_HTTP_CONTRACT.md).
+Fünf Gates und 25 Gäste sind vor Implementierung eingefroren. R3.6b bleibt vertagt.
+
 ## R8.3bp: nativer DNS-Resolver abgenommen
 
 Kandidat04 besteht alle fünf Gates (15,534/2,297/42,578/1676,145/9,900 s)
