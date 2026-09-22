@@ -24,6 +24,17 @@ QEMU-Loopback-Kontrollpfad; keine physische DMA-Isolationszusage und kein
 vollständiges native64-Release. TCP/DNS/DHCP, Anwendungssockets und die
 Zusammenführung mit dem Desktop bleiben offen. R3.6b bleibt zurückgestellt.
 
+## Nächster Schritt: explizite Netzwerkrechte für native Anwendungen
+
+Nach sauberem Commit `a4c8bc96` ist die nächste Berechtigungsgrenze inventarisiert:
+Die Shell besitzt Netzwerkdienste, Vordergrundanwendungen besitzen noch keine
+Netzwerkobjekte oder Dienstendpunkte. Vorhandene UDP/TCP-Syscallnummern haben
+keine native Implementierung. Vorschlag: generations- und zielgebundene
+UDP/TCP-Objekte ausschließlich im bestehenden lokalen QEMU-Testnetz.
+`AGENTS.md` verlangt für diese neue Autoritätsdomäne eine ausdrückliche
+Entscheidung. [Konkreter Vorschlag](../architecture/NATIVE_APPLICATION_NETWORK_PROPOSAL.md).
+Noch kein neues Implementierungspaket, Build oder Gast reserviert.
+
 ## R8.3bk: DMA-Sperre in allen nativen Kernel-Fatalpfaden abgenommen
 
 Candidate03 besteht fünf Gates (1.493/1.540/1.313/33.128/6.595 s) und elf frische QEMU-Fälle:
