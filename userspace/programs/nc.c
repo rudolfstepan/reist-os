@@ -1,5 +1,14 @@
 /** @file userspace/programs/nc.c @brief Bounded TCP client diagnostic tool. */
 #include "x86os.h"
+#ifdef REIST_NATIVE_APP_TCP
+#define NC_CONNECT_MS 2000U
+#define NC_SEND_MS 2000U
+#define NC_RECEIVE_MS 1000U
+#else
+#define NC_CONNECT_MS 5000U
+#define NC_SEND_MS 5000U
+#define NC_RECEIVE_MS 3000U
+#endif
 
 static int parse_port(const char *text, uint16_t *out) {
     uint32_t value = 0U;
@@ -50,7 +59,7 @@ int main(int argc, char **argv) {
     x86os_tcp_connect_t connect = {
         .version = X86OS_TCP_SOCKET_VERSION, .struct_size = sizeof(connect),
         .socket = socket, .destination_ip = ip, .destination_port = port,
-        .timeout_ms = 5000U,
+        .timeout_ms = NC_CONNECT_MS,
     };
     int rc = x86os_tcp_connect(&connect);
     if (rc == 0 && argc == 4) {
@@ -60,7 +69,7 @@ int main(int argc, char **argv) {
             x86os_tcp_io_t send = {
                 .version = X86OS_TCP_SOCKET_VERSION,
                 .struct_size = sizeof(send), .socket = socket,
-                .length = amount, .timeout_ms = 5000U,
+                .length = amount, .timeout_ms = NC_SEND_MS,
             };
             rc = x86os_tcp_send(&send, argv[3]);
         }
@@ -70,7 +79,7 @@ int main(int argc, char **argv) {
         x86os_tcp_io_t receive = {
             .version = X86OS_TCP_SOCKET_VERSION,
             .struct_size = sizeof(receive), .socket = socket,
-            .length = sizeof(buffer), .timeout_ms = 3000U,
+            .length = sizeof(buffer), .timeout_ms = NC_RECEIVE_MS,
         };
         rc = x86os_tcp_receive(&receive, buffer);
         if (rc > 0) {

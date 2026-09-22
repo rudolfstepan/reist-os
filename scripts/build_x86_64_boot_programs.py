@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False):
+    if type(app_tcp) is not bool or app_tcp and not app_network:raise ValueError("application TCP requires application network")
     if type(app_network) is not bool or app_network and not network_session:raise ValueError("application network requires network session")
     if type(network_session) is not bool or network_session and (not network_dma or not app_files or display or input or terminal_service or graphical_session):raise ValueError("network session requires DMA/application files and excludes GUI")
     if type(network_dma) is not bool or network_dma and not network_session and (not task_pool or any((pool_pio,service_cpu,service_pio,console,graphical_session))):raise ValueError("network DMA requires separate plain task pool")
@@ -136,6 +137,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if graphical_session:cc=[*cc,'-DREIST_NATIVE_GRAPHICAL_SESSION=1','-I'+str(attempt)]
     if network_session:cc=[*cc,'-DREIST_NATIVE_NETWORK_SESSION=1','-I'+str(attempt)]
     if app_network:cc=[*cc,'-DREIST_NATIVE_APP_NETWORK=1']
+    if app_tcp:cc=[*cc,'-DREIST_NATIVE_APP_TCP=1']
     if file_launch:build_file_program(attempt,cc,nasm,ld)
     if app_files:
         from build_x86_64_app_files import build_tools
@@ -148,11 +150,14 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if network_session:
         from build_x86_64_network_programs import build_roles as network_roles
         from build_x86_64_graphical_programs import hash_inputs
-        for role in network_roles(attempt,cc,nasm,ld,app_network):(attempt/'root'/role.name).write_bytes(role.read_bytes())
+        for role in network_roles(attempt,cc,nasm,ld,app_network,app_tcp):(attempt/'root'/role.name).write_bytes(role.read_bytes())
         network_hash_sources,network_hash_flags=hash_inputs(attempt,True)
         if app_network:
             from build_x86_64_application_udp import build_tool
             build_tool(attempt,cc,nasm,ld)
+        if app_tcp:
+            from build_x86_64_application_tcp import build_tool as build_tcp_tool
+            build_tcp_tool(attempt,cc,nasm,ld)
     def run(args):
         r=subprocess.run(list(map(str,args)),cwd=ROOT,timeout=60,capture_output=True,
                          creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -189,6 +194,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         if (graphical_session or network_session) and shell_root:
             role_sources=([ 'userspace/sdk/lib/x86_64/network_session.c',*network_hash_sources] if network_session else ['userspace/sdk/lib/x86_64/graphical_session.c',*graphical_hash_sources])
             if app_network:role_sources+=['userspace/sdk/lib/x86_64/application_udp.c']
+            if app_tcp:role_sources+=['userspace/sdk/lib/x86_64/application_tcp.c']
             role_hash_flags=network_hash_flags if network_session else graphical_hash_flags
             for index,source in enumerate(role_sources):
                 unit=attempt/f'graphical-root-{index}.o'
@@ -338,6 +344,7 @@ elif __name__=='__main__':
     p.add_argument('--network-dma',action='store_true')
     p.add_argument('--network-session',action='store_true')
     p.add_argument('--app-network',action='store_true')
+    p.add_argument('--app-tcp',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -345,4 +352,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp)

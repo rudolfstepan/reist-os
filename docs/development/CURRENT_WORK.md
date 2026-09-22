@@ -2,20 +2,25 @@
 
 Stand: 22. September 2026
 
-## Aktiv: R8.3bn – native TCP-Clientobjekte
+## R8.3bn: native TCP-Clientobjekte abgenommen
 
-UDP ist lokal als `1078fae1` abgenommen; der abschließende saubere Commit-
-Nachweis trägt SHA256 `35fbebe273b058d69fd05f427056785e5b63d9ba8315ec9b3cbee350f3c9d58d`.
-Das nächste Paket integriert aktive TCP-Verbindungen und normales `nc.prg`
-unter der bestehenden Freigabe. Parser und Zustandslogik bleiben in Ring3.
-Vertrag: [NATIVE_APPLICATION_TCP_CONTRACT](../architecture/NATIVE_APPLICATION_TCP_CONTRACT.md).
+Kandidat06 besteht alle fünf Gates (18.361/2.022/37.174/1482.443/7.681 s) und
+25 frische QEMU-Gäste. Normales `nc.prg`, vier begrenzte TCP-Objekte,
+Ring3-Protokoll, SDK und signierte Medien sind integriert. Nachgewiesen:
+TCP/UDP bei 4/8 GiB, Rechte-/Generationsprüfung, Wiederholungen, volle Puffer,
+fehlerhafte Pakete sowie Anwendung-/Stack-/Treiberfehler und Root-Erholung.
+CPU-, IPC- und Neustartgrenzen bleiben unverändert; vollständige Bereinigung
+und unabhängiges `cat` bestehen nach den Fehlerfällen.
 
-Vier feste Verbindungsobjekte, begrenzte Wiederholungen und bootweit nicht
-wiederverwendete lokale Ports schützen die neue Verbindungsgeneration.
-Alle bestehenden CPU-/IPC-/Neustartgrenzen bleiben bestehen. Passive Server,
-langlebige Portwiederverwendung und DNS folgen in eigenen Transaktionen.
-Noch keine TCP-Implementierung oder TCP-Abnahme; Quellenumfang und endliche
-Entwicklungs-/Abnahmebudgets sind vor dem ersten Eingriff eingefroren.
+Evidenz: `build/codex-agent/r83bn-application-tcp/candidate06/`.
+Siegel: `6257b22f954e8c1bf583c9dc56e79c4b633506f05a72f8c59021324b63350336`.
+29 Entwicklungstests, acht Builds, fünf Medienpaare, acht Diagnosegäste und
+95 Abnahmegäste über sechs Kandidaten bleiben erhalten. Der vorherige
+Commit-Stopp wegen Testdatei-Leerzeichen ist behoben; neue Dateien werden
+bereits vor der Abnahme vollständig geprüft.
+
+DNS, passive TCP-Serverlebenszyklen und die vollständige native64-Abnahme
+stehen aus. Die Netzwerkfreigabe gilt weiter; R3.6b bleibt vertagt.
 
 ## R8.3bm: native UDP-Anwendungsobjekte abgenommen
 

@@ -1,14 +1,24 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Aktiv: R8.3bn – TCP-Clientmigration
+## R8.3bn: native TCP-Clientobjekte abgenommen
 
-Auf sauberem UDP-Commit `1078fae1` ist das zusammenhängende TCP-Clientpaket
-mit nativen Objekten, Ring3-Zustandsautomat, gewöhnlichem `nc`, signierten
-Medien und25 frischen Abnahmegästen definiert. Die bestehende Freigabe gilt;
-der [Vertrag](../architecture/NATIVE_APPLICATION_TCP_CONTRACT.md) benennt
-Grenzen, Standardbezug und die bewussten Einschränkungen des Forschungsprofils.
-Keine neue Geräte-/Internetautorität. Passive Server-Portlebenszyklen, DNS
-und weitere Systemintegration bleiben nachfolgende Arbeit. R3.6b vertagt.
+Kandidat06 besteht alle fünf Gates (18.361/2.022/37.174/1482.443/7.681 s) und
+25 frische QEMU-Gäste. Normales `nc.prg`, vier begrenzte TCP-Objekte,
+Ring3-Protokoll, SDK und signierte Medien sind integriert. Nachgewiesen:
+TCP/UDP bei 4/8 GiB, Rechte-/Generationsprüfung, Wiederholungen, volle Puffer,
+fehlerhafte Pakete sowie Anwendung-/Stack-/Treiberfehler und Root-Erholung.
+CPU-, IPC- und Neustartgrenzen bleiben unverändert; vollständige Bereinigung
+und unabhängiges `cat` bestehen nach den Fehlerfällen.
+
+Evidenz: `build/codex-agent/r83bn-application-tcp/candidate06/`.
+Siegel: `6257b22f954e8c1bf583c9dc56e79c4b633506f05a72f8c59021324b63350336`.
+29 Entwicklungstests, acht Builds, fünf Medienpaare, acht Diagnosegäste und
+95 Abnahmegäste über sechs Kandidaten bleiben erhalten. Der vorherige
+Commit-Stopp wegen Testdatei-Leerzeichen ist behoben; neue Dateien werden
+bereits vor der Abnahme vollständig geprüft.
+
+DNS, passive TCP-Serverlebenszyklen und die vollständige native64-Abnahme
+stehen aus. Die Netzwerkfreigabe gilt weiter; R3.6b bleibt vertagt.
 
 ## R8.3bm: native UDP-Anwendungsrechte abgenommen
 

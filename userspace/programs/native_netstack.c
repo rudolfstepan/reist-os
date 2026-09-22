@@ -5,6 +5,10 @@
 #include <reist/x86_64/application_udp.h>
 static reist_app_udp_state applications;
 #endif
+#ifdef REIST_NATIVE_APP_TCP
+#include <reist/x86_64/application_tcp.h>
+static reist_app_tcp_state tcp_applications;
+#endif
 static reist_net_channel root,frames;
 static reist_net_message control,packet,response;
 static reist_net_protocol protocol;
@@ -77,11 +81,47 @@ int main(int argc,char **argv) {
 #ifdef REIST_NATIVE_APP_NETWORK
     if(reist_app_udp_init(&applications,root.peer,root.owner,reist_net_now()))return 22;
 #endif
+#ifdef REIST_NATIVE_APP_TCP
+    if(reist_app_tcp_init(&tcp_applications,root.peer,root.owner,reist_net_now()))return 22;
+#endif
     for(;;) {
         r=reist_net_receive(&root,&control,50);if(r==-11||r==-110)continue;if(r)return 71;
         if(control.result)return 71;
+#ifdef REIST_NATIVE_APP_TCP
+        if(control.type==REIST_NET_TCP_GRANT&&control.length==64) {
+            reist_app_tcp_grant grant;reist_net_copy(&grant,control.payload,sizeof(grant));
+            r=applications.active?-16:reist_app_tcp_grant_set(&tcp_applications,&grant,reist_net_now());
+            if(report(REIST_NET_RESULT,0,0,r,control.deadline_ms))return 5;
+            continue;
+        }
+        if(control.type==REIST_NET_TCP_REVOKE&&!control.length) {
+            reist_app_tcp_revoke(&tcp_applications);
+            if(report(REIST_NET_RESULT,0,0,0,control.deadline_ms))return 5;
+            continue;
+        }
+        if(control.type==REIST_NET_TCP_REQUEST&&control.length==608) {
+            reist_app_tcp_request q,reply={0};reist_net_copy(&q,control.payload,sizeof(q));
+            if(q.deadline>control.deadline_ms)return 71;
+            operation_end=q.deadline;last_progress=reist_net_now();
+            if(q.operation==REIST_APP_TCP_CONNECT) {
+                if(mode==1)__builtin_trap();
+                if(mode==2)for(;;)(void)reist_net_pause(100);
+                if(mode==3)for(;;)__asm__ volatile("pause");
+            }
+            r=reist_app_tcp_exchange(&tcp_applications,&protocol,&io,&q,&reply);
+            operation_end=0;if(frames.failed)return 5;
+            if(report(REIST_NET_RESULT,r?0:&reply,r?0:sizeof(reply),r,reist_net_now()+100))return 5;
+            continue;
+        }
+#endif
 #ifdef REIST_NATIVE_APP_NETWORK
         if(control.type==REIST_NET_APP_GRANT&&control.length==64) {
+#ifdef REIST_NATIVE_APP_TCP
+            if(tcp_applications.active) {
+                if(report(REIST_NET_RESULT,0,0,-16,control.deadline_ms))return 5;
+                continue;
+            }
+#endif
             reist_app_udp_grant grant;reist_net_copy(&grant,control.payload,sizeof(grant));
             r=reist_app_udp_grant_set(&applications,&grant,reist_net_now());
             if(report(REIST_NET_RESULT,0,0,r,control.deadline_ms))return 5;

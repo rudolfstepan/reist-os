@@ -328,6 +328,19 @@ ifneq ($(X86_64_NATIVE_NETWORK_SESSION),1)
 $(error NativeAppNetwork requires NativeNetworkSession)
 endif
 endif
+# Explicit finite TCP application profile.
+X86_64_NATIVE_APP_TCP ?= 0
+ifneq ($(words $(X86_64_NATIVE_APP_TCP)),1)
+$(error NativeAppTCP selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_APP_TCP),0 1),$(X86_64_NATIVE_APP_TCP))
+$(error NativeAppTCP selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_APP_TCP),1)
+ifneq ($(X86_64_NATIVE_APP_NETWORK),1)
+$(error NativeAppTCP requires NativeAppNetwork)
+endif
+endif
 X86_64_NATIVE_INPUT ?= 0
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
@@ -517,6 +530,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_TCP)),--app-tcp,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -840,6 +854,12 @@ X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
 X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
+.PHONY: x86_64-application-tcp-media
+X86_64_APPLICATION_TCP_MEDIA_INPUT ?= build/x86_64
+X86_64_APPLICATION_TCP_MEDIA_OUTPUT ?= build/codex-agent/native-application-tcp-media
+x86_64-application-tcp-media:
+	@$(PYTHON) scripts/build_x86_64_application_tcp_media.py --input-directory "$(X86_64_APPLICATION_TCP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_TCP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
 .PHONY: x86_64-network-media
 X86_64_NETWORK_MEDIA_INPUT ?= build/x86_64

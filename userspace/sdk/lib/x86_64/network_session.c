@@ -37,7 +37,10 @@ int reist_net_decode(reist_net_channel *s,const reist_net_message *m,uint64_t no
 }
 #ifdef REIST_NATIVE_NETWORK_SESSION
 #include <reist/x86_64/syscall.h>
+#ifdef REIST_NATIVE_APP_TCP
+#else
 static x86os_ipc_bulk_message_t transport;
+#endif
 uint64_t reist_net_now(void) {
     int64_t n=reist_x64_syscall0(REIST_X64_SYS_MONOTONIC_MS);
     if(n<0)__builtin_trap();return (uint64_t)n;
@@ -47,6 +50,11 @@ int reist_net_pause(unsigned ms) {
     return (int)reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,ms);
 }
 int reist_net_send(reist_net_channel *s,reist_net_message *m) {
+#ifdef REIST_NATIVE_APP_TCP
+    /* Synchronous copied IPC owns this fixed buffer only until return. The
+     * finite TCP profile retains no transport pointer across calls. */
+    x86os_ipc_bulk_message_t transport;
+#endif
     if(!s||!m||s->failed)return -22;
     uint64_t now=reist_net_now();if(m->deadline_ms<=now)return -110;
     unsigned timeout=(unsigned)(m->deadline_ms-now);if(timeout>100)timeout=100;
@@ -56,6 +64,9 @@ int reist_net_send(reist_net_channel *s,reist_net_message *m) {
     reist_net_zero(&transport,sizeof(transport));if(r)s->failed=1;return r;
 }
 int reist_net_receive(reist_net_channel *s,reist_net_message *m,unsigned timeout) {
+#ifdef REIST_NATIVE_APP_TCP
+    x86os_ipc_bulk_message_t transport;
+#endif
     if(!s||!m||s->failed||timeout>100)return -22;
     reist_net_zero(&transport,sizeof(transport));transport.version=2;transport.struct_size=sizeof(transport);transport.length=2048;
     int r=(int)reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,s->endpoint,(uintptr_t)&transport,timeout);

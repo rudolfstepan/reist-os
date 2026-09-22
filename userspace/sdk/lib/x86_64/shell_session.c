@@ -7,6 +7,13 @@
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
 #ifdef REIST_NATIVE_APP_NETWORK
+#ifdef REIST_NATIVE_APP_TCP
+static unsigned session_tcp_active;
+static unsigned session_input_idle;
+static int64_t session_tcp_import(int,const char *const *,reist_task_startup_v1_t *,reist_task_profile_v1_t *);
+static int64_t session_tcp_wait(int *);
+static int session_tcp_revoke(void);
+#endif
 static unsigned session_udp_active;
 static int64_t session_udp_import(int,const char *const *,reist_task_startup_v1_t *,reist_task_profile_v1_t *);
 static int64_t session_udp_wait(int *);
@@ -237,18 +244,39 @@ static int session_path(const char *path,char out[192]) {
 int x86os_monotonic_ms(uint64_t *out){if(!out)return -22;*out=session_now();return 0;}
 int x86os_sleep_ms(uint32_t duration) {
     if(!duration || duration>100)return -22;
+#ifdef REIST_NATIVE_APP_TCP
+    /* A sampled CPU quota must not be consumed by waking on every tick just
+     * to find an empty terminal. Only the immediate input-loop sleep is paced. */
+    if(session_input_idle){session_input_idle=0;if(duration==10)duration=50;}
+#endif
     (void)session_now();int64_t result=SESSION_S1(SLEEP_MS,duration);
     if(result)session_stop(-5);
     (void)session_now();return 0;
 }
 int x86os_getchar_nonblocking(void) {
+#ifdef REIST_NATIVE_APP_TCP
+    session_input_idle=0;
+    uint64_t now=session_now();
+#ifdef REIST_NATIVE_NETWORK_SESSION
+    /* The health deadline cannot advance within one monotonic clock value.
+     * Check once per value, retaining byte-at-a-time terminal ownership. */
+    static uint64_t checked_ms=UINT64_MAX;
+    if(now!=checked_ms){session_network_poll();now=session_policy.previous_ms;checked_ms=now;}
+#endif
+#else
 #ifdef REIST_NATIVE_NETWORK_SESSION
     session_network_poll();
 #endif
-    uint64_t now=session_now();int result=reist_session_policy_charge(&session_policy,now,0,1,0);
+    uint64_t now=session_now();
+#endif
+    int result=reist_session_policy_charge(&session_policy,now,0,1,0);
     if(result)session_stop(result);
     unsigned char byte=0;int64_t status=SESSION_S3(READ,0,&byte,1);
-    if(status==-11){session_flush();return 0;}
+    if(status==-11){session_flush();
+#ifdef REIST_NATIVE_APP_TCP
+        session_input_idle=1;
+#endif
+        return 0;}
     if(status!=1)session_stop(-5);
     return byte;
 }
@@ -261,7 +289,13 @@ static void session_flush(void) {
     session_output_used=0;(void)session_now();
 }
 static void session_write(const char *text,unsigned bytes) {
+#ifdef REIST_NATIVE_APP_TCP
+    /* Private buffered bytes have no external side effect. The existing
+     * flush checks the clock and byte quota before each <=64-byte write. */
+    if(bytes>4096)session_stop(-22);
+#else
     (void)session_now();
+#endif
     for(unsigned n=0;n<bytes;n++) {
         session_output[session_output_used++]=text[n];
         if(session_output_used==64 || text[n]=='\n')session_flush();
@@ -431,7 +465,11 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #ifdef REIST_NATIVE_APP_NETWORK
     /* Cached role images can leave a fresh, sequence-zero FS alongside live
      * network slots4/5. Ordinary foreground programs retain their slot4 ABI. */
-    if(!session_app_equal(canonical,"/udp.prg"))session_network_retire();
+    if(!session_app_equal(canonical,"/udp.prg")
+#ifdef REIST_NATIVE_APP_TCP
+       &&!session_app_equal(canonical,"/nc.prg")
+#endif
+       )session_network_retire();
 #endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
     if(session_app_equal(canonical,"/desktop.prg")) {
@@ -453,7 +491,11 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #endif
 #ifdef REIST_NATIVE_APP_FILES
 #ifdef REIST_NATIVE_APP_NETWORK
-    int64_t child=session_app_equal(canonical,"/udp.prg")?
+    int64_t child=
+#ifdef REIST_NATIVE_APP_TCP
+        session_app_equal(canonical,"/nc.prg")?session_tcp_import(argc,argv,&startup,&profile):
+#endif
+        session_app_equal(canonical,"/udp.prg")?
         session_udp_import(argc,argv,&startup,&profile):
         session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
 #else
@@ -469,7 +511,11 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #endif
     if(child<0)return (int)child;
 #ifdef REIST_NATIVE_APP_NETWORK
-    if(!child || (uint32_t)child!=(session_udp_active?6U:4U) || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+    if(!child || (uint32_t)child!=((session_udp_active
+#ifdef REIST_NATIVE_APP_TCP
+        ||session_tcp_active
+#endif
+        )?6U:4U) || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
 #else
     if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
 #endif
@@ -511,6 +557,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 }
 int x86os_kill(int pid) {
     if(pid<=0 || !session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_APP_TCP
+    if(session_tcp_active)session_tcp_revoke();
+#endif
 #ifdef REIST_NATIVE_APP_NETWORK
     if(session_udp_active)session_udp_revoke();
 #endif
@@ -532,7 +581,11 @@ int x86os_wait(int pid,int *out) {
         session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
 #else
 #ifdef REIST_NATIVE_APP_NETWORK
-    int64_t result=session_udp_active?session_udp_wait(&timed_out):
+    int64_t result=
+#ifdef REIST_NATIVE_APP_TCP
+        session_tcp_active?session_tcp_wait(&timed_out):
+#endif
+        session_udp_active?session_udp_wait(&timed_out):
         session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
 #else
     int64_t result=session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
@@ -560,6 +613,9 @@ int x86os_usb_diagnostics(x86os_usb_diagnostics_t *out){(void)out;return -38;}
 #include "shell_network.inc"
 #ifdef REIST_NATIVE_APP_NETWORK
 #include "shell_application_udp.inc"
+#ifdef REIST_NATIVE_APP_TCP
+#include "shell_application_tcp.inc"
+#endif
 #endif
 #else
 int x86os_network_control(const x86os_network_control_request_t *q,x86os_network_control_result_t *out){(void)q;(void)out;return -38;}
