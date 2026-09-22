@@ -116,3 +116,53 @@ After all gates and source review: mark package done, commit only owned paths,
 verify clean worktree and exact committed contents, record final receipt, then
 inventory the next native64 slice without a routine handoff. No overall
 native64 completion follows from this bounded HTTP slice alone.
+
+## Development evidence (not acceptance)
+
+Owned implementation remains on setup848cef97. Reserved hosts01..11 were
+spent:01 exposed the inherited header quota;02 exposed an incorrect URL test
+fixture;03 passed;04 exposed wrong SDK field names in the fixture;05..06
+passed;07 exposed successful completion after an output callback crossed the
+transfer deadline;08..11 passed after correction. Actual O0/O2 tests now cover
+the ordinary curl program, real native TCP SDK (including partial writes and
+denied file/heap/IPC authority), operand admission, shared legacy HTTP parser
+and stream behavior, eleven-file media corruption and peer wire framing.
+Native stdout writes flush the bounded64-byte adapter buffer before returning,
+and curl checks the original deadline before/after output and after framing.
+Partial output remains possible on error; cleanup has its separate close bound.
+
+Build01 passed45.306s; build02 passed24.945s with output/deadline corrections.
+Media01 failed3.319s: the eleventh file's indirect block32 overlapped the old
+data start32. HTTP-only producer and independent consumer now start data at33;
+media02 passed3.285s, with actual eleven-file and block-corruption regression.
+Accepted DNS geometry remains unchanged. Compiler reports for build02 bound
+the retained network chain at7528B and HTTP chunk/IPC chain at6784B, including
+256B ABI margin within8KiB. A preflight initially referenced a nonexistent
+TCP encoder; source inventory corrected it to the actual direct copy path.
+Diagnostic01 is reserved against build02 for healthy4g, with exact source
+hashes and180s limit. No qualification candidate has been frozen or accepted.
+Full receipts and raw evidence remain under
+build/codex-agent/r83bq-application-http; failed attempts are not reused.
+
+Hosts12..13 passed actual root operand dispatch, SDK closed-output and clock
+regression, and independent raw mutations (authority, selector, HTTP bytes,
+CPU receipt, wire replay). Diagnostic01 passed85.929s with two curl and four
+retained UDP/TCP/DNS apps,27 packets,138 raw events. Diagnostic02 passed55.828s
+with chunked framing,14 packets,61 events. Both used build02 and passed raw
+review; neither is qualification. Disabled C tokens, Make/PowerShell rules and
+Python AST were compared against848cef97. Preflight corrected a copied Make
+media-variable name and an obsolete verifier CLI literal; no accepted profile
+source was altered. Initial reservations spent:13 hosts,2 builds,2 media,
+2 diagnostics. Candidate01 will freeze the original five gates and25 guests.
+
+## Accepted candidate01
+
+All five frozen gates passed20.298/2.239/37.921/1700.565/8.204s with25 fresh
+sequential guests and independent complete raw replay. Seal SHA256:
+472ae6b447871fc3d0ee17bcd7b990b5e77a988c48eea002cc22574e19813a03.
+Exact frozen source/tool/artifact bindings passed final review before these
+queue/documentation closure edits. All approved scope and architecture limits
+remain; no TLS, public network, extra device rights or overall native64 claim.
+Freeze preflight01 stopped before creating a candidate because the regression
+receipt prefix was incorrect; corrected prefix development-host was frozen by
+preflight02. No gate was repeated and all earlier attempt evidence remains.

@@ -1,6 +1,13 @@
 /* Root-only delegation and supervision. The separate stack validates every
  * object operation; the application never obtains its frame endpoint. */
 #include <reist/x86_64/application_tcp.h>
+#ifdef REIST_NATIVE_APP_HTTP
+#include <reist/x86_64/application_http.h>
+static int session_http_operand(int argc,const char *const *argv,reist_app_tcp_grant *out) {
+    return session_http_selected?reist_app_http_operand(argc,argv,out):reist_app_tcp_operand(argc,argv,out);
+}
+#define reist_app_tcp_operand session_http_operand
+#endif
 static reist_app_tcp_grant tcp_grant;
 static uint64_t tcp_epoch,tcp_sequence;
 static uint32_t tcp_request,tcp_reply;
@@ -212,3 +219,7 @@ static int64_t session_tcp_wait(int *timed_out) {
     if(released){tcp_close_channels();session_zero(&tcp_grant,sizeof(tcp_grant));}
     session_tcp_active=0;network_busy=0;return status;
 }
+
+#ifdef REIST_NATIVE_APP_HTTP
+#undef reist_app_tcp_operand
+#endif

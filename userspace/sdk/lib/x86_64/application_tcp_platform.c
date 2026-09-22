@@ -22,11 +22,18 @@ static unsigned output_used;
 static x86os_ipc_bulk_message_t message;
 /* Private debugger-selected qualification input; never a command operand or
  * authority grant. Ordinary signed images start at zero. */
+#ifdef REIST_NATIVE_APP_HTTP
+#include <reist/x86_64/application_http.h>
+volatile uint64_t reist_http_app_selection[2] __attribute__((section(".data.memory_witness")))={0x3150504150545448ULL,0};
+#define reist_tcp_app_selection reist_http_app_selection
+#define reist_app_tcp_operand reist_app_http_operand
+#else
 #ifdef REIST_NATIVE_APP_DNS
 volatile uint64_t reist_dns_app_selection[2] __attribute__((section(".data.memory_witness")))={0x31505041534e4452ULL,0};
 #define reist_tcp_app_selection reist_dns_app_selection
 #else
 volatile uint64_t reist_tcp_app_selection[2] __attribute__((section(".data.memory_witness")))={0x3150504150435452ULL,0};
+#endif
 #endif
 #ifndef REIST_APP_TCP_HOST_TEST
 /* Compiler-generated structure copies also need the freestanding C runtime.
@@ -203,6 +210,33 @@ void x86os_putchar(char c) {
     if(output_used==sizeof(output)||c=='\n')output_flush();
 }
 void x86os_puts(const char *p){if(!p){failed=1;return;}for(unsigned n=0;n<1024&&p[n];n++)x86os_putchar(p[n]);}
+#ifdef REIST_NATIVE_APP_HTTP
+int x86os_monotonic_ms(uint64_t *out) {
+    if(!out)return -22;uint64_t n=now();if(failed)return -84;*out=n;return 0;
+}
+void x86os_print_number(int value) {
+    uint32_t n=(uint32_t)value;if(value<0){x86os_putchar('-');n=0U-n;}
+    char digits[10];unsigned count=0;do{digits[count++]=(char)('0'+n%10);n/=10;}while(n);
+    while(count)x86os_putchar(digits[--count]);
+}
+int x86os_write(int fd,const void *data,size_t length) {
+    if(fd!=X86OS_STDOUT_FILENO)return -13;
+    if((length&&!data)||length>1024-output_count)return -90;
+    if(failed||closed)return -116;
+    const char *bytes=data;for(size_t n=0;n<length;n++){x86os_putchar(bytes[n]);if(failed)return -5;}
+    output_flush();return failed?-5:(int)length;
+}
+int x86os_sleep_ms(uint32_t ms){if(!ms||ms>100)return -22;return pause_ms(ms);}
+int x86os_create(const char *p){(void)p;return -13;}
+int x86os_close(int fd){(void)fd;return -13;}
+int x86os_rename(const char *a,const char *b){(void)a;(void)b;return -13;}
+int x86os_unlink(const char *p){(void)p;return -13;}
+void *x86os_malloc(size_t n){(void)n;return 0;}
+void x86os_free(void *p){if(p)failed=1;}
+int x86os_ipc_send_bulk_timeout(x86os_ipc_handle_t ep,const x86os_ipc_bulk_message_t *m,uint32_t timeout) {
+    (void)ep;(void)m;(void)timeout;return -13;
+}
+#endif
 #ifdef REIST_NATIVE_APP_DNS
 int x86os_monotonic_ms(uint64_t *out) {
     if(!out)return -22;uint64_t n=now();if(failed)return -84;*out=n;return 0;
@@ -256,10 +290,14 @@ static uint32_t endpoint(const char *p) {
 extern int __real_main(int,char **);
 int __wrap_main(int argc,char **argv) {
     int64_t pid=CALL(GETPID,0,0,0);uint64_t start=now();
+#ifdef REIST_NATIVE_APP_HTTP
+    if(pid<=0||pid>0x7fffffff||start>UINT64_MAX-6000||argc<4||argc>7)return 22;
+#else
 #ifdef REIST_NATIVE_APP_DNS
     if(pid<=0||pid>0x7fffffff||start>UINT64_MAX-6000||argc<4||argc>5)return 22;
 #else
     if(pid<=0||pid>0x7fffffff||start>UINT64_MAX-6000||argc<5||argc>6)return 22;
+#endif
 #endif
     end=start+6000;
     request_endpoint=endpoint(argv[argc-2]);reply_endpoint=endpoint(argv[argc-1]);
@@ -278,10 +316,14 @@ int __wrap_main(int argc,char **argv) {
         if(n==99||pause_ms(10))return 110;
     }
     reist_app_tcp_request response;if(transact(0,0,0,0,1000,&response))return 5;
+#ifdef REIST_NATIVE_APP_HTTP
+    if(reist_tcp_app_selection[0]!=0x3150504150545448ULL||reist_tcp_app_selection[1]>8)return 22;
+#else
 #ifdef REIST_NATIVE_APP_DNS
     if(reist_tcp_app_selection[0]!=0x31505041534e4452ULL||reist_tcp_app_selection[1]>8)return 22;
 #else
     if(reist_tcp_app_selection[0]!=0x3150504150435452ULL||reist_tcp_app_selection[1]>8)return 22;
+#endif
 #endif
     if(reist_tcp_app_selection[1]==5)__builtin_trap();
     if(reist_tcp_app_selection[1]==6)for(;;)(void)CALL(SLEEP_MS,100,0,0);

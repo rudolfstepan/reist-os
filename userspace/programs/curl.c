@@ -16,6 +16,18 @@ extern const size_t reist_tls_runtime_test_ca_pem_size;
 #endif
 
 #define CURL_REQUEST_CAPACITY (REIST_CURL_PATH_CAPACITY+1024U)
+#ifdef REIST_NATIVE_APP_HTTP
+#include <reist/x86_64/application_http.h>
+#define CURL_DEFAULT_MAX_BYTES 512U
+#define CURL_HARD_MAX_BYTES 512U
+#define CURL_DNS_TIMEOUT_MS 3000U
+#define CURL_CONNECT_TIMEOUT_MS 1500U
+#define CURL_IO_TIMEOUT_MS 1500U
+#define CURL_TRANSFER_IDLE_TIMEOUT_MS 1500U
+#define CURL_TRANSFER_HARD_TIMEOUT_MS 3000U
+#define CURL_OUTPUT_PATH_CAPACITY 256U
+#define CURL_FILE_BUFFER_CAPACITY 512U
+#else
 #define CURL_DEFAULT_MAX_BYTES (1024U * 1024U)
 #define CURL_HARD_MAX_BYTES (16U * 1024U * 1024U)
 #define CURL_DNS_TIMEOUT_MS 3000U
@@ -26,6 +38,7 @@ extern const size_t reist_tls_runtime_test_ca_pem_size;
 #define CURL_TRANSFER_HARD_TIMEOUT_MS 300000U
 #define CURL_OUTPUT_PATH_CAPACITY 256U
 #define CURL_FILE_BUFFER_CAPACITY 131072U
+#endif
 
 typedef struct curl_options {
     const char *url;
@@ -62,13 +75,17 @@ static int curl_exit_status(curl_failure_stage_t stage,int status) {
     return stage==CURL_STAGE_REQUEST ? 55 : 56;
 }
 
+#ifndef REIST_NATIVE_APP_HTTP
 static reist_tls_context_t tls_context;
+#endif
 
+#ifndef REIST_NATIVE_APP_HTTP
 static void wipe_bytes(uint8_t *data, uint32_t length) {
     volatile uint8_t *bytes = (volatile uint8_t *)data;
     for (uint32_t index = 0U; index < length; ++index) bytes[index] = 0U;
 }
 
+#endif
 static void print_failure(curl_failure_stage_t stage, int status) {
     const char *message = stage == CURL_STAGE_TCP
         ? "curl: TCP connection failed, status="
@@ -220,6 +237,16 @@ static int parse_ipv4(const char *text, uint32_t *result) {
     return 0;
 }
 
+#ifdef REIST_NATIVE_APP_HTTP
+static uint64_t http_deadline,http_last;
+static int http_remaining(uint32_t *timeout) {
+    uint64_t current;if(x86os_monotonic_ms(&current)||current<http_last)return -84;
+    http_last=current;if(current>=http_deadline)return -110;
+    uint64_t left=http_deadline-current;if(*timeout>left)*timeout=(uint32_t)left;
+    return 0;
+}
+#endif
+
 static int tcp_transport_send(void *opaque, const uint8_t *data,
                               uint32_t length, uint32_t timeout_ms) {
     x86os_tcp_socket_t socket = *(x86os_tcp_socket_t *)opaque;
@@ -227,7 +254,13 @@ static int tcp_transport_send(void *opaque, const uint8_t *data,
     if (amount > X86OS_TCP_MAX_SEGMENT) amount = X86OS_TCP_MAX_SEGMENT;
     x86os_tcp_io_t io = {
         X86OS_TCP_SOCKET_VERSION, sizeof(io), socket, amount, timeout_ms};
+#ifdef REIST_NATIVE_APP_HTTP
+    int r=http_remaining(&io.timeout_ms);if(r)return r;
+    r=x86os_tcp_send(&io,data);if(r<0)return r;
+    uint32_t remaining=1;int checked=http_remaining(&remaining);return checked?checked:r;
+#else
     return x86os_tcp_send(&io, data);
+#endif
 }
 
 static int tcp_transport_receive(void *opaque, uint8_t *data,
@@ -238,7 +271,14 @@ static int tcp_transport_receive(void *opaque, uint8_t *data,
         amount = X86OS_TCP_RECEIVE_CAPACITY;
     x86os_tcp_io_t io = {
         X86OS_TCP_SOCKET_VERSION, sizeof(io), socket, amount, timeout_ms};
+#ifdef REIST_NATIVE_APP_HTTP
+    if(io.length>512)io.length=512;
+    int r=http_remaining(&io.timeout_ms);if(r)return r;
+    r=x86os_tcp_receive(&io,data);if(r<0)return r;
+    uint32_t remaining=1;int checked=http_remaining(&remaining);return checked?checked:r;
+#else
     return x86os_tcp_receive(&io, data);
+#endif
 }
 
 static int plain_send(void *opaque, const uint8_t *data, uint32_t length) {
@@ -249,6 +289,7 @@ static int plain_receive(void *opaque, uint8_t *data, uint32_t capacity) {
     return tcp_transport_receive(opaque, data, capacity, CURL_IO_TIMEOUT_MS);
 }
 
+#ifndef REIST_NATIVE_APP_HTTP
 static int tls_send(void *opaque, const uint8_t *data, uint32_t length) {
     return reist_tls_client_write((reist_tls_context_t *)opaque, data, length);
 }
@@ -257,6 +298,7 @@ static int tls_receive(void *opaque, uint8_t *data, uint32_t capacity) {
     return reist_tls_client_read((reist_tls_context_t *)opaque, data, capacity);
 }
 
+#endif
 static int send_all(const curl_stream_t *stream, const uint8_t *data,
                     uint32_t length) {
     uint32_t sent = 0U;
@@ -303,9 +345,18 @@ static int publish_ipc_output(uint32_t endpoint) {
 static int write_direct(int descriptor, const uint8_t *data, uint32_t length) {
     uint32_t written = 0U;
     while (written < length) {
+#ifdef REIST_NATIVE_APP_HTTP
+        uint32_t remaining=1;
+        int checked=http_remaining(&remaining);
+        if(checked)return checked;
+#endif
         int result = x86os_write(
             descriptor, data + written, (size_t)(length - written));
         if (result <= 0 || (uint32_t)result > length - written) return result < 0 ? result : -5;
+#ifdef REIST_NATIVE_APP_HTTP
+        checked=http_remaining(&remaining);
+        if(checked)return checked;
+#endif
         written += (uint32_t)result;
     }
     return 0;
@@ -588,10 +639,18 @@ static int receive_body(const curl_stream_t *stream, int output, uint32_t maximu
 }
 
 int main(int argc, char **argv) {
+#ifdef REIST_NATIVE_APP_HTTP
+    reist_app_tcp_grant admitted;
+    if(reist_app_http_operand(argc,(const char *const *)argv,&admitted))return 2;
+#endif
     if (argc == 2 && argv != 0 && text_equal(argv[1], "--help")) {
         x86os_puts("Usage: curl [-i|--include] [-o file] [--max-bytes n] "
                    "http[s]://host/path\n"
+#ifdef REIST_NATIVE_APP_HTTP
+                   "Native HTTP: local numeric peer, stdout only; HTTPS unavailable.\n");
+#else
                    "HTTPS verifies the CA chain, RTC and exact host name.\n");
+#endif
         return 0;
     }
     curl_options_t options;
@@ -610,6 +669,7 @@ int main(int argc, char **argv) {
         x86os_puts("curl: URL is too long for the bounded request\n");
         return 2;
     }
+#ifndef REIST_NATIVE_APP_HTTP
     if (url.scheme == REIST_CURL_SCHEME_HTTPS) {
         int64_t rtc = 0;
         uint64_t monotonic = 0U;
@@ -625,6 +685,7 @@ int main(int argc, char **argv) {
             return 35;
         }
     }
+#endif
     uint32_t address = 0U;
     if (parse_ipv4(url.host, &address) != 0) {
         x86os_dns_result_t dns;
@@ -639,16 +700,28 @@ int main(int argc, char **argv) {
     }
 
     x86os_tcp_socket_t socket = 0U;
+#ifndef REIST_NATIVE_APP_HTTP
     int tls_open = 0;
+#endif
     curl_failure_stage_t failure_stage = CURL_STAGE_TCP;
     curl_stream_t stream = {&socket, plain_send, plain_receive};
+#ifdef REIST_NATIVE_APP_HTTP
+    if(x86os_monotonic_ms(&http_last)||http_last>UINT64_MAX-CURL_TRANSFER_HARD_TIMEOUT_MS)return 28;
+    http_deadline=http_last+CURL_TRANSFER_HARD_TIMEOUT_MS;
+#endif
     result = x86os_tcp_socket_open(&socket);
     if (result == 0) {
         x86os_tcp_connect_t connect = {
             X86OS_TCP_SOCKET_VERSION, sizeof(connect), socket, address,
             url.port, 0U, CURL_CONNECT_TIMEOUT_MS};
+#ifdef REIST_NATIVE_APP_HTTP
+        result=http_remaining(&connect.timeout_ms);
+        if(!result)result=x86os_tcp_connect(&connect);
+#else
         result = x86os_tcp_connect(&connect);
+#endif
     }
+#ifndef REIST_NATIVE_APP_HTTP
     if (result == 0 && url.scheme == REIST_CURL_SCHEME_HTTPS) {
         failure_stage = CURL_STAGE_TLS;
         reist_tls_platform_t platform = {
@@ -674,6 +747,7 @@ int main(int argc, char **argv) {
         }
     }
 
+#endif
     char temporary[CURL_OUTPUT_PATH_CAPACITY];
     int output = X86OS_STDOUT_FILENO;
     if (result == 0 && options.output != 0) {
@@ -706,13 +780,20 @@ int main(int argc, char **argv) {
             : receive_body(&stream, output, options.maximum_bytes);
         if(file_buffer.failed) failure_stage=CURL_STAGE_OUTPUT;
     }
+#ifdef REIST_NATIVE_APP_HTTP
+    if(!result){uint32_t remaining=1;result=http_remaining(&remaining);}
+#endif
     if(!result && options.ipc_endpoint) {
         failure_stage=CURL_STAGE_OUTPUT;
         result=publish_ipc_output(options.ipc_endpoint);
     }
     if(ipc_output.bytes) { x86os_free(ipc_output.bytes); ipc_output.bytes=0; ipc_output.used=ipc_output.capacity=0; }
+#ifndef REIST_NATIVE_APP_HTTP
     if (tls_open) (void)reist_tls_client_close(&tls_context);
     if (socket != 0U) (void)x86os_tcp_socket_close(socket, 2000U);
+#else
+    if (socket != 0U) (void)x86os_tcp_socket_close(socket, 1000U);
+#endif
 
     if (options.output != 0 && output >= 0 && output != X86OS_STDOUT_FILENO) {
         if (result == 0) failure_stage = CURL_STAGE_OUTPUT;

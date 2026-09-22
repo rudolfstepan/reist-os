@@ -9,6 +9,9 @@
 #ifdef REIST_NATIVE_APP_NETWORK
 #ifdef REIST_NATIVE_APP_TCP
 static unsigned session_tcp_active;
+#ifdef REIST_NATIVE_APP_HTTP
+static unsigned session_http_selected;
+#endif
 static unsigned session_input_idle;
 #ifdef REIST_NATIVE_APP_DNS
 static unsigned session_dns_selected;
@@ -471,6 +474,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(!session_app_equal(canonical,"/udp.prg")
 #ifdef REIST_NATIVE_APP_TCP
        &&!session_app_equal(canonical,"/nc.prg")
+#ifdef REIST_NATIVE_APP_HTTP
+       &&!session_app_equal(canonical,"/curl.prg")
+#endif
 #ifdef REIST_NATIVE_APP_DNS
        &&!session_app_equal(canonical,"/nslookup.prg")
 #endif
@@ -499,8 +505,14 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #ifdef REIST_NATIVE_APP_NETWORK
 #ifdef REIST_NATIVE_APP_DNS
     session_dns_selected=session_app_equal(canonical,"/nslookup.prg");
+#ifdef REIST_NATIVE_APP_HTTP
+    session_http_selected=session_app_equal(canonical,"/curl.prg");
+#endif
 #endif
     int64_t child=
+#ifdef REIST_NATIVE_APP_HTTP
+        session_http_selected?session_tcp_import(argc,argv,&startup,&profile):
+#endif
 #ifdef REIST_NATIVE_APP_DNS
         session_dns_selected?session_tcp_import(argc,argv,&startup,&profile):
 #endif

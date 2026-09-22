@@ -341,6 +341,17 @@ ifneq ($(X86_64_NATIVE_APP_NETWORK),1)
 $(error NativeAppTCP requires NativeAppNetwork)
 endif
 endif
+# Explicit local HTTP application profile; preserve earlier profiles by default.
+X86_64_NATIVE_APP_HTTP ?= 0
+ifneq ($(words $(X86_64_NATIVE_APP_HTTP)),1)
+$(error NativeAppHTTP selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_APP_HTTP),0 1),$(X86_64_NATIVE_APP_HTTP))
+$(error NativeAppHTTP selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_APP_HTTP),1)
+X86_64_NATIVE_APP_DNS := 1
+endif
 # Explicit DNS application profile; no ambient resolver authority.
 X86_64_NATIVE_APP_DNS ?= 0
 ifneq ($(words $(X86_64_NATIVE_APP_DNS)),1)
@@ -545,6 +556,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--networ
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_TCP)),--app-tcp,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_DNS)),--app-dns,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_HTTP)),--app-http,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -868,6 +880,12 @@ X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
 X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
+.PHONY: x86_64-application-http-media
+X86_64_APPLICATION_HTTP_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
+X86_64_APPLICATION_HTTP_MEDIA_OUTPUT ?= build/codex-agent/native-application-http-media
+x86_64-application-http-media:
+	@$(PYTHON) scripts/build_x86_64_application_http_media.py --input-directory "$(X86_64_APPLICATION_HTTP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_HTTP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
 .PHONY: x86_64-application-dns-media
 X86_64_APPLICATION_DNS_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)

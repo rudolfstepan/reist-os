@@ -1,13 +1,20 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Aktiv: R8.3bq – normales curl im nativen HTTP-Profil
+## R8.3bq: normales curl im nativen HTTP-Profil abgenommen
 
-Sauberer DNS-Abschluss `7465e3df`. Nächster vertikaler Schnitt: vorhandenes
-`curl.prg` und HTTP-Parser über ziel-/generationsgebundene TCP-Rechte zum
-lokalen Testserver, begrenzte stdout-Ausgabe, signierte Medien und Fehlererholung.
-Bestehende Netzwerkfreigabe gilt. HTTPS, Dateischreiben und Browserrechte sind
-separate Grenzen. Vertrag: [NATIVE_APPLICATION_HTTP_CONTRACT](../architecture/NATIVE_APPLICATION_HTTP_CONTRACT.md).
-Fünf Gates und 25 Gäste sind vor Implementierung eingefroren. R3.6b bleibt vertagt.
+Kandidat01 besteht alle fünf Gates (20,298/2,239/37,921/1700,565/8,204s)
+und25 frische QEMU-Gäste. Normales curl, strikte lokale TCP-Rechte,
+HTTP-Framing und ursprüngliche Frist, begrenzte stdout-Ausgabe sowie signierte
+Elf-Dateien-Medien sind integriert. 4/8GiB, Chunking/Fragmentierung, Größenlimits,
+ungültige Antworten/Rechte/IPC und Anwendungs-/Dienst-/Elternfehler bestehen.
+CPU-, Geräte-, IPC- und Neustartgrenzen bleiben unverändert; frühere Profile
+und UDP/TCP/DNS bestehen ebenfalls. HTTPS, Dateischreiben und Browserrechte
+bleiben separate Grenzen; R3.6b bleibt ausdrücklich vertagt.
+Entwicklung:13 Hostläufe,2 Builds,2 Medienläufe,2 Diagnosegäste; alle früheren
+Fehler bleiben erhalten. Evidenz: build/codex-agent/r83bq-application-http/candidate01/.
+Siegel: `472ae6b447871fc3d0ee17bcd7b990b5e77a988c48eea002cc22574e19813a03`.
+Die native64-Gesamtabnahme bleibt offen; das nächste priorisierte Paket folgt
+nach sauberem lokalem Commit.
 
 ## R8.3bp: nativer DNS-Resolver abgenommen
 
