@@ -76,86 +76,145 @@ static int encode_name(const char *name, uint8_t *output,
     output[output_index++] = 0U; *length_out = output_index; return 0;
 }
 
+/* DNS response validation is a pure, bounded publication boundary. */
+typedef struct {
+    uint16_t owner, data, type, class_code, length;
+    uint32_t ttl;
+} dns_record_t;
+
+static int text_name(const char *source, char output[DNS_MAX_NAME + 1U]) {
+    uint32_t length = 0U, label = 0U;
+    while (length <= DNS_MAX_NAME && source[length]) ++length;
+    if (!length || length > DNS_MAX_NAME) return -22;
+    if (source[length - 1U] == '.') --length;
+    if (!length) return -22;
+    for (uint32_t n = 0U; n < length; ++n) {
+        unsigned char c = (unsigned char)source[n];
+        if (c == '.') {
+            if (!label) return -22;
+            label = 0U;
+        } else if (c <= 32U || c >= 127U || ++label > 63U) return -22;
+        output[n] = c >= 'A' && c <= 'Z' ? (char)(c + ('a' - 'A')) : (char)c;
+    }
+    if (!label) return -22;
+    output[length] = 0;
+    return 0;
+}
+
 static int decode_name(const uint8_t *message, uint32_t length,
                        uint32_t offset, char output[DNS_MAX_NAME + 1U],
-                       uint32_t *consumed_out) {
+                       uint32_t *consumed_out, uint8_t boundaries[512]) {
     uint32_t cursor = offset, output_index = 0U, consumed = 0U;
     uint32_t pointers = 0U; int jumped = 0;
-    for (uint32_t labels = 0U; labels <= 127U; ++labels) {
+    for (uint32_t labels = 0U; labels < 128U; ++labels) {
         if (cursor >= length) return -74;
         uint8_t label = message[cursor];
         if ((label & 0xc0U) == 0xc0U) {
-            if (cursor + 1U >= length || ++pointers > DNS_POINTER_LIMIT)
-                return -74;
-            uint32_t target = ((uint32_t)(label & 0x3fU) << 8U) |
-                              message[cursor + 1U];
-            if (target >= length || target == cursor) return -74;
+            if (cursor + 1U >= length || ++pointers > DNS_POINTER_LIMIT) return -74;
+            uint32_t target = ((uint32_t)(label & 0x3fU) << 8U) | message[cursor + 1U];
+            if (target < 12U || target >= cursor || !boundaries[target]) return -74;
+            boundaries[cursor] = 1U;
             if (!jumped) consumed += 2U;
             cursor = target; jumped = 1; continue;
         }
         if ((label & 0xc0U) != 0U || label > 63U) return -74;
+        boundaries[cursor] = 1U;
         ++cursor; if (!jumped) ++consumed;
-        if (label == 0U) {
-            output[output_index] = '\0'; *consumed_out = consumed; return 0;
+        if (!label) {
+            output[output_index] = 0; *consumed_out = consumed; return 0;
         }
-        if (cursor + label > length || output_index + label + 1U > DNS_MAX_NAME)
-            return -74;
-        if (output_index != 0U) output[output_index++] = '.';
-        for (uint32_t index = 0U; index < label; ++index) {
-            char value = (char)message[cursor + index];
-            output[output_index++] = value >= 'A' && value <= 'Z'
-                ? (char)(value + ('a' - 'A')) : value;
+        if (cursor + label > length || output_index + label + (output_index != 0U) > DNS_MAX_NAME) return -74;
+        if (output_index) output[output_index++] = '.';
+        for (uint32_t n = 0U; n < label; ++n) {
+            unsigned char c = message[cursor + n];
+            if (c <= 32U || c >= 127U || c == '.') return -74;
+            output[output_index++] = c >= 'A' && c <= 'Z' ? (char)(c + ('a' - 'A')) : (char)c;
         }
         cursor += label; if (!jumped) consumed += label;
     }
     return -74;
 }
 
+static int memory_overlap(const void *a, uint32_t an, const void *b, uint32_t bn) {
+    uintptr_t x = (uintptr_t)a, y = (uintptr_t)b;
+    return x > UINTPTR_MAX - an || y > UINTPTR_MAX - bn || (x < y + bn && y < x + an);
+}
+
 int reist_dns_parse_response(const uint8_t *response, uint32_t length,
                              uint16_t transaction, const char *query,
                              uint32_t *address_out, uint32_t *ttl_out) {
-    if (length < 12U || be16(response) != transaction ||
-        (be16(response + 2U) & 0x8000U) == 0U ||
-        (be16(response + 2U) & 0x020fU) != 0U ||
-        be16(response + 4U) != 1U) return -74;
+    if (!response || !query || !address_out || !ttl_out ||
+        memory_overlap(address_out,4U,ttl_out,4U) ||
+        memory_overlap(response,length,address_out,4U) ||
+        memory_overlap(response,length,ttl_out,4U)) return -22;
+    if (length < 12U || length > 512U) return -74;
+    char canonical[DNS_MAX_NAME + 1U], owner[DNS_MAX_NAME + 1U], target[DNS_MAX_NAME + 1U];
+    if (text_name(query,canonical)) return -22;
+    uint32_t query_length = 0U;
+    while (query[query_length]) ++query_length; /* text_name bounded it above */
+    if (memory_overlap(query,query_length+1U,address_out,4U) ||
+        memory_overlap(query,query_length+1U,ttl_out,4U)) return -22;
+    uint16_t flags = be16(response + 2U);
+    if (be16(response) != transaction || !(flags & 0x8000U) ||
+        (flags & 0x7a4fU) || be16(response + 4U) != 1U) return -74;
+    uint8_t boundaries[512] = {0};
     uint32_t offset = 12U, consumed = 0U;
-    char owner[DNS_MAX_NAME + 1U], canonical[DNS_MAX_NAME + 1U];
-    name_copy(canonical, query);
-    if (decode_name(response, length, offset, owner, &consumed) != 0)
-        return -74;
+    if (decode_name(response,length,offset,owner,&consumed,boundaries) ||
+        !name_equal(owner,canonical)) return -74;
     offset += consumed;
     if (offset + 4U > length || be16(response + offset) != 1U ||
         be16(response + offset + 2U) != 1U) return -74;
     offset += 4U;
-    uint32_t records = (uint32_t)be16(response + 6U) +
-                       (uint32_t)be16(response + 8U) +
-                       (uint32_t)be16(response + 10U);
-    if (records > 64U) return -74;
-    for (uint32_t record = 0U; record < records; ++record) {
-        if (decode_name(response, length, offset, owner, &consumed) != 0)
-            return -74;
+    uint32_t answers = be16(response + 6U);
+    uint32_t count = answers + be16(response + 8U) + be16(response + 10U);
+    if (count > 64U) return -74;
+    dns_record_t records[64];
+    for (uint32_t n = 0U; n < count; ++n) {
+        dns_record_t *r = &records[n]; r->owner = (uint16_t)offset;
+        if (decode_name(response,length,offset,owner,&consumed,boundaries)) return -74;
         offset += consumed;
         if (offset + 10U > length) return -74;
-        uint16_t type = be16(response + offset);
-        uint16_t class_code = be16(response + offset + 2U);
-        uint32_t ttl = be32(response + offset + 4U);
-        uint16_t data_length = be16(response + offset + 8U);
-        offset += 10U;
-        if (offset + data_length > length) return -74;
-        if (class_code == 1U && type == 5U && name_equal(owner, canonical)) {
-            char alias[DNS_MAX_NAME + 1U]; uint32_t alias_consumed = 0U;
-            if (decode_name(response, length, offset, alias,
-                            &alias_consumed) != 0) return -74;
-            name_copy(canonical, alias);
-        } else if (class_code == 1U && type == 1U && data_length == 4U &&
-                   name_equal(owner, canonical)) {
-            *address_out = be32(response + offset);
-            *ttl_out = ttl > 3600U ? 3600U : ttl;
-            return *address_out != 0U ? 0 : -74;
-        }
-        offset += data_length;
+        r->type = be16(response + offset); r->class_code = be16(response + offset + 2U);
+        r->ttl = be32(response + offset + 4U); r->length = be16(response + offset + 8U);
+        offset += 10U; r->data = (uint16_t)offset;
+        if (offset + r->length > length) return -74;
+        if (r->type == 5U && (decode_name(response,length,offset,owner,&consumed,boundaries) || consumed != r->length)) return -74;
+        if (r->class_code == 1U && r->type == 1U && r->length != 4U) return -74;
+        offset += r->length;
     }
-    return -2;
+    if (offset != length) return -74;
+    uint64_t visited = 0U;
+    uint32_t ttl = 3600U;
+    for (uint32_t hop = 0U; hop <= 8U; ++hop) {
+        unsigned have_a = 0U, have_alias = 0U, alias_index = 0U;
+        uint32_t address = 0U;
+        for (uint32_t n = 0U; n < answers; ++n) {
+            const dns_record_t *r = &records[n];
+            if (r->class_code != 1U || (r->type != 1U && r->type != 5U)) continue;
+            if (decode_name(response,length,r->owner,owner,&consumed,boundaries)) return -74;
+            if (!name_equal(owner,canonical)) continue;
+            uint32_t value = r->ttl & 0x80000000U ? 0U : r->ttl;
+            if (value < ttl) ttl = value;
+            if (r->type == 1U) {
+                uint32_t candidate = be32(response + r->data);
+                if (!candidate) return -74;
+                if (!have_a) address = candidate;
+                have_a = 1U;
+            } else {
+                if (decode_name(response,length,r->data,owner,&consumed,boundaries)) return -74;
+                if (have_alias && !name_equal(owner,target)) return -74;
+                if (!have_alias) {name_copy(target,owner); alias_index = n;}
+                have_alias = 1U;
+            }
+        }
+        if (have_alias && have_a) return -74;
+        if (have_a) {*address_out = address; *ttl_out = ttl; return 0;}
+        if (!have_alias) return -2;
+        if (hop == 8U || (visited & (UINT64_C(1) << alias_index))) return -74;
+        visited |= UINT64_C(1) << alias_index;
+        name_copy(canonical,target);
+    }
+    return -74;
 }
 
 static int deadline_remaining(uint64_t deadline, uint32_t maximum,

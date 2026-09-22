@@ -35,7 +35,8 @@ malformed/nonmatching response -74, no eligible A answer -2.
   Follow at most8 CNAME links independent of answer order, reject cycles,
   conflicting aliases and simultaneous CNAME/A. Exact CNAME RDLENGTH and A4.
 - TTL is the minimum of the accepted chain and address RRset, capped3600s;
-  zero stays zero. No output mutation on any rejection, including a malformed
+  zero stays zero; RFC2181 section8 high-bit TTLs are treated as zero.
+  No output mutation on any rejection, including a malformed
   suffix after an otherwise valid A. Null/overlapping output parameters fail.
 - Actual C host tests at O0/O2: retained legacy tests, recorded mismatch,
   header/question mutations, compression/RDATA/bounds, reordered chains,
@@ -53,3 +54,20 @@ Check new-file whitespace before freezing; final local commit only after all
 gates pass and exact scope review. No push, agents or destructive Git recovery.
 After the clean commit, inventory/freeze native resolver integration under the
 existing destination/generation-scoped application network approval.
+
+## Development evidence
+
+Development01 fails against unchanged production C: mismatched question returns
+success. Development02 passes actual C at O0/O2 after complete packet validation;
+retained legacy resolver/fragmented-TCP tests also pass. No runtime/network
+claim follows. Final host gate adds exact8/9 pointer-depth,253/254-name and
+high-bit TTL boundaries. All development logs remain; two of eight slots spent.
+
+## Acceptance
+
+Candidate01 passes allthree frozen gates1.853/1.451/1.079s. Actual C at O0/O2,
+retained legacy resolver/fragmented transport tests, exact boundary cases and
+freestanding i386/x86_64 builds pass. Seal `e3035d9a8ad73a2498f4b9e5005008dd09326b5ed7a69e5ea8ea497a1392b038`.
+No new guest, command or runtime qualification is claimed. Cache/transport
+state remains unchanged and awaits the next native resolver transaction.
+High-bit TTL reference: [RFC2181 section8](https://datatracker.ietf.org/doc/html/rfc2181#section-8).

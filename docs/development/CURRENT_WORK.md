@@ -2,14 +2,17 @@
 
 Stand: 22. September 2026
 
-## Aktiv: R8.3bo – DNS-Antwortprüfung
+## R8.3bo: DNS-Antwortprüfung abgenommen
 
-Nach sauberem TCP-Commit `13ca2095` wird der nachgewiesene Fragenamenfehler
-im vorhandenen SDK korrigiert. Ein Paket umfasst vollständige Paketprüfung,
-Kompressionszeiger, CNAME-Ketten, TTL und Publikation erst nach Validierung.
-Hostverhalten und beide freistehenden Zielarchitekturen werden geprüft.
-Native DNS-Transportintegration folgt danach; R3.6b bleibt zurückgestellt.
-Vertrag: [DNS_RESPONSE_VALIDATION_CONTRACT](../architecture/DNS_RESPONSE_VALIDATION_CONTRACT.md).
+Drei Gates bestanden (1,853/1,451/1,079 s): C-Verhalten bei O0/O2,
+freistehende i386-/x86_64-Kompilierung und Quellenabgleich. Falsche Fragenamen,
+beschädigte Paketenden, ungültige Kompressionszeiger/CNAME-Ketten und
+unzulässige Antwortsektionen werden vor jeder Ergebnisveröffentlichung
+abgewiesen. TTL folgt der gesamten Kette. Der ursprüngliche Fehlernachweis
+bleibt erhalten. Diese Parserkorrektur ist noch keine native DNS-Laufzeitabnahme.
+
+Nächster Schritt: Cache-/Fristbindung und native UDP/TCP-Resolverintegration
+unter der vorhandenen Netzwerkfreigabe. R3.6b bleibt zurückgestellt.
 
 ## R8.3bn: native TCP-Clientobjekte abgenommen
 
