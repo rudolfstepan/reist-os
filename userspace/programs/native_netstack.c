@@ -9,6 +9,10 @@ static reist_app_udp_state applications;
 #include <reist/x86_64/application_tcp.h>
 static reist_app_tcp_state tcp_applications;
 #endif
+#ifdef REIST_NATIVE_APP_DNS
+#include <reist/x86_64/application_dns.h>
+static unsigned dns_active;
+#endif
 static reist_net_channel root,frames;
 static reist_net_message control,packet,response;
 static reist_net_protocol protocol;
@@ -35,11 +39,26 @@ static int exchange(unsigned type,const void *data,unsigned n,uint64_t end) {
     uint64_t rpc_end=now+200;
     int r=reist_net_encode(&frames,&packet,type,data,n,0,now,rpc_end);if(r)return r;
     if((r=reist_net_send(&frames,&packet)))return r;
+#ifdef REIST_NATIVE_APP_DNS
+    for(unsigned i=0;i<200;i++) {
+        now=clock_now(0);if(now>=rpc_end){r=-110;break;}
+        unsigned wait=(unsigned)(rpc_end-now);if(wait>100)wait=100;
+        r=reist_net_receive(&frames,&packet,wait);
+        if(r!=-11&&r!=-110)break;
+        if(r==-11) {
+            if(clock_now(0)>=rpc_end){r=-110;break;}
+            if(reist_net_pause(1))return -5;
+        }
+    }
+    if(r==-11||r==-110){frames.failed=1;return -110;}
+#else
     for(unsigned i=0;i<200&&clock_now(0)<rpc_end;i++) {
         r=reist_net_receive(&frames,&packet,0);
         if(r!=-11)break;if(reist_net_pause(1))return -5;
     }
-    if(r==-11){frames.failed=1;return -110;}if(r)return r;
+    if(r==-11){frames.failed=1;return -110;}
+#endif
+    if(r)return r;
     if(packet.type!=REIST_NET_RESULT){frames.failed=1;return -71;}
     if(type==REIST_NET_TX&&packet.result)frames.failed=1;
     return packet.result;
@@ -85,8 +104,28 @@ int main(int argc,char **argv) {
     if(reist_app_tcp_init(&tcp_applications,root.peer,root.owner,reist_net_now()))return 22;
 #endif
     for(;;) {
-        r=reist_net_receive(&root,&control,50);if(r==-11||r==-110)continue;if(r)return 71;
+#ifdef REIST_NATIVE_APP_DNS
+        r=reist_net_receive(&root,&control,100);
+#else
+        r=reist_net_receive(&root,&control,50);
+#endif
+        if(r==-11||r==-110)continue;if(r)return 71;
         if(control.result)return 71;
+#ifdef REIST_NATIVE_APP_DNS
+        if(control.type==REIST_NET_DNS_GRANT&&control.length==64) {
+            reist_app_tcp_grant g;reist_net_copy(&g,control.payload,64);
+            r=reist_app_dns_grant_set(&applications,&tcp_applications,&g,reist_net_now());
+            if(!r)dns_active=1;
+            if(report(REIST_NET_RESULT,0,0,r,control.deadline_ms))return 5;
+            continue;
+        }
+        if(control.type==REIST_NET_DNS_REVOKE&&!control.length) {
+            reist_app_dns_revoke(&applications,&tcp_applications);dns_active=0;
+            if(report(REIST_NET_RESULT,0,0,0,control.deadline_ms))return 5;
+            continue;
+        }
+        if(dns_active&&(control.type==REIST_NET_TCP_REVOKE||control.type==REIST_NET_APP_REVOKE))return 71;
+#endif
 #ifdef REIST_NATIVE_APP_TCP
         if(control.type==REIST_NET_TCP_GRANT&&control.length==64) {
             reist_app_tcp_grant grant;reist_net_copy(&grant,control.payload,sizeof(grant));
@@ -109,6 +148,11 @@ int main(int argc,char **argv) {
                 if(mode==3)for(;;)__asm__ volatile("pause");
             }
             r=reist_app_tcp_exchange(&tcp_applications,&protocol,&io,&q,&reply);
+#ifdef REIST_NATIVE_APP_DNS
+            if(dns_active&&!r&&!reply.result&&q.operation==REIST_APP_TCP_RELEASE) {
+                reist_app_dns_revoke(&applications,&tcp_applications);dns_active=0;
+            }
+#endif
             operation_end=0;if(frames.failed)return 5;
             if(report(REIST_NET_RESULT,r?0:&reply,r?0:sizeof(reply),r,reist_net_now()+100))return 5;
             continue;
@@ -141,7 +185,16 @@ int main(int argc,char **argv) {
                 if(mode==2)for(;;)(void)reist_net_pause(100);
                 if(mode==3)for(;;)__asm__ volatile("pause");
             }
+#ifdef REIST_NATIVE_APP_DNS
+            r=dns_active?reist_app_dns_udp_admit(&applications,&q):0;
+            if(!r)
+#endif
             r=reist_app_udp_exchange(&applications,&protocol,&io,&q,&reply);
+#ifdef REIST_NATIVE_APP_DNS
+            if(dns_active&&!r&&!reply.result&&q.operation==REIST_APP_UDP_RELEASE) {
+                reist_app_dns_revoke(&applications,&tcp_applications);dns_active=0;
+            }
+#endif
             operation_end=0;if(frames.failed)return 5;
             if(report(REIST_NET_RESULT,r?0:&reply,r?0:sizeof(reply),r,reist_net_now()+100))return 5;
             continue;

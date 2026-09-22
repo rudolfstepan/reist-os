@@ -1,5 +1,8 @@
 /* Ordinary TCP SDK adapter over root-owned, directional IPC capabilities. */
 #include <reist/x86_64/application_tcp.h>
+#ifdef REIST_NATIVE_APP_DNS
+#include <reist/x86_64/application_dns.h>
+#endif
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/terminal.h>
 #ifdef REIST_APP_TCP_HOST_TEST
@@ -19,7 +22,12 @@ static unsigned output_used;
 static x86os_ipc_bulk_message_t message;
 /* Private debugger-selected qualification input; never a command operand or
  * authority grant. Ordinary signed images start at zero. */
+#ifdef REIST_NATIVE_APP_DNS
+volatile uint64_t reist_dns_app_selection[2] __attribute__((section(".data.memory_witness")))={0x31505041534e4452ULL,0};
+#define reist_tcp_app_selection reist_dns_app_selection
+#else
 volatile uint64_t reist_tcp_app_selection[2] __attribute__((section(".data.memory_witness")))={0x3150504150435452ULL,0};
+#endif
 #ifndef REIST_APP_TCP_HOST_TEST
 /* Compiler-generated structure copies also need the freestanding C runtime.
  * These are local memory operations, with no service or device transport. */
@@ -82,7 +90,11 @@ static int transact(unsigned op,unsigned handle,unsigned length,const void *data
               512-((op==REIST_APP_TCP_RECV||op==REIST_APP_TCP_STATS)&&!response.result?response.length:0))){r=-71;goto bad;}
     if(!op) {
         reist_app_tcp_grant *g=&response.grant;
+#ifdef REIST_NATIVE_APP_DNS
+        if(g->version!=1||g->size!=64||g->reserved||g->protocol!=17||g->peer!=grant.peer||
+#else
         if(g->version!=1||g->size!=64||g->reserved||g->protocol!=6||g->peer!=grant.peer||
+#endif
            g->local_port!=grant.local_port||g->peer_port!=grant.peer_port||g->application!=grant.application||
            (uint32_t)g->root||!(g->root>>32)||g->root>>32>=g->application>>32||
            (uint32_t)g->service!=5||!(g->service>>32)||g->service>>32>0x7fffffff||
@@ -92,8 +104,17 @@ static int transact(unsigned op,unsigned handle,unsigned length,const void *data
     } else {
         if(!equal(&response.grant,&grant,sizeof(grant))||response.deadline!=q.deadline||
            (op!=REIST_APP_TCP_OPEN&&response.handle!=handle)||
-           (op==REIST_APP_TCP_OPEN&&!response.result&&(!response.handle||response.handle>4))||
+           (op==REIST_APP_TCP_OPEN&&!response.result&&(!response.handle||
+#ifdef REIST_NATIVE_APP_DNS
+             (grant.protocol==6&&response.handle>4)))||
+#else
+             response.handle>4))||
+#endif
+#ifdef REIST_NATIVE_APP_DNS
+           (grant.protocol==6&&response.result&&response.length)||
+#else
            (response.result&&response.length)||
+#endif
            (!response.result&&op==REIST_APP_TCP_SEND&&response.length!=length)||
            (!response.result&&op==REIST_APP_TCP_STATS&&response.length!=sizeof(x86os_tcp_socket_control_t))||
            (op!=REIST_APP_TCP_RECV&&op!=REIST_APP_TCP_SEND&&op!=REIST_APP_TCP_STATS&&response.length)||
@@ -105,14 +126,24 @@ bad:
     failed=1;reist_net_zero(&message,sizeof(message));return r;
 }
 int x86os_tcp_socket_open(x86os_tcp_socket_t *out) {
-    if(!out)return -22;reist_app_tcp_request r;
+    if(!out)return -22;
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
+    reist_app_tcp_request r;
     int status=transact(REIST_APP_TCP_OPEN,0,0,0,1000,&r);if(!status)*out=r.handle;return status;
 }
 int x86os_tcp_socket_close(x86os_tcp_socket_t socket,uint32_t timeout) {
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
     reist_app_tcp_request r;return transact(REIST_APP_TCP_CLOSE,socket,0,0,timeout,&r);
 }
 int x86os_tcp_socket_stats(x86os_tcp_socket_control_t *out) {
     if(!out)return -22;reist_app_tcp_request r;
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
     int status=transact(REIST_APP_TCP_STATS,0,0,0,1000,&r);
     if(status)return status;
     x86os_tcp_socket_control_t stats;reist_net_copy(&stats,r.payload,sizeof(stats));
@@ -124,19 +155,30 @@ int x86os_tcp_socket_stats(x86os_tcp_socket_control_t *out) {
 int x86os_tcp_socket_ingress(const x86os_tcp_segment_t *s,const void *p){(void)s;(void)p;return -13;}
 int x86os_tcp_listen(const x86os_tcp_listen_t *q){(void)q;return -13;}
 int x86os_tcp_accept(x86os_tcp_accept_t *q){(void)q;return -13;}
+#ifndef REIST_NATIVE_APP_DNS
 int x86os_dns_resolve(const char *host,uint32_t timeout,x86os_dns_result_t *r){(void)host;(void)timeout;(void)r;return -13;}
+#endif
 int x86os_tcp_connect(const x86os_tcp_connect_t *q) {
     if(!q||q->version!=1||q->struct_size!=sizeof(*q)||q->reserved||
        q->destination_ip!=grant.peer||q->destination_port!=grant.peer_port)return -22;
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
     reist_app_tcp_request r;return transact(REIST_APP_TCP_CONNECT,q->socket,0,0,q->timeout_ms,&r);
 }
 int x86os_tcp_send(const x86os_tcp_io_t *q,const void *p) {
     if(!q||q->version!=1||q->struct_size!=sizeof(*q))return -22;
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
     reist_app_tcp_request r;int status=transact(REIST_APP_TCP_SEND,q->socket,q->length,p,q->timeout_ms,&r);
     return status?status:(int)r.length;
 }
 int x86os_tcp_receive(x86os_tcp_io_t *q,void *p) {
     if(!q||q->version!=1||q->struct_size!=sizeof(*q)||!q->length||!p)return -22;
+#ifdef REIST_NATIVE_APP_DNS
+    grant.protocol=6;
+#endif
     unsigned capacity=q->length;if(capacity>512)capacity=512;
     reist_app_tcp_request r;int status=transact(REIST_APP_TCP_RECV,q->socket,capacity,0,q->timeout_ms,&r);
     if(status)return status;
@@ -161,6 +203,49 @@ void x86os_putchar(char c) {
     if(output_used==sizeof(output)||c=='\n')output_flush();
 }
 void x86os_puts(const char *p){if(!p){failed=1;return;}for(unsigned n=0;n<1024&&p[n];n++)x86os_putchar(p[n]);}
+#ifdef REIST_NATIVE_APP_DNS
+int x86os_monotonic_ms(uint64_t *out) {
+    if(!out)return -22;uint64_t n=now();if(failed)return -84;*out=n;return 0;
+}
+int x86os_getpid(void){return (int)CALL(GETPID,0,0,0);}
+int x86os_network_control(const x86os_network_control_request_t *q,x86os_network_control_result_t *out) {
+    if(!q||!out||q->version!=X86OS_NETWORK_CONTROL_VERSION||q->struct_size!=sizeof(*q)||q->operation!=X86OS_NETWORK_STATUS)return -13;
+    if(failed||closed||!grant.epoch||now()>=end)return -116;
+    /* The root already validated this interface before issuing the grant. */
+    reist_net_zero(out,sizeof(*out));out->version=X86OS_NETWORK_CONTROL_VERSION;
+    out->struct_size=sizeof(*out);out->configured=1;out->dns_server=grant.peer;return 0;
+}
+void x86os_print_number(int value) {
+    uint32_t n=(uint32_t)value;if(value<0){x86os_putchar('-');n=0U-n;}
+    char digits[10];unsigned count=0;do{digits[count++]=(char)('0'+n%10);n/=10;}while(n);
+    while(count)x86os_putchar(digits[--count]);
+}
+int x86os_udp_socket_open(x86os_udp_socket_t *out) {
+    if(!out)return -22;grant.protocol=17;reist_app_tcp_request r;
+    int status=transact(REIST_APP_UDP_OPEN,0,0,0,1000,&r);if(!status)*out=r.handle;return status;
+}
+int x86os_udp_socket_bind(x86os_udp_socket_t socket,uint16_t port) {
+    if(port&&port!=grant.local_port)return -13;grant.protocol=17;reist_app_tcp_request r;
+    return transact(REIST_APP_UDP_BIND,socket,0,0,1000,&r);
+}
+int x86os_udp_socket_close(x86os_udp_socket_t socket) {
+    grant.protocol=17;reist_app_tcp_request r;return transact(REIST_APP_UDP_CLOSE,socket,0,0,1000,&r);
+}
+int x86os_udp_socket_stats(x86os_udp_socket_control_t *out){(void)out;return -38;}
+int x86os_udp_socket_ingress(const x86os_udp_datagram_t *d,const void *p){(void)d;(void)p;return -13;}
+int x86os_udp_sendto(const x86os_udp_datagram_t *d,const void *p) {
+    if(!d||d->version!=1||d->struct_size!=sizeof(*d)||d->ip!=grant.peer||
+       d->destination_port!=53||(d->source_port&&d->source_port!=grant.local_port))return -22;
+    grant.protocol=17;reist_app_tcp_request r;int status=transact(REIST_APP_UDP_SEND,d->socket,d->length,p,d->timeout_ms,&r);
+    return status?status:(int)r.length;
+}
+int x86os_udp_recvfrom(x86os_udp_datagram_t *d,void *p) {
+    if(!d||d->version!=1||d->struct_size!=sizeof(*d)||d->length>512||(d->length&&!p))return -22;
+    grant.protocol=17;reist_app_tcp_request r;int status=transact(REIST_APP_UDP_RECEIVE,d->socket,d->length,0,d->timeout_ms,&r);
+    if(status)return status;reist_net_copy(p,r.payload,r.length);d->length=r.length;
+    d->ip=grant.peer;d->source_port=grant.peer_port;d->destination_port=grant.local_port;return (int)r.length;
+}
+#endif
 static uint32_t endpoint(const char *p) {
     if(!p||p[0]!='@'||p[1]!='a'||p[2]!='t'||p[3]!='1'||p[4]!=':')return 0;
     uint32_t value=0;
@@ -171,12 +256,20 @@ static uint32_t endpoint(const char *p) {
 extern int __real_main(int,char **);
 int __wrap_main(int argc,char **argv) {
     int64_t pid=CALL(GETPID,0,0,0);uint64_t start=now();
+#ifdef REIST_NATIVE_APP_DNS
+    if(pid<=0||pid>0x7fffffff||start>UINT64_MAX-6000||argc<4||argc>5)return 22;
+#else
     if(pid<=0||pid>0x7fffffff||start>UINT64_MAX-6000||argc<5||argc>6)return 22;
+#endif
     end=start+6000;
     request_endpoint=endpoint(argv[argc-2]);reply_endpoint=endpoint(argv[argc-1]);
     if(!request_endpoint||!reply_endpoint||request_endpoint==reply_endpoint)return 22;
     argc-=2;argv[argc]=0;
+#ifdef REIST_NATIVE_APP_DNS
+    if(reist_app_dns_operand(argc,(const char *const *)argv,&grant))return 22;
+#else
     if(reist_app_tcp_operand(argc,(const char *const *)argv,&grant))return 22;
+#endif
     grant.application=((uint64_t)pid<<32)|6;
     grant.local_port=reist_app_tcp_port_base(grant.application);if(!grant.local_port)return 22;
     for(unsigned n=0;n<100;n++) {
@@ -185,7 +278,11 @@ int __wrap_main(int argc,char **argv) {
         if(n==99||pause_ms(10))return 110;
     }
     reist_app_tcp_request response;if(transact(0,0,0,0,1000,&response))return 5;
+#ifdef REIST_NATIVE_APP_DNS
+    if(reist_tcp_app_selection[0]!=0x31505041534e4452ULL||reist_tcp_app_selection[1]>8)return 22;
+#else
     if(reist_tcp_app_selection[0]!=0x3150504150435452ULL||reist_tcp_app_selection[1]>8)return 22;
+#endif
     if(reist_tcp_app_selection[1]==5)__builtin_trap();
     if(reist_tcp_app_selection[1]==6)for(;;)(void)CALL(SLEEP_MS,100,0,0);
     if(reist_tcp_app_selection[1]==7)for(;;)__asm__ volatile("pause");

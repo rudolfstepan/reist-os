@@ -45,6 +45,7 @@ param(
     [switch]$NativeNetworkSession,
     [switch]$NativeAppNetwork,
     [switch]$NativeAppTCP,
+    [switch]$NativeAppDNS,
     [switch]$NativeInput,
     [switch]$NativeDisplay,
     [switch]$NativeServicePIO,
@@ -71,6 +72,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeAppDNS) { $NativeAppTCP = [switch]$true }
 if ($NativeAppTCP) { $NativeAppNetwork = [switch]$true }
 if ($NativeAppNetwork) { $NativeNetworkSession = [switch]$true }
 if ($NativeNetworkSession) {
@@ -468,6 +470,7 @@ try {
         "X86_64_NATIVE_NETWORK_SESSION=$([int]$NativeNetworkSession.IsPresent)" `
         "X86_64_NATIVE_APP_NETWORK=$([int]$NativeAppNetwork.IsPresent)" `
         "X86_64_NATIVE_APP_TCP=$([int]$NativeAppTCP.IsPresent)" `
+        "X86_64_NATIVE_APP_DNS=$([int]$NativeAppDNS.IsPresent)" `
         "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `

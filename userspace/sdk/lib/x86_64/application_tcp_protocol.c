@@ -14,6 +14,9 @@ typedef struct {
     const reist_app_tcp_request *request;
     uint64_t end,last;
     unsigned reads,sleeps,offset;
+#ifdef REIST_NATIVE_APP_DNS
+    unsigned defer_ack,ack_pending;
+#endif
     uint8_t last_mac[6];
 } tcp_operation;
 static int equal(const uint8_t *p,const uint8_t *q,unsigned n){unsigned d=0;for(unsigned i=0;i<n;i++)d|=p[i]^q[i];return !d;}
@@ -30,6 +33,16 @@ static int time_check(tcp_operation *o) {
 }
 static int pause_ms(void *p,unsigned ms) {
     tcp_operation *o=p;if(!ms||ms>10)return -22;int r=time_check(o);if(r)return r;
+#ifdef REIST_NATIVE_APP_DNS
+    /* One bounded idle wait avoids ten sleep/clock syscall pairs. Reserve
+     * the same ten short intervals before sleeping; never extend end. */
+    if(o->sleeps>190)return -110;
+    o->sleeps+=10;
+    unsigned delay=ms*10;
+    if(delay>o->end-o->last)delay=(unsigned)(o->end-o->last);
+    r=o->io->sleep(o->io->context,delay);if(r)return r;
+    return time_check(o);
+#else
     for(unsigned n=0;n<10;n++) {
         if(++o->sleeps>200)return -110;
         unsigned delay=ms;if(delay>o->end-o->last)delay=(unsigned)(o->end-o->last);
@@ -37,6 +50,7 @@ static int pause_ms(void *p,unsigned ms) {
         if((r=time_check(o)))return r;
     }
     return 0;
+#endif
 }
 static int send_frame(void *p,const uint8_t *frame,unsigned length,uint64_t end) {
     tcp_operation *o=p;int r=time_check(o);if(r)return r;
@@ -67,7 +81,19 @@ static int wire(tcp_operation *o,uint32_t sequence,unsigned flags,const uint8_t 
     put16(frame+50,checksum(sum(frame+34,header+length,sum(frame+26,8,6+header+length))));
     return send_frame(o,frame,14+total,o->end);
 }
-static int acknowledge(tcp_operation *o){return wire(o,o->socket->send_next,ACK,0,0);}
+static int acknowledge(tcp_operation *o){
+#ifdef REIST_NATIVE_APP_DNS
+    if(o->defer_ack){o->ack_pending=1;return 0;}
+#endif
+    return wire(o,o->socket->send_next,ACK,0,0);
+}
+#ifdef REIST_NATIVE_APP_DNS
+static int flush_ack(tcp_operation *o) {
+    if(!o->ack_pending)return 0;
+    o->ack_pending=0;
+    return wire(o,o->socket->send_next,ACK,0,0);
+}
+#endif
 static void sample_rtt(reist_app_tcp_socket *p,uint64_t stamp) {
     if(p->tx_retransmitted||!p->tx_retries||stamp<p->sent_at)return;
     uint64_t elapsed=stamp-p->sent_at;if(elapsed>2000)return;
@@ -179,11 +205,28 @@ static int wait_for(tcp_operation *o,unsigned waiting) {
         int r=time_check(o);if(r)return r;
         if(complete(o,waiting))return 0;
         if((waiting==1||waiting==3)&&(r=transmit(o)))return r;
+#ifdef REIST_NATIVE_APP_DNS
+        o->defer_ack=1;
+#endif
         for(unsigned batch=0;batch<8;batch++) {
+#ifdef REIST_NATIVE_APP_DNS
+            unsigned had_ack=o->ack_pending;
+#endif
             int length=receive_frame(o,frame,sizeof(frame),o->end);
             if(length==-11)break;if(length<0)return length;
             if((r=ingress(o,frame,(unsigned)length)))return r;
+#ifdef REIST_NATIVE_APP_DNS
+            /* RFC9293 cumulative ACK: at most one further bounded RX before
+             * flushing. SYN/close completion needs no speculative empty RX. */
+            if((waiting==3||(waiting==1&&(o->socket->tx_flags&SYN)))&&complete(o,waiting)) {
+                o->defer_ack=0;return flush_ack(o);
+            }
+            if(had_ack&&(r=flush_ack(o)))return r;
+#endif
         }
+#ifdef REIST_NATIVE_APP_DNS
+        o->defer_ack=0;if((r=flush_ack(o)))return r;
+#endif
         if(complete(o,waiting))return 0;
         if((r=pause_ms(o,10)))return r;
     }

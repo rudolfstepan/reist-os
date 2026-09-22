@@ -6,7 +6,12 @@ typedef struct {
     uint64_t end,last;
     unsigned reads,turns;
     uint8_t last_mac[6];
+    unsigned capture,count,length[REIST_APP_UDP_QUEUE];
 } operation_io;
+/* The service dispatches one synchronous operation at a time. Keep staging
+ * out of its 8KiB stack, reject nested entry and scrub every exit. */
+static unsigned operation_busy;
+static uint8_t candidate_frames[REIST_APP_UDP_QUEUE][14+20+8+REIST_APP_UDP_BYTES];
 static int equal(const uint8_t *a,const uint8_t *b,unsigned n){unsigned d=0;for(unsigned i=0;i<n;i++)d|=a[i]^b[i];return !d;}
 static void put16(uint8_t *p,unsigned n){p[0]=(uint8_t)(n>>8);p[1]=(uint8_t)n;}
 static void put32(uint8_t *p,uint32_t n){for(unsigned i=0;i<4;i++)p[i]=(uint8_t)(n>>(24-8*i));}
@@ -26,6 +31,16 @@ static int time_check(operation_io *o) {
 static int pause_ms(void *p,unsigned ms) {
     operation_io *o=p;int r=time_check(o);if(r)return r;
     if(!ms||ms>10)return -22;
+#ifdef REIST_NATIVE_APP_DNS
+    /* One bounded idle wait avoids ten sleep/clock syscall pairs. Reserve
+     * the same ten short intervals before sleeping; never extend end. */
+    if(o->turns>190)return -110;
+    o->turns+=10;
+    unsigned delay=ms*10;
+    if(delay>o->end-o->last)delay=(unsigned)(o->end-o->last);
+    r=o->io->sleep(o->io->context,delay);if(r)return r;
+    return time_check(o);
+#else
     /* Empty RX must not drive a full IPC/device transaction every tick.
      * Sleep at most100ms before polling again, in the existing bounded
      * increments; all ten sleeps share the original absolute deadline. */
@@ -36,6 +51,7 @@ static int pause_ms(void *p,unsigned ms) {
         r=time_check(o);if(r)return r;
     }
     return 0;
+#endif
 }
 static int send_frame(void *p,const uint8_t *f,unsigned n,uint64_t end) {
     operation_io *o=p;int r=time_check(o);if(r)return r;
@@ -51,14 +67,34 @@ static int receive_frame(void *p,uint8_t *f,unsigned cap,uint64_t end) {
     r=o->io->receive(o->io->context,f,cap,end);
     if(r>(int)cap)return -71;
     int checked=time_check(o);if(checked)return checked;
+    /* A response to the previous SEND can precede this operation's ARP
+     * reply in the device FIFO. Hold bounded candidates until ARP has
+     * validated the peer MAC under the existing local-link contract.
+     * These bytes gain no socket authority before full validation below. */
+    if(o->capture&&r>=42&&r<=(int)sizeof(candidate_frames[0])&&
+       f[12]==8&&f[13]==0&&f[23]==17&&o->count<REIST_APP_UDP_QUEUE) {
+        unsigned at=o->count++;o->length[at]=(unsigned)r;
+        reist_net_copy(candidate_frames[at],f,(unsigned)r);
+    }
     if(r>=14)reist_net_copy(o->last_mac,f+6,6);
     return r;
+}
+static int accept_frame(reist_app_udp_state *s,const reist_net_protocol *net,
+                        const reist_app_udp_request *q,const uint8_t peer[6],
+                        const uint8_t *frame,unsigned n,uint64_t now) {
+    reist_udp_parse_result_t udp;
+    if(n<42||!equal(frame,net->mac,6)||!equal(frame+6,peer,6)||
+       read32(frame+26)!=q->grant.peer||read32(frame+30)!=net->ip||
+       reist_udp_parse_frame(frame,n,&udp)||udp.source_port!=q->grant.peer_port||
+       udp.destination_port!=q->grant.local_port||udp.payload_length>512)return 0;
+    int r=reist_app_udp_enqueue(s,&q->grant,frame+udp.payload_offset,udp.payload_length,now);
+    return r&&r!=-105?r:1;
 }
 static int packet_operation(reist_app_udp_state *s,reist_net_protocol *net,const reist_net_io *io,
                             const reist_app_udp_request *q) {
     if(!net->configured||net->ip!=UINT32_C(0xc0000202)||net->mask!=UINT32_C(0xffffff00))return -99;
     uint64_t now=io->now(io->context);if(now>=q->deadline)return -110;
-    operation_io op={.io=io,.end=q->deadline,.last=now};
+    operation_io op={.io=io,.end=q->deadline,.last=now,.capture=q->operation==REIST_APP_UDP_RECEIVE};
     reist_net_io bounded={&op,stamp,pause_ms,send_frame,receive_frame};
     x86os_network_control_request_t arp={.version=2,.struct_size=sizeof(arp),
         .operation=X86OS_NETWORK_ARP_REQUEST,.target_ip=q->grant.peer,.timeout_ms=(uint32_t)(q->deadline-now)};
@@ -66,6 +102,7 @@ static int packet_operation(reist_app_udp_state *s,reist_net_protocol *net,const
      * Only after that success may the intercepted source MAC become a peer. */
     int r=reist_net_protocol_control(net,&arp,&bounded);if(r)return r;
     uint8_t peer[6];reist_net_copy(peer,op.last_mac,6);
+    op.capture=0;
     if(q->operation==REIST_APP_UDP_SEND) {
         uint8_t frame[14+20+8+512]={0};unsigned total=28+q->length;
         reist_net_copy(frame,peer,6);reist_net_copy(frame+6,net->mac,6);put16(frame+12,0x800);
@@ -79,20 +116,20 @@ static int packet_operation(reist_app_udp_state *s,reist_net_protocol *net,const
         put16(frame+40,checksum?checksum:65535);
         r=send_frame(&op,frame,14+total,q->deadline);return r?r:time_check(&op);
     }
+    unsigned staged=0;
+    for(unsigned n=0;n<op.count;n++) {
+        r=accept_frame(s,net,q,peer,candidate_frames[n],op.length[n],op.last);
+        if(r<0)return r;staged|=(unsigned)r;
+    }
+    if(staged)return 0;
     uint8_t frame[REIST_NET_FRAME];
     for(unsigned turn=0;turn<200;turn++) {
         unsigned accepted=0;
         for(unsigned batch=0;batch<8;batch++) {
             int n=receive_frame(&op,frame,sizeof(frame),q->deadline);
             if(n==-11)break;if(n<0)return n;
-            reist_udp_parse_result_t udp;
-            if(n<42||!equal(frame,net->mac,6)||!equal(frame+6,peer,6)||
-               read32(frame+26)!=q->grant.peer||read32(frame+30)!=net->ip||
-               reist_udp_parse_frame(frame,(unsigned)n,&udp)||udp.source_port!=q->grant.peer_port||
-               udp.destination_port!=q->grant.local_port||udp.payload_length>512)continue;
-            r=reist_app_udp_enqueue(s,&q->grant,frame+udp.payload_offset,udp.payload_length,op.last);
-            if(r&&r!=-105)return r;
-            accepted=1;
+            r=accept_frame(s,net,q,peer,frame,(unsigned)n,op.last);
+            if(r<0)return r;accepted|=(unsigned)r;
         }
         if(accepted)return 0;
         r=pause_ms(&op,10);if(r)return r;
@@ -102,7 +139,13 @@ static int packet_operation(reist_app_udp_state *s,reist_net_protocol *net,const
 int reist_app_udp_exchange(reist_app_udp_state *s,reist_net_protocol *net,const reist_net_io *io,
                            const reist_app_udp_request *q,reist_app_udp_request *reply) {
     if(!net||!io||!io->now||!io->sleep||!io->send||!io->receive)return -22;
-    int r=reist_app_udp_begin(s,q,reply,io->now(io->context));if(r!=1)return r;
-    r=packet_operation(s,net,io,q);
-    return reist_app_udp_finish(s,q,reply,r,io->now(io->context));
+    if(operation_busy)return -16;
+    operation_busy=1;
+    int r=reist_app_udp_begin(s,q,reply,io->now(io->context));
+    if(r==1) {
+        r=packet_operation(s,net,io,q);
+        r=reist_app_udp_finish(s,q,reply,r,io->now(io->context));
+    }
+    reist_net_zero(candidate_frames,sizeof(candidate_frames));operation_busy=0;
+    return r;
 }

@@ -5,6 +5,11 @@ static reist_app_tcp_grant tcp_grant;
 static uint64_t tcp_epoch,tcp_sequence;
 static uint32_t tcp_request,tcp_reply;
 static unsigned tcp_transport_failed;
+#ifdef REIST_NATIVE_APP_DNS
+#include <reist/x86_64/application_dns.h>
+static unsigned tcp_dns;
+static uint64_t tcp_dns_sequence[2];
+#endif
 volatile uint64_t reist_tcp_root_selection[2] __attribute__((section(".data.memory_witness")))={0x31544f4f52544352ULL,0};
 static int tcp_equal(const void *a,const void *b,unsigned n) {
     const uint8_t *p=a,*q=b;unsigned d=0;for(unsigned i=0;i<n;i++)d|=p[i]^q[i];return !d;
@@ -14,7 +19,17 @@ static void tcp_close_channels(void) {
     if(tcp_reply){if(SESSION_S1(IPC_CLOSE,tcp_reply))session_stop(-5);tcp_reply=0;}
 }
 static int tcp_stack(unsigned operation,const void *p,unsigned length,uint64_t end) {
+#ifdef REIST_NATIVE_APP_DNS
+    unsigned wire_operation=operation;
+    if(tcp_dns) {
+        if(operation==REIST_NET_TCP_GRANT)wire_operation=REIST_NET_DNS_GRANT;
+        if(operation==REIST_NET_TCP_REVOKE)wire_operation=REIST_NET_DNS_REVOKE;
+        if(operation==REIST_NET_TCP_REQUEST&&((const reist_app_tcp_request *)p)->grant.protocol==17)wire_operation=REIST_NET_APP_REQUEST;
+    }
+    int r=network_send(1,wire_operation,p,length,end);if(r){tcp_transport_failed=1;return r;}
+#else
     int r=network_send(1,operation,p,length,end);if(r){tcp_transport_failed=1;return r;}
+#endif
     /* Drain the already admitted operation's bounded result grace even when
      * packet time expires; never confuse that reply with a later revoke ACK. */
     end+=(operation==REIST_NET_TCP_REQUEST?100:0);
@@ -51,7 +66,12 @@ static int session_tcp_revoke(void) {
 }
 static int64_t session_tcp_import(int argc,const char *const *argv,reist_task_startup_v1_t *startup,
                                  reist_task_profile_v1_t *profile) {
+#ifdef REIST_NATIVE_APP_DNS
+    tcp_dns=session_dns_selected;tcp_dns_sequence[0]=tcp_dns_sequence[1]=0;
+    reist_app_tcp_grant selected;int r=tcp_dns?reist_app_dns_operand(argc,argv,&selected):reist_app_tcp_operand(argc,argv,&selected);if(r)return r;
+#else
     reist_app_tcp_grant selected;int r=reist_app_tcp_operand(argc,argv,&selected);if(r)return r;
+#endif
     if(reist_tcp_root_selection[0]!=0x31544f4f52544352ULL||reist_tcp_root_selection[1]>8)return -22;
     if(tcp_request||tcp_reply||session_tcp_active||network_busy)return -16;
     if(tcp_epoch==UINT64_MAX)return -75;
@@ -59,6 +79,9 @@ static int64_t session_tcp_import(int argc,const char *const *argv,reist_task_st
     if((intptr_t)image<=0)return -12;
     session_bytes(image,session_prepared,REIST_X64_PREPARED_V2_BYTES);
     network_busy=1;tcp_transport_failed=0;
+#ifdef REIST_NATIVE_APP_DNS
+    if(tcp_dns)session_network_retire();
+#endif
     unsigned fault=(unsigned)reist_tcp_root_selection[1];
     if(fault>=1&&fault<=7) {
         session_network_retire();network_fault=fault==7?1:fault;
@@ -127,20 +150,45 @@ static int64_t session_tcp_wait(int *timed_out) {
         if(!hello) {
             reist_app_tcp_request expected={0};expected.grant.version=1;expected.grant.size=64;
             expected.grant.application=session_child;expected.grant.protocol=6;expected.grant.peer=tcp_grant.peer;
+#ifdef REIST_NATIVE_APP_DNS
+            if(tcp_dns)expected.grant.protocol=17;
+#endif
             expected.grant.local_port=tcp_grant.local_port;expected.grant.peer_port=tcp_grant.peer_port;expected.deadline=q.deadline;
             if(!tcp_equal(&q,&expected,608)){fault=-116;break;}
             response.grant=tcp_grant;hello=1;
         } else {
+#ifdef REIST_NATIVE_APP_DNS
+            reist_app_tcp_grant checked=q.grant;if(tcp_dns)checked.protocol=17;
+            if(!tcp_equal(&checked,&tcp_grant,64)||tcp_sequence>=64||q.sequence!=tcp_sequence+1){fault=-116;break;}
+#else
             if(!tcp_equal(&q.grant,&tcp_grant,64)||tcp_sequence>=64||q.sequence!=tcp_sequence+1){fault=-116;break;}
+#endif
             if(reist_tcp_root_selection[1]==8&&q.operation==REIST_APP_TCP_SEND)__builtin_trap();
+#ifdef REIST_NATIVE_APP_DNS
+            uint64_t service_sequence=q.sequence;
+            if(tcp_dns) {
+                r=reist_app_dns_translate(&tcp_grant,&q,&response,tcp_dns_sequence);
+                if(r){fault=r;break;}service_sequence=response.sequence;
+                r=tcp_stack(REIST_NET_TCP_REQUEST,&response,608,q.deadline);
+            } else
+#endif
             r=tcp_stack(REIST_NET_TCP_REQUEST,&q,608,q.deadline);
             if(r){fault=r;break;}
             if(network_message.length!=608){tcp_transport_failed=1;fault=-71;break;}
             session_bytes(&response,network_message.payload,608);
+#ifdef REIST_NATIVE_APP_DNS
+            if(tcp_dns) {
+                if(!tcp_equal(&response.grant,&q.grant,64)||response.sequence!=service_sequence){tcp_transport_failed=1;fault=-71;break;}
+                response.grant.protocol=17;response.sequence=q.sequence;
+            }
+#endif
             if(!tcp_equal(&response.grant,&tcp_grant,64)||response.operation!=q.operation||
                response.sequence!=q.sequence||response.deadline!=q.deadline||response.result>0||response.result< -4095||
                response.length>512||(q.operation!=REIST_APP_TCP_OPEN&&response.handle!=q.handle)){tcp_transport_failed=1;fault=-71;break;}
             tcp_sequence=q.sequence;
+#ifdef REIST_NATIVE_APP_DNS
+            if(tcp_dns)response.grant=q.grant;
+#endif
             if(q.operation==REIST_APP_TCP_RELEASE&&!response.result)released=1;
         }
         now=session_now();if(now>=q.deadline){fault=-110;break;}

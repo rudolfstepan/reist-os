@@ -341,6 +341,19 @@ ifneq ($(X86_64_NATIVE_APP_NETWORK),1)
 $(error NativeAppTCP requires NativeAppNetwork)
 endif
 endif
+# Explicit DNS application profile; no ambient resolver authority.
+X86_64_NATIVE_APP_DNS ?= 0
+ifneq ($(words $(X86_64_NATIVE_APP_DNS)),1)
+$(error NativeAppDNS selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_APP_DNS),0 1),$(X86_64_NATIVE_APP_DNS))
+$(error NativeAppDNS selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_APP_DNS),1)
+ifneq ($(X86_64_NATIVE_APP_TCP),1)
+$(error NativeAppDNS requires NativeAppTCP)
+endif
+endif
 X86_64_NATIVE_INPUT ?= 0
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
@@ -531,6 +544,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dm
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_TCP)),--app-tcp,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_DNS)),--app-dns,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -854,6 +868,12 @@ X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
 X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
+.PHONY: x86_64-application-dns-media
+X86_64_APPLICATION_DNS_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
+X86_64_APPLICATION_DNS_MEDIA_OUTPUT ?= build/codex-agent/native-application-dns-media
+x86_64-application-dns-media:
+	@$(PYTHON) scripts/build_x86_64_application_dns_media.py --input-directory "$(X86_64_APPLICATION_DNS_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_DNS_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
 .PHONY: x86_64-application-tcp-media
 X86_64_APPLICATION_TCP_MEDIA_INPUT ?= build/x86_64

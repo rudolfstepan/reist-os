@@ -1,13 +1,23 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Aktiv: R8.3bp – nativer DNS-Resolver
+## R8.3bp: nativer DNS-Resolver abgenommen
 
-Nach sauberem Parser-Commit `638f5269` folgt ein zusammenhängendes Paket:
-`nslookup.prg`, Cache-/Fristbindung, gepaarte UDP/TCP-Rechte für denselben
-lokalen Testserver, signierte Medien und Fehlererholung. Die bestehenden
-CPU-/IPC-/Neustartgrenzen bleiben bestehen. Fünf Gates und 25 frische Gäste
-sind vor der Implementierung festgelegt. Noch keine native DNS-Abnahme.
-Vertrag: [NATIVE_APPLICATION_DNS_CONTRACT](../architecture/NATIVE_APPLICATION_DNS_CONTRACT.md).
+Kandidat04 besteht alle fünf Gates (15,534/2,297/42,578/1676,145/9,900 s)
+und 25 frische QEMU-Gäste. Normales `nslookup.prg`, sichere Antwort-/Cacheprüfung,
+ursprüngliche Gesamtfrist, gepaarte UDP/TCP-Rechte und signierte Medien sind
+integriert. 4/8 GiB, TCP-Fragmentierung, ungültige Antworten/Rechte/IPC sowie
+Anwendungs-, Stack-, Treiber- und Elternfehler bestehen mit vollständiger
+Bereinigung. CPU-/IPC-/Neustartgrenzen bleiben unverändert.
+
+TCP bündelt begrenzt Bestätigungen; UDP/TCP vermeiden zehnfache Schlafaufrufe.
+Alle früheren Fehler bleiben erhalten: 31 Entwicklungstests, zehn Builds,
+elf Diagnosegäste und insgesamt 68 Abnahmegäste. Kandidaten01..03 sind verworfen.
+Evidenz: `build/codex-agent/r83bp-application-dns/candidate04/`.
+Siegel: `67de6f79f1197954ae0f6be953bd4f50429a1bce9d96c17ee707c4a1ad6014de`.
+
+Nächster Schritt: verbleibende native64-Integration am sauberen Commit
+inventarisieren und das nächste zusammenhängende Paket festlegen.
+R3.6b bleibt zurückgestellt; noch keine vollständige native64-Systemabnahme.
 
 ## R8.3bo: DNS-Antwortprüfung abgenommen
 

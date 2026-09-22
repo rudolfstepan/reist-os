@@ -14,13 +14,16 @@
 typedef struct {
     uint8_t active;
     char name[DNS_MAX_NAME + 1U];
-    uint32_t address;
+    uint32_t address, server;
+    char canonical[DNS_MAX_NAME + 1U];
     uint64_t expires_ms;
 } dns_cache_entry_t;
 
 static dns_cache_entry_t dns_cache[DNS_CACHE_SLOTS];
 static uint32_t dns_cache_next;
 static uint16_t dns_transaction;
+static uint64_t dns_previous_ms;
+static unsigned dns_clock_seen;
 
 static void zero_bytes(void *pointer, uint32_t length) {
     volatile uint8_t *bytes = (volatile uint8_t *)pointer;
@@ -140,9 +143,9 @@ static int memory_overlap(const void *a, uint32_t an, const void *b, uint32_t bn
     return x > UINTPTR_MAX - an || y > UINTPTR_MAX - bn || (x < y + bn && y < x + an);
 }
 
-int reist_dns_parse_response(const uint8_t *response, uint32_t length,
+static int dns_parse_response(const uint8_t *response, uint32_t length,
                              uint16_t transaction, const char *query,
-                             uint32_t *address_out, uint32_t *ttl_out) {
+                             uint32_t *address_out, uint32_t *ttl_out, char *canonical_out) {
     if (!response || !query || !address_out || !ttl_out ||
         memory_overlap(address_out,4U,ttl_out,4U) ||
         memory_overlap(response,length,address_out,4U) ||
@@ -208,7 +211,10 @@ int reist_dns_parse_response(const uint8_t *response, uint32_t length,
             }
         }
         if (have_alias && have_a) return -74;
-        if (have_a) {*address_out = address; *ttl_out = ttl; return 0;}
+        if (have_a) {
+            if (canonical_out) name_copy(canonical_out,canonical);
+            *address_out = address; *ttl_out = ttl; return 0;
+        }
         if (!have_alias) return -2;
         if (hop == 8U || (visited & (UINT64_C(1) << alias_index))) return -74;
         visited |= UINT64_C(1) << alias_index;
@@ -217,10 +223,25 @@ int reist_dns_parse_response(const uint8_t *response, uint32_t length,
     return -74;
 }
 
+int reist_dns_parse_response(const uint8_t *response, uint32_t length,
+                             uint16_t transaction, const char *query,
+                             uint32_t *address_out, uint32_t *ttl_out) {
+    return dns_parse_response(response,length,transaction,query,address_out,ttl_out,0);
+}
+
+static int dns_clock(uint64_t *out) {
+    uint64_t now;
+    if (x86os_monotonic_ms(&now)) return -5;
+    if (dns_clock_seen && now < dns_previous_ms) {
+        zero_bytes(dns_cache,sizeof(dns_cache));return -84;
+    }
+    dns_previous_ms=now;dns_clock_seen=1U;*out=now;return 0;
+}
+
 static int deadline_remaining(uint64_t deadline, uint32_t maximum,
                               uint32_t *remaining_out) {
     uint64_t now = 0U;
-    if (remaining_out == 0 || x86os_monotonic_ms(&now) != 0 ||
+    if (remaining_out == 0 || dns_clock(&now) != 0 ||
         now >= deadline) return -110;
     uint64_t remaining = deadline - now;
     uint32_t bounded = remaining > UINT32_MAX
@@ -273,7 +294,8 @@ static int dns_tcp_receive_exact(x86os_tcp_socket_t socket, uint8_t *data,
 static int dns_resolve_tcp(uint32_t server, const uint8_t *query,
                            uint32_t query_length, uint16_t transaction,
                            const char *name, uint64_t deadline,
-                           uint32_t *address_out, uint32_t *ttl_out) {
+                           uint32_t *address_out, uint32_t *ttl_out,
+                           char *canonical, uint64_t *received_at) {
     if (query == 0 || query_length < 12U ||
         query_length > X86OS_UDP_MAX_DATAGRAM) return -22;
     uint8_t framed[X86OS_UDP_MAX_DATAGRAM + 2U];
@@ -309,9 +331,10 @@ static int dns_resolve_tcp(uint32_t server, const uint8_t *query,
         result = dns_tcp_receive_exact(socket, response, response_length,
                                        deadline);
     if (result == 0)
-        result = reist_dns_parse_response(
+        result = dns_parse_response(
             response, response_length, transaction, name,
-            address_out, ttl_out);
+            address_out, ttl_out, canonical);
+    if (result == 0 && (dns_clock(received_at) || *received_at >= deadline)) result = -110;
     if (socket != 0U)
         (void)x86os_tcp_socket_close(socket, DNS_TCP_CLOSE_MAX_MS);
     return result;
@@ -319,81 +342,77 @@ static int dns_resolve_tcp(uint32_t server, const uint8_t *query,
 
 int x86os_dns_resolve_at(const char *name, uint32_t server,
                          uint32_t timeout_ms, x86os_dns_result_t *result) {
-    if (name == 0 || result == 0 || timeout_ms == 0U || timeout_ms > 10000U)
-        return -22;
+    if (!name || !result || !server || !timeout_ms || timeout_ms > 10000U) return -22;
+    char normalized[DNS_MAX_NAME + 1U], canonical[DNS_MAX_NAME + 1U];
+    if (text_name(name,normalized)) return -22;
     uint64_t now = 0U;
-    if (x86os_monotonic_ms(&now) != 0) return -5;
+    int rc = dns_clock(&now);if (rc) return rc;
     if (UINT64_MAX - now < timeout_ms) return -75;
     uint64_t deadline = now + timeout_ms;
     for (uint32_t slot = 0U; slot < DNS_CACHE_SLOTS; ++slot) {
-        if (dns_cache[slot].active && dns_cache[slot].expires_ms > now &&
-            name_equal(dns_cache[slot].name, name)) {
-            zero_bytes(result, sizeof(*result));
-            result->version = X86OS_DNS_RESULT_VERSION;
-            result->struct_size = sizeof(*result);
-            result->address = dns_cache[slot].address;
-            result->from_cache = 1U;
-            name_copy(result->canonical_name, dns_cache[slot].name);
-            return 0;
+        const dns_cache_entry_t *entry=&dns_cache[slot];
+        if (entry->active && entry->server==server && entry->expires_ms>now && name_equal(entry->name,normalized)) {
+            x86os_dns_result_t ready;zero_bytes(&ready,sizeof(ready));
+            ready.version=X86OS_DNS_RESULT_VERSION;ready.struct_size=sizeof(ready);
+            ready.address=entry->address;ready.from_cache=1U;
+            ready.ttl_seconds=(uint32_t)((entry->expires_ms-now)/1000U);
+            name_copy(ready.canonical_name,entry->canonical);*result=ready;return 0;
         }
     }
-    if (server == 0U) return -22;
-    uint8_t query[X86OS_UDP_MAX_DATAGRAM];
-    zero_bytes(query, sizeof(query));
-    uint32_t encoded = 0U;
-    if (encode_name(name, query + 12U, sizeof(query) - 16U, &encoded) != 0)
-        return -22;
-    uint16_t transaction = ++dns_transaction;
-    if (transaction == 0U) transaction = ++dns_transaction;
-    put16(query, transaction); put16(query + 2U, 0x0100U);
-    put16(query + 4U, 1U);
-    uint32_t query_length = 12U + encoded;
-    put16(query + query_length, 1U); put16(query + query_length + 2U, 1U);
-    query_length += 4U;
-    x86os_udp_socket_t socket = 0U;
-    int rc = x86os_udp_socket_open(&socket);
-    uint16_t local_port = (uint16_t)(49152U +
-        ((uint32_t)x86os_getpid() + transaction) % 8192U);
-    if (rc == 0) rc = x86os_udp_socket_bind(socket, local_port);
-    x86os_udp_datagram_t datagram;
-    zero_bytes(&datagram, sizeof(datagram));
-    datagram.version = X86OS_UDP_SOCKET_VERSION;
-    datagram.struct_size = sizeof(datagram); datagram.socket = socket;
-    datagram.ip = server; datagram.destination_port = DNS_PORT;
-    uint32_t udp_timeout = timeout_ms / 2U;
-    if (udp_timeout == 0U) udp_timeout = 1U;
-    if (udp_timeout > 2000U) udp_timeout = 2000U;
-    datagram.length = query_length; datagram.timeout_ms = udp_timeout;
-    if (rc == 0) rc = x86os_udp_sendto(&datagram, query);
-    if (rc >= 0) rc = 0;
+    uint8_t query[X86OS_UDP_MAX_DATAGRAM];zero_bytes(query,sizeof(query));
+    uint32_t encoded=0U;
+    if (encode_name(normalized,query+12U,sizeof(query)-16U,&encoded)) return -22;
+    uint16_t transaction=++dns_transaction;if (!transaction) transaction=++dns_transaction;
+    put16(query,transaction);put16(query+2U,0x0100U);put16(query+4U,1U);
+    uint32_t query_length=12U+encoded;put16(query+query_length,1U);put16(query+query_length+2U,1U);query_length+=4U;
+    x86os_udp_socket_t socket=0U;rc=x86os_udp_socket_open(&socket);
+#ifdef REIST_NATIVE_APP_DNS
+    uint16_t local_port=0U; /* exact grant-owned ephemeral port */
+#else
+    uint16_t local_port=(uint16_t)(49152U+((uint32_t)x86os_getpid()+transaction)%8192U);
+#endif
+    if (!rc) rc=x86os_udp_socket_bind(socket,local_port);
+    x86os_udp_datagram_t datagram;zero_bytes(&datagram,sizeof(datagram));
+    datagram.version=X86OS_UDP_SOCKET_VERSION;datagram.struct_size=sizeof(datagram);datagram.socket=socket;
+    datagram.ip=server;datagram.destination_port=DNS_PORT;datagram.length=query_length;
+    uint32_t udp_timeout=timeout_ms/2U;if (!udp_timeout) udp_timeout=1U;if (udp_timeout>2000U) udp_timeout=2000U;
+    if (!rc) rc=deadline_remaining(deadline,udp_timeout,&datagram.timeout_ms);
+    if (!rc) {int sent=x86os_udp_sendto(&datagram,query);rc=sent==(int)query_length?0:sent<0?sent:-5;}
     uint8_t response[X86OS_UDP_MAX_DATAGRAM];
-    if (rc == 0) {
-        zero_bytes(&datagram, sizeof(datagram));
-        datagram.version = X86OS_UDP_SOCKET_VERSION;
-        datagram.struct_size = sizeof(datagram); datagram.socket = socket;
-        datagram.length = sizeof(response); datagram.timeout_ms = udp_timeout;
-        rc = x86os_udp_recvfrom(&datagram, response);
+    if (!rc) {
+        zero_bytes(&datagram,sizeof(datagram));datagram.version=X86OS_UDP_SOCKET_VERSION;
+        datagram.struct_size=sizeof(datagram);datagram.socket=socket;datagram.length=sizeof(response);
+        rc=deadline_remaining(deadline,udp_timeout,&datagram.timeout_ms);
+        if (!rc) {
+            int received=x86os_udp_recvfrom(&datagram,response);
+            rc=received>0 && (uint32_t)received==datagram.length && datagram.length<=sizeof(response)?0:received<0?received:-74;
+        }
     }
-    uint32_t address = 0U, ttl = 0U;
-    if (rc >= 0 && (datagram.ip != server ||
-                    datagram.source_port != DNS_PORT)) rc = -74;
-    if (rc >= 0) rc = reist_dns_parse_response(
-        response, datagram.length, transaction, name, &address, &ttl);
-    if (socket != 0U) (void)x86os_udp_socket_close(socket);
-    if (rc != 0) {
-        rc = dns_resolve_tcp(server, query, query_length, transaction, name,
-                             deadline, &address, &ttl);
-        if (rc != 0) return rc;
+    uint32_t address=0U,ttl=0U;uint64_t received_at=0U;
+    if (!rc && (datagram.ip!=server || datagram.source_port!=DNS_PORT)) rc=-74;
+    if (!rc) rc=dns_parse_response(response,datagram.length,transaction,normalized,&address,&ttl,canonical);
+    if (!rc && (dns_clock(&received_at) || received_at>=deadline)) rc=-110;
+    if (socket) (void)x86os_udp_socket_close(socket);
+    if (rc) {
+        uint32_t remaining;
+        if (deadline_remaining(deadline,DNS_TCP_CONNECT_MAX_MS,&remaining)) return -110;
+        rc=dns_resolve_tcp(server,query,query_length,transaction,normalized,deadline,&address,&ttl,canonical,&received_at);
+        if (rc) return rc;
     }
-    dns_cache_entry_t *entry = &dns_cache[dns_cache_next++ % DNS_CACHE_SLOTS];
-    entry->active = 1U; name_copy(entry->name, name); entry->address = address;
-    entry->expires_ms = now + (uint64_t)(ttl == 0U ? 1U : ttl) * 1000U;
-    zero_bytes(result, sizeof(*result));
-    result->version = X86OS_DNS_RESULT_VERSION;
-    result->struct_size = sizeof(*result);
-    result->address = address; result->ttl_seconds = ttl;
-    name_copy(result->canonical_name, name);
-    return 0;
+    /* Cleanup has a separate bounded window, never a new resolution deadline. */
+    rc=dns_clock(&now);if (rc) return rc;
+    if (now>=deadline) return -110;
+    uint64_t life=(uint64_t)ttl*1000U;
+    if (UINT64_MAX-received_at<life) return -75;
+    uint64_t expires=received_at+life;
+    if (ttl && expires>now) {
+        dns_cache_entry_t *entry=&dns_cache[dns_cache_next++%DNS_CACHE_SLOTS];
+        zero_bytes(entry,sizeof(*entry));name_copy(entry->name,normalized);name_copy(entry->canonical,canonical);
+        entry->server=server;entry->address=address;entry->expires_ms=expires;entry->active=1U;
+    }
+    x86os_dns_result_t ready;zero_bytes(&ready,sizeof(ready));
+    ready.version=X86OS_DNS_RESULT_VERSION;ready.struct_size=sizeof(ready);
+    ready.address=address;ready.ttl_seconds=ttl;name_copy(ready.canonical_name,canonical);*result=ready;return 0;
 }
 
 int x86os_dns_resolve(const char *name, uint32_t timeout_ms,

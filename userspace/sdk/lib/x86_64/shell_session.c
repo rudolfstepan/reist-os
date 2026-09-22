@@ -10,6 +10,9 @@
 #ifdef REIST_NATIVE_APP_TCP
 static unsigned session_tcp_active;
 static unsigned session_input_idle;
+#ifdef REIST_NATIVE_APP_DNS
+static unsigned session_dns_selected;
+#endif
 static int64_t session_tcp_import(int,const char *const *,reist_task_startup_v1_t *,reist_task_profile_v1_t *);
 static int64_t session_tcp_wait(int *);
 static int session_tcp_revoke(void);
@@ -468,6 +471,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(!session_app_equal(canonical,"/udp.prg")
 #ifdef REIST_NATIVE_APP_TCP
        &&!session_app_equal(canonical,"/nc.prg")
+#ifdef REIST_NATIVE_APP_DNS
+       &&!session_app_equal(canonical,"/nslookup.prg")
+#endif
 #endif
        )session_network_retire();
 #endif
@@ -491,7 +497,13 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #endif
 #ifdef REIST_NATIVE_APP_FILES
 #ifdef REIST_NATIVE_APP_NETWORK
+#ifdef REIST_NATIVE_APP_DNS
+    session_dns_selected=session_app_equal(canonical,"/nslookup.prg");
+#endif
     int64_t child=
+#ifdef REIST_NATIVE_APP_DNS
+        session_dns_selected?session_tcp_import(argc,argv,&startup,&profile):
+#endif
 #ifdef REIST_NATIVE_APP_TCP
         session_app_equal(canonical,"/nc.prg")?session_tcp_import(argc,argv,&startup,&profile):
 #endif

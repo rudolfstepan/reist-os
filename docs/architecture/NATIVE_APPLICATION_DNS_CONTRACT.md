@@ -357,3 +357,73 @@ normal/short deadlines, exhausted budget, sleep failure and clock regression.
 Health gaps remain <=100ms plus existing bounded IPC; no CPU budget increase.
 Candidate03 retains the previously frozen five commands and25 fresh guests;
 freeze it only after the corrected diagnostic passes independent review.
+
+Scope amendment committed as387ae858. Host27 failed the actual idle syscall
+count as expected; host28 passed14.136s after correction. Both transport
+changes are NativeAppDNS-only, preserving old callback contracts and profile
+behavior. The TCP disabled branch is now explicitly in gate2's token projection.
+Build09 passed34.577s; diagnostic10 is reserved/running. No matrix acceptance
+is inferred from host or build success. All earlier failures remain retained.
+
+Diagnostic10 passed81.966s and independent raw review: two successful DNS
+applications, ordinary UDP,31 packets,12 service generations,130 raw events,
+no unplanned CPU failure, complete cleanup. Candidate03 now freezes the same
+five gates and25 fresh guests. Spent development:28 hosts,9 builds,10 guests;
+spent prior qualification:34 guests. Source review confirms bounded100ms
+sleep, original absolute deadline and200-interval budget, opt-out token
+preservation, unchanged CPU/IPC/grant limits and no new authority. New evidence
+is hash-bound with all retained positive/negative regression inputs. Do not
+modify candidate implementation or tools during these frozen gates.
+
+## Candidate03 rejection: bounded cumulative ACK work
+
+Candidate03 gates1..3 passed15.07/7.11/41.18s; runtime stopped at ninth guest
+on unplanned stack CPU exhaustion. Generation19 consumed32 ticks in its first
+100-tick window (35470ms, bound at34490ms); first DNS generation14 used51
+cumulative ticks without exhaustion. Diagnostic10's passing44/50 totals do not
+establish a reliable burst margin. Preserve candidate03;43 qualification guests
+are spent. No unchanged qualification retry is authorized.
+
+Within the already allowed TCP protocol source, aggregate cumulative ACKs over
+at most two received frames, flush before returning or sleeping, and finish
+completed SYN/close waits without an extra empty frame RPC. Keep normal SEND
+prefetch and receive-ring coverage. Reference RFC9293 sections3.8.6.3 and3.10.7.4:
+https://www.rfc-editor.org/rfc/rfc9293.html . With existing200ms frame RPCs,
+a pending ACK spans at most one further RX and one TX RPC (<500ms); original
+operation deadlines remain controlling. No persistent ABI or CPU-budget change.
+Use operation-local fixed fields, NativeAppDNS only, preserve old token projection.
+Reserve hosts29..32 <=600s (29 already unspent), build10 <=300s and diagnostic11
+<=180s tcp-fragmented. Actual TCP fixture must cover all14 existing modes and
+assert reduced ACK count, monotonic cumulative sequence, ring/window behavior,
+retries and close. Candidate04 may freeze the same five gates/25 fresh guests
+only after corrected raw diagnostic and source review. All histories remain.
+
+Host29 reproduced excessive ACK count. Host30 showed that pairing by raw batch
+index split data/FIN when a pure ACK preceded them; the final algorithm permits
+at most one additional RX after an ACK first becomes pending, regardless of
+batch parity. Host31 passed14.725s with all15 groups, including all14 actual TCP
+modes and original exact zero-window/ring assertions. Build10 passed25.870s.
+The new fields are operation-local, cleared at construction and flushed before
+normal return/sleep; failed operations retain existing fail-closed cleanup.
+Diagnostic11 uses this changed image; candidate04 is not yet frozen.
+
+Diagnostic11 passed74.007s and independent review: both DNS stacks completed
+normally (44/41 cumulative ticks),29 packets,128 raw events, full cleanup.
+Candidate04 freezes now: same five gates/25 fresh guests, original deadline,
+CPU, restart, memory and grant limits.31 development hosts,10 builds,11 diagnostic
+and43 qualification guests are spent. Final pre-freeze source review confirms
+ACK pending storage is private to the synchronous operation, flush spans at
+most one further frame receive, completed handshake/close flush before return,
+normal receive prefetch remains bounded8, all old-profile tokens are preserved.
+No candidate implementation/tool changes during the frozen gates.
+
+## Accepted candidate04
+
+All five gates pass15.534/2.297/42.578/1676.145/9.900s, including25 fresh
+sequential QEMU guests and independent raw replay. Seal SHA256 67de6f79f1197954ae0f6be953bd4f50429a1bce9d96c17ee707c4a1ad6014de.
+Final source/scope review passed with the frozen implementation unchanged;
+only allowed queue/documentation closure follows before local commit.
+31 development hosts,10 builds,11 diagnostics and68 total qualification guests
+are retained, including all three rejected candidate histories. R3.6b remains
+deferred. This accepts the bounded local native DNS slice, not the complete
+native64 system, public networking, DNSSEC or physical hardware assurance.
