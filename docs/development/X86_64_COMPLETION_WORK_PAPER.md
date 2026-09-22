@@ -1,5 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Aktiv: R8.3br – native C/C++-Allokationslaufzeit
+
+HTTP52eb89e8 ist sauber abgeschlossen. Die nächste gemeinsame Voraussetzung
+für JS und weitere Anwendungen ist die vorhandene libc/C++-Laufzeit mit
+vollbreiten Pointern und Prozess-Backing. Der28-Byte-i386-Layoutzwang und
+ELF32-only-C++-Zulassung werden explizit für AMD64 ergänzt; normaler cpptest,
+signierte Medien und zehn frische Fehler-/Cleanup-Gäste gehören zum Paket.
+Keine neue Kernel-/Netz-/Dateiautorität. Vertrag:
+[NATIVE_CPP_RUNTIME_CONTRACT](../architecture/NATIVE_CPP_RUNTIME_CONTRACT.md).
+
 ## R8.3bq: normales curl im nativen HTTP-Profil abgenommen
 
 Kandidat01 besteht alle fünf Gates (20,298/2,239/37,921/1700,565/8,204s)

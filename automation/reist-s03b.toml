@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3br-cpp-runtime"
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
 native_graphical_session_authority_boundary = "2026-09-21 accepted BG fd7a2f7786f6905b928bbe9912590e0f950664fa, final5e26802cdeface9717909f60dd8d5bd45c37d05eb643ec51b1be085ed09f3453, ten gates/22 fresh guests/clean worktree. Next inventory: existing desktop requires TERMINAL_ACQUIRE_SERVICE4, explicitly unsupported(-95) in native_terminal.inc; BG is fixed5000ms/32events with driver5/foreground4, no persistent GUI focus authority. AGENTS new-authority stop requires explicit authorization for exclusive Ring3 graphical-session/terminal-service takeover, generationscoped focus/capture and bounded persistent driver/compositor roles. Concrete proposal docs/architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md. No implementation/build/guest activated; old profiles and deferred R3.6b preserved. Native OS completion remains open."
 compaction_correction_window = "Eight hosts/two builds/13.597538999980316s second build/one media/three BIOS/zero guests spent. Build02 correctly fails exact PT_LOAD audit: GNU objcopy canonicalizes only the zero-filesz scratch segment file offset1261568 to4096; every allocated section and retained symbol identical, compact file1387904bytes. Preserve raw tool output and original; restore only that nonloaded offset after checking all other header fields, then require complete old layout/loaded bytes/retained symbols unchanged. Freeze two host commands<=600s, one fresh build03<=300s and original unspent media02<=180s/three BIOS plus healthy90s. No relaxed audit, changed media format or guest limit; cumulative ceilingthree builds/two media/six BIOS/one guest."
@@ -33,6 +33,18 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3br-cpp-runtime"
+status = "active"
+phase = "native64-userspace"
+title = "Native C/C++ process allocator, bounded runtime and ordinary consumer"
+risk = "LP64 pointer/layout admission, allocation ownership and process cleanup"
+scope = "Implement NATIVE_CPP_RUNTIME_CONTRACT after clean52eb89e8. Reuse accepted libc/C++ and native heap authority; ordinary cpptest, explicit ELF64 SDK artifacts, signed six-file medium and full foreground failure lifecycle. No kernel/new authority/math/JS/browser changes. Twelve host/three build/three media/six diagnostic reservations; five gates and ten fresh guests. R3.6b deferred."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_CPP_RUNTIME_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py", "scripts/build_user_program.py", "scripts/build_x86_64_cpp_runtime.py", "scripts/build_x86_64_cpp_runtime_media.py", "scripts/check_x86_64_cpp_runtime_media.py", "scripts/build-x86_64-cpp-runtime-media.ps1", "scripts/run_qemu_x86_64_cpp_runtime.py", "scripts/verify_x86_64_cpp_runtime.py", "userspace/libc/include/reist/libc.h", "userspace/libc/lib/process_heap.c", "userspace/libc/lib/heap.c", "userspace/libc/lib/bytes.c", "userspace/libc/lib/runtime.c", "userspace/cpp/runtime.cpp", "userspace/programs/cpptest.cpp", "userspace/sdk/include/reist/x86_64/cpp_runtime.h", "userspace/sdk/lib/x86_64/cpp_runtime.c", "test/test_x86_64_cpp_runtime.py", "test/x86_64_cpp_runtime_host.cpp", "test/x86_64_cpp_runtime_platform_host.c", "test/test_process_heap_host.c", "test/test_user_cpp_host.cpp"]
+targeted_tests = ["python test/test_x86_64_cpp_runtime.py -v", "python scripts/verify_x86_64_cpp_runtime.py --defaults"]
+package_tests = ["python scripts/verify_x86_64_cpp_runtime.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_cpp_runtime.py --runtime", "python scripts/verify_x86_64_cpp_runtime.py --review"]
 
 [[packages]]
 id = "R8.3bq-application-http"
