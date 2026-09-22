@@ -112,3 +112,93 @@ One accepted package/local commit is a verification boundary, then continue
 the next in-priority native64 inventory. Passive server lifecycle and further
 system integration remain open; R3.6b stays explicitly deferred. No push or
 nested agents, and no complete native64 claim from this DNS package alone.
+
+## Development inventory and image correction
+
+Host01 reproduced cache lookup before invalid-server rejection. Host02 caught
+a private/public function-signature edit error; host03 passed after restoring
+the public API. Host04 caught disabled host assertions in the toolchain;
+host05 uses -UNDEBUG and passes O0/O2 resolver, accepted parser and paired
+authority tests, including rollback after partial grant admission. Five of
+sixteen host slots spent; no guest/media evidence yet.
+
+Build01 failed18.428s at the unchanged root image ceiling: text0xd286 pushes
+rodata/data one page later, final0x440940 exceeds0x440000 by2368 bytes. DNS app
+and network roles compiled. Preserve the failed map and all objects.
+Use existing build02 reservation for root-only LLVM link-time optimization
+(-flto, lld --lto-O2), restoring compiler/linker vectors before independent
+roles. This removes cross-unit duplication within existing permissions and
+image limits; it adds no parser, dynamic storage or runtime authority. Old
+profiles remain exact; role/media pin checks and raw observer-symbol validation
+remain required. No guest is admitted until the new image and media validate.
+
+## Scope stop: UDP response lost during repeated ARP
+
+Build02 passed22.892s; media01 passed3.284s, including independent signed
+consumer and unchanged ordinary-program pins. Build03 passed23.009s after
+the DNS network-status ABI fields and four-live-UDP-object admission fix.
+Root LTO retains all required observer symbols; network_blocked is a one-byte
+optimized object, so observers must use its map extent rather than assume4.
+
+Host06 reproduced missing network-status version/size; host07 passed after
+correction. Host08 added four-object denial/reuse and independent media
+corruption checks; host09 added actual root mixed-protocol sequence and
+release/ACK/reap ordering. Host10 passed seven groups, including the peer
+query bounds. Host11 adds the actual UDP FIFO regression below: seven groups
+pass and the new transport regression fails at O0 before its O2 execution.
+Eleven of sixteen development host reservations and all three initial build
+reservations are spent; failed receipts are retained.
+
+Diagnostic01 failed78.099s in observer tcp_enter on an unmapped DNS marker
+address in the ordinary UDP image. Diagnostic02 passed capture78.517s after
+classifying ordinary UDP/TCP before reading the DNS marker. Diagnostic03
+passed capture66.807s for the truncated-response dialogue. Three of six
+diagnostic reservations spent, one of three media publications spent, zero
+qualification candidates/gates. These captures remain qualified=false.
+
+Independent inspection of diagnostic02 reveals both successful DNS lookups
+used TCP after UDP RECEIVE returned -110: UDP response length512/result-110,
+followed by TCP OPEN/CONNECT/query/receive/close/release. The owned peer had
+sent the valid DNS datagram immediately after UDP SEND. The subsequent
+RECEIVE unconditionally resolves ARP again in application_udp_protocol.c;
+network_protocol.c discards the earlier queued non-ARP response while waiting
+for that new ARP response. Therefore neither healthy UDP nor TC-triggered
+fallback is established by the serial successes in diagnostic02/03.
+
+Host11 executes the existing actual UDP protocol fixture with FIFO delivery:
+the datagram queued by SEND is delivered before the later ARP reply. The old
+fixture gave ARP unconditional priority. Actual reist_app_udp_exchange now
+reproduces the same unexpected timeout; no production workaround is applied.
+
+Required additional production scope:
+`userspace/sdk/lib/x86_64/application_udp_protocol.c`, currently NOT allowed.
+Proposed correction: retain at most four bounded candidate datagrams while
+the existing ARP exchange runs, then validate them against the resolved MAC,
+existing grant/IP/port/checksum rules and original deadline before enqueueing.
+Reuse the existing UDP parser and fixed queue; preserve all public layouts,
+request counters, packet/ARP limits and Ring3 ownership. Cover FIFO delivery,
+foreign/malformed packets, overflow, deadlines and revocation in host tests
+and fresh DNS guests. Do not simulate away the fault by delaying peer replies
+or force TCP-only success. Review stack capacity before admitting staging.
+
+AGENTS.md requires stopping when a needed production file lies outside the
+frozen allowed_files. Leave this one package active, all edits and raw evidence
+visible, and no implementation commit or queue advance. The next transaction
+must explicitly freeze the reviewed scope addition and finite correction/build
+reservation; acceptance gates and authority remain unchanged.
+
+## Explicit continuation after scope report
+
+The user renewed completion after the scope-stop report. Add exactly
+userspace/sdk/lib/x86_64/application_udp_protocol.c to this same active
+package; all previous edits match scope-stop.json and remain attributable.
+Freeze correction window: development hosts12..16 from the original budget,
+additional builds04..05 <=300s each, remaining media02..03 <=180s each and
+remaining diagnostics04..06 <=180s each. Preserve spent counters and all
+receipts. Existing five acceptance gates and25 fresh qualification guests
+remain unchanged. No new authority, persistent format or public ABI.
+Stage at most four candidate frames of554 bytes in the bounded receive
+operation, only while ARP is resolving; validate after the actual MAC reply.
+Check the complete service call-chain stack against its existing8KiB stack
+before a new guest. This is a continuation of the visible active candidate,
+not a new implementation package or clean-worktree claim.
