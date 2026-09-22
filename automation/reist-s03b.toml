@@ -35,12 +35,13 @@ push = false
 
 [[packages]]
 id = "R8.3bk-network-fatal"
+preimplementation_scope_review = "Before any candidate edit/host/build/guest: Makefile exceptions.o passes only NATIVE_PIO, so the network exception hook cannot be enabled by the original frozen ten files. Stop that initial definition, explicitly re-inventory and freeze one necessary additional build source Makefile: append existing NETWORK_FLAGS to that NASM command only. Existing continuous in-scope correction authority applies; no new mechanism, authority, gate, attempt or safety limit. Original setupf00de76f preserved; candidate work starts only after this revised contract commit."
 status = "active"
 title = "Native active-DMA kernel-fatal fencing independent of corrupted metadata"
 authority = "Existing native64/network completion order; no new hardware, external traffic, persistent writes or deferred work. Required microkernel fatal-containment prerequisite discovered during next network-stack inventory after clean97412dfe."
 contract = "docs/architecture/NATIVE_NETWORK_DMA_CONTRACT.md"
 execution_window = "One cohesive fatal failure domain. Three development host commands600s, one common build300s, one diagnostic guest45s. Freeze five qualification gates: host600s, exact non-network/old artifact projection180s, bound image180s, eight fresh accepted normal network cases plus three fresh active-DMA fatal cases45s each/495s aggregate under600s runtime, independent raw review180s. No new production test knob. Read-only raw GDB before/fence/diagnostic/halt evidence, exact injected RIP or one protected bit; preserve corruption, no reap/reuse. First failure stops for evidence-directed bounded correction; no unchanged retries or nested agents."
-allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_NETWORK_DMA_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "arch/x86_64/cpu/exceptions.asm", "arch/x86_64/devices/network_domain.inc", "arch/x86_64/devices/network_dma.c", "scripts/verify_x86_64_network_fatal.py", "scripts/run_qemu_x86_64_network_fatal.py", "test/test_x86_64_network_fatal.py"]
+allowed_files = ["Makefile", "automation/reist-s03b.toml", "docs/architecture/NATIVE_NETWORK_DMA_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "arch/x86_64/cpu/exceptions.asm", "arch/x86_64/devices/network_domain.inc", "arch/x86_64/devices/network_dma.c", "scripts/verify_x86_64_network_fatal.py", "scripts/run_qemu_x86_64_network_fatal.py", "test/test_x86_64_network_fatal.py"]
 targeted_tests = ["python test/test_x86_64_network_fatal.py -v", "python scripts/verify_x86_64_network_fatal.py --defaults"]
 package_tests = ["python scripts/verify_x86_64_network_fatal.py --package"]
 runtime_tests = ["python scripts/verify_x86_64_network_fatal.py --runtime", "python scripts/verify_x86_64_network_fatal.py --review"]
