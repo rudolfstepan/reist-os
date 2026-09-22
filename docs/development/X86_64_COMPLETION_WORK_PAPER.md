@@ -1,5 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Aktiv: R8.3bn – TCP-Clientmigration
+
+Auf sauberem UDP-Commit `1078fae1` ist das zusammenhängende TCP-Clientpaket
+mit nativen Objekten, Ring3-Zustandsautomat, gewöhnlichem `nc`, signierten
+Medien und25 frischen Abnahmegästen definiert. Die bestehende Freigabe gilt;
+der [Vertrag](../architecture/NATIVE_APPLICATION_TCP_CONTRACT.md) benennt
+Grenzen, Standardbezug und die bewussten Einschränkungen des Forschungsprofils.
+Keine neue Geräte-/Internetautorität. Passive Server-Portlebenszyklen, DNS
+und weitere Systemintegration bleiben nachfolgende Arbeit. R3.6b vertagt.
+
 ## R8.3bm: native UDP-Anwendungsrechte abgenommen
 
 Kandidat04: fünf Gates und zwanzig frische QEMU-Gäste bestanden, einschließlich

@@ -2,6 +2,21 @@
 
 Stand: 22. September 2026
 
+## Aktiv: R8.3bn – native TCP-Clientobjekte
+
+UDP ist lokal als `1078fae1` abgenommen; der abschließende saubere Commit-
+Nachweis trägt SHA256 `35fbebe273b058d69fd05f427056785e5b63d9ba8315ec9b3cbee350f3c9d58d`.
+Das nächste Paket integriert aktive TCP-Verbindungen und normales `nc.prg`
+unter der bestehenden Freigabe. Parser und Zustandslogik bleiben in Ring3.
+Vertrag: [NATIVE_APPLICATION_TCP_CONTRACT](../architecture/NATIVE_APPLICATION_TCP_CONTRACT.md).
+
+Vier feste Verbindungsobjekte, begrenzte Wiederholungen und bootweit nicht
+wiederverwendete lokale Ports schützen die neue Verbindungsgeneration.
+Alle bestehenden CPU-/IPC-/Neustartgrenzen bleiben bestehen. Passive Server,
+langlebige Portwiederverwendung und DNS folgen in eigenen Transaktionen.
+Noch keine TCP-Implementierung oder TCP-Abnahme; Quellenumfang und endliche
+Entwicklungs-/Abnahmebudgets sind vor dem ersten Eingriff eingefroren.
+
 ## R8.3bm: native UDP-Anwendungsobjekte abgenommen
 
 Kandidat04 besteht alle fünf Gates (13.158/1.965/29.163/941.851/5.838 s)
