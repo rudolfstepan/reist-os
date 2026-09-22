@@ -202,3 +202,158 @@ operation, only while ARP is resolving; validate after the actual MAC reply.
 Check the complete service call-chain stack against its existing8KiB stack
 before a new guest. This is a continuation of the visible active candidate,
 not a new implementation package or clean-worktree claim.
+
+## Correction and verification window results
+
+Scope amendment committed edf9b477. Host12..16 pass; FIFO arrival, bad MAC,
+checksum/port/fragment rejection, deadline, six-candidate overflow with four
+retained and nested-entry denial are exercised at O0/O2. Build04 passed but
+its complete call chain exceeded8KiB, so no guest was admitted. Move the
+fixed2216-byte staging to private service memory with nested-entry denial
+and scrub on every return. Build05 passed22.448s; compiler call-chain bound
+including256-byte ABI reserve is7512/8192. No public layout changed.
+Diagnostic04 passed69.135s and independent review: two direct UDP DNS
+responses44bytes/status0, ordinary UDP/TCP/cat coexistence and exact cleanup.
+Diagnostic05 passed64.931s and review: actual UDP TC replies then TCP, not
+timeout-concealed success. Diagnostic06 passed47.875s and review: selected
+hung stack during UDP SEND, one replacement, fresh successful DNS app.
+All sixteen original host slots, five builds and six diagnostic slots are
+spent. Reserve hosts17..20 <=600s for reviewer mutation/default projection
+and final host corrections; reserve no extra development guest or build yet.
+The FIFO correction deliberately fixes legacy UDP callers too, like the
+shared resolver/cache correction. Opt-out adapters, build selection and
+public ABI remain exact; retain the original UDP protocol host fixture in
+addition to the FIFO regression. Initial25 fresh qualification guests remain.
+
+Host17 rejected a verifier projection that accidentally removed the retained
+TCP Make target together with DNS. Host18 passes after selecting exactly
+the DNS target. Rehashed paired-protocol/active-bit corruptions are rejected
+by the independent reviewer. Defaults projection runs only in its dedicated
+frozen gate now; the development-only duplicate host check was removed.
+Host19 is reserved to recheck the final raw-payload correlation and all host
+regressions before freeze. The public protocol/adapter tests remain intact.
+
+## Candidate01 final-source-review rejection and correction window
+
+All five candidate01 gates passed9.469/2.130/33.756/1414.898/8.286s,
+including25 fresh guests. Final direct source review then found a real
+contract violation: an answer received before the original caller deadline
+could be published after that deadline when the bounded close was delayed.
+Keep the seal and all passed gates as historical evidence, but candidate01
+is NOT accepted and has no implementation commit. The separate
+post-gate-review-rejection.json records the cause and original seal hash.
+
+Host20 reproduces it with UDP response at~2300ms and an800ms close; each
+individual operation respects its bound, yet final publication is late.
+The regression covers UDP and TCP cleanup and proves the subsequent lookup
+makes a new query instead of observing a wrongly published cache entry.
+Correction is one deadline check after cleanup's monotonic read and before
+any cache/caller publication. Reserve hosts21..22 <=600s and candidate02
+with the SAME five gates, fresh package build/media and25 fresh guests
+<=180s each/4500s aggregate. No extra development build/guest is reserved.
+Do not reset the20 spent development hosts or25 qualification guests.
+Preserve CPU, stack, authority, resource and public ABI limits unchanged.
+
+Host21 passes the UDP/TCP late-cleanup and no-cache-publication regression.
+Before candidate02 freeze, host22 independently reproduced a second SDK
+issue: closing a UDP object after TCP CONNECT left the adapter's selected
+protocol at17, so a subsequent TCP SEND used UDP. Correct every TCP wrapper
+to select protocol6 for its own request, while preserving the opt-out code.
+Strengthen the actual adapter transcript to alternate UDP operations with
+TCP OPEN/CONNECT/SEND/RECEIVE/STATS/CLOSE and release the pair via UDP.
+Reserve hosts23..24 <=600s for this same candidate02 correction; no additional
+qualification matrix beyond its already reserved25 guests. All22 spent hosts
+and prior failures remain. This changes no destination, grant or kernel right.
+
+Host23 passes all11 groups12.151s, including alternating live UDP/TCP
+operations through the actual adapter, both delayed-close transports,
+unchanged caller output and no late cache entry. Candidate02 now freezes
+these reviewed corrections. No further implementation change is planned
+during its gates. Twenty-three development hosts and25 qualification guests
+are spent; candidate01 remains rejected despite its historical passed gates.
+
+## Candidate02 CPU-window failure: bounded driver-reply correction
+
+Candidate02 gates1..3 passed9.820/2.162/37.367s. Runtime stopped at the
+ninth guest, tcp-fragmented: eight cases reviewed successfully; capture
+completed112.543s but raw review correctly rejected stack generation14
+CPU256/phase3 at27680ms, window usage32, during TCP CLOSE. PC0x41042f
+is reist_net_send. The unplanned recovery was followed by root CPU256
+at54930ms in service_reap; no successful healthy qualification is claimed.
+Both failed raw receipts remain. Total qualification guests spent34.
+
+The actual frame exchange currently polls copied driver replies with timeout0
+and1ms sleeps. Replace only the NativeAppDNS branch with blocking receives
+<=100ms, always clamped to its existing absolute200ms RPC deadline; preserve
+health progress, transport failure latching and original operation deadline.
+No new source scope or authority: native_netstack.c is already allowed.
+Freeze hosts24..26 <=600s (24 previously available;25..26 additional),
+development builds06..07 <=300s and diagnostics07..08 <=180s. Use actual
+extracted exchange host tests for success, timeout, corrupt reply and deadline
+admission before the changed guest. No CPU/IPC/restart limit increase and
+no unchanged retry-until-green. Candidate03 may start only after correction
+evidence and review, with the same five gates and25 fresh guests. All23
+spent development hosts, five development builds, six development diagnostics
+and both failed qualification histories remain.
+
+Host24 rejected nonblocking reply polling; host25 passes after the bounded
+blocking correction. Build06 passed22.521s, stack7512/8192. Diagnostic07
+capture completed91.280s but independent review rejected generation19
+CPU256 during RELEASE after successful TCP CLOSE, with cumulative56 ticks.
+The first DNS app consumed54 ticks; root then exited normally. Thus blocking
+replies alone is insufficient and diagnostic07 is not accepted.
+
+Use remaining build07/diagnostic08 reservations for an evidence-directed
+compiler correction: only DNS network roles use -O2 -fno-inline-functions.
+The previous -Oz selected compact scalar byte-copy/scrub loops in every
+copied IPC transaction. O2 can unroll those bounded loops while preserving
+volatile scrubbing; disabling ordinary function inlining preserves explicit
+call-chain stack auditing. Root/application builds and opt-out profiles retain
+their flags. Require unchanged role image ceilings, actual static stack bound
+and the same tcp-fragmented guest/raw review. This is not a CPU-budget change,
+peer delay or unchanged repeat; preserve diagnostic07 and all earlier evidence.
+
+Build07 passed21.887s with static stack7528/8192. Diagnostic08 passed
+capture91.729s and independent raw review; both DNS applications and ordinary
+UDP/TCP completed, with no unplanned CPU failure. Before qualification, reduce
+DNS-only idle stack receives from50ms to100ms: IPC arrival still wakes the
+receiver immediately, while idle timeout copying occurs half as often.
+Preserve existing profiles, health intervals, RPC deadlines and CPU budgets.
+Reserve build08 <=300s and diagnostic09 tcp-fragmented <=180s for this changed
+idle wait, plus the still available host26 <=600s. Seven development builds,
+eight diagnostics,25 hosts and34 qualification guests are spent and retained.
+
+Host26 passed11.516s, including independent rejection of candidate02's
+unplanned CPU failure. Build08 passed24.231s. Diagnostic09 failed the ordinary
+dialogue gate: both DNS stacks exhausted32 ticks in a100-tick window
+(generation14 at29500ms, cumulative53; generation23 at41030ms, cumulative58).
+Both DNS applications exited5; ordinary UDP and final frame cleanup completed.
+Neither idle100ms nor compiler/reply-wait changes establish CPU qualification.
+All eight builds, nine diagnostics,26 hosts and34 qualification guests remain;
+candidate03 is not frozen and no implementation commit is accepted.
+
+Source inventory identifies a remaining avoidable syscall amplification:
+application_tcp_protocol.c:pause_ms implements each empty-RX100ms delay as
+ten sleep10ms calls, each followed by a monotonic/health check. The matching
+UDP adapter does the same. A cohesive correction must examine both adapters
+and prove one bounded sleep preserves original deadlines, finite sleep budget
+and health progress, with actual host transcripts and a fresh guest. The TCP
+adapter is outside the frozen allowed_files. Stop implementation at this scope
+boundary under package protocol4; do not hide the change in a generated source
+transform or raise CPU budgets. No new authority domain is proposed.
+
+## Renewed continuation: paired transport sleep correction
+
+The user renewed continuous completion after the explicit TCP scope stop.
+Add application_tcp_protocol.c to allowed_files for the matching UDP/TCP
+empty-RX wait correction. The in-progress changes remain attributed to this
+same package; no unrelated source changes are present. This is a scope-only
+local commit before further implementation, not candidate acceptance.
+Reserve hosts27..29 <=600s, build09 <=300s and diagnostic10 tcp-fragmented
+<=180s. Replace ten short sleeps with one <=100ms sleep clamped to the original
+operation deadline, retaining the existing200 short-interval budget and
+monotonic/error checks. Host tests must exercise actual extracted adapters,
+normal/short deadlines, exhausted budget, sleep failure and clock regression.
+Health gaps remain <=100ms plus existing bounded IPC; no CPU budget increase.
+Candidate03 retains the previously frozen five commands and25 fresh guests;
+freeze it only after the corrected diagnostic passes independent review.
