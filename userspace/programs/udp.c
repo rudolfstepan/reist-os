@@ -75,10 +75,19 @@ int main(int argc, char **argv) {
         if (result < 0) { x86os_puts("udp: send failed\n"); return 1; }
         x86os_puts("datagram sent\n"); return 0;
     }
+#ifdef REIST_NATIVE_APP_NETWORK
+    if ((argc == 5 || argc == 6) && equal(argv[1], "recv")) {
+        uint32_t ip=0;uint16_t peer=0;
+        if(parse_ip(argv[2],&ip)||parse_u16(argv[3],&peer))goto usage;
+        uint16_t local = 0U; uint32_t timeout = 1000U;
+        if (parse_u16(argv[4], &local) != 0 ||
+            (argc == 6 && parse_u32(argv[5], &timeout) != 0)) goto usage;
+#else
     if ((argc == 3 || argc == 4) && equal(argv[1], "recv")) {
         uint16_t local = 0U; uint32_t timeout = 1000U;
         if (parse_u16(argv[2], &local) != 0 ||
             (argc == 4 && parse_u32(argv[3], &timeout) != 0)) goto usage;
+#endif
         x86os_udp_socket_t socket = 0U;
         if (bind_socket(local, &socket) != 0) {
             x86os_puts("udp: bind failed\n"); return 1;
@@ -103,6 +112,10 @@ int main(int argc, char **argv) {
     }
 usage:
     x86os_puts("usage: udp send <ip> <port> <local-port> <text>\n"
+#ifdef REIST_NATIVE_APP_NETWORK
+               "       udp recv <ip> <port> <local-port> [timeout-ms]\n");
+#else
                "       udp recv <local-port> [timeout-ms]\n");
+#endif
     return 2;
 }

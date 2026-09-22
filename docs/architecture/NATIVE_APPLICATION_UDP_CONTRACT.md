@@ -46,6 +46,12 @@ kernel IPC timeout past1000ms. At most200 receive turns/eight frames per turn.
 Keep all existing CPU32/1000ms, device IO128/100ms, frame RPC200ms,
 startup3000ms, health1000ms, retirement5000ms and restart limits.
 
+Implementation clarification: foreground applications retain the existing
+stricter lifetime32-tick CPU budget; periodic32/100-tick windows apply to the
+network services. The raw reviewer distinguishes both existing contracts.
+When adapting the existing relative ARP timeout, clamp every frame callback
+to the original absolute UDP deadline; a later clock sample cannot renew it.
+
 Slot0 root,1 baseline peer,2/3 filesystem,4/5 network services,6 foreground;
 no task-pool expansion. Root captures the executable before launching the
 network group, preserving fixed image and filesystem deadlines. Foreground
@@ -99,3 +105,11 @@ attempt before execution and its result after; preserve all failures. Further
 evidence-directed finite windows require a recorded scope/evidence review,
 not another routine permission question. No unchanged retry-until-green.
 Logs and counters: `build/codex-agent/r83bm-application-udp/`.
+
+## Accepted implementation
+
+Candidate04 on implementation baseline35bfdcf2 passes all five gates and all
+20 fresh guests. Seal9da4534ae5acaf5112a45529b45d2f7e2664b300104b01229229302262b31bbc
+binds sources, tools, signed media, raw evidence and independent replay.
+Development captures and earlier failed candidates are retained separately;
+none substitutes for the final fresh matrix. No whole-OS completion claim.

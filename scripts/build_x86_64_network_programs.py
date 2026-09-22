@@ -3,7 +3,7 @@ from pathlib import Path
 import hashlib, os, subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
-def build_roles(directory, cc, nasm, ld):
+def build_roles(directory, cc, nasm, ld, app_network=False):
     from build_x86_64_boot_programs import prepare
     directory = Path(directory)
     environment = os.environ.copy()
@@ -31,6 +31,11 @@ def build_roles(directory, cc, nasm, ld):
                     'userspace/sdk/lib/x86_64/network_protocol.c',
                     'userspace/sdk/reist_ipv4_parser.c', 'userspace/sdk/reist_icmp_parser.c']}
     start = directory / 'network-start.o'
+    if app_network:
+        common += ['-DREIST_NATIVE_APP_NETWORK=1']
+        roles['netstack'] += ['userspace/sdk/lib/x86_64/application_udp.c',
+                             'userspace/sdk/lib/x86_64/application_udp_protocol.c',
+                             'userspace/sdk/reist_udp_parser.c']
     run([*nasm, '-f', 'elf64', 'arch/x86_64/user/boot_start.asm', '-o', start])
     digests = []
     for name, sources in roles.items():

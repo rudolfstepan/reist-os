@@ -14,7 +14,7 @@ static int valid(const reist_net_channel *s,uint64_t now) {
 }
 int reist_net_encode(reist_net_channel *s,reist_net_message *m,unsigned type,const void *data,
                      unsigned n,int result,uint64_t now,uint64_t end) {
-    if(!valid(s,now)||!m||type<REIST_NET_INIT||type>REIST_NET_HELLO||n>sizeof(m->payload)||
+    if(!valid(s,now)||!m||type<REIST_NET_INIT||type>REIST_NET_LAST||n>sizeof(m->payload)||
        (n&&!data)||result>0||result< -4095||end<=now||end-now>3000)return -22;
     if(s->sent==UINT64_MAX)return -75;
     /* Reject aliasing before zeroing output or advancing correlation. */
@@ -28,7 +28,7 @@ int reist_net_encode(reist_net_channel *s,reist_net_message *m,unsigned type,con
 }
 int reist_net_decode(reist_net_channel *s,const reist_net_message *m,uint64_t now) {
     if(!valid(s,now)||!m)return -22;
-    if(m->version!=1||m->size!=sizeof(*m)||m->type<REIST_NET_INIT||m->type>REIST_NET_HELLO||
+    if(m->version!=1||m->size!=sizeof(*m)||m->type<REIST_NET_INIT||m->type>REIST_NET_LAST||
        m->length>sizeof(m->payload)||m->reserved||m->reserved2||m->result>0||m->result< -4095)return -71;
     if(m->epoch!=s->epoch||m->owner!=s->peer||s->received==UINT64_MAX||m->sequence!=s->received+1)return -116;
     if(m->deadline_ms<=now||m->deadline_ms-now>3000)return -110;
@@ -59,6 +59,11 @@ int reist_net_receive(reist_net_channel *s,reist_net_message *m,unsigned timeout
     if(!s||!m||s->failed||timeout>100)return -22;
     reist_net_zero(&transport,sizeof(transport));transport.version=2;transport.struct_size=sizeof(transport);transport.length=2048;
     int r=(int)reist_x64_syscall3(REIST_X64_SYS_IPC_RECEIVE_TIMEOUT,s->endpoint,(uintptr_t)&transport,timeout);
+#ifdef REIST_NATIVE_APP_NETWORK
+    /* A dead/revoked peer is a transport failure, never ordinary packet loss.
+     * Keep nonblocking empty/timeout receives usable on the same generation. */
+    if(r&&r!=-11&&r!=-110)s->failed=1;
+#endif
     if(r){reist_net_zero(&transport,sizeof(transport));return r;}
     if(transport.version!=2||transport.struct_size!=sizeof(transport)||transport.length!=sizeof(*m))r=-71;
     for(unsigned i=sizeof(*m);i<2048;i++)if(transport.payload[i])r=-71;

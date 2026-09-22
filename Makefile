@@ -315,6 +315,19 @@ endif
 endif
 X86_64_NETWORK_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),-DREIST_NATIVE_NETWORK_SESSION=1,)
 # End NativeNetworkSession selector.
+# Explicit application UDP authority; the parent network profile is mandatory.
+X86_64_NATIVE_APP_NETWORK ?= 0
+ifneq ($(words $(X86_64_NATIVE_APP_NETWORK)),1)
+$(error NativeAppNetwork selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_APP_NETWORK),0 1),$(X86_64_NATIVE_APP_NETWORK))
+$(error NativeAppNetwork selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_APP_NETWORK),1)
+ifneq ($(X86_64_NATIVE_NETWORK_SESSION),1)
+$(error NativeAppNetwork requires NativeNetworkSession)
+endif
+endif
 X86_64_NATIVE_INPUT ?= 0
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
@@ -503,6 +516,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -821,6 +835,12 @@ x86_64-wide-shell-media:
 	@$(PYTHON) scripts/build_x86_64_wide_shell_media.py --input-directory "$(X86_64_WIDE_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_WIDE_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 # End BB packaging-only target.
 # BI graphical package; caller may select a different admitted build directory.
+.PHONY: x86_64-application-udp-media
+X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
+X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
+x86_64-application-udp-media:
+	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
 .PHONY: x86_64-network-media
 X86_64_NETWORK_MEDIA_INPUT ?= build/x86_64
 X86_64_NETWORK_MEDIA_OUTPUT ?= build/codex-agent/native-network-media

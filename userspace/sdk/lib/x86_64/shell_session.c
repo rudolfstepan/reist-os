@@ -6,6 +6,12 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_APP_NETWORK
+static unsigned session_udp_active;
+static int64_t session_udp_import(int,const char *const *,reist_task_startup_v1_t *,reist_task_profile_v1_t *);
+static int64_t session_udp_wait(int *);
+static int session_udp_revoke(void);
+#endif
 #ifdef REIST_NATIVE_NETWORK_SESSION
 static int session_network_retire(void);
 static void session_network_poll(void);
@@ -165,6 +171,12 @@ static int session_ensure(uint64_t deadline,int fresh_stat) {
     uint64_t now=session_now();
     if(now>=deadline)return -110;
     if(session_policy.degraded)return -11;
+#ifdef REIST_NATIVE_APP_NETWORK
+    /* A cached network launch can leave a sequence-zero filesystem whose
+     * existing idle receive has expired. A new STAT requires a fresh capture
+     * generation even when no earlier file request consumed its sequence. */
+    if(fresh_stat && session_service.phase==REIST_SESSION_HEALTHY)session_retire();
+#endif
     if(session_service.phase==REIST_SESSION_HEALTHY && (session_fs.failed ||
        session_fs.sequence>=REIST_FS_SESSION_REQUESTS || (fresh_stat && session_fs.sequence) ||
        session_service.deadline_ms<=now || session_service.deadline_ms-now<deadline-now))session_retire();
@@ -416,6 +428,11 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     result=reist_x64_file_finish_v2(session_prepared,session_workspace,&session_fs,&session_transport,&session_observation);
     session_operation_deadline=0;
     session_zero(&session_observation,sizeof(session_observation));if(result)return session_operation_result(result);
+#ifdef REIST_NATIVE_APP_NETWORK
+    /* Cached role images can leave a fresh, sequence-zero FS alongside live
+     * network slots4/5. Ordinary foreground programs retain their slot4 ABI. */
+    if(!session_app_equal(canonical,"/udp.prg"))session_network_retire();
+#endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
     if(session_app_equal(canonical,"/desktop.prg")) {
         session_zero(&startup,sizeof(startup));
@@ -435,7 +452,13 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     }
 #endif
 #ifdef REIST_NATIVE_APP_FILES
+#ifdef REIST_NATIVE_APP_NETWORK
+    int64_t child=session_app_equal(canonical,"/udp.prg")?
+        session_udp_import(argc,argv,&startup,&profile):
+        session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
+#else
     int64_t child=session_app_import(canonical,argc,argv,app_capture_end,&startup,&profile);
+#endif
 #else
     int64_t child=reist_x64_task_import_wide(session_prepared,&profile,32,&startup);
 #endif
@@ -445,7 +468,11 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(child<0)session_input_retire();
 #endif
     if(child<0)return (int)child;
+#ifdef REIST_NATIVE_APP_NETWORK
+    if(!child || (uint32_t)child!=(session_udp_active?6U:4U) || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+#else
     if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+#endif
 #ifdef REIST_NATIVE_DISPLAY
     if(display_program) {
         reist_display_request_v1 request;session_zero(&request,sizeof(request));
@@ -484,6 +511,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 }
 int x86os_kill(int pid) {
     if(pid<=0 || !session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_APP_NETWORK
+    if(session_udp_active)session_udp_revoke();
+#endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
     if(session_graphical_active)return session_graphical_kill();
 #endif
@@ -501,7 +531,12 @@ int x86os_wait(int pid,int *out) {
     int64_t result=session_input_end?session_input_wait(session_child):
         session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
 #else
+#ifdef REIST_NATIVE_APP_NETWORK
+    int64_t result=session_udp_active?session_udp_wait(&timed_out):
+        session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
+#else
     int64_t result=session_app_request?session_app_wait(&timed_out):service_task(0,2,session_child,1000);
+#endif
 #endif
     if(result==-110)timed_out=1;
     if(result==-110){if(service_task(0,3,session_child,0))session_stop(-5);result=service_task(0,2,session_child,1000);}
@@ -523,6 +558,9 @@ int x86os_wait(int pid,int *out) {
 int x86os_usb_diagnostics(x86os_usb_diagnostics_t *out){(void)out;return -38;}
 #ifdef REIST_NATIVE_NETWORK_SESSION
 #include "shell_network.inc"
+#ifdef REIST_NATIVE_APP_NETWORK
+#include "shell_application_udp.inc"
+#endif
 #else
 int x86os_network_control(const x86os_network_control_request_t *q,x86os_network_control_result_t *out){(void)q;(void)out;return -38;}
 #endif

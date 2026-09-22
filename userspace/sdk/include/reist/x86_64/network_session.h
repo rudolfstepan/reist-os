@@ -24,6 +24,12 @@ int reist_net_protocol_control(reist_net_protocol *,const x86os_network_control_
 /* IPC-v2 bulk carries one fully zero-padded, generation-scoped record. */
 enum { REIST_NET_INIT=1,REIST_NET_READY,REIST_NET_CONTROL,REIST_NET_RESULT,
        REIST_NET_TX,REIST_NET_RX,REIST_NET_HEALTH,REIST_NET_BIND,REIST_NET_HELLO };
+#ifdef REIST_NATIVE_APP_NETWORK
+enum { REIST_NET_APP_GRANT=10,REIST_NET_APP_REQUEST,REIST_NET_APP_REVOKE };
+#define REIST_NET_LAST REIST_NET_APP_REVOKE
+#else
+#define REIST_NET_LAST REIST_NET_HELLO
+#endif
 typedef struct {
     uint32_t version,size,type,length;
     uint64_t epoch,sequence,owner,deadline_ms;

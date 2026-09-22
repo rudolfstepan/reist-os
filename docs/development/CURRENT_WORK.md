@@ -2,6 +2,31 @@
 
 Stand: 22. September 2026
 
+## R8.3bm: native UDP-Anwendungsobjekte abgenommen
+
+Kandidat04 besteht alle fünf Gates (13.158/1.965/29.163/941.851/5.838 s)
+und zwanzig frische QEMU-Gäste. Das explizite NativeAppNetwork-Profil bietet
+normales `udp send`/`udp recv` über generationsgebundene, zielgebundene IPC-
+Objekte. Parser und Netzwerktreiber bleiben in getrennten Ring3-Prozessen.
+
+Nachgewiesen: 4/8 GiB, falsche/fremde/veraltete Rechte, geschlossenes Handle,
+fehlerhaftes IPC, Paketverlust ohne Neustart, beschädigte Pakete, volle Queues,
+Absturz/Hängen/CPU-Grenze von Anwendung und beiden Diensten, genau zwei
+Ersatzstarts mit anschließender Netzwerksperre und Elternprozess-Erholung.
+Unabhängiges `cat`, vollständige Rechte-/DMA-/Staging-Bereinigung und die
+Wiederherstellung aller Frames bestehen. Die bisherigen Profile bleiben gleich.
+
+Signierte Medien und Quellen-/Werkzeugbindung:
+`build/codex-agent/r83bm-application-udp/candidate04/`.
+Abnahmesiegel: `9da4534ae5acaf5112a45529b45d2f7e2664b300104b01229229302262b31bbc`.
+34 Entwicklungstests, elf Entwicklungsbuilds, zehn Entwicklungsmedienpaare,
+17 Diagnosegäste sowie 41 Abnahmegäste über vier Kandidaten sind erhalten.
+Fehlversuche und ihre Korrekturen stehen im ausführbaren Paketprotokoll.
+
+Abgenommen ist das begrenzte lokale QEMU-UDP-Profil. TCP, DNS, weitere
+Systemintegration und die vollständige native64-Abnahme stehen weiterhin aus.
+TCP folgt unter der bereits erteilten Freigabe; R3.6b bleibt zurückgestellt.
+
 ## Anwendungs-Netzwerkrechte ausdrücklich freigegeben
 
 Antwort auf den Vorschlag in `da228540`: „Ja, begrenzte

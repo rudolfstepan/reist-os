@@ -1,5 +1,21 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## R8.3bm: native UDP-Anwendungsrechte abgenommen
+
+Kandidat04: fünf Gates und zwanzig frische QEMU-Gäste bestanden, einschließlich
+Anwendungs-/Dienstfehlern, echter alter Epoche und geschlossenem Handle,
+Paketverlust ohne Neustart, begrenzter Wiederherstellung und vollständiger
+Ressourcenfreigabe. Normales `udp.prg`, native SDK-Objekte, beide Baupfade und
+ein eigenes signiertes Medienprofil sind integriert. Kernel-ABI, alte Profile
+und bestehende CPU-/IPC-/Neustartgrenzen bleiben unverändert.
+
+Siegel `build/codex-agent/r83bm-application-udp/candidate04/acceptance-seal.json`:
+`9da4534ae5acaf5112a45529b45d2f7e2664b300104b01229229302262b31bbc`.
+Alle gescheiterten Kandidaten und Entwicklungsversuche bleiben erhalten.
+Nächster zusammenhängender Schritt ist TCP unter der bestehenden Freigabe;
+DNS und die weitere Systemintegration folgen. Kein vollständiges native64-
+Release, keine öffentliche/physische Netzwerkfreigabe; R3.6b bleibt vertagt.
+
 ## 22. September: Anwendungs-Netzwerkrechte freigegeben
 
 Der Benutzer hat den Vorschlag aus `da228540` ausdrücklich bestätigt:
