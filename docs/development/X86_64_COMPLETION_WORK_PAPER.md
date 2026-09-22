@@ -1,5 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## 22. September: Anwendungs-Netzwerkrechte freigegeben
+
+Der Benutzer hat den Vorschlag aus `da228540` ausdrücklich bestätigt:
+„Ja, begrenzte Anwendungs-Netzwerkrechte freigeben“. Damit sind die dort
+beschriebenen UDP/TCP-Anwendungsobjekte im lokalen QEMU-Testnetz autorisiert.
+UDP, anschließend TCP und DNS benötigen eigene verifizierte Transaktionen,
+jedoch keine erneute Freigabe derselben Berechtigungsdomäne. Frühere Hinweise
+auf eine ausstehende Entscheidung sind historisch; eine Laufzeitabnahme
+folgt daraus noch nicht.
+
 ## R8.3bl: Native Netzwerk-Shell abgenommen
 
 candidate06 besteht fünf Gates (10.936/1.905/2.489/331.066/4.331 s) und vierzehn frische Gäste:

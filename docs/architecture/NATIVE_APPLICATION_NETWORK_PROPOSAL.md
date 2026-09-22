@@ -1,4 +1,16 @@
-# Native application network authority — proposed, not enabled
+# Native application network authority — approved, implementation pending
+
+## Explicit user approval, 22 September2026
+
+The user answered the proposal from commit `da228540` with
+"Ja, begrenzte Anwendungs-Netzwerkrechte freigeben". This authorizes the
+destination- and generation-bound UDP/TCP application objects described below
+within the existing local QEMU test network. The approval persists across UDP,
+TCP and DNS implementation transactions; routine package or diagnostic
+boundaries do not require another permission request. Runtime implementation
+and acceptance remain separate from this authority decision.
+
+The original proposal and pre-approval inventory follow as historical context.
 
 22 September2026, inventory after accepted local commit `a4c8bc96`.
 R8.3bl passed five gates and fourteen fresh guests; acceptance seal

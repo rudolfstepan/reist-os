@@ -2,6 +2,14 @@
 
 Stand: 22. September 2026
 
+## Anwendungs-Netzwerkrechte ausdrücklich freigegeben
+
+Antwort auf den Vorschlag in `da228540`: „Ja, begrenzte
+Anwendungs-Netzwerkrechte freigeben“. Die Freigabe gilt dauerhaft für die
+beschriebenen ziel- und generationsgebundenen UDP/TCP-Objekte im lokalen
+QEMU-Testnetz. Die nachfolgenden Abschnitte mit ausstehender Freigabe
+dokumentieren den vorherigen Stand. Die Umsetzung und Abnahme stehen noch aus.
+
 ## R8.3bl: Native Netzwerk-Shell abgenommen
 
 candidate06 besteht fünf Gates (10.936/1.905/2.489/331.066/4.331 s) und vierzehn frische Gäste:
