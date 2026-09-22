@@ -1,5 +1,14 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Aktiv: R8.3bo – DNS-Antwortprüfung
+
+Nach sauberem TCP-Commit `13ca2095` wird der nachgewiesene Fragenamenfehler
+im vorhandenen SDK korrigiert. Ein Paket umfasst vollständige Paketprüfung,
+Kompressionszeiger, CNAME-Ketten, TTL und Publikation erst nach Validierung.
+Hostverhalten und beide freistehenden Zielarchitekturen werden geprüft.
+Native DNS-Transportintegration folgt danach; R3.6b bleibt zurückgestellt.
+Vertrag: [DNS_RESPONSE_VALIDATION_CONTRACT](../architecture/DNS_RESPONSE_VALIDATION_CONTRACT.md).
+
 ## R8.3bn: native TCP-Clientobjekte abgenommen
 
 Kandidat06 besteht alle fünf Gates (18.361/2.022/37.174/1482.443/7.681 s) und

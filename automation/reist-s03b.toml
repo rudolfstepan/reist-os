@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bo-dns-validation"
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
 native_graphical_session_authority_boundary = "2026-09-21 accepted BG fd7a2f7786f6905b928bbe9912590e0f950664fa, final5e26802cdeface9717909f60dd8d5bd45c37d05eb643ec51b1be085ed09f3453, ten gates/22 fresh guests/clean worktree. Next inventory: existing desktop requires TERMINAL_ACQUIRE_SERVICE4, explicitly unsupported(-95) in native_terminal.inc; BG is fixed5000ms/32events with driver5/foreground4, no persistent GUI focus authority. AGENTS new-authority stop requires explicit authorization for exclusive Ring3 graphical-session/terminal-service takeover, generationscoped focus/capture and bounded persistent driver/compositor roles. Concrete proposal docs/architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md. No implementation/build/guest activated; old profiles and deferred R3.6b preserved. Native OS completion remains open."
 compaction_correction_window = "Eight hosts/two builds/13.597538999980316s second build/one media/three BIOS/zero guests spent. Build02 correctly fails exact PT_LOAD audit: GNU objcopy canonicalizes only the zero-filesz scratch segment file offset1261568 to4096; every allocated section and retained symbol identical, compact file1387904bytes. Preserve raw tool output and original; restore only that nonloaded offset after checking all other header fields, then require complete old layout/loaded bytes/retained symbols unchanged. Freeze two host commands<=600s, one fresh build03<=300s and original unspent media02<=180s/three BIOS plus healthy90s. No relaxed audit, changed media format or guest limit; cumulative ceilingthree builds/two media/six BIOS/one guest."
@@ -33,6 +33,18 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3bo-dns-validation"
+status = "active"
+phase = "native64-userspace"
+title = "Complete bounded DNS response validation prerequisite"
+risk = "untrusted packet publication and query binding"
+scope = "Correct the actual pre-existing DNS question mismatch and complete the pure packet validation boundary per docs/architecture/DNS_RESPONSE_VALIDATION_CONTRACT.md. Native resolver transport/cache integration follows separately; no new authority or runtime claim. Eight development host commands600s, three frozen gates600/300/120s. R3.6b deferred."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/DNS_RESPONSE_VALIDATION_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "userspace/sdk/reist_dns.c", "test/test_dns_response_validation.c", "scripts/verify_dns_response_validation.py"]
+targeted_tests = ["python scripts/verify_dns_response_validation.py --host"]
+package_tests = ["python scripts/verify_dns_response_validation.py --compile"]
+runtime_tests = ["python scripts/verify_dns_response_validation.py --review"]
 
 [[packages]]
 id = "R8.3bn-application-tcp"
