@@ -923,7 +923,7 @@ endif
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) $(X86_64_WIDE_ASM) $(X86_64_POOL_FLAGS) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
-	@$(AS) -f elf32 $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,) arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
+	@$(AS) -f elf32 $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,) $(X86_64_NETWORK_FLAGS) arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
 	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
 	@$(AS) -f elf32 $(X86_64_POOL_FLAGS) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)
 	@$(AS) -f elf32 -DUSER_PROBE_PATH=\"$(X86_64_USER_PROBE_ELF)\" \

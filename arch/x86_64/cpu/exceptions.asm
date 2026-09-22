@@ -34,6 +34,9 @@ extern x86_64_nx_resume
 extern x86_64_user_exception64
 extern x86_64_scheduler_user_exception64
 extern x86_64_timer_interrupt64
+%ifdef REIST_NATIVE_NETWORK_DMA
+extern native_network_emergency64
+%endif
 %ifdef REIST_NATIVE_PIO
 extern native_pio_emergency_fence64
 %endif
@@ -270,6 +273,9 @@ exception_resume:
     iretq
 
 exception_fatal:
+%ifdef REIST_NATIVE_NETWORK_DMA
+    call native_network_emergency64
+%endif
 %ifdef REIST_NATIVE_PIO
     ; No ownership lookup or metadata repair on an unknown kernel failure.
     call native_pio_emergency_fence64

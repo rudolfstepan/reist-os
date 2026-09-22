@@ -180,13 +180,6 @@ uint32_t reist_native_network(network_call *c) {
     if(address<0xffffffff801a1000ULL || address+sizeof(native_network_dma)>0xffffffff801e1000ULL)return 0;
     network_dma_io io={0,native_read,native_write,(uint32_t)(address-0xffffffff80000000ULL),
         (uint32_t)(address+10240-0xffffffff80000000ULL),&native_network_dma};
-    if(c->mode==4) {
-        if(pci_read(&io,0)==0x813910ec) {
-            uint32_t command=pci_read(&io,4);pci_command(&io,(uint16_t)(command&~4U));
-            (void)pci_read(&io,4);
-        }
-        return 1;
-    }
     if(c->mode==0)c->result=network_dma_apply(&native_network_state,&c->request,c->caller,c->now,
         (unsigned)c->relation,(unsigned char*)(uintptr_t)c->payload,&io);
     else if(c->mode==1)c->result=network_dma_retire(&native_network_state,c->caller,&io);
@@ -195,15 +188,8 @@ uint32_t reist_native_network(network_call *c) {
         if(!c->result){native_network_state.words[OWNER]=native_network_state.words[PARENT]=0;seal(&native_network_state);}
     } else if(c->mode==3)c->result=network_dma_valid(&native_network_state)?(int64_t)native_network_state.words[OWNER]:-84;
     else return 0;
-    if(c->result==-84) {
-        /* Do not trust corrupt software IO metadata. Disable bus mastering
-         * using the fixed PCI function before the kernel fatal transition. */
-        if(pci_read(&io,0)==0x813910ec) {
-            uint32_t command=pci_read(&io,4);pci_command(&io,(uint16_t)(command&~4U));
-            (void)pci_read(&io,4);
-        }
-        return 0;
-    }
+    /* Assembly immediately enters the metadata-independent fatal fence. */
+    if(c->result==-84)return 0;
     return 1;
 }
 #endif

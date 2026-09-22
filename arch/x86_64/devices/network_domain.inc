@@ -182,19 +182,104 @@ native_network_finish64:
     call native_network_clear64
     ret
 native_network_emergency64:
-    push rbp
-    mov rbp,rsp
-    and rsp,-16
-    mov qword [rel native_network_call+88],4
-    lea rdi,[rel native_network_call]
-    mov rax,C_NATIVE_NETWORK_ENTRY
-    call rax
-    mov rsp,rbp
-    pop rbp
+    ; Fixed PCI function only; no C, owner metadata, reset or DMA reuse.
+    cli
+    push rax
+    push rcx
+    push rdx
+    push r8
+    lea r8,[rel native_network_fatal_receipt]
+    mov qword [r8],0
+    mov qword [r8+8],0
+    mov qword [r8+16],0
+    mov qword [r8+24],0
+    mov qword [r8+32],0
+    mov qword [r8+40],0
+    mov qword [r8+48],0
+    mov qword [r8+56],3
+    mov dx,0xcf8
+    mov eax,0x80002000
+    out dx,eax
+    mov dx,0xcfc
+    in eax,dx
+    mov [r8+8],rax
+    cmp eax,0x813910ec
+    je .known
+    test eax,eax
+    jz .absent
+    cmp eax,0xffffffff
+    jne .publish
+.absent:
+    mov qword [r8+56],2
+    jmp .publish
+.known:
+    mov dx,0xcf8
+    mov eax,0x80002010
+    out dx,eax
+    mov dx,0xcfc
+    in eax,dx
+    mov [r8+16],rax
+    mov ecx,eax
+    mov dx,0xcf8
+    mov eax,0x80002004
+    out dx,eax
+    mov dx,0xcfc
+    in eax,dx
+    movzx eax,ax
+    mov [r8+24],rax
+    and ax,0xfffb
+    out dx,ax
+    in eax,dx
+    movzx eax,ax
+    mov [r8+32],rax
+    mov eax,ecx
+    and eax,255
+    cmp eax,1
+    jne .bad_bar
+    cmp ecx,0x1001
+    jb .bad_bar
+    cmp ecx,0xff01
+    ja .bad_bar
+    and ecx,0xff00
+    mov qword [r8+56],4
+    lea edx,[ecx+0x3c]
+    xor eax,eax
+    out dx,ax
+    lea edx,[ecx+0x37]
+    out dx,al
+    in al,dx
+    movzx eax,al
+    mov [r8+40],rax
+    lea edx,[ecx+0x3c]
+    in ax,dx
+    movzx eax,ax
+    mov [r8+48],rax
+    test dword [r8+32],4
+    jnz .publish
+    test dword [r8+40],12
+    jnz .publish
+    test eax,eax
+    jnz .publish
+    mov qword [r8+56],1
+    jmp .publish
+.bad_bar:
+    test dword [r8+32],4
+    jz .publish
+    mov qword [r8+56],4
+.publish:
+    mov rax,0x3145434e45464e52 ; RNFENCE1, published after every readback.
+    mov [r8],rax
+.published:
+    pop r8
+    pop rdx
+    pop rcx
+    pop rax
     ret
+global native_network_emergency64,native_network_fatal_receipt
 section .bss
 alignb 8
 native_network_call: resb 112
 native_network_staging: resb 1536
 native_network_user: resq 1
+native_network_fatal_receipt: resq 8
 section .text

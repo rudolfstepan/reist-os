@@ -1,14 +1,24 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 21. September 2026
+Stand: 22. September 2026
 
-## R8.3bk: Kernel-Fatalpfad bei aktivem DMA
+## R8.3bk: DMA-Sperre in allen nativen Kernel-Fatalpfaden abgenommen
 
-Nach sauberem Commit `97412dfe`: Allgemeine Kernel-Ausnahmen erreichen bisher
-nur die alte PIO-Sperre. Vor dem Ring3-Netzwerkstack wird die native DMA-Sperre
-in beide Fatalpfade eingebunden, unabhängig von beschädigten Besitzerdaten
-und C-Payload-Verfügbarkeit. Elf frische Gäste sind als Abnahme eingefroren;
-keine neue Geräte-, Netzwerk- oder Schreibberechtigung.
+Candidate03 besteht fünf Gates (1.493/1.540/1.313/33.128/6.595 s) und elf frische QEMU-Fälle:
+acht normale Netzwerkfälle sowie Kernel-NX, Schedulerfehler und beschädigte
+IO-Verwaltungsdaten bei aktivem DMA. PCI-Bus-Mastering, IMR und RX/TX werden
+vor der Diagnose abgeschaltet und zurückgelesen. Beschädigte Daten bleiben
+bis zum CLI/HLT-Pfad erhalten; ein danach eingespeistes Ethernet-Frame
+verändert den DMA-Puffer nicht. Keine Wiederverwendung nach Kernelkorruption.
+
+Build01; fünf Entwicklungshostläufe, ein Build und insgesamt 27 echte Gäste.
+Siegel: `build/codex-agent/r83bk-network-fatal/candidate03/acceptance-seal.json`,
+SHA256 `ef04c0a0d0c022461b8efa85294e0a291c1732733b1903e2fc50d9a0a0a15c9a`.
+Fehlgeschlagene Versuche und doppelte Debugger-Haltepunktmeldungen bleiben
+mit Rohdaten erhalten. Die acht normalen Prozessnachweise bleiben zwingend.
+
+Nächster offener Schritt ist der Ring3-Protokollstack mit normaler
+Shell-Einbindung. Kein vollständiges native64-Release; R3.6b bleibt vertagt.
 
 ## R8.3bj: Native Netzwerk-/DMA-Grenze abgenommen
 
