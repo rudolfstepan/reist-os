@@ -297,6 +297,24 @@ endif
 endif
 X86_64_NETWORK_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),-DREIST_NATIVE_NETWORK_DMA=1,)
 # End NativeNetworkDMA selector.
+# NativeNetworkSession: ordinary read-only shell plus isolated network roles.
+X86_64_NATIVE_NETWORK_SESSION ?= 0
+ifneq ($(words $(X86_64_NATIVE_NETWORK_SESSION)),1)
+$(error NativeNetworkSession selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_NETWORK_SESSION),0 1),$(X86_64_NATIVE_NETWORK_SESSION))
+$(error NativeNetworkSession selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_NETWORK_SESSION),1)
+ifneq ($(X86_64_NATIVE_NETWORK_DMA)$(X86_64_NATIVE_APP_FILES),11)
+$(error NativeNetworkSession requires NativeNetworkDMA and NativeAppFiles)
+endif
+ifneq ($(filter-out 0,$(X86_64_NATIVE_DISPLAY) $(X86_64_NATIVE_INPUT) $(X86_64_NATIVE_TERMINAL_SERVICE) $(X86_64_NATIVE_GRAPHICAL_SESSION)),)
+$(error NativeNetworkSession excludes graphical profiles)
+endif
+endif
+X86_64_NETWORK_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),-DREIST_NATIVE_NETWORK_SESSION=1,)
+# End NativeNetworkSession selector.
 X86_64_NATIVE_INPUT ?= 0
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
@@ -484,6 +502,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -802,6 +821,12 @@ x86_64-wide-shell-media:
 	@$(PYTHON) scripts/build_x86_64_wide_shell_media.py --input-directory "$(X86_64_WIDE_SHELL_MEDIA_INPUT)" --output-directory "$(X86_64_WIDE_SHELL_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 # End BB packaging-only target.
 # BI graphical package; caller may select a different admitted build directory.
+.PHONY: x86_64-network-media
+X86_64_NETWORK_MEDIA_INPUT ?= build/x86_64
+X86_64_NETWORK_MEDIA_OUTPUT ?= build/codex-agent/native-network-media
+x86_64-network-media:
+	@$(PYTHON) scripts/build_x86_64_network_media.py --input-directory "$(X86_64_NETWORK_MEDIA_INPUT)" --output-directory "$(X86_64_NETWORK_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
 .PHONY: x86_64-graphical-media
 X86_64_GRAPHICAL_MEDIA_INPUT ?= build/codex-agent/r83bi-graphical-session/build07/x86_64
 X86_64_GRAPHICAL_MEDIA_OUTPUT ?= build/codex-agent/r83bi-graphical-session/media07
@@ -955,7 +980,9 @@ endif
 		$(X86_64_PHYSICAL_MEMORY_OBJ) $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),$(X86_64_BOOTSTRAP_DIR)/boot_framebuffer.o $(X86_64_BOOTSTRAP_DIR)/boot_capture.o,) \
 		$(X86_64_ELF64_LOADER_OBJ) $(X86_64_USER_EXECUTION_OBJ) \
 		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ) $(X86_64_ADDRESS_SPACE_OBJ) $(X86_64_TASK_FRAMES_OBJ) $(X86_64_USER_ACCESS_OBJ)
-ifeq ($(X86_64_NATIVE_INPUT),1)
+ifeq ($(X86_64_NATIVE_NETWORK_SESSION),1)
+	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) --network-session
+else ifeq ($(X86_64_NATIVE_INPUT),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 endif
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF)

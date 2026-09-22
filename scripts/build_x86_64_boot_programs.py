@@ -63,8 +63,9 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False):
-    if type(network_dma) is not bool or network_dma and (not task_pool or any((pool_pio,service_cpu,service_pio,console,graphical_session))):raise ValueError("network DMA requires separate plain task pool")
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False):
+    if type(network_session) is not bool or network_session and (not network_dma or not app_files or display or input or terminal_service or graphical_session):raise ValueError("network session requires DMA/application files and excludes GUI")
+    if type(network_dma) is not bool or network_dma and not network_session and (not task_pool or any((pool_pio,service_cpu,service_pio,console,graphical_session))):raise ValueError("network DMA requires separate plain task pool")
     if type(graphical_session) is not bool or graphical_session and not terminal_service:raise ValueError("graphical session requires terminal service profile")
     if type(terminal_service) is not bool or terminal_service and not input:raise ValueError("terminal service requires input profile")
     if type(input) is not bool or input and not display:raise ValueError("input requires display profile")
@@ -132,6 +133,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
     if graphical_session:cc=[*cc,'-DREIST_NATIVE_GRAPHICAL_SESSION=1','-I'+str(attempt)]
+    if network_session:cc=[*cc,'-DREIST_NATIVE_NETWORK_SESSION=1','-I'+str(attempt)]
     if file_launch:build_file_program(attempt,cc,nasm,ld)
     if app_files:
         from build_x86_64_app_files import build_tools
@@ -141,6 +143,11 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         graphical_roles=build_roles(attempt,cc,nasm,ld)
         for role in graphical_roles:(attempt/'root'/role.name).write_bytes(role.read_bytes())
         graphical_hash_sources,graphical_hash_flags=hash_inputs(attempt,True)
+    if network_session:
+        from build_x86_64_network_programs import build_roles as network_roles
+        from build_x86_64_graphical_programs import hash_inputs
+        for role in network_roles(attempt,cc,nasm,ld):(attempt/'root'/role.name).write_bytes(role.read_bytes())
+        network_hash_sources,network_hash_flags=hash_inputs(attempt,True)
     def run(args):
         r=subprocess.run(list(map(str,args)),cwd=ROOT,timeout=60,capture_output=True,
                          creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -174,10 +181,12 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
                 unit=attempt/'app-files.o'
                 run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/sdk/lib/x86_64/app_files.c','-o',unit])
                 objects.append(unit)
-        if graphical_session and shell_root:
-            for index,source in enumerate(['userspace/sdk/lib/x86_64/graphical_session.c',*graphical_hash_sources]):
+        if (graphical_session or network_session) and shell_root:
+            role_sources=([ 'userspace/sdk/lib/x86_64/network_session.c',*network_hash_sources] if network_session else ['userspace/sdk/lib/x86_64/graphical_session.c',*graphical_hash_sources])
+            role_hash_flags=network_hash_flags if network_session else graphical_hash_flags
+            for index,source in enumerate(role_sources):
                 unit=attempt/f'graphical-root-{index}.o'
-                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include',*graphical_hash_flags,'-c',source,'-o',unit])
+                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include',*role_hash_flags,'-c',source,'-o',unit])
                 objects.append(unit)
         if console or shell_session and n==0:
             unit=attempt/f'console-{n}.o'
@@ -227,7 +236,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              *([f'-DFILE_LAUNCH_CASE={file_launch_case}'] if file_launch else []),
              *(['-fstack-usage'] if shell_root else []),
              *(['-DREIST_SESSION_GUEST=1'] if session and n<2 else []),
-             *extra,'-c','arch/x86_64/user/network_dma.c' if network_dma else 'test/x86_64_session_admission_host.c' if session and n<2 else 'userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/service_console.c' if service_console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
+             *extra,'-c','arch/x86_64/user/network_dma.c' if network_dma and not network_session else 'test/x86_64_session_admission_host.c' if session and n<2 else 'userspace/bin/shell.c' if shell_root else 'arch/x86_64/user/console.c' if console else 'arch/x86_64/user/service_console.c' if service_console else 'arch/x86_64/user/live_file.c' if live_file else 'arch/x86_64/user/pool_pio.c' if pool_pio else 'arch/x86_64/user/task_pool.c' if task_pool else 'arch/x86_64/user/file_launch.c' if file_launch else 'arch/x86_64/user/filesystem.c' if filesystem else 'arch/x86_64/user/block_profile.c' if block_profile else 'arch/x86_64/user/program_memory.c' if wide else 'arch/x86_64/user/block_service.c' if block else 'arch/x86_64/user/pio_domain.c' if pio else 'arch/x86_64/user/task_startup.c' if startup else 'arch/x86_64/user/task_family.c' if family else 'arch/x86_64/user/boot_program.c','-o',obj])
         run([*ld,'-m','elf_x86_64','-nostdlib','--build-id=none','--fatal-warnings','--no-undefined',
              '-z','noexecstack','--strip-all',f'--defsym=PROGRAM_LAYOUT={n}',
              *(['--wrap=main'] if session and n<2 else []),
@@ -245,13 +254,15 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     staged.write_bytes(catalog.read_bytes());os.replace(staged,directory/'boot-programs.bin')
     print('NATIVE_BOOT_PROGRAMS_PREPARED',attempt)
 
-def compact_input_elf(path,objcopy,terminal_service=False):
+def compact_input_elf(path,objcopy,terminal_service=False,network_session=False):
     """Drop only new local debug names; preserve every loaded byte and address."""
     from build_x86_64_c_payload import elf,require
     path=Path(path).absolute()
     require(path==path.resolve() and path.is_relative_to(ROOT/'build'),'input ELF output scope')
     raw=path.read_bytes();before=elf(raw,32)
-    removed={n for n,s in before['symbols'].items() if (n.startswith('native_input_') or terminal_service and n.startswith('native_terminal_')) and '.' in n and s['binding']==0}
+    if type(network_session) is not bool or network_session and terminal_service:raise ValueError('exclusive network compaction selector')
+    prefixes=('native_pio_','native_terminal_','native_network_') if network_session else ('native_input_', 'native_terminal_') if terminal_service else ('native_input_',)
+    removed={n for n,s in before['symbols'].items() if n.startswith(prefixes) and '.' in n and s['binding']==0}
     require(1<=len(removed)<=128,'bounded input local debug symbols')
     retained=path.with_suffix('.untrimmed.elf');temporary=path.with_suffix('.compact.elf')
     require(not retained.exists() and not temporary.exists(),'fresh compaction artifacts')
@@ -282,8 +293,8 @@ def compact_input_elf(path,objcopy,terminal_service=False):
     print('NATIVE_INPUT_SYMBOLS_COMPACTED',len(removed),len(raw),len(compact))
 
 if __name__=='__main__' and '--compact-input-elf' in sys.argv:
-    p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True);p.add_argument('--terminal-service',action='store_true')
-    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy,a.terminal_service)
+    p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True);p.add_argument('--terminal-service',action='store_true');p.add_argument('--network-session',action='store_true')
+    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy,a.terminal_service,a.network_session)
 elif __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--directory',required=True)
     for tool in ('cc','nasm','ld'):p.add_argument('--'+tool,required=True,nargs='+')
@@ -319,6 +330,7 @@ elif __name__=='__main__':
     p.add_argument('--terminal-service',action='store_true')
     p.add_argument('--graphical-session',action='store_true')
     p.add_argument('--network-dma',action='store_true')
+    p.add_argument('--network-session',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -326,4 +338,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session)

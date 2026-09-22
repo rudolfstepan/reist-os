@@ -1,5 +1,27 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## R8.3bl: Native Netzwerk-Shell abgenommen
+
+candidate06 besteht fünf Gates (10.936/1.905/2.489/331.066/4.331 s) und vierzehn frische Gäste:
+4/8 GiB, Treiber/Stack-Absturz, Hängen und CPU-Limit, beschädigte/veraltete
+Steuerantworten, verlorene/verspätete/fremde/prüfsummenfehlerhafte Pakete,
+fehlende NIC, manipulierte Dienstdatei, Neustart-Erschöpfung und Elternabsturz.
+
+Normale net/ifconfig/arp/ping-Befehle verwenden getrennte Ring3-Dienste.
+Paketverlust verbraucht keinen Neustart. Nach zwei Ersatzgenerationen bleibt
+die Netzwerksperre bestehen; unabhängiges cat funktioniert weiter.
+Die Rohdaten belegen Gerätesperre vor gruppenbezogenem CANCEL/WAIT,
+korrekte Generationen, bereinigte DMA-/Staging-Bereiche und alle freien Frames
+nach Sitzungsende. CPU-, IPC- und Neustartgrenzen bleiben unverändert;
+Lade- und Anfragepausen liegen innerhalb der bestehenden Fristen.
+
+Build14, signierte Medien11. Siegel:
+`build/codex-agent/r83bl-network-session/candidate06/acceptance-seal.json`,
+SHA256 `9aa0bc11dd15e8aca40c6e2fb267117933f9b6d4d4edcb684111553dfcf65f03`. Sämtliche Fehlversuche bleiben erhalten.
+QEMU-Loopback-Kontrollpfad; keine physische DMA-Isolationszusage und kein
+vollständiges native64-Release. TCP/DNS/DHCP, Anwendungssockets und die
+Zusammenführung mit dem Desktop bleiben offen. R3.6b bleibt zurückgestellt.
+
 ## R8.3bk: DMA-Sperre in allen nativen Kernel-Fatalpfaden abgenommen
 
 Candidate03 besteht fünf Gates (1.493/1.540/1.313/33.128/6.595 s) und elf frische QEMU-Fälle:

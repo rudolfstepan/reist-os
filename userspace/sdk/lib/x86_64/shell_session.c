@@ -6,6 +6,11 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_NETWORK_SESSION
+static int session_network_retire(void);
+static void session_network_poll(void);
+static void session_network_free(void);
+#endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
 static unsigned session_graphical_active;
 static int session_graphical_start(int,uint64_t);
@@ -134,6 +139,12 @@ static int session_rpc_remaining(unsigned timeout) {
 }
 static int session_fs_send(void *context,const x86os_ipc_bulk_message_t *q,unsigned timeout) {
     (void)context;int remaining=session_rpc_remaining(timeout);if(remaining<0)return remaining;
+#ifdef REIST_NATIVE_NETWORK_SESSION
+    /* Shared by service-image and ordinary foreground file capture. */
+    if(remaining<=40)return -110;
+    int paced=x86os_sleep_ms(40);if(paced)return paced;
+    remaining=session_rpc_remaining(timeout);if(remaining<0)return remaining;
+#endif
     return (int)SESSION_S3(IPC_SEND_TIMEOUT,session_service.filesystem_endpoint,q,(unsigned)remaining);
 }
 static int session_fs_receive(void *context,x86os_ipc_bulk_message_t *q,unsigned timeout) {
@@ -142,6 +153,9 @@ static int session_fs_receive(void *context,x86os_ipc_bulk_message_t *q,unsigned
 }
 static const reist_fs_transport session_transport={0,service_clock,session_fs_send,session_fs_receive};
 static int session_retire(void) {
+#ifdef REIST_NATIVE_NETWORK_SESSION
+    session_network_retire();
+#endif
     int result=reist_service_session_retire(&session_service,&session_ops);
     session_zero(&session_observation,sizeof(session_observation));
     if(result)session_stop(result);
@@ -216,6 +230,9 @@ int x86os_sleep_ms(uint32_t duration) {
     (void)session_now();return 0;
 }
 int x86os_getchar_nonblocking(void) {
+#ifdef REIST_NATIVE_NETWORK_SESSION
+    session_network_poll();
+#endif
     uint64_t now=session_now();int result=reist_session_policy_charge(&session_policy,now,0,1,0);
     if(result)session_stop(result);
     unsigned char byte=0;int64_t status=SESSION_S3(READ,0,&byte,1);
@@ -504,7 +521,11 @@ int x86os_wait(int pid,int *out) {
     *out=(int)(uint32_t)result;return 0;
 }
 int x86os_usb_diagnostics(x86os_usb_diagnostics_t *out){(void)out;return -38;}
+#ifdef REIST_NATIVE_NETWORK_SESSION
+#include "shell_network.inc"
+#else
 int x86os_network_control(const x86os_network_control_request_t *q,x86os_network_control_result_t *out){(void)q;(void)out;return -38;}
+#endif
 extern int __real_main(int,char **);
 int __wrap_main(int argc,char **argv) {
     if(reist_shell_session_selection[0]!=0x3153455353484c53ULL || reist_shell_session_selection[1]!=1 ||
@@ -534,6 +555,9 @@ int __wrap_main(int argc,char **argv) {
     session_case=selected_case;
     int result=__real_main(argc,argv);
     session_flush();session_retire();
+#ifdef REIST_NATIVE_NETWORK_SESSION
+    session_network_free();
+#endif
 #ifdef REIST_NATIVE_INPUT
     if(session_input_driver||session_input_endpoint||session_input_ingress||session_input_epoch||session_input_end)session_stop(-5);
 #endif

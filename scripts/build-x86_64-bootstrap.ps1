@@ -42,6 +42,7 @@ param(
     [switch]$NativeTerminalService,
     [switch]$NativeGraphicalSession,
     [switch]$NativeNetworkDMA,
+    [switch]$NativeNetworkSession,
     [switch]$NativeInput,
     [switch]$NativeDisplay,
     [switch]$NativeServicePIO,
@@ -68,6 +69,13 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeNetworkSession) {
+    if ($NativeDisplay -or $NativeInput -or $NativeTerminalService -or $NativeGraphicalSession) {
+        throw 'NativeNetworkSession excludes graphical profiles.'
+    }
+    $NativeNetworkDMA = [switch]$true
+    $NativeAppFiles = [switch]$true
+}
 if ($NativeNetworkDMA) { $NativeTaskPool = [switch]$true }
 if ($NativeGraphicalSession) { $NativeTerminalService = [switch]$true }
 if ($NativeTerminalService) { $NativeInput = [switch]$true }
@@ -453,6 +461,7 @@ try {
         "X86_64_NATIVE_GRAPHICAL_SESSION=$([int]$NativeGraphicalSession.IsPresent)" `
         "X86_64_NATIVE_INPUT=$([int]$NativeInput.IsPresent)" `
         "X86_64_NATIVE_NETWORK_DMA=$([int]$NativeNetworkDMA.IsPresent)" `
+        "X86_64_NATIVE_NETWORK_SESSION=$([int]$NativeNetworkSession.IsPresent)" `
         "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `

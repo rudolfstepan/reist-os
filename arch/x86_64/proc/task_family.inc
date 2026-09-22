@@ -169,7 +169,11 @@ family_profile_admit64:
     jnz .denied
     mov rax,[rdi+16]
 %ifdef REIST_NATIVE_NETWORK_DMA
+%ifdef REIST_NATIVE_NETWORK_SESSION
+    mov rdx,~((1<<49)|(1<<63))
+%else
     mov rdx,~(1<<49)
+%endif
     test rax,rdx
 %else
 %ifdef REIST_NATIVE_PIO
@@ -402,12 +406,22 @@ family_profile_apply64:
     jnz .invalid_binding
 .child_extended:
 %ifdef REIST_NATIVE_NETWORK_DMA
+%ifdef REIST_NATIVE_NETWORK_SESSION
+    mov r10,~((1<<49)|(1<<63))
+%else
     mov r10,~(1<<49)
+%endif
     test rax,r10
     jnz .invalid_binding
     test edi,edi
     jnz .network_extended
     bts rax,49
+%ifdef REIST_NATIVE_NETWORK_SESSION
+    ; Preserve the existing normal-shell root identity and terminal rights.
+    ; Identity remains excluded from child profile admission above.
+    bts rax,50
+    bts rax,63
+%endif
 .network_extended:
 %else
 %ifdef REIST_NATIVE_PIO

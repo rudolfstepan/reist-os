@@ -46,6 +46,13 @@ failed admission. Configure atomically; no zero, multicast, broadcast or
 invalid mask/gateway configuration. Payload correlation prevents old echo
 replies from satisfying a new operation with repeated public identifiers.
 
+Native synchronous adapter: the existing shell ARP request uses timeout0;
+this profile assigns1000ms, including control pacing and the complete200ms
+frame-IPC reservation. This is a bounded synchronous observation, not a
+compatibility claim for legacy asynchronous ARP queuing. Control pacing sleeps
+at most250ms within the original request deadline; restart pacing sleeps1000ms
+within the original3000ms startup deadline. No budget or deadline is renewed.
+
 Failure path: detect, isolate, fence device32, close channels, cancel/wait
 exact children, recreate, self-test, reintegrate. At most two replacements
 within the existing shared parent budget; network exhaustion is sticky for
