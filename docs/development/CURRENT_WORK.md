@@ -2,6 +2,15 @@
 
 Stand: 22. September 2026
 
+## Aktiv: R8.3bp – nativer DNS-Resolver
+
+Nach sauberem Parser-Commit `638f5269` folgt ein zusammenhängendes Paket:
+`nslookup.prg`, Cache-/Fristbindung, gepaarte UDP/TCP-Rechte für denselben
+lokalen Testserver, signierte Medien und Fehlererholung. Die bestehenden
+CPU-/IPC-/Neustartgrenzen bleiben bestehen. Fünf Gates und 25 frische Gäste
+sind vor der Implementierung festgelegt. Noch keine native DNS-Abnahme.
+Vertrag: [NATIVE_APPLICATION_DNS_CONTRACT](../architecture/NATIVE_APPLICATION_DNS_CONTRACT.md).
+
 ## R8.3bo: DNS-Antwortprüfung abgenommen
 
 Drei Gates bestanden (1,853/1,451/1,079 s): C-Verhalten bei O0/O2,
