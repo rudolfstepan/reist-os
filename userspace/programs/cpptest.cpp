@@ -11,6 +11,15 @@
 #include <reist/fixed_vector.h>
 #include <reist/unique_handle.h>
 #include <x86os.h>
+#ifdef REIST_NATIVE_CPP_RUNTIME
+#include <stdlib.h>
+#include <reist/x86_64/cpp_runtime.h>
+#include <reist/x86_64/syscall.h>
+extern "C" {
+volatile uint64_t reist_cpp_runtime_witness[8];
+__attribute__((noinline)) void reist_cpp_runtime_checkpoint(void) { __asm__ volatile("":::"memory"); }
+}
+#endif
 
 namespace {
 constexpr unsigned mib = 1024U * 1024U;
@@ -34,8 +43,10 @@ static_assert(__builtin_offsetof(reist_libc_stats_t, live_bytes) == 16);
 bool lifetime() {
     if (constructed || destroyed || ::operator new(4, std::nothrow)) return false;
     if (reist_libc_init_process(8 * mib)) return false;
+#ifndef REIST_NATIVE_CPP_RUNTIME
     x86os_memory_stats_t before{}, after{};
     if (x86os_memory_stats(&before)) return false;
+#endif
     {
         Object first;
         Object moved(static_cast<Object&&>(first));
@@ -53,6 +64,35 @@ bool lifetime() {
     if (new(std::nothrow) Object[huge] || ::operator new(SIZE_MAX, std::nothrow) ||
         ::operator new(SIZE_MAX, std::align_val_t(4096), std::nothrow) ||
         !reist_libc_reset() || single->value != 42 || array[6].value != 42) return false;
+#ifdef REIST_NATIVE_CPP_RUNTIME
+    unsigned char *bytes=static_cast<unsigned char*>(calloc(1024,1));
+    if(!bytes||reinterpret_cast<uintptr_t>(bytes)<=UINT32_MAX)return false;
+    for(unsigned n=0;n<1024;n++){if(bytes[n])return false;bytes[n]=0x5a;}
+    reist_libc_stats_t live{1,sizeof(live),0,0,0,0};
+    if(reist_libc_stats(&live))return false;
+    reist_cpp_runtime_witness[0]=1;reist_cpp_runtime_witness[1]=reinterpret_cast<uintptr_t>(bytes);
+    reist_cpp_runtime_witness[2]=1024;reist_cpp_runtime_witness[3]=live.capacity;
+    reist_cpp_runtime_witness[4]=live.live_objects;reist_cpp_runtime_witness[5]=live.live_bytes;
+    reist_cpp_runtime_witness[6]=reinterpret_cast<uintptr_t>(aligned);
+    reist_cpp_runtime_witness[7]=reinterpret_cast<uintptr_t>(single);
+    reist_cpp_runtime_checkpoint();
+    switch(reist_cpp_runtime_selection[1]) {
+    case 0:break;
+    case 1:
+        if(realloc(bytes,16U*mib))return false;
+        for(unsigned n=0;n<1024;n++)if(bytes[n]!=0x5a)return false;
+        reist_cpp_runtime_witness[0]=3;
+        reist_cpp_runtime_checkpoint();
+        break;
+    case 2:free(bytes+1);return false;
+    case 3:(void)::operator new(SIZE_MAX);return false;
+    case 4:__asm__ volatile("ud2");return false;
+    case 5:for(;;)(void)reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,100);
+    case 6:for(;;)__asm__ volatile("pause");
+    default:return false;
+    }
+    free(bytes);
+#endif
     delete single; delete[] array; delete[] aligned;
     void *zero = ::operator new(0, std::nothrow);
     if (!zero) return false;
@@ -61,8 +101,16 @@ bool lifetime() {
     ::operator delete[](nullptr, std::align_val_t(4096));
     reist_libc_stats_t stats{REIST_LIBC_VERSION, sizeof(stats), 0, 0, 0, 0};
     if (constructed != destroyed || reist_libc_stats(&stats) || stats.capacity ||
-        stats.live_objects || x86os_memory_stats(&after) ||
-        before.allocated_frame_bytes != after.allocated_frame_bytes) return false;
+        stats.live_objects
+#ifndef REIST_NATIVE_CPP_RUNTIME
+        || x86os_memory_stats(&after) || before.allocated_frame_bytes != after.allocated_frame_bytes
+#endif
+        ) return false;
+#ifdef REIST_NATIVE_CPP_RUNTIME
+    reist_cpp_runtime_witness[0]=2;reist_cpp_runtime_witness[3]=stats.capacity;
+    reist_cpp_runtime_witness[4]=stats.live_objects;reist_cpp_runtime_witness[5]=stats.live_bytes;
+    reist_cpp_runtime_checkpoint();
+#endif
     x86os_puts("REIST_CPP_LIFETIME_OK\nREIST_CPP_BACKING_RETURN_OK\n");
     return true;
 }
@@ -117,8 +165,12 @@ EndpointResult open_endpoint() noexcept {
 }
 bool bounded_types() {
     phase = "types";
+#ifndef REIST_NATIVE_CPP_RUNTIME
     x86os_memory_stats_t before{}, after{};
     if (endpoint_closes || x86os_memory_stats(&before)) return false;
+#else
+    if(endpoint_closes)return false;
+#endif
     {
         reist::Optional<Object> optional;
         if (optional.get() || !optional.try_emplace() || optional.try_emplace()) return false;
@@ -168,8 +220,11 @@ bool bounded_types() {
     }
     phase = "types-cleanup";
     reist_libc_stats_t stats{REIST_LIBC_VERSION, sizeof(stats), 0, 0, 0, 0};
-    if (constructed != destroyed || reist_libc_stats(&stats) || stats.capacity || stats.live_objects ||
-        x86os_memory_stats(&after) || before.allocated_frame_bytes != after.allocated_frame_bytes) return false;
+    if (constructed != destroyed || reist_libc_stats(&stats) || stats.capacity || stats.live_objects
+#ifndef REIST_NATIVE_CPP_RUNTIME
+        || x86os_memory_stats(&after) || before.allocated_frame_bytes != after.allocated_frame_bytes
+#endif
+        ) return false;
     x86os_puts("REIST_CPP_TYPES_OK\nREIST_CPP_HANDLE_OWNERSHIP_OK\n");
     return true;
 }
@@ -280,12 +335,20 @@ bool containment() {
 }
 
 extern "C" int main(int argc, char **argv) {
+#ifdef REIST_NATIVE_CPP_RUNTIME
+    (void)argv;
+    if(argc!=1||reist_cpp_runtime_selection[0]!=0x3150504354525352ULL||
+       reist_cpp_runtime_selection[1]>6)return 2;
+    if(reist_cpp_runtime_begin())return 5;
+    if(!lifetime()||!bounded_types())return 1;
+#else
     if (argc == 4) return child(argv[1], parse(argv[2]), parse(argv[3]));
     if (argc != 1) return 2;
     if (!lifetime() || !bounded_types() || !containment()) {
         x86os_puts("REIST_CPP_RUNTIME_FAIL phase="); x86os_puts(phase); x86os_puts("\n");
         return 1;
     }
+#endif
     x86os_puts("REIST_CPP_RUNTIME_OK\n");
     return 0;
 }

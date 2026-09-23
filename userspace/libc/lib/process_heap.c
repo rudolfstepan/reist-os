@@ -1,7 +1,17 @@
 #include <reist/libc.h>
 #include <x86os.h>
 #include <errno.h>
+#if UINTPTR_MAX == UINT64_MAX
+_Static_assert(sizeof(size_t)==8U && sizeof(reist_libc_backing_t)==40U,
+               "LP64 backing v1 ABI changed");
+_Static_assert(offsetof(reist_libc_backing_t,context)==16U &&
+               offsetof(reist_libc_backing_t,acquire)==24U &&
+               offsetof(reist_libc_backing_t,release)==32U,
+               "LP64 backing callback layout changed");
+#else
 _Static_assert(sizeof(reist_libc_backing_t)==28U, "i386 backing v1 ABI changed");
+#endif
+_Static_assert(sizeof(reist_libc_stats_t)==24U,"fixed-width stats v1 ABI changed");
 
 static void *process_acquire(void *context, size_t capacity) {
     (void)context;

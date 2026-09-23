@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False):
+    if type(app_cpp_runtime) is not bool or app_cpp_runtime and (not app_files or any((display,input,graphical_session,network_session))):raise ValueError("native C++ runtime requires separate application-file profile")
     if type(app_http) is not bool or app_http and not app_dns:raise ValueError("application HTTP requires DNS profile")
     if type(app_dns) is not bool or app_dns and not app_tcp:raise ValueError("application DNS requires TCP")
     if type(app_tcp) is not bool or app_tcp and not app_network:raise ValueError("application TCP requires application network")
@@ -144,6 +145,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if app_files:
         from build_x86_64_app_files import build_tools
         build_tools(attempt,cc,nasm,ld)
+    if app_cpp_runtime:
+        from build_x86_64_cpp_runtime import build_tool as build_cpp_tool
+        build_cpp_tool(attempt,cc,nasm,ld)
     if graphical_session:
         from build_x86_64_graphical_programs import build_roles,hash_inputs
         graphical_roles=build_roles(attempt,cc,nasm,ld)
@@ -363,7 +367,7 @@ elif __name__=='__main__':
     p.add_argument('--network-session',action='store_true')
     p.add_argument('--app-network',action='store_true')
     p.add_argument('--app-tcp',action='store_true')
-    p.add_argument('--app-dns',action='store_true');p.add_argument('--app-http',action='store_true')
+    p.add_argument('--app-dns',action='store_true');p.add_argument('--app-http',action='store_true');p.add_argument('--app-cpp-runtime',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -371,4 +375,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime)

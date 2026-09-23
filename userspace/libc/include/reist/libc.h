@@ -26,6 +26,8 @@ int reist_libc_init(void *storage, size_t capacity);
  * Acquire returns max_align_t-aligned private writable storage or NULL.
  * Release consumes exactly that region. Whole empty regions are returned by
  * free(); capacity in v1 stats is committed backing, not the budget. */
+/* In-process callback ABI only: i386 size28, AMD64 LP64 size40.
+ * Never serialize native callback pointers into an IPC or persistent format. */
 typedef struct {
     uint32_t version, struct_size, budget, quantum;
     void *context;

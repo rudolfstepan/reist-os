@@ -1,16 +1,42 @@
 # REIST OS – aktueller Arbeitsstand
 
-Stand: 22. September 2026
+Stand: 23. September 2026
 
-## Aktiv: R8.3br – native C/C++-Allokationslaufzeit
+## R8.3br: native C/C++-Allokationslaufzeit abgenommen
 
-HTTP52eb89e8 ist sauber abgeschlossen. Die nächste gemeinsame Voraussetzung
-für JS und weitere Anwendungen ist die vorhandene libc/C++-Laufzeit mit
-vollbreiten Pointern und Prozess-Backing. Der28-Byte-i386-Layoutzwang und
-ELF32-only-C++-Zulassung werden explizit für AMD64 ergänzt; normaler cpptest,
-signierte Medien und zehn frische Fehler-/Cleanup-Gäste gehören zum Paket.
-Keine neue Kernel-/Netz-/Dateiautorität. Vertrag:
-[NATIVE_CPP_RUNTIME_CONTRACT](../architecture/NATIVE_CPP_RUNTIME_CONTRACT.md).
+Kandidat01 besteht alle fünf Gates (39,484/11,414/29,149/1169,317/95,674s)
+und zehn frische QEMU-Gäste:4/8GiB, Realloc-Erhalt, ungültige Freigabe,
+New-OOM, Absturz, Hänger, CPU-Budget, Elternverlust und wiederholte Generationen.
+Normales cpptest, ELF64-Archive/Sysroot, signierte Sechs-Dateien-Medien und
+vollbreite Prozess-Backing-Zeiger sind integriert. Rohe Seitentabellen,
+Heap-Inhalt und generationsgebundene Bereinigung, CPU-/Frame-/IPC-/Gerätebilanz
+bestehen unabhängig; i386 und frühere CLI/GUI/UDP/TCP/DNS/HTTP-Artefakte bleiben
+nachgewiesen. Kein Kernelumbau und keine neue Berechtigungsdomäne.
+Evidenz: build/codex-agent/r83br-cpp-runtime/candidate01/.
+Siegel: `b328527b28eebc5009829a7162a373622d3b0421358fc6321aebc53bbaa6162c`.
+Nächste native64-Voraussetzung nach sauberem lokalem Commit inventarisieren;
+JavaScript und native64-Gesamtabnahme bleiben offen, R3.6b bleibt vertagt.
+Vertrag: [NATIVE_CPP_RUNTIME_CONTRACT](../architecture/NATIVE_CPP_RUNTIME_CONTRACT.md).
+
+Erhaltene Entwicklungshistorie: Host01 rot (LP64-Provider/ELF64-Zulassung),
+Host02 grün, Host03 rot (Windows-Testcompilerflag), Host04..06 grün;
+Host06 prüft acht Gruppen einschließlich der Gastprüfer-Zusammensetzung
+in50,467s. Build01 grün16,634s, Medium01 grün5,554s.
+Build02 bleibt fehlgeschlagen: Compiler-Timeout90s bei bytes.c,
+Gesamtzeit3573,310s, damit außerhalb der300s-Reservierung. Windows meldet
+Standby/Wiederaufnahme am23.09.2026 um04:15:43/04:15:48 (System42/107).
+Anschließend keine Zig-/QEMU-/GDB-Prozesse gefunden. Build03 besteht nach dieser
+externen Unterbrechung in15,848s; Build02 wird nicht als Nachweis verwendet.
+Diagnose01 liefert zwei vollständige Gastläufe, scheitert aber im Prüfer an
+der gültigen Heap-Startadresse0x100000000. Korrektur von Adressgrenze und
+kanonischem argv; Host07 findet zusätzlich eine lokale Python-Namenskollision.
+Host08 besteht den korrigierten vollständigen Roh-Replay in8,004s.
+Diagnose02 besteht Realloc-Erhalt samt rohen Seitentabellenpfaden in103,632s.
+Host09 besteht alle12 Gruppen in39,205s, einschließlich unveränderter
+i386-Quellprojektion, Stackgrenze, Medien- und Rohdatenmutationen.
+Diagnose03 besteht mit rohem generationsgebundenem Heap-Aufräumnachweis
+in104,094s. Anschließend bestehen alle fünf unveränderten Gates und zehn
+frische Gäste; kein Diagnosegast ersetzt einen Abnahmegast.
 
 ## R8.3bq: normales curl im nativen HTTP-Profil abgenommen
 

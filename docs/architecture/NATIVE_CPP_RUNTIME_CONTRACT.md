@@ -60,6 +60,38 @@ private debugger-only zero-default selector may inject faults after live heap
 acquisition; it grants no script or CLI authority. Shell launch remains the
 normal cpptest command, not a rescue-shell entry.
 
+### Explicit native SDK subset
+
+The generated cpp-sysroot contains usr/lib/crt0.o, libreistc.a,
+libreistcpp.a and libreistos-native.a. Its explicit include roots are
+usr/include, usr/include/reist/libc and usr/include/reist/cpp. Consumers use
+the freestanding AMD64 target, existing C++20 admission flags, native startup
+and linker script; the ordinary i386 sysroot is not replaced. Initialize
+reist_cpp_runtime_begin once before reist_libc_init_process; the consumer owns
+its finite backing budget. The actual cpptest uses8MiB, below the512MiB
+process/provider ceiling. This is an allocator/type/terminal/IPC subset,
+not a hosted C library or standard C++ library.
+
+The SDK retains one5000ms monotonic lifetime,4096 clocked operations and1024
+stdout bytes. Writes use at most100 steps of64 bytes with bounded1ms sleeps
+on EAGAIN, and check the original clock before/after completion. IPC waits
+are at most1000ms and clamp to that same lifetime; timeout0 remains a poll.
+Heap syscall results preserve the actual acquired pointer even if the call
+crosses the deadline, so ownership cannot be silently lost. Subsequent
+expired operations fail closed and existing kernel reaping owns cleanup.
+The unchanged shell's1000ms foreground wait/cancel path remains authoritative;
+the SDK lifetime never extends it. Sleep calls are bounded to100ms.
+
+The raw proof records the actual LP64 object addresses (including the valid
+first address0x100000000), aligned allocation, four-level PTE walk and bytes,
+kernel heap control/regions/tables, and per-generation empty heap before image
+reaping. Realloc failure preserves the same pointers, accounting and bytes;
+phase2 demonstrates unmapped returned backing. Final family/IPC/CPU/device
+and physical frame balance remain the accepted complete shell proof. The
+compiler's seven stack reports must be static; the sum of all function frames
+plus2048 bytes is below the unchanged32768-byte stack. The reviewed runtime
+call graph is acyclic; provider function pointers have two fixed targets.
+
 ## Scope, reservation and frozen gates
 
 One active visible-main-worktree package; allowed_files in the queue controls

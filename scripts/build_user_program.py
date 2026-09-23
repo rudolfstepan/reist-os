@@ -34,13 +34,19 @@ def cpp_compile_flags() -> list[str]:
             "-Werror=global-constructors", "-Werror=exit-time-destructors"]
 
 
-def validate_cpp_object(data: bytes) -> None:
+def validate_cpp_object(data: bytes, *, architecture: str = "i386") -> None:
     """Reject forbidden runtime requirements BEFORE stripping/GC/discard.
 
     This is a build-admission check, not a security boundary against hostile
     hand-written machine code. The unchanged Ring-3 loader remains that boundary.
     Inspect every archive member, including currently unreferenced members.
     """
+    if architecture not in ("i386", "x86_64"):
+        raise ValueError("explicit supported C++ architecture required")
+    native = architecture == "x86_64"
+    header_type = struct.Struct("<16sHHIQQQIHHHHHH") if native else ELF_HEADER
+    section_type = struct.Struct("<IIQQQQIIQQ") if native else ELF_SECTION_HEADER
+    symbol_type = struct.Struct("<IBBHQQ") if native else struct.Struct("<IIIBBH")
     if len(data) > 64 * 1024 * 1024:
         raise ValueError("C++ input exceeds admission capacity")
     if data.startswith(b"!<arch>\n"):
@@ -58,23 +64,26 @@ def validate_cpp_object(data: bytes) -> None:
             if name not in (b"/", b"//", b"/SYM64/"):
                 if not member.startswith(b"\x7fELF"):
                     raise ValueError("C++ archives require ordinary ELF32 objects")
-                validate_cpp_object(member)
+                validate_cpp_object(member, architecture=architecture)
             offset += size + (size & 1)
             members += 1
         if not members or offset != len(data):
             raise ValueError("invalid C++ archive size")
         return
-    if len(data) < ELF_HEADER.size:
+    if len(data) < header_type.size:
         raise ValueError("truncated C++ ELF input")
-    h = ELF_HEADER.unpack_from(data)
-    if h[0][:7] != b"\x7fELF\x01\x01\x01" or h[1] not in (1, 2) or h[2:4] != (3, 1):
+    h = header_type.unpack_from(data)
+    identity = b"\x7fELF\x02\x01\x01" if native else b"\x7fELF\x01\x01\x01"
+    if h[0][:7] != identity or h[1] not in (1, 2) or h[2:4] != (62 if native else 3, 1):
+        if native:
+            raise ValueError("C++ input requires little-endian AMD64 ELF")
         raise ValueError("C++ input requires little-endian i386 ELF")
     shoff, stride, count, strings = h[6], h[11], h[12], h[13]
-    if (h[8] != ELF_HEADER.size or stride != ELF_SECTION_HEADER.size or
+    if (h[8] != header_type.size or stride != section_type.size or
             not 0 < count <= 4096 or strings >= count or
-            shoff < ELF_HEADER.size or shoff + count * stride > len(data)):
+            shoff < header_type.size or shoff + count * stride > len(data)):
         raise ValueError("invalid C++ ELF section table")
-    sections = [ELF_SECTION_HEADER.unpack_from(data, shoff + i * stride) for i in range(count)]
+    sections = [section_type.unpack_from(data, shoff + i * stride) for i in range(count)]
 
     def contents(section):
         if section[4] > len(data) or section[5] > len(data) - section[4]:
@@ -108,17 +117,18 @@ def validate_cpp_object(data: bytes) -> None:
             contents(section)
         if section[1] not in (2, 11):
             continue
-        if section[9] != 16 or section[5] % 16 or section[6] >= count or section[5] // 16 > 65536:
+        if (section[9] != symbol_type.size or section[5] % symbol_type.size or
+                section[6] >= count or section[5] // symbol_type.size > 65536):
             raise ValueError("invalid C++ ELF symbol table")
         table = sections[section[6]]
         if table[1] != 3:
             raise ValueError("invalid C++ symbol-name table")
         symbols = contents(section)
         symbol_names = contents(table)
-        for start in range(0, len(symbols), 16):
-            symbol = struct.unpack_from("<IIIBBH", symbols, start)
+        for start in range(0, len(symbols), symbol_type.size):
+            symbol = symbol_type.unpack_from(symbols, start)
             name = name_at(symbol_names, symbol[0])
-            if ((symbol[3] & 15) == 6 or name in (b"atexit", b"at_quick_exit") or
+            if ((symbol[1 if native else 3] & 15) == 6 or name in (b"atexit", b"at_quick_exit") or
                     name.startswith(banned_symbols) or
                     (name.startswith(b"__cxa_") and name not in (b"__cxa_pure_virtual", b"__cxa_deleted_virtual")) or
                     name.startswith((b"thrd_", b"tss_", b"mtx_", b"cnd_"))):

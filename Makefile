@@ -404,6 +404,17 @@ $(error NativeTerminalService requires explicit NativeInput)
 endif
 endif
 X86_64_TERMINAL_SERVICE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),-DREIST_NATIVE_TERMINAL_SERVICE=1,)
+# Explicit native C/C++ allocation runtime, with accepted file-shell prerequisites.
+X86_64_NATIVE_CPP_RUNTIME ?= 0
+ifneq ($(words $(X86_64_NATIVE_CPP_RUNTIME)),1)
+$(error NativeCppRuntime selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_CPP_RUNTIME),0 1),$(X86_64_NATIVE_CPP_RUNTIME))
+$(error NativeCppRuntime selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_CPP_RUNTIME),1)
+X86_64_NATIVE_APP_FILES := 1
+endif
 # BC explicit Ring3 application objects; old/default profiles remain unchanged.
 X86_64_NATIVE_APP_FILES ?= 0
 ifneq ($(words $(X86_64_NATIVE_APP_FILES)),1)
@@ -557,6 +568,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-networ
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_TCP)),--app-tcp,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_DNS)),--app-dns,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_HTTP)),--app-http,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_CPP_RUNTIME)),--app-cpp-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -880,6 +892,12 @@ X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
 X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
+.PHONY: x86_64-cpp-runtime-media
+X86_64_CPP_RUNTIME_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
+X86_64_CPP_RUNTIME_MEDIA_OUTPUT ?= build/codex-agent/native-cpp-runtime-media
+x86_64-cpp-runtime-media:
+	@$(PYTHON) scripts/build_x86_64_cpp_runtime_media.py --input-directory "$(X86_64_CPP_RUNTIME_MEDIA_INPUT)" --output-directory "$(X86_64_CPP_RUNTIME_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
 .PHONY: x86_64-application-http-media
 X86_64_APPLICATION_HTTP_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)

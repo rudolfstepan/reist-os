@@ -1,14 +1,20 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Aktiv: R8.3br – native C/C++-Allokationslaufzeit
+## R8.3br: native C/C++-Allokationslaufzeit abgenommen
 
-HTTP52eb89e8 ist sauber abgeschlossen. Die nächste gemeinsame Voraussetzung
-für JS und weitere Anwendungen ist die vorhandene libc/C++-Laufzeit mit
-vollbreiten Pointern und Prozess-Backing. Der28-Byte-i386-Layoutzwang und
-ELF32-only-C++-Zulassung werden explizit für AMD64 ergänzt; normaler cpptest,
-signierte Medien und zehn frische Fehler-/Cleanup-Gäste gehören zum Paket.
-Keine neue Kernel-/Netz-/Dateiautorität. Vertrag:
-[NATIVE_CPP_RUNTIME_CONTRACT](../architecture/NATIVE_CPP_RUNTIME_CONTRACT.md).
+Kandidat01 besteht alle fünf Gates (39,484/11,414/29,149/1169,317/95,674s)
+und zehn frische QEMU-Gäste:4/8GiB, Realloc-Erhalt, ungültige Freigabe,
+New-OOM, Absturz, Hänger, CPU-Budget, Elternverlust und wiederholte Generationen.
+Normales cpptest, ELF64-Archive/Sysroot, signierte Sechs-Dateien-Medien und
+vollbreite Prozess-Backing-Zeiger sind integriert. Rohe Seitentabellen,
+Heap-Inhalt und generationsgebundene Bereinigung, CPU-/Frame-/IPC-/Gerätebilanz
+bestehen unabhängig; i386 und frühere CLI/GUI/UDP/TCP/DNS/HTTP-Artefakte bleiben
+nachgewiesen. Kein Kernelumbau und keine neue Berechtigungsdomäne.
+Evidenz: build/codex-agent/r83br-cpp-runtime/candidate01/.
+Siegel: `b328527b28eebc5009829a7162a373622d3b0421358fc6321aebc53bbaa6162c`.
+Nächste native64-Voraussetzung nach sauberem lokalem Commit inventarisieren;
+JavaScript und native64-Gesamtabnahme bleiben offen, R3.6b bleibt vertagt.
+Vertrag: [NATIVE_CPP_RUNTIME_CONTRACT](../architecture/NATIVE_CPP_RUNTIME_CONTRACT.md).
 
 ## R8.3bq: normales curl im nativen HTTP-Profil abgenommen
 
