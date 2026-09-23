@@ -17,9 +17,17 @@ fehlgeschlagene Kandidaten und Diagnosen bleiben erhalten. Die historische
 Ursache von Kandidat01 ist mangels damaliger Registerdetails nicht rückwirkend
 bewiesen; der reproduzierbare gleiche Fehlmechanismus ist behoben.
 Seal:fc9d2d9b27df9c9558ddbb313b0102625732ae3919314b3b0680bd9387440100.
-Nächster Schritt: native QuickJS-Voraussetzungen inventarisieren und den
-nächsten zusammenhängenden Umfang festlegen. Native64 bleibt unvollständig;
-R3.6b bleibt ausdrücklich zurückgestellt.
+Abgenommen mit lokalem Commit33061693, sauberer Arbeitsbaum vor Folgeinventar.
+Die native QuickJS-Größenmessung ergibt754104 ELF-Dateibytes und923968 Byte
+Abbildspanne. Bisher erlaubt sind524288 Eingabebytes und196608 Programmbytes oberhalb
+des reservierten Stacks. Der Host-Build ist kein Gast-/JavaScript-Nachweis.
+Konkreter nächster Vorschlag: NATIVE_LARGE_EXECUTABLE_PROPOSAL.md, getrenntes
+1-MiB-/256-Seiten-Profil mit begrenzten höheren FS-/Block-Anfragezahlen;
+Laufzeiten, CPU-, Stack- und Geräteberechtigungen bleiben unverändert.
+Diese Erweiterung überschreitet die ausdrücklich genehmigten Abbild-/Capture-
+Ressourcengrenzen. Gemäß AGENTS.md bleibt sie bis zur Freigabe unimplementiert;
+kein Paket aktiv, keine Kerneländerung oder Gastreservierung. Native64 ist
+weiterhin unvollständig; R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## Abgenommen: R8.3bs – native Mathematiklaufzeit
 
