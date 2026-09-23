@@ -2,6 +2,14 @@
 
 Stand: 23. September 2026
 
+## Aktiv: R8.3bv – großes unveränderliches Dateiladeprofil
+
+Auf sauberem Commit67fa5dfd folgt das bereits genehmigte1MiB-Dateiladeprofil:
+versionierte Capture-/FS-/Block-/Dienstadapter, normaler Shellstart und signierte
+Medien mit geeignetem EXT2-Layout. Alter Dateipfad und alle CPU-/Heap-/Stack-/
+Gerätegrenzen bleiben erhalten. Umfang, endliche Versuche und fünf Gates stehen
+in NATIVE_LARGE_FILE_CONTRACT.md. QuickJS folgt nach dieser Abnahme; R3.6b vertagt.
+
 ## Abgenommen: R8.3bu – großes natives Programmabbild
 
 Kandidat01 besteht alle fünf Gates (39.402/45.715/9.043/164.156/6.292s).
