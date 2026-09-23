@@ -39,7 +39,15 @@
     cmp %1,4
 %endif
 %endmacro
-%ifdef REIST_NATIVE_WIDE
+%ifdef REIST_NATIVE_LARGE_IMAGE
+%ifndef REIST_NATIVE_WIDE
+%error NativeLargeImage requires NativeWide
+%endif
+%define NATIVE_IMAGE_PAGES 256
+%define NATIVE_IMAGE_VECTOR_SHIFT 11
+%define NATIVE_TASK_SHIFT 12
+%define NATIVE_IMPORT_BYTES 1052960
+%elifdef REIST_NATIVE_WIDE
 %define NATIVE_IMAGE_PAGES 64
 %define NATIVE_IMAGE_VECTOR_SHIFT 9
 %define NATIVE_TASK_SHIFT 10
@@ -64,6 +72,7 @@
 %define NATIVE_PLAN_BYTES (NATIVE_PLAN_KERNEL+16)
 %define NATIVE_PLAN_FRAMES (NATIVE_IMAGE_PAGES*2+5)
 %define NATIVE_PREPARED_V2_BYTES 266336
+%define NATIVE_PREPARED_V3_BYTES 1052960
 ; Exact per-task comparison. POP preserves comparison flags and all registers.
 %macro NATIVE_STACK_CMP_RAX 0
 %ifdef REIST_NATIVE_WIDE

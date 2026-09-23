@@ -255,6 +255,17 @@ X86_64_NATIVE_IMPORT ?= 0
 X86_64_NATIVE_PIO ?= 0
 X86_64_PIO_CASE ?= 0
 X86_64_NATIVE_BLOCK ?= 0
+# Explicit larger prepared imports; legacy catalogs and versions remain exact.
+X86_64_NATIVE_LARGE_IMAGE ?= 0
+ifneq ($(words $(X86_64_NATIVE_LARGE_IMAGE)),1)
+$(error NativeLargeImage selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_LARGE_IMAGE),0 1),$(X86_64_NATIVE_LARGE_IMAGE))
+$(error NativeLargeImage selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_LARGE_IMAGE),1)
+X86_64_NATIVE_WIDE := 1
+endif
 X86_64_NATIVE_WIDE ?= 0
 X86_64_MEMORY_CASE ?= 0
 X86_64_NATIVE_BLOCK_PROFILE ?= 0
@@ -604,6 +615,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_HTTP)),--app-http,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_CPP_RUNTIME)),--app-cpp-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_MATH)),--math-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TEXT)),--text-runtime,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -659,6 +671,7 @@ $(error Filesystem options require NativeFilesystem)
 endif
 endif
 X86_64_WIDE_ASM = $(if $(filter 1,$(X86_64_NATIVE_WIDE)),-DREIST_NATIVE_WIDE=1,)
+X86_64_WIDE_ASM += $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),-DREIST_NATIVE_LARGE_IMAGE=1,)
 ifeq ($(X86_64_NATIVE_BLOCK_PROFILE),1)
 ifneq ($(X86_64_NATIVE_WIDE)$(X86_64_NATIVE_IMPORT)$(X86_64_NATIVE_PIO)$(X86_64_NATIVE_BLOCK)$(X86_64_MEMORY_CASE)$(X86_64_PIO_CASE)$(X86_64_STARTUP_CASE),1111000)
 $(error NativeBlockProfile requires Wide Import PIO Block and excludes other fixtures)
@@ -1128,7 +1141,7 @@ ifeq ($(X86_64_NATIVE_NETWORK_SESSION),1)
 else ifeq ($(X86_64_NATIVE_INPUT),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 endif
-	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF)
+	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF) $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"
 
 check-syscall-abi:

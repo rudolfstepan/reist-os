@@ -29,6 +29,7 @@ param(
     [switch]$NativePIO,
     [switch]$NativeBlock,
     [switch]$NativeWide,
+    [switch]$NativeLargeImage,
     [switch]$NativeBlockProfile,
     [switch]$NativeFilesystem,
     [switch]$NativeFileLaunch,
@@ -77,6 +78,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeLargeImage) { $NativeWide = [switch]$true }
 if ($NativeText) { $NativeMath = [switch]$true }
 if ($NativeMathHardware) { $NativeMath = [switch]$true }
 if ($NativeMath) { $NativeCppRuntime = [switch]$true }
@@ -463,6 +465,7 @@ try {
         "X86_64_NATIVE_PIO=$([int]$NativePIO.IsPresent)" `
         "X86_64_NATIVE_BLOCK=$([int]$NativeBlock.IsPresent)" `
         "X86_64_NATIVE_WIDE=$([int]$NativeWide.IsPresent)" `
+        "X86_64_NATIVE_LARGE_IMAGE=$([int]$NativeLargeImage.IsPresent)" `
         "X86_64_NATIVE_BLOCK_PROFILE=$([int]$NativeBlockProfile.IsPresent)" `
         "X86_64_NATIVE_FILESYSTEM=$([int]$NativeFilesystem.IsPresent)" `
         "X86_64_NATIVE_FILE_LAUNCH=$([int]$NativeFileLaunch.IsPresent)" `

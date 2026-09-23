@@ -48,7 +48,8 @@ def read_bounded(path,bits=64):
     return data
 
 
-def elf(data,bits):
+def elf(data,bits,*,large_image=False):
+    require(type(large_image) is bool and (not large_image or bits==32),'explicit large outer ELF selector')
     require(bits in (32,64),'ELF bit width')
     require(64<=len(data)<=(2097152 if bits==32 else 1048576),'ELF file capacity')
     require(data[:7]==b'\x7fELF'+bytes((2 if bits==64 else 1,1,1)),'ELF identification')
@@ -77,7 +78,8 @@ def elf(data,bits):
         name=string(names,name)
         require(name and name not in sections,'ELF duplicate/empty section')
         capacity=(8*1024*1024 if name=='.memory_state' and typ==8 else
-                  1069056 if bits==32 and name=='.native_catalog' and typ==1 else 1048576)
+                  1069056 if bits==32 and name=='.native_catalog' and typ==1 else
+                  1056768 if large_image and name=='.native_scratch' and typ==8 else 1048576)
         require(size<=capacity and (align==0 or align&(align-1)==0),'ELF section size/alignment')
         require(addr+size<=1<<bits,'ELF section address overflow')
         content=b'' if typ==8 else span(off,size)
@@ -207,24 +209,29 @@ def outputs(data):
     return result
 
 
-def verify_outer(inner,outer):
-    p=validate(inner);o=elf(outer,32)
+def verify_outer(inner,outer,*,large_image=False):
+    require(type(large_image) is bool,'explicit large image selector')
+    wide_layout=dict(WIDE_LAYOUT)
+    if large_image:wide_layout['.native_scratch']=(0xb05000,1056768,3,8,6,1052960)
+    wide_end=0xc07000 if large_image else WIDE_END
+    p=validate(inner);o=elf(outer,32,large_image=large_image)
     allocated={n:s for n,s in o['sections'].items() if s['flags']&2}
     expected={'.multiboot','.text','.rodata','.data','.bss','.c_core_bridge','.c_core_handoff'}|{'.c_core_'+n[1:] for n in LAYOUT}
     native=p['layout_version']>=3
     arena_bytes=POOL_HEAP_ARENA_BYTES if p['layout_version']==5 else HEAP_ARENA_BYTES if p['layout_version']==4 else MEMORY_ARENA_BYTES
     if native:expected.add('.memory_state')
-    wide=bool(set(allocated)&set(WIDE_LAYOUT))
+    wide=bool(set(allocated)&set(wide_layout))
     require(p['layout_version']!=5 or wide,'outer task pool requires wide boot areas')
     require(wide or len(outer)<=1048576,'outer legacy file capacity')
+    require(not large_image or wide,'large image requires explicit boot areas')
     if wide:
         require(native,'outer wide requires native memory')
-        expected.update(WIDE_LAYOUT)
+        expected.update(wide_layout)
     require(set(allocated)==expected,'outer allocated section set')
     require(o['entry']==o['symbols'].get('x86_64_bootstrap_start',{}).get('value') and
             allocated['.text']['address']<=o['entry']<allocated['.text']['address']+allocated['.text']['size'],'outer entry binding')
     segments=sorted(o['programs'],key=lambda p:p['address'])
-    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=(WIDE_END if wide else 0xa00000 if native else 0x200000) for p in segments),'outer load range')
+    require(all(0x100000<=p['address']==p['physical'] and p['address']+p['size']<=(wide_end if wide else 0xa00000 if native else 0x200000) for p in segments),'outer load range')
     if native:
         # lld merges equal-permission C data/BSS/arena into one PT_LOAD.
         # Permit that exact file prefix + zero-fill extent, not arbitrary
@@ -234,13 +241,13 @@ def verify_outer(inner,outer):
                     (0x19d000,0x200000+arena_bytes-0x19d000,6,
                      o['sections']['.c_core_data']['size']) or
                     (wide and (p['address'],p['size'],p['flags'],p['filesz']) in
-                     {(a,s,pf,s if t==1 else 0) for a,s,_,t,pf,_ in WIDE_LAYOUT.values()})
+                     {(a,s,pf,s if t==1 else 0) for a,s,_,t,pf,_ in wide_layout.values()})
                     for p in segments),
                 'outer exact appended memory segment')
     require(all(a['address']+a['size']<=b['address'] for a,b in zip(segments,segments[1:])),'outer load overlap')
     for name,s in allocated.items():
         require(s['size']>0 and s['type'] in (1,8) and s['flags'] in (2,3,6),'outer allocated section contract')
-        if name!='.memory_state' and name not in WIDE_LAYOUT:
+        if name!='.memory_state' and name not in wide_layout:
             require(s['address']+s['size']<=0x200000,'outer legacy section envelope')
         matches=[p for p in segments if p['address']<=s['address'] and s['address']+s['size']<=p['address']+p['size']]
         require(len(matches)==1,'outer section load binding')
@@ -255,7 +262,7 @@ def verify_outer(inner,outer):
         require((state['address'],state['size'],state['flags'],state['type'],state['align'])==
                 (0x200000,arena_bytes,3,8,4096),'outer native memory arena')
     if wide:
-        for name,(addr,size,flags,typ,pflags,used) in WIDE_LAYOUT.items():
+        for name,(addr,size,flags,typ,pflags,used) in wide_layout.items():
             s=allocated[name]
             require((s['address'],s['size'],s['flags'],s['type'],s['align'])==
                     (addr,size,flags,typ,4096),'outer wide section layout')
@@ -266,7 +273,7 @@ def verify_outer(inner,outer):
                 symbol=o['symbols'].get(name.replace('.','_')+suffix,{})
                 require(symbol.get('value')==value and symbol.get('index')==0xfff1 and
                         symbol.get('binding')==1 and symbol.get('visibility')==0,'outer wide symbol extent')
-    end=WIDE_END if wide else 0x200000+arena_bytes if native else 0x1ff0c0
+    end=wide_end if wide else 0x200000+arena_bytes if native else 0x1ff0c0
     require(o['symbols'].get('_x86_64_bootstrap_end',{}).get('value')==end,'outer bootstrap reservation end')
     bridge=allocated['.c_core_bridge']
     require(bridge['address']==0x184000 and 0x200<bridge['size']<=4096 and bridge['flags']==6 and bridge['type']==1,'outer bridge layout')
@@ -310,10 +317,12 @@ def main():
     a=argparse.ArgumentParser();a.add_argument('--elf',type=Path,required=True)
     mode=a.add_mutually_exclusive_group(required=True)
     mode.add_argument('--output-directory',type=Path);mode.add_argument('--verify-outer',type=Path)
+    a.add_argument('--large-image',action='store_true')
     args=a.parse_args()
+    if args.large_image and not args.verify_outer:a.error('large image only selects outer verification')
     try:
         data=read_bounded(args.elf)
-        if args.verify_outer:verify_outer(data,read_bounded(args.verify_outer,bits=32))
+        if args.verify_outer:verify_outer(data,read_bounded(args.verify_outer,bits=32),large_image=args.large_image)
         else:publish(data,args.output_directory)
         print('X86_64_C_PAYLOAD_LAYOUT_OK version='+str(validate(data)['layout_version']));return 0
     except (OSError,ValueError,struct.error) as exc:

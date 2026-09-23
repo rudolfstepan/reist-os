@@ -102,8 +102,10 @@ SECTIONS
          (SIZEOF(.memory_state) > 0 &&
           _native_catalog_payload_end - _native_catalog_start == 1065344 &&
           SIZEOF(.native_catalog) == 1069056 &&
-          _native_scratch_payload_end - _native_scratch_start == 266336 &&
-          SIZEOF(.native_scratch) == 270336), "native boot area exact pair/capacity")
+          ((_native_scratch_payload_end - _native_scratch_start == 266336 &&
+            SIZEOF(.native_scratch) == 270336) ||
+           (_native_scratch_payload_end - _native_scratch_start == 1052960 &&
+            SIZEOF(.native_scratch) == 1056768))), "native boot area exact pair/capacity")
   ASSERT(_memory_state_end <= _native_catalog_start &&
          _native_catalog_end <= _native_scratch_start &&
          _native_scratch_end <= 0x01000000, "native boot area separation/map capacity")

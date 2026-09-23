@@ -5,6 +5,10 @@
 ; Pure SysV admission over a pinned64-byte snapshot. No output or authority.
 global family_request_admit64
 family_request_admit64:
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [rdi],7
+    je .startup
+%endif
     cmp dword [rdi],1
     je .v1
     cmp dword [rdi],2
@@ -733,6 +737,18 @@ family_validate_runtime64:
 ; Pointer/unused-register admission before copying the complete request once.
 ; RAX complete image source. Preserve the existing <=2060-byte access ABI;
 ; preflight every fixed chunk before any byte copy or authority publication.
+%ifdef REIST_NATIVE_LARGE_IMAGE
+family_import_range_v3_64:
+    push r8
+    push r9
+    push rdx
+    push rcx
+    mov r8,rax
+    add rax,NATIVE_PREPARED_V3_BYTES-1
+    jc family_import_range64.invalid
+    mov r9d,NATIVE_PREPARED_V3_BYTES
+    jmp family_import_range64.chunk
+%endif
 family_import_range_v2_64:
 %ifdef REIST_NATIVE_WIDE
     push r8
@@ -861,8 +877,17 @@ family_syscall64:
     cmp dword [rel family_request],5
 %ifdef REIST_NATIVE_SERVICE_CPU
     jb .range_v1
+%elifdef REIST_NATIVE_LARGE_IMAGE
+    jb .range_v1
 %else
     jne .range_v1
+%endif
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [rel family_request],7
+    jne .range_v2
+    call family_import_range_v3_64
+    jmp .range_ready
+.range_v2:
 %endif
     call family_import_range_v2_64
     jmp .range_ready
@@ -881,10 +906,17 @@ family_syscall64:
     cmp dword [rel family_request],5
 %ifdef REIST_NATIVE_SERVICE_CPU
     jb .copy_ready
+%elifdef REIST_NATIVE_LARGE_IMAGE
+    jb .copy_ready
 %else
     jne .copy_ready
 %endif
     mov ecx,NATIVE_PREPARED_V2_BYTES/8
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [rel family_request],7
+    jne .copy_ready
+    mov ecx,NATIVE_PREPARED_V3_BYTES/8
+%endif
 .copy_ready:
 %endif
     rep movsq
@@ -894,10 +926,17 @@ family_syscall64:
     cmp dword [rel family_request],5
 %ifdef REIST_NATIVE_SERVICE_CPU
     jb .admit_ready
+%elifdef REIST_NATIVE_LARGE_IMAGE
+    jb .admit_ready
 %else
     jne .admit_ready
 %endif
     mov esi,NATIVE_PREPARED_V2_BYTES
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [rel family_request],7
+    jne .admit_ready
+    mov esi,NATIVE_PREPARED_V3_BYTES
+%endif
 .admit_ready:
 %endif
     call boot_program_admit64
@@ -910,10 +949,17 @@ family_syscall64:
     cmp dword [rel family_request],5
 %ifdef REIST_NATIVE_SERVICE_CPU
     jb .tail_ready
+%elifdef REIST_NATIVE_LARGE_IMAGE
+    jb .tail_ready
 %else
     jne .tail_ready
 %endif
     lea rdi,[rel elf_import_record+262240]
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [rel family_request],7
+    jne .tail_ready
+    lea rdi,[rel elf_import_record+1048864]
+%endif
 .tail_ready:
 %endif
     xor eax,eax
@@ -1082,6 +1128,8 @@ family_create64:
 %ifdef REIST_NATIVE_WIDE
     cmp dword [rel family_request],5
 %ifdef REIST_NATIVE_SERVICE_CPU
+    jb .cached_entry
+%elifdef REIST_NATIVE_LARGE_IMAGE
     jb .cached_entry
 %else
     jne .cached_entry

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3bu-large-image"
+active_id = ""
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -20100,7 +20100,7 @@ acceptance_notes = ["Candidate03 passes all five frozen gates ([85.231, 6.427, 1
 
 [[packages]]
 id = "R8.3bu-large-image"
-status = "active"
+status = "done"
 phase = "native64-userspace"
 title = "Versioned large prepared image admission and generation-owned mapping"
 risk = "Snapshot bounds, private frame ownership and failure rollback"
@@ -20109,3 +20109,5 @@ allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_LARGE_E
 targeted_tests = ["python test/test_x86_64_large_image.py -v", "python scripts/verify_x86_64_large_image.py --defaults"]
 package_tests = ["python scripts/verify_x86_64_large_image.py --package"]
 runtime_tests = ["python scripts/verify_x86_64_large_image.py --runtime", "python scripts/verify_x86_64_large_image.py --review"]
+
+acceptance_notes = ["Candidate01 passes all five frozen gates (39.402/45.715/9.043/164.156/6.292s): eight host tests, exact disabled source projection and legacy regressions, fresh large build,13 large plus2 legacy guests and independent complete raw replay. Seal a23dd20e7fe995d8a852656989a75d47ce435b9784de24aea033e4a4e707d86e. Actual child construction52 frames; OOM0/1/2/13/26/51, W^X/guard/CPU/cancel, immutable source and generation cleanup pass. R3.6b stays deferred; next approved larger immutable capture and shell integration, then native QuickJS."]

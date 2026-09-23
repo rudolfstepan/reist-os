@@ -86,4 +86,16 @@ static inline int64_t reist_x64_task_import_periodic(const void *prepared,
         (uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup,cpu_period_ms,0};
     return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
 }
+#ifdef REIST_NATIVE_LARGE_IMAGE
+/* Ordinary lifetime CPU accounting. v6 periodic imports still require RNPGv2. */
+#define REIST_TASK_LARGE_IMPORT_VERSION 7U
+static inline int64_t reist_x64_task_import_large(const void *prepared,
+    const reist_task_profile_v1_t *profile,uint64_t cpu_samples,
+    const reist_task_startup_v1_t *startup)
+{
+    reist_task_create_v4_t q={REIST_TASK_LARGE_IMPORT_VERSION,64,1,0,0,
+        (uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup};
+    return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uint64_t)(uintptr_t)&q);
+}
+#endif
 #endif

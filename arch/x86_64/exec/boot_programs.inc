@@ -2,6 +2,10 @@
 ; Return1 iff complete fixed metadata/argument admission, no writes.
 global boot_program_admit64
 boot_program_admit64:
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp rsi,NATIVE_PREPARED_V3_BYTES
+    je boot_program_admit_v3_64
+%endif
 %ifdef REIST_NATIVE_WIDE
     cmp rsi,NATIVE_PREPARED_V2_BYTES
     je boot_program_admit_v2_64
@@ -70,26 +74,27 @@ boot_program_admit64:
     ret
 %ifdef REIST_NATIVE_WIDE
 ; Independent bounded mapping metadata admission; never an ELF parser.
-boot_program_admit_v2_64:
+%macro NATIVE_RECORD_ADMISSION 6
+%1:
     test rdi,rdi
     jz .bad
     test rdi,15
     jnz .bad
     mov rax,rdi
-    add rax,NATIVE_PREPARED_V2_BYTES
+    add rax,%2
     jc .bad
-    mov rax,0x0000327647504e52
+    mov rax,%3
     cmp [rdi],rax
     jne .bad
-    cmp dword [rdi+8],2
+    cmp dword [rdi+8],%4
     jne .bad
-    cmp dword [rdi+12],NATIVE_PREPARED_V2_BYTES
+    cmp dword [rdi+12],%2
     jne .bad
-    cmp qword [rdi+88],0
+    cmp qword [rdi+%6-8],0
     jne .bad
     mov rax,[rdi+16]
     sub rax,0x400000
-    cmp rax,262144
+    cmp rax,%5*4096
     jae .bad
     shr eax,12
     cmp byte [rdi+rax+24],5
@@ -118,9 +123,9 @@ boot_program_admit_v2_64:
     ja .bad
 .next:
     inc ecx
-    cmp ecx,64
+    cmp ecx,%5
     jb .flags
-    lea rdx,[rdi+96+7*4096]
+    lea rdx,[rdi+%6+7*4096]
     mov ecx,9*512
 .zero_stack:
     cmp qword [rdx],0
@@ -129,14 +134,14 @@ boot_program_admit_v2_64:
     dec ecx
     jnz .zero_stack
     sub rsp,56
-    lea rax,[rdi+262240]
+    lea rax,[rdi+%6+%5*4096]
     mov [rsp],rax
-    lea rax,[rdi+96]
+    lea rax,[rdi+%6]
     mov [rsp+8],rax
     mov qword [rsp+16],0x1000
     mov qword [rsp+24],0x410000
     xor eax,eax
-    mov rcx,[rdi+262240]
+    mov rcx,[rdi+%6+%5*4096]
     test rcx,rcx
     jz .empty
     mov eax,0x1008
@@ -155,6 +160,11 @@ boot_program_admit_v2_64:
 .bad:
     xor eax,eax
     ret
+%endmacro
+NATIVE_RECORD_ADMISSION boot_program_admit_v2_64,NATIVE_PREPARED_V2_BYTES,0x0000327647504e52,2,64,96
+%ifdef REIST_NATIVE_LARGE_IMAGE
+NATIVE_RECORD_ADMISSION boot_program_admit_v3_64,NATIVE_PREPARED_V3_BYTES,0x0000337647504e52,3,256,288
+%endif
 %endif
 ; END_PURE_ADMISSION
 
@@ -164,7 +174,11 @@ boot_program_record64:
     sub eax,3
     cmp eax,3
     ja .bad
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    imul eax,NATIVE_PREPARED_V2_BYTES ; catalogs remain v2
+%else
     imul eax,NATIVE_IMPORT_BYTES
+%endif
     lea rdi,[rel boot_program_catalog]
     add rdi,rax
     ret
@@ -199,6 +213,18 @@ boot_program_load64:
 %ifdef REIST_NATIVE_WIDE
     mov r13d,8
     mov r14d,32
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp dword [r12+8],3
+    jne .old_layout
+    mov r13d,256
+    mov r14d,288
+    lea rsi,[r12+24]
+    lea rdi,[rel elf_page_flags]
+    mov ecx,32
+    rep movsq
+    jmp .layout_ready
+.old_layout:
+%endif
     cmp dword [r12+8],2
     jne .layout_ready
     mov r13d,64

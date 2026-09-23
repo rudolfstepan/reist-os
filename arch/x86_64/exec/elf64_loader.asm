@@ -852,9 +852,15 @@ global native_catalog_used
 native_catalog_used equ boot_program_catalog_end-boot_program_catalog
 align 4096, db 0
 %endif
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    %if boot_program_catalog_end-boot_program_catalog != 4*NATIVE_PREPARED_V2_BYTES
+        %error large profile retains four v2 catalog records
+    %endif
+%else
     %if boot_program_catalog_end-boot_program_catalog != 4*NATIVE_IMPORT_BYTES
         %error "boot program catalog must contain four exact records"
     %endif
+%endif
 section .rodata
 %endif
 

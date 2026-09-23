@@ -1,14 +1,18 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## Aktiv: R8.3bu – größeres vorbereitetes Programmabbild
+## Abgenommen: R8.3bu – großes natives Programmabbild
 
-Erneutes „mach weiter bis alles fertig ist“ gibt den konkreten Vorschlagb8aa7ab4
-frei. Zuerst RNPGv3/CREATE-v7 mit256 Abbildseiten, festen Eigentums-/Rollback-
-Grenzen und echtem Gastnachweis. Das bisherige v2-Bootkatalogformat bleibt;
-nur der Importscratch wird innerhalb des vorhandenen Bootfensters erweitert.
-Dateiladeprofil und QuickJS folgen nach sauberer Abnahme dieser Speichergrenze.
-Umfang, Budgets und fünf Gates: NATIVE_LARGE_IMAGE_CONTRACT.md. Keine erneute
-Routinefreigabe für diese bereits genehmigten Voraussetzungen; R3.6b vertagt.
+Kandidat01 besteht alle fünf Gates (39.402/45.715/9.043/164.156/6.292s).
+RNPGv3/CREATE-v7 ermöglicht256 Abbildseiten bei unveränderten alten Versionen,
+CPU-/Heap-/Stackgrenzen und kleinem Bootkatalog. Acht Hosttests, vollständige
+Standardpfad-Projektion, frischer Build,13 große und2 bisherige Gäste bestehen.
+Rohdaten belegen Seitenrechte, hohe physische Frames, Quellüberschreiben,
+Schutzfehler, CPU-Grenze, Abbruch und vollständige Freigabe über Generationen.
+52 Frame-Zuteilungen je Kind; sechs OOM-Stellen0/1/2/13/26/51 mit Rückabwicklung.
+Seal:a23dd20e7fe995d8a852656989a75d47ce435b9784de24aea033e4a4e707d86e.
+Nächster bereits genehmigter Schritt: größeres unveränderliches Dateiladeprofil
+mit normalem Shellstart, danach natives QuickJS. Noch kein Gesamtabnahme-
+oder JavaScript-Gastnachweis. R3.6b bleibt ausdrücklich vertagt.
 
 ## Abgenommen: R8.3bt – native Textformatierung
 

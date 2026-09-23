@@ -982,7 +982,11 @@ verify_c_pages64:
 verify_native_pages64:
     cmp rsi, 0x00A00000
     jb higher_half_state_error
+%ifdef REIST_NATIVE_LARGE_IMAGE
+    cmp rdi, 0x00C07000
+%else
     cmp rdi, 0x00B47000
+%endif
     ja higher_half_state_error
     cmp rsi, rdi
     jae higher_half_state_error

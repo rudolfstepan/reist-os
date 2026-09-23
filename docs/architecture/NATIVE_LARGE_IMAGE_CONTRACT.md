@@ -102,3 +102,113 @@ sources/tools/artifacts/history, checks allowed scope and frozen gates. Local
 commit/queue transition only after success and direct ABI/cleanup review.
 A required source outside the frozen list is an architectural scope stop,
 not permission to silently expand. No native64 completion claim from this slice.
+
+Baseline01 passed6.511s. Host01 confirms absent new producer; host02 fails
+before execution because Zig injects an unused Windows linker argument under
+-Werror. Apply the established host -Wno-unused-command-line-argument flag.
+Review the negative fixture to use explicitly invalid ELF values (changing an
+entry within RX or increasing memsz inside alignment padding can be valid).
+Host03 is the next already reserved host slot; no kernel build/guest spent.
+
+## Development evidence and correction window (2026-09-23)
+
+Host04 passes actual v3 assembly admission. Build01 fails argument admission
+(absolute output path;0.424s), build02 fails linking the compiler-emitted
+memset from the larger flags initializer (1.961s), build03 links both ELFs but
+fails outer section admission at the former 1MiB NOBITS ceiling (6.732s).
+All three initial build reservations are spent, not reset. Corrections use a
+relative output path, bounded explicit volatile initialization, and an exact
+1056768-byte scratch ceiling selected only for the large outer profile.
+Host05 passes both explicit profile directions (1.938s). Host06 catches an
+incorrect test-vector substitution of NX bit63; corrected without changing
+production permissions. Host07 exposes the actual old 0x440000 pointer cap.
+The range now derives from NATIVE_IMAGE_PAGES; old profiles retain their
+original limits. Host08 passes all256 mappings and complete frame-claim and
+release behavior (6.781s). Host09 adds CREATE-v4/v5/v6/v7 coexistence and all
+1029 source-preflight failure positions; all six tests pass at O0/O2 (7.809s).
+Host01..09 are spent; host10..12 remain. No diagnostic guest has run.
+
+Evidence-directed correction reservation: two additional builds, build04/05,
+each<=300s, same frozen scope and gates. Build04 verifies the host-proven
+outer-admission and pointer-bound corrections together. Build05 may only
+follow a distinct recorded failure and reviewed correction, never unchanged
+retry. The original four diagnostic guests and all acceptance gates remain
+unspent and unchanged. Build03 artifacts remain the negative regression
+fixture for explicit old/new outer-layout admission.
+
+Build04 passes6.542s. Diagnostic01 (4.567s,8GiB) proves poisoned scratch
+zeroing/reservation/leaf permissions but stops at HIGHER_HALF_STATE_ERROR
+before native programs. Inspection identifies verify_native_pages64's old
+0xb47000 end check. Under the explicit large selector only, use0xc07000;
+the linked-section verifier and runtime observer still check exact extents,
+leaf permissions and absence of aliases. Build05 is reserved for this distinct
+correction; diagnostic02 will test the corrected image. No guest pass claimed.
+
+Build05 passes6.593s; diagnostic02 (3.760s) starts and cleanly reaps both
+catalog tasks but root returns205 before child publication. Inspection finds
+five v5/v6 dispatch guards still choosing v1 size or cached images for v7
+when SERVICE_CPU is disabled. Under LARGE_IMAGE, those already-admitted
+version comparisons now use the same >=5 branch, followed by the explicit
+v7 size/range/tail selection. v6 admission remains SERVICE_CPU-only.
+Reserve one correction build06<=300s for these five dispatch guards, followed
+by existing diagnostic03<=120s. Counters/evidence and gates remain intact.
+
+Diagnostic03 passes10.362s on8GiB: eight retired tasks, four large child
+instances, high RX/middle/final RW, immutable source overwrite, complete
+frame/FP/context/scratch cleanup. Actual child construction uses52 frames.
+Diagnostic04 fails1.816s in the new private-selector observer before modifying
+it: root embeds the child ELF, so scanning for shared witness magic is
+ambiguous. Bind selection to the exact root linker-map symbol instead and
+check its original bytes and RW page before writing. No guest/kernel change.
+Reserve diagnostic05/06<=120s each for selector/raw-replay qualification;
+original four diagnostic slots remain spent. All acceptance gates unchanged.
+
+Diagnostic05 completes guest checks but raw replay rejects a missing final
+callback-end record: debugger quit exits before the wrapper can append it.
+Emit that terminator before detach/quit; diagnostic06 passes full replay
+11.001s. Host10 retains the30s identity stress timeout and three ineffective
+mutations of non-authoritative bytes. Host11 binds mutations to checked
+state/record fields and passes all8 tests52.583s. Identity vectors retain128
+reuse rounds at capacities1/4 and three complete rounds at capacity64,
+including every256 image field; per-process30s bounds remain unchanged.
+Host12 fails the new exact disabled Make projection0.734s. Production/gates
+are unchanged; reserve host13/14<=600s for this verifier correction and
+legacy raw-adapter validation. Original host01..12 stay spent.
+
+Host13/14 retain diagnostic failures (wrong traceback frame, then Windows
+console encoding). Inspection resolves the actual Make projection mismatch:
+Path.read_text used the Windows default encoding while git original uses
+UTF-8; specify UTF-8 throughout the new verifier. Reserve host15..18<=600s
+for exact source projection, adapter and remaining frozen-test setup checks.
+These are bounded verifier corrections; no source/gate acceptance is inferred
+from either failed diagnostic and no counter is reset.
+
+Host15 passes exact complete disabled assembly/C/Windows/Make/Python
+projection and both observer compilations0.891s. Reserve diagnostic07/08,
+each<=120s: legacy8GiB raw adapter and large8GiB guard-write containment,
+respectively. No rebuild, no quota/permission change. Acceptance matrix stays
+15 fresh guests after freeze; these two diagnostics are not acceptance reuse.
+
+Diagnostic07 passes legacy8GiB full raw replay6.841s; diagnostic08 passes
+large8GiB guard-write containment and complete replay11.297s. Candidate01
+freezes all five original gates. The single normal qualification build already
+contains the zero-default private selector; the same mechanism/image serves
+all fault and OOM cases, with no second build or policy change needed.
+Direct review confirms version7 uses64-byte request/lifetime CPU accounting,
+full1029-chunk preflight, exact snapshot/tail, fresh-cache release and complete
+scratch scrub. Old source projection passes; no outside-scope source change.
+All development evidence remains hashed and retained. No package acceptance
+or complete native64 claim before all15 fresh guests and five gates pass.
+
+## Accepted candidate01
+
+All five frozen commands pass39.402/45.715/9.043/164.156/6.292s. Eight host
+tests and legacy regressions, exact disabled source projection, one fresh
+large build,13 large plus2 legacy guests and complete independent raw replay.
+Seal a23dd20e7fe995d8a852656989a75d47ce435b9784de24aea033e4a4e707d86e.
+Direct final raw-index inspection independently counts52 allocator callbacks
+per successful CREATE and n+1 callbacks at each failed OOM position n,
+followed by fresh52-call construction. Source/ABI/cleanup review is complete;
+no unbounded runtime path or authority/CPU/heap/stack increase introduced.
+All historical failed attempts remain preserved. Queue now closes BU only;
+R3.6b remains deferred and approved capture/QuickJS work is still outstanding.

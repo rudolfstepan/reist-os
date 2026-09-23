@@ -1,4 +1,5 @@
 BITS 64
+%include "arch/x86_64/mm/native_layout.inc"
 %include "arch/x86_64/mm/memory_profile.inc"
 global reist_x64_user_access
 global reist_x64_user_access_bulk
@@ -162,7 +163,7 @@ user_access_core:
     add rdx,rax
     jc .invalid
 %ifdef REIST_NATIVE_WIDE
-    cmp rdx,0x440000
+    cmp rdx,0x400000+NATIVE_IMAGE_PAGES*4096
 %else
     cmp rdx,0x409000
 %endif
