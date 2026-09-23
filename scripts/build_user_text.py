@@ -65,12 +65,21 @@ def adapt(name,text):
     else: raise ValueError("unexpected formatter adaptation")
     return text
 
-def compile_text(zig,vendor,destination,environment,host=False,opt="-O2"):
+def compile_text(zig,vendor,destination,environment,host=False,opt="-O2",*,architecture="i386"):
+    from build_user_math import selected_architecture
+    selected_architecture(architecture)
     selected=[]
     for name in ("snprintf.c","vsnprintf.c","vfprintf.c"):
         source=vendor/"src/stdio"/name
         if name!="snprintf.c":
-            generated=destination/name; generated.write_text(adapt(name,source.read_text()),encoding="ascii")
+            content=adapt(name,source.read_text())
+            if architecture=="x86_64" and name=="vfprintf.c":
+                # Reserve the maximum representation once; retain musl's
+                # smaller logical bufsize for ordinary double conversions.
+                content=replace_once(content,"\tuint32_t big[bufsize];",
+                    "\t_Static_assert(LDBL_MANT_DIG>=DBL_MANT_DIG && LDBL_MAX_EXP>=DBL_MAX_EXP, \"native floating bounds\");\n"
+                    "\tuint32_t big[1+(LDBL_MANT_DIG-29+7)/8+1+(LDBL_MAX_EXP+LDBL_MANT_DIG+28+8)/9];")
+            generated=destination/name; generated.write_text(content,encoding="ascii")
             source=generated
         selected.append(source)
     selected += [vendor/"src/math/frexpl.c",TEXT/"lib/stream.c"]
@@ -78,9 +87,17 @@ def compile_text(zig,vendor,destination,environment,host=False,opt="-O2"):
     prefix=freestanding_compile_prefix(zig,[TEXT/"private",TEXT/"include",ROOT/"userspace/libc/include",
         ROOT/"userspace/math/include",ROOT/"userspace/math/private",vendor/"src/internal",vendor/"arch/generic"],
         include_repository_sdk=False)
+    if architecture=="x86_64":
+        prefix[prefix.index("x86-freestanding")]="x86_64-freestanding-none"
+        prefix=[a for a in prefix if a not in ("-march=i386","-mno-sse","-mno-sse2")]
+        prefix += ["-march=x86_64","-msse2","-mno-avx","-mno-red-zone","-fno-sanitize=all",
+                   "-frounding-math","-ffunction-sections","-fdata-sections","-fstack-usage"]
     prefix += [opt,"-Dhidden=__attribute__((visibility(\"hidden\")))"]
     if host:
-        prefix[prefix.index("x86-freestanding")]="x86-windows-gnu"
+        if architecture=="x86_64":
+            prefix[prefix.index("x86_64-freestanding-none")]="x86_64-windows-gnu"
+            prefix=[a for a in prefix if a not in ("-fno-pic","-fno-pie")]
+        else:prefix[prefix.index("x86-freestanding")]="x86-windows-gnu"
         prefix += ["-Dsnprintf=reist_text_snprintf","-Dvsnprintf=reist_text_vsnprintf"]
     def one(item):
         index,source=item; obj=destination/(str(index)+(".obj" if host else ".o"))

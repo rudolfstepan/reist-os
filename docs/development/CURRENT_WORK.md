@@ -2,15 +2,24 @@
 
 Stand: 23. September 2026
 
-## Aktiv: R8.3bt – native begrenzte Textformatierung
+## Abgenommen: R8.3bt – native Textformatierung
 
-Basis: R8.3bs9e9e31f0 vollständig abgenommen, fünf Gates/zehn Gäste,
-Commit-Bindung und sauberer Arbeitsbaum bestätigt. R8.3bt übernimmt den
-vorhandenen musl-Formatter in das native SDK und qualifiziert LP64/Varargs,
-gewöhnliches texttest.prg, signiertes Medium und begrenzte Fehlerbehandlung.
-Umfang, fünf Gates und endliche Entwicklungsreservation stehen in
-NATIVE_TEXT_RUNTIME_CONTRACT.md und der Queue. Keine neue Berechtigungsdomäne;
-QuickJS und die native64-Gesamtfreigabe bleiben offen, R3.6b zurückgestellt.
+Kandidat03 besteht alle fünf Gates (85.231/6.427/115.368/899.353/92.294s):13 Hosttests,
+unveränderte Standardpfade, Referenz-/WHPX-Build, signiertes Acht-Dateien-Medium,
+zehn frische Gäste und unabhängiger vollständiger Rohdaten-Replay.
+Native LP64-/Varargs-/long-double-Formatierung, errno/FP-Erhalt beim Blockieren,
+Zeigerfehler, Absturz, Hängen, CPU-Quote, Elternverlust und neue Generationen
+sind geprüft. Kein Kernel- oder Berechtigungswechsel.
+Der WHPX-Haltepunktfehler wurde mit kontrollierter Abbruchinjektion reproduziert
+und mit derselben Injektion korrigiert nachgewiesen. Der Produktions-Verifier
+enthält nur die per-CPU-/PC-gebundene Wiederaufnahme-Korrektur; alte Verifier,
+fehlgeschlagene Kandidaten und Diagnosen bleiben erhalten. Die historische
+Ursache von Kandidat01 ist mangels damaliger Registerdetails nicht rückwirkend
+bewiesen; der reproduzierbare gleiche Fehlmechanismus ist behoben.
+Seal:fc9d2d9b27df9c9558ddbb313b0102625732ae3919314b3b0680bd9387440100.
+Nächster Schritt: native QuickJS-Voraussetzungen inventarisieren und den
+nächsten zusammenhängenden Umfang festlegen. Native64 bleibt unvollständig;
+R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## Abgenommen: R8.3bs – native Mathematiklaufzeit
 

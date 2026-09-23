@@ -26,7 +26,11 @@ static int text_vectors(void) {
     TC(snprintf(out,sizeof out,"%hhd %hhu %hd %hu",-128,255,-32768,65535)==21);
     TC(!strcmp(out,"-128 255 -32768 65535"));
     TC(snprintf(out,sizeof out,"%ld %lu %lld %llu",LONG_MIN,ULONG_MAX,LLONG_MIN,ULLONG_MAX)>0);
+#if __SIZEOF_LONG__ == 8
+    TC(!strcmp(out,"-9223372036854775808 18446744073709551615 -9223372036854775808 18446744073709551615"));
+#else
     TC(!strcmp(out,"-2147483648 4294967295 -9223372036854775808 18446744073709551615"));
+#endif
     TC(snprintf(out,sizeof out,"%jd %ju %zd %zu %td",(intmax_t)-9,(uintmax_t)10,(ptrdiff_t)-11,(size_t)12,(ptrdiff_t)-13)==16);
     TC(!strcmp(out,"-9 10 -11 12 -13"));
     TC(snprintf(out,sizeof out,"[%+08d][%-6s][%#o][%.0u]",42,"abc",8,0)==25);
@@ -83,12 +87,21 @@ static int text_vectors(void) {
     TC(text_vcall(out,4,"%.*e",INT_MAX-6,1.0)==INT_MAX && !strcmp(out,"1.0"));
     TC(text_vcall(out,sizeof out,"%2$d/%1$d",10,20)==5 && !strcmp(out,"20/10"));
     /* Resource lengths are not silently limited to a tiny staging buffer. */
+#ifdef REIST_NATIVE_TEXT_RUNTIME
+    static char large[8192+1];
+    memset(large,'x',sizeof large-1); large[sizeof large-1]=0;
+    TC(snprintf(out,sizeof out,"%s",large)==8192);
+    TC(out[sizeof out-1]==0 && out[sizeof out-2]=='x');
+    TC(snprintf(large,sizeof large,"%08192d",7)==8192);
+    TC(large[0]=='0' && large[8191]=='7' && large[8192]==0);
+#else
     static char large[1024*1024+1];
     memset(large,'x',sizeof large-1); large[sizeof large-1]=0;
     TC(snprintf(out,sizeof out,"%s",large)==1024*1024);
     TC(out[sizeof out-1]==0 && out[sizeof out-2]=='x');
     TC(snprintf(large,sizeof large,"%01048576d",7)==1024*1024);
     TC(large[0]=='0' && large[1024*1024-1]=='7' && large[1024*1024]==0);
+#endif
     errno=61; TC(snprintf(out,sizeof out,"get %s/%u/\\u%04x","property",7U,0x100U)==21);
     TC(!strcmp(out,"get property/7/\\u0100") && errno==61);
     return 0;

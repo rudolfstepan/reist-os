@@ -153,11 +153,64 @@ static int containment(void) {
     }
     return fesetround(FE_TONEAREST);
 }
+#ifdef REIST_NATIVE_TEXT_RUNTIME
+#include <reist/x86_64/cpp_runtime.h>
+#include <reist/x86_64/text_runtime.h>
+#include "../../test/x86_64_text_vectors.h"
+volatile uint64_t reist_text_runtime_selection[2]
+    __attribute__((section(".data.memory_witness")))={UINT64_C(0x3154585454534552),0};
+volatile uint64_t reist_text_runtime_witness[16];
+char reist_text_runtime_output[256];
+__attribute__((noinline)) void reist_text_runtime_checkpoint(void) {__asm__ volatile("":::"memory");}
+static void native_text_checkpoint(unsigned phase,int count,int result) {
+    reist_text_runtime_witness[0]=phase;
+    reist_text_runtime_witness[1]=1;
+    reist_text_runtime_witness[2]=sizeof(long);
+    reist_text_runtime_witness[3]=sizeof(void*);
+    reist_text_runtime_witness[4]=(uint64_t)count;
+    reist_text_runtime_witness[5]=(uint64_t)errno;
+    reist_text_runtime_witness[6]=(uint64_t)fegetround();
+    reist_text_runtime_witness[7]=(uint64_t)result;
+    reist_text_runtime_checkpoint();
+}
+#endif
 int main(int argc,char **argv) {
+#ifdef REIST_NATIVE_TEXT_RUNTIME
+    (void)argv;
+    _Static_assert(sizeof(long)==8&&sizeof(void*)==8,"native formatter LP64 ABI");
+    if(argc!=1||reist_text_runtime_selection[0]!=UINT64_C(0x3154585454534552)||
+        reist_text_runtime_selection[1]>7||reist_cpp_runtime_begin())return 2;
+    if(!defaults()||errno)return 1;
+    native_text_checkpoint(0,0,0);
+    if(exercise()||native_text_vectors())return 3;
+    int n=snprintf(reist_text_runtime_output,sizeof reist_text_runtime_output,
+        "lp64=%ld/%lu;varargs=%d;hex=%a",LONG_MIN,ULONG_MAX,10,1.5);
+    if(n<0||fesetround(FE_UPWARD))return 4;
+    errno=61;native_text_checkpoint(1,n,0);
+    int result=x86os_sleep_ms(10);
+    if(result||errno!=61||fegetround()!=FE_UPWARD)return 5;
+    native_text_checkpoint(2,n,result);
+    if(fesetround(FE_TONEAREST)||feclearexcept(FE_ALL_EXCEPT))return 6;
+    errno=0;
+    volatile uintptr_t invalid=4;
+    switch(reist_text_runtime_selection[1]) {
+    case 0:break;
+    case 2:(void)snprintf(reist_text_runtime_output,256,"%s",(const char*)invalid);return 92;
+    case 3:(void)snprintf((char*)invalid,8,"x");return 93;
+    case 4:(void)snprintf(reist_text_runtime_output,256,"x%n",(int*)invalid);return 94;
+    case 5:__asm__ volatile("ud2");return 95;
+    case 6:for(;;)(void)x86os_sleep_ms(100);
+    case 7:for(;;)__asm__ volatile("pause");
+    default:return 2;
+    }
+    x86os_puts("TEXT_VECTORS_OK\nTEXT_AMD64_VARARGS_OK\nTEXT_STATE_OK\nTEXT_RUNTIME_OK\n");
+    return 0;
+#else
     if(argc==4) return child(argv[1],parse(argv[2]),parse(argv[3]));
     if(argc!=1) return 2;
     if(!defaults() || exercise()) { x86os_puts("TEXT_TEST_FAIL initial\n"); return 1; }
     x86os_puts("TEXT_VECTORS_OK\n");
     if(containment()) { x86os_puts("TEXT_TEST_FAIL containment\n"); return 1; }
     x86os_puts("TEXT_PARENT_OK\nTEXT_RUNTIME_OK\n"); return 0;
+#endif
 }
