@@ -404,6 +404,28 @@ $(error NativeTerminalService requires explicit NativeInput)
 endif
 endif
 X86_64_TERMINAL_SERVICE_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),-DREIST_NATIVE_TERMINAL_SERVICE=1,)
+# Explicit native numeric profile; all runtime prerequisites stay explicit.
+X86_64_NATIVE_MATH_HARDWARE ?= 0
+ifneq ($(words $(X86_64_NATIVE_MATH_HARDWARE)),1)
+$(error NativeMathHardware selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_MATH_HARDWARE),0 1),$(X86_64_NATIVE_MATH_HARDWARE))
+$(error NativeMathHardware selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_MATH_HARDWARE),1)
+X86_64_NATIVE_MATH := 1
+endif
+X86_64_MATH_HARDWARE_ASM = $(if $(filter 1,$(X86_64_NATIVE_MATH_HARDWARE)),-DREIST_NATIVE_MATH_HARDWARE=1,)
+X86_64_NATIVE_MATH ?= 0
+ifneq ($(words $(X86_64_NATIVE_MATH)),1)
+$(error NativeMath selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_MATH),0 1),$(X86_64_NATIVE_MATH))
+$(error NativeMath selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_MATH),1)
+X86_64_NATIVE_CPP_RUNTIME := 1
+endif
 # Explicit native C/C++ allocation runtime, with accepted file-shell prerequisites.
 X86_64_NATIVE_CPP_RUNTIME ?= 0
 ifneq ($(words $(X86_64_NATIVE_CPP_RUNTIME)),1)
@@ -569,6 +591,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_TCP)),--app-tcp,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_DNS)),--app-dns,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_HTTP)),--app-http,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_CPP_RUNTIME)),--app-cpp-runtime,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_MATH)),--math-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
@@ -893,6 +916,12 @@ X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
+.PHONY: x86_64-math-runtime-media
+X86_64_MATH_RUNTIME_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
+X86_64_MATH_RUNTIME_MEDIA_OUTPUT ?= build/codex-agent/native-math-runtime-media
+x86_64-math-runtime-media:
+	@$(PYTHON) scripts/build_x86_64_math_runtime_media.py --input-directory "$(X86_64_MATH_RUNTIME_MEDIA_INPUT)" --output-directory "$(X86_64_MATH_RUNTIME_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
 .PHONY: x86_64-cpp-runtime-media
 X86_64_CPP_RUNTIME_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
 X86_64_CPP_RUNTIME_MEDIA_OUTPUT ?= build/codex-agent/native-cpp-runtime-media
@@ -1043,7 +1072,7 @@ endif
 		-DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DC_CORE_RODATA_PATH=\"$(X86_64_C_CORE_RODATA)\" \
 		-DC_CORE_DATA_PATH=\"$(X86_64_C_CORE_DATA)\" \
-		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) $(X86_64_WIDE_ASM) $(X86_64_POOL_FLAGS) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
+		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) $(X86_64_WIDE_ASM) $(X86_64_POOL_FLAGS) $(X86_64_MATH_HARDWARE_ASM) arch/x86_64/boot/entry.asm -o $(X86_64_BOOTSTRAP_OBJ)
 	@$(AS) -f elf32 $(if $(filter 1,$(X86_64_NATIVE_PIO)),-DREIST_NATIVE_PIO=1,) $(X86_64_NETWORK_FLAGS) arch/x86_64/cpu/exceptions.asm -o $(X86_64_EXCEPTION_OBJ)
 	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) arch/x86_64/cpu/timer_interrupt.asm -o $(X86_64_TIMER_INTERRUPT_OBJ)
 	@$(AS) -f elf32 $(X86_64_POOL_FLAGS) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/mm/physical_memory.asm -o $(X86_64_PHYSICAL_MEMORY_OBJ)

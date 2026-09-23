@@ -29,16 +29,23 @@ MEMBERS=("COPYRIGHT","src/internal/libm.h","arch/generic/fp_arch.h","include/fea
     *("src/math/"+name+".c" for name in FUNCTIONS+SUPPORT),
     *("src/math/i386/"+name+".c" for name in INTEGER_FUNCTIONS),
     *("src/math/"+name+".h" for name in HEADERS))
+NATIVE_MEMBERS=tuple(name.replace("src/math/i386/","src/math/x86_64/") for name in MEMBERS)
+
+def selected_architecture(architecture):
+    if type(architecture) is not str or architecture not in ("i386","x86_64"):
+        raise ValueError("explicit supported math architecture required")
+    return architecture
 
 
-def extract(destination, archive=ARCHIVE):
+def extract(destination, archive=ARCHIVE, *, architecture="i386"):
+    members=NATIVE_MEMBERS if selected_architecture(architecture)=="x86_64" else MEMBERS
     with Path(archive).open("rb") as stream:
         if hashlib.file_digest(stream,"sha256").hexdigest()!=SHA256:
             raise ValueError("musl archive SHA-256 mismatch")
     with tarfile.open(archive,"r:gz") as source:
         selected=[]; total=0
-        if len(MEMBERS)>128: raise ValueError("musl member count")
-        for name in MEMBERS:
+        if len(members)>128: raise ValueError("musl member count")
+        for name in members:
             if name.startswith(("/","\\")) or "\\" in name or any(p in ("", ".", "..") for p in name.split("/")):
                 raise ValueError("invalid musl numerical path")
             member=source.getmember("musl-1.2.6/"+name)
@@ -58,20 +65,30 @@ def extract(destination, archive=ARCHIVE):
     return destination
 
 
-def source_files(vendor):
+def source_files(vendor, *, architecture="i386"):
+    selected_architecture(architecture)
     return tuple(vendor/("src/math/"+name+".c") for name in FUNCTIONS)+tuple(
-        vendor/("src/math/i386/"+name+".c") for name in INTEGER_FUNCTIONS)+tuple(
-        vendor/("src/math/"+name+".c") for name in SUPPORT)+(vendor/"src/math/i386/sqrtl.c", MATH_ROOT/"lib/fenv.c")
+        vendor/("src/math/"+architecture+"/"+name+".c") for name in INTEGER_FUNCTIONS)+tuple(
+        vendor/("src/math/"+name+".c") for name in SUPPORT)+(vendor/("src/math/"+architecture+"/sqrtl.c"), MATH_ROOT/"lib/fenv.c")
 
 
 def includes(vendor):
     return [PUBLIC,MATH_ROOT/"private",vendor/"src/internal",vendor/"arch/generic",vendor/"include"]
 
 
-def compile_math(zig,vendor,destination,environment,host=False,opt="-O2"):
+def compile_math(zig,vendor,destination,environment,host=False,opt="-O2",*,architecture="i386"):
+    selected_architecture(architecture)
     prefix=freestanding_compile_prefix(zig,includes(vendor),include_repository_sdk=False)
+    if architecture=="x86_64":
+        prefix[prefix.index("x86-freestanding")]="x86_64-freestanding-none"
+        prefix=[a for a in prefix if a not in ("-march=i386","-mno-sse","-mno-sse2")]
+        prefix += ["-march=x86_64","-msse2","-mno-avx","-mno-red-zone","-fno-sanitize=all",
+                   "-frounding-math","-ffunction-sections","-fdata-sections","-fstack-usage"]
     if host:
-        prefix[prefix.index("x86-freestanding")]="x86-windows-gnu"
+        if architecture=="x86_64":
+            prefix[prefix.index("x86_64-freestanding-none")]="x86_64-windows-gnu"
+            prefix=[a for a in prefix if a not in ("-fno-pic","-fno-pie")]
+        else:prefix[prefix.index("x86-freestanding")]="x86-windows-gnu"
         prefix += ["-D"+name+"=reist_math_"+name for name in FUNCTIONS+INTEGER_FUNCTIONS+
                    ("fegetround","fesetround","feclearexcept","fetestexcept")]
     # acosh's generic x87 evaluation path needs extended sqrt internally,
@@ -92,7 +109,7 @@ def compile_math(zig,vendor,destination,environment,host=False,opt="-O2"):
             raise RuntimeError(source.name+": "+error.stderr[-4000:]) from error
         return obj
     with ThreadPoolExecutor(max_workers=4) as pool:
-        return list(pool.map(compile_one,enumerate(source_files(vendor))))
+        return list(pool.map(compile_one,enumerate(source_files(vendor,architecture=architecture))))
 
 
 def copy_changed(source,destination):

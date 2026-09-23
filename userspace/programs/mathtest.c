@@ -1,6 +1,56 @@
 /* Opt-in libm consumer and bounded generation-scoped Ring-3 fault proof. */
 #include <x86os.h>
 #include "../../test/math_vectors.h"
+#ifdef REIST_NATIVE_MATH_RUNTIME
+#include <reist/x86_64/cpp_runtime.h>
+#include <reist/x86_64/math_runtime.h>
+#include "../../test/x86_64_math_vectors.h"
+volatile uint64_t reist_math_runtime_selection[2]
+    __attribute__((section(".data.memory_witness")))={0x314854414d545352ULL,0};
+volatile uint64_t reist_math_runtime_witness[16];
+_Alignas(16) unsigned char reist_math_fp_wanted[512];
+_Alignas(16) unsigned char reist_math_fp_observed[512];
+_Alignas(16) static unsigned char native_math_clean[512];
+__attribute__((noinline)) void reist_math_runtime_checkpoint(void) {__asm__ volatile("":::"memory");}
+
+static void native_word(unsigned char *p,uint32_t value) {
+    for(unsigned i=0;i<4;i++)p[i]=(unsigned char)(value>>(8*i));
+}
+static int native_fp_roundtrip(unsigned mode) {
+    for(unsigned i=0;i<512;i++) {
+        reist_math_fp_wanted[i]=0;reist_math_fp_observed[i]=0;native_math_clean[i]=0;
+    }
+    native_word(native_math_clean,0x37f);native_word(native_math_clean+24,0x1f80);
+    native_word(reist_math_fp_wanted,0x37f|mode);
+    native_word(reist_math_fp_wanted+24,0x1f80|(mode<<3));
+    reist_math_fp_wanted[4]=0xff;
+    for(unsigned n=0;n<8;n++) {
+        unsigned char *p=reist_math_fp_wanted+32+n*16;
+        p[0]=(unsigned char)(n+1);p[7]=0x80;p[8]=0xff;p[9]=0x3f;
+    }
+    for(unsigned n=0;n<256;n++)reist_math_fp_wanted[160+n]=(unsigned char)(n+0x31);
+    /* The raw syscall truly blocks. All FP registers are declared clobbered;
+     * restore the empty ABI state before returning to compiler-generated C. */
+    uint64_t result;
+    __asm__ volatile(
+        "fxrstor64 %2\n\t"
+        "mov $41,%%eax\n\tmov $10,%%edi\n\txor %%esi,%%esi\n\txor %%edx,%%edx\n\t"
+        "xor %%r10d,%%r10d\n\txor %%r8d,%%r8d\n\txor %%r9d,%%r9d\n\tsyscall\n\t"
+        "fxsave64 %1\n\tfxrstor64 %3"
+        : "=a"(result),"=m"(reist_math_fp_observed) : "m"(reist_math_fp_wanted),"m"(native_math_clean)
+        : "rdi","rsi","rdx","r10","r8","r9","rcx","r11","memory","cc",
+          "st","st(1)","st(2)","st(3)","st(4)","st(5)","st(6)","st(7)",
+          "xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7",
+          "xmm8","xmm9","xmm10","xmm11","xmm12","xmm13","xmm14","xmm15");
+    reist_math_runtime_witness[11]=result;
+    if(result)return 1;
+    for(unsigned i=0;i<28;i++)if(reist_math_fp_wanted[i]!=reist_math_fp_observed[i])return 2;
+    for(unsigned n=0;n<8;n++)for(unsigned i=0;i<10;i++)
+        if(reist_math_fp_wanted[32+n*16+i]!=reist_math_fp_observed[32+n*16+i])return 3;
+    for(unsigned i=160;i<416;i++)if(reist_math_fp_wanted[i]!=reist_math_fp_observed[i])return 4;
+    return 0;
+}
+#endif
 
 static int equal(const char *a,const char *b) {
     for (unsigned i=0;i<32;++i) { if(a[i]!=b[i]) return 0; if(!a[i]) return 1; }
@@ -148,10 +198,50 @@ static int containment(void) {
     return fesetround(FE_TONEAREST);
 }
 int main(int argc,char **argv) {
+#ifdef REIST_NATIVE_MATH_RUNTIME
+    (void)argv;
+    _Static_assert(sizeof(long)==8&&sizeof(void*)==8&&sizeof(double)==8,"native math LP64 ABI");
+    if(argc!=1||reist_math_runtime_selection[0]!=0x314854414d545352ULL||
+        reist_math_runtime_selection[1]>6||reist_cpp_runtime_begin())return 2;
+    if(!defaults()||exercise()||native_lrint_vectors())return 1;
+    reist_math_runtime_witness[0]=1;
+    reist_math_runtime_witness[1]=math_bits(sin(0.5));
+    reist_math_runtime_witness[2]=math_bits(sqrt(2));
+    reist_math_runtime_witness[3]=(uint64_t)lrint(0x1p40);
+    reist_math_runtime_witness[4]=(uint64_t)lrint(-0x1p40);
+    reist_math_runtime_witness[5]=math_bits(nextafter(0,1));
+    reist_math_runtime_witness[6]=math_bits(copysign(0,-1));
+    reist_math_runtime_witness[7]=44;reist_math_runtime_witness[8]=sizeof(long);
+    reist_math_runtime_witness[9]=sizeof(double);
+    reist_math_runtime_checkpoint();
+    const unsigned modes[]={FE_TONEAREST,FE_DOWNWARD,FE_UPWARD,FE_TOWARDZERO};
+    for(unsigned n=0;n<4;n++) {
+        unsigned selected=reist_math_runtime_selection[1]==1?3-n:n;
+        if(native_fp_roundtrip(modes[selected]))return 3;
+        reist_math_runtime_witness[0]=2;reist_math_runtime_witness[10]=modes[selected];
+        reist_math_runtime_witness[12]=n;reist_math_runtime_checkpoint();
+    }
+    switch(reist_math_runtime_selection[1]) {
+    case 0:case 1:break;
+    case 2:{
+        uint16_t control=0x37e;volatile double negative=-1;
+        __asm__ volatile("fnclex; fldcw %0; fldl %1; fsqrt; fwait"::"m"(control),"m"(negative):"st","memory");
+        return 94;
+    }
+    case 3:{uint32_t invalid=0xffffffff;__asm__ volatile("ldmxcsr %0"::"m"(invalid):"memory");return 95;}
+    case 4:__asm__ volatile("ud2");return 96;
+    case 5:for(;;)(void)x86os_sleep_ms(100);
+    case 6:for(;;)__asm__ volatile("pause");
+    default:return 2;
+    }
+    x86os_puts("MATH_NUMERIC_OK functions=44\nMATH_FENV_OK rounding=4\nMATH_LP64_OK\nMATH_FP_STATE_OK\nMATH_RUNTIME_OK\n");
+    return 0;
+#else
     if(argc==4) return child(argv[1],parse(argv[2]),parse(argv[3]));
     if(argc!=1) return 2;
     if(!defaults() || exercise()) { x86os_puts("MATH_TEST_FAIL initial\n"); return 1; }
     x86os_puts("MATH_NUMERIC_OK functions=44\nMATH_FENV_OK rounding=4\n");
     if(containment()) { x86os_puts("MATH_TEST_FAIL containment\n"); return 1; }
     x86os_puts("MATH_PARENT_OK\nMATH_RUNTIME_OK\n"); return 0;
+#endif
 }

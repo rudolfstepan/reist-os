@@ -652,6 +652,29 @@ higher_half_entry:
 .fp_ready:
     lea rsi, [rel fp_ready_message]
     call serial_write64
+%ifdef REIST_NATIVE_MATH_HARDWARE
+; Qualification-only rendezvous before any Ring3 execution. A finite bootstrap
+; counter and the outer guest deadline bound absence or failure of the observer.
+global native_math_hardware_gate64
+native_math_hardware_gate64:
+    mov qword [rel native_math_hardware_ready], 1
+    mov ecx, 1000000000
+.wait:
+    mov rax, [rel native_math_hardware_release]
+    test rax, rax
+    jnz .released
+    pause
+    dec ecx
+    jnz .wait
+.failed:
+    mov qword [rel native_math_hardware_ready], -1
+    jmp halt64
+.released:
+    cmp rax, 1
+    jne .failed
+    mov qword [rel native_math_hardware_ready], 0
+    mov qword [rel native_math_hardware_release], 0
+%endif
 x86_64_ud2_probe:
     ud2
 x86_64_ud2_resume:
@@ -1339,6 +1362,13 @@ gdt64_pointer:
     dd gdt64
 
 section .data
+%ifdef REIST_NATIVE_MATH_HARDWARE
+align 16
+global native_math_hardware_ready
+global native_math_hardware_release
+native_math_hardware_ready: dq 0
+native_math_hardware_release: dq 0
+%endif
 align 8
 boot_magic_value:
     dd 0

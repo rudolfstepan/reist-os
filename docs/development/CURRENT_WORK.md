@@ -2,7 +2,85 @@
 
 Stand: 23. September 2026
 
-## Aktiv: R8.3bs – native Mathematiklaufzeit
+## Abgenommen: R8.3bs – native Mathematiklaufzeit
+
+Aktuell: R8.3bs ist mit Kandidat07 abgenommen:21 Hosttests, Standardprojektion,
+Referenz-/Hardwarebuild und signiertes Medium, zehn frische WHPX-Gäste sowie
+unabhängiger vollständiger Rohdaten-Replay. Gatezeiten136,69/20,60/124,00/
+1544,17/148,27s; jeder Gast unter180s. Enthalten sind44 binary64-Funktionen,
+LP64-lrint, vier Rundungsmodi und FP-Isolation einschließlich Fehlerbehandlung,
+Besitzerverlust und Wiederanlauf. Nachweise:build/codex-agent/r83bs-native-math/candidate07/.
+Die isolierte Verifikator-Korrektur ist über binding09/compile-freeze13 gebunden;
+frühere Fehlversuche bleiben erhalten. Nächste Bestandsaufnahme: native begrenzte
+Textformatierung als QuickJS-Voraussetzung. Native64-Gesamtfreigabe bleibt offen;
+R3.6b bleibt ausdrücklich zurückgestellt.
+
+Vorheriger Stand: Diagnose27 besteht Besitzerverlust und vollständigen Wiederanlauf
+in106,840s. Compiler13/binding09 erhält die physische Haltepunktbindung während
+der gesamten Debugger-Registrierung; frühere CR3-Wechsel verfälschten Messungen.
+Host28 besteht in22,774s mit den negativen Rohdatenfällen und vollständigem Replay.
+Kandidat07 erhält unveränderte fünf Gates und zehn neue Gäste mit180s-Limit.
+Noch keine Gesamtfreigabe und kein Implementierungscommit.
+
+Vorheriger Stand: Kandidat06 bestand Gate1/2/3 und acht Gäste in94–105s. Der
+Owner-loss-Fall scheiterte an einem durch den WHPX-Verifikator veränderten
+Instruktionsbyte nach CR3-Wechsel. Compiler11/binding07 bindet die Wiederherstellung
+an den physischen Speicher. Diagnose25 besteht damit beide Startbildprüfungen,
+verfehlt jedoch die Kontrollpunkte der zweiten Mathematikgeneration. Diagnose26
+protokolliert diese Haltepunktbindung begrenzt; keine gelockerten Kriterien,
+keine vollständige Abnahme und kein Implementierungscommit.
+
+Vorheriger Stand: Kandidat05 bestand Gate1/2/3 und fünf Gäste einschließlich x87/MXCSR.
+Der Absturzfall stoppte erst beim zweiten ls am177s-Feedlimit; Absturzbehandlung
+und neue Mathematikgeneration waren korrekt. Eine begrenzte Profilierung belegt
+Debugger-Aufwand. Direkte Registerabfragen und registriert bleibende Haltepunkte
+sind mit identischen Werten/Instruktionsbytes geprüft. Diagnose24 besteht den
+vollständigen Absturzfall in94,255s Gastlaufzeit (101,968s insgesamt), unveränderte
+Ereignisse/RET-/Cleanup-Nachweise. Host27 prüft den Rohdaten-Replay; Kandidat06
+übernimmt dieselben Gates und Zeitlimits. Noch keine Abnahme und kein Commit.
+
+Vorheriger Stand: Kandidat04 bestand Gate1/2/3, scheiterte aber erneut an einem doppelten
+Kontrollpunkt. Diagnose20 belegt die Ursache im portablen WHPX-Verifikator:
+IRQ-Injektion vor Debugger-Einzelschritt, fehlgeschlagener InterruptShadow-Aufruf
+und ignorierter Fehler. Compiler09 korrigiert die Reihenfolge und bricht bei
+Schrittfehlern ab. Binding06/runtime05 ist separat gebunden; Diagnose21/22 bestehen
+vollständig (162,156/170,850s), ohne doppelte Kontrollpunkte oder Trace-Flag-Reste.
+Host25 prüft die Rohdaten und Fehlerablehnung. Kandidat05 ist als nächste
+vollständige Abnahme vorgesehen; noch kein Implementierungscommit.
+
+Vorheriger Stand: Kandidat03 besteht Gate1/2/3 (109,1/24,6/100,6s) und die
+4-/8-GiB-Gäste (170,2/163,1s). Gate4 stoppt beim Rundungsfall wegen mehrfacher
+Kontrollpunktbeobachtung. Diagnose18 belegt identische RIP/RSP/Rücksprungadresse
+und Witness bei zusätzlich gesetztem Trace-Flag. Der numerische Kontrollpunkt
+verwendet nun den ausdrücklichen Hardware-Haltepunkt-Typ im portablen Adapter.
+Host24 besteht (15,674s), einschließlich fortgesetzter Ablehnung der Duplikate.
+Diagnose19 besteht vollständig (169,042s, Gast157,549s), genau zehn Kontrollpunkte
+ohne Filterung. Kandidat04 bindet diesen Rohdaten-Replay und startet dieselben
+fünf Gates. Noch keine erfolgreiche Gesamtmatrix und kein Implementierungscommit.
+
+Vorheriger Stand: Diagnose17 besteht vollständig (171,630s, Gast161,053s), einschließlich
+echtem MXCSR-#GP13/Status141 und anschließender Wiederherstellung. Der freigegebene
+portable WHPX-Verifikator ist gebaut und über binary-binding04/compile-freeze07
+gebunden. Sechs begründete Änderungen unter10163 geprüften QEMU-Dateien; keine
+Systeminstallation. Probe11 besteht0,747s, Host19 besteht7,375s, Host21 bestätigt
+Rohdaten-Replay und Bootstrap-Manipulationsprüfung in15,966s. Host20 scheiterte
+vor Ausführung am falschen Testklassennamen; der Fehlversuch bleibt erhalten.
+Normalbuild/signiertes Medium und zusätzlicher Hardwarebuild werden getrennt
+geprüft, ihre Ring-3-Kataloge müssen identisch sein. Die fünf Abnahmegates mit
+zehn frischen Hardwaregästen sind noch auszuführen. Kein Implementierungscommit.
+Die folgenden Entwicklungsstände dokumentieren die unveränderte Historie.
+
+Kandidat01: Gate1/2 bestanden (110,7/29,3s); Gate3 stoppte nach101,6s beim
+Stackbericht-Vergleich. Beide Builds und das Medium bestanden; Programme und
+Archive sind identisch. Rohberichte enthalten unterschiedliche Build-Verzeichnisse,
+bei identischen4056 Bytes Stacksumme. Kandidat02 korrigiert ausschließlich diese
+Pfadzuordnung und prüft Größenabweichungen weiterhin; noch kein Abnahmegast.
+
+Kandidat02: Gate1/2 bestanden (99,2/22,8s); Gate3 stoppte nach99,8s an
+unterschiedlichen DWARF-Build-Pfaden im Archiv. Temporäre --strip-debug-Kopien
+sind bytegleich (130138 Bytes); vollständige Originalarchive bleiben gebunden.
+Kandidat03 vergleicht die relocierbaren Inhalte zusätzlich zu Rohhashes,
+Exporten, ISA und Stacks. Betriebssystemcode und Gastprädikate unverändert.
 
 C/C++82ce94a0 ist sauber abgenommen. Die nächste gemeinsame JS-Voraussetzung
 ist das bisher i386-spezifische libm-Profil:44 double-Funktionen, lrint und
@@ -12,6 +90,90 @@ Normales mathtest, signierte sieben Dateien, rohe numerische/FP-/Cleanup-
 Nachweise und zehn frische Gäste gehören zum eingefrorenen Paket.
 Kein zusätzliches Datei-, Netzwerk-, Geräte- oder Scriptrecht; R3.6b vertagt.
 Vertrag: [NATIVE_MATH_RUNTIME_CONTRACT](../architecture/NATIVE_MATH_RUNTIME_CONTRACT.md).
+
+### R8.3bs Entwicklungsnachweise (noch keine Abnahme)
+
+Host01/02/03/04/06 schlugen gezielt fehl: fehlender Architekturparameter,
+Zig-CPU-Schreibweise, Windows-PIC, implizites Zig-Hostflag sowie CRCRLF
+in nm-Ausgaben. Ergebnisse bleiben unter build/codex-agent/r83bs-native-math.
+Host05 (37,622s),07 (16,247s) und08 (3,767s) bestehen: tatsächliche
+O0/O2-Mathematik, ELF64-Archiv/Consumer, sieben Dateien sowie Beobachter-
+Konstruktion und FP-Payload-Mutationen. Windows-long bleibt korrekt32Bit;
+die LP64-Gastprüfung ist noch offen. Build01 besteht in21,738s.
+Diagnose01 scheiterte am unveränderten180s-Limit (180,177s); die Rohdaten
+enthalten dennoch zwei vollständige numerische/FP-Generationen. Die konkrete
+Befehlsfolge steht jetzt im Vertrag. Diagnose02 beendete den Gast vollständig,
+scheiterte danach am falschen RDI-Index im Validator (130,177s). Host09 besteht
+Default-Projektion und numerische Rohdaten (2,261s); Host10 besteht den gesamten
+Gast-Replay, scheitert aber an Disassembler-Zeilen-/Mnemonic-Erkennung
+(15,263s). Index und Parser sind korrigiert, keine Gastdaten verändert.
+Host11 besteht alle neun Tests (46,899s), einschließlich echter Blockierungs-
+und FP-Scrub-Rohdaten sowie Manipulationsnachweisen. Media01 besteht (4,689s).
+Diagnose03 besteht den echten x87-Fault16/Status144 einschließlich vollständiger
+Wiederherstellung (128,638s). Diagnose04 ist vollständig beendet (126,261s), scheitert aber am realen
+MXCSR-Fault-Nachweis: `ldmxcsr 0xffffffff` erreicht Status95/state4 statt
+#GP13/Status141/state3. Rohdaten, Selektor3 und tatsächliche ELF-Instruktionen
+bestätigen den Befund. Die neue normale Generation und cat/ls laufen weiter.
+Der eingefrorene Vertrag verbietet eine erfolgreiche Ersatzbehandlung.
+
+Host12 bestätigt die Ablehnung dieses Gasts, scheitert zusätzlich an der
+Vollständigkeitszählung älterer Post-Resume-Snapshots (54,255s). Die Korrektur
+liest diese weiterhin hashgebunden ein; Blockierungsnachweise bleiben maßgeblich.
+Host13 ist dafür zusätzlich begrenzt reserviert (600s); der erste Aufruf wurde
+vor Reservierung vom alten Helferlimit12 abgewiesen, danach wurde nur dessen
+Obergrenze an den dokumentierten Vertrag angepasst. Kein Gast wird wiederholt.
+Host13 besteht alle zehn Tests (60,218s), einschließlich kompletter Rohdaten-
+Zuordnung und ausdrücklicher Zurückweisung des fehlenden #GP.
+Verbrauch:13 Hosts (12 initial+1 begrenzte Korrektur),1/3 Builds,
+1/2 Medienpublikationen,4/4 Diagnosen.
+Keine fünf Abnahmegates gestartet, kein Implementierungscommit, Paket bleibt aktiv.
+
+**Fortsetzung: Hardware verfügbar, Beobachtungspfad noch nicht qualifiziert.**
+Die schreibgeschützte Windows-API bestätigt WHPX. Probe01/02 scheiterten
+an Steuertransport/Abschluss (je15s); Probe03 mit lokalem QMP und
+kernel-irqchip=off besteht in0,348s, ohne OS-Ausführung. Diagnose05 scheitert
+vor Gastbeginn an einem im Reset nicht zugänglichen hohen Breakpoint
+(4,160s). Diagnose06 verifiziert die anfänglichen Instruktionsbytes, verfehlt
+aber den temporären Einstiegshalt; ein QMP-Registerabzug zeigt bereits den
+nativen Scheduler (RIP0xffffffff8010e946). Wegen fehlender Anfangsbeobachtung
+wurde der eigene Gast nach91,219s beendet. Kein Hardware-Abnahmenachweis.
+VMware Workstation ist vorhanden, keine VM läuft; der vorhandene i386-
+Serielltest ersetzt die Native64-Rohdatenprüfung nicht.
+
+**Freigegebener Hardware-Prüfbootstrap umgesetzt, Debuggertransport blockiert.**
+Das erneute „mach weiter“ nach der konkreten Scope-Frage wurde als Freigabe
+für entry.asm und den expliziten NativeMathHardware-Schalter dokumentiert.
+Build02 besteht (21,859s); Host14 besteht Default-Projektion und Beobachter-
+Konstruktion (3,934s). Diagnose07 scheitert vor QMP-Verbindung (3,944s).
+Diagnose08 erreicht den echten Haltepunkt vor Ring3 und bestätigt rohe Zellen
+(1,0), scheitert danach an Hardware-Breakpoints (4,473s). Diagnose09 mit
+Software-Breakpoints führt zum Kernel-Fatal/WHPX-Exit4 (4,839s), ohne Abnahme.
+Diagnose10 erzwingt Z0 und belegt ausdrücklich: Der installierte WHPX-Stub
+unterstützt das Software-Breakpoint-Protokoll nicht (4,433s). Der frühere
+generische Hardware-Breakpoint-Fehler beweist allein keine Vier-Register-Grenze.
+Kein alternativer QEMU-Build in PATH oder den geprüften Workspace/MSYS-Pfaden.
+
+Nächster benötigter Umfang: isolierte Prüfwerkzeugkette mit tatsächlich
+unterstützten WHPX-Ausführungs-/Watchpoints oder gleichwertiger nativer
+Hardwarebeobachtung. Emulatoränderung/Installation und alternative VM-Ausführung
+liegen außerhalb der freigegebenen Bootstrap-Korrektur. Keine unveränderten
+Gastwiederholungen, keine Gate-Ersetzung, kein erfolgreicher MXCSR-Nachweis.
+Host15 besteht11/12 Tests (66,706s); der neue Negativtest las zunächst das
+falsche GDB-Log. Host16 bestätigt die korrigierte Log-Zuordnung (0,142s).
+Alle zwölf Hostprüfungen sind damit gezielt verifiziert; kein laufender Gast.
+Die erneute Fortsetzungsanweisung nach der konkreten Frage gibt die isolierte
+portable Prüfwerkzeugkette frei. Offizielles QEMU9.2.0 ist samt Unterprojekten
+und Bibliotheken hashgebunden im ignorierten Prüfverzeichnis vorhanden.
+Die Quellinventur widerlegt die zuvor angenommene Watchpoint-Anforderung:
+Der tatsächliche BS-Beobachter benötigt ausschließlich Ausführungs-Breakpoints.
+Die Änderung bindet WHPX' vorhandene Verarbeitung an den GDB-Stub an; keine
+Änderung an Gast-Ausnahmen oder Instruktionsausführung. Dazu kommen drei
+Build-Pfadanpassungen für natives Windows-Python/Meson. Vollständiger Vergleich
+über10163 Upstream-Dateien begrenzt die Abweichungen auf diese vier Dateien.
+Konfiguration08 besteht; Compiler01/02 scheiterten an den dokumentierten
+Trace-Dateinamen. Compiler03 ist für die konkrete Korrektur begrenzt reserviert.
+Keine Systeminstallation und noch kein neuer Hardware-Nachweis.
+Paket bleibt aktiv und unabgenommen; kein neuer Implementierungscommit.
 
 ## R8.3br: native C/C++-Allokationslaufzeit abgenommen
 

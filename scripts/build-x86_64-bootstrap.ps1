@@ -48,6 +48,8 @@ param(
     [switch]$NativeAppDNS,
     [switch]$NativeAppHTTP,
     [switch]$NativeCppRuntime,
+    [switch]$NativeMath,
+    [switch]$NativeMathHardware,
     [switch]$NativeInput,
     [switch]$NativeDisplay,
     [switch]$NativeServicePIO,
@@ -74,6 +76,8 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeMathHardware) { $NativeMath = [switch]$true }
+if ($NativeMath) { $NativeCppRuntime = [switch]$true }
 if ($NativeCppRuntime) { $NativeAppFiles = [switch]$true }
 if ($NativeAppHTTP) { $NativeAppDNS = [switch]$true }
 if ($NativeAppDNS) { $NativeAppTCP = [switch]$true }
@@ -477,6 +481,8 @@ try {
         "X86_64_NATIVE_APP_DNS=$([int]$NativeAppDNS.IsPresent)" `
         "X86_64_NATIVE_APP_HTTP=$([int]$NativeAppHTTP.IsPresent)" `
         "X86_64_NATIVE_CPP_RUNTIME=$([int]$NativeCppRuntime.IsPresent)" `
+        "X86_64_NATIVE_MATH=$([int]$NativeMath.IsPresent)" `
+        "X86_64_NATIVE_MATH_HARDWARE=$([int]$NativeMathHardware.IsPresent)" `
         "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
