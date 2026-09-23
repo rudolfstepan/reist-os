@@ -2,6 +2,16 @@
 
 Stand: 23. September 2026
 
+## Aktiv: R8.3bt – native begrenzte Textformatierung
+
+Basis: R8.3bs9e9e31f0 vollständig abgenommen, fünf Gates/zehn Gäste,
+Commit-Bindung und sauberer Arbeitsbaum bestätigt. R8.3bt übernimmt den
+vorhandenen musl-Formatter in das native SDK und qualifiziert LP64/Varargs,
+gewöhnliches texttest.prg, signiertes Medium und begrenzte Fehlerbehandlung.
+Umfang, fünf Gates und endliche Entwicklungsreservation stehen in
+NATIVE_TEXT_RUNTIME_CONTRACT.md und der Queue. Keine neue Berechtigungsdomäne;
+QuickJS und die native64-Gesamtfreigabe bleiben offen, R3.6b zurückgestellt.
+
 ## Abgenommen: R8.3bs – native Mathematiklaufzeit
 
 Aktuell: R8.3bs ist mit Kandidat07 abgenommen:21 Hosttests, Standardprojektion,

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bt-native-text"
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
 native_graphical_session_authority_boundary = "2026-09-21 accepted BG fd7a2f7786f6905b928bbe9912590e0f950664fa, final5e26802cdeface9717909f60dd8d5bd45c37d05eb643ec51b1be085ed09f3453, ten gates/22 fresh guests/clean worktree. Next inventory: existing desktop requires TERMINAL_ACQUIRE_SERVICE4, explicitly unsupported(-95) in native_terminal.inc; BG is fixed5000ms/32events with driver5/foreground4, no persistent GUI focus authority. AGENTS new-authority stop requires explicit authorization for exclusive Ring3 graphical-session/terminal-service takeover, generationscoped focus/capture and bounded persistent driver/compositor roles. Concrete proposal docs/architecture/NATIVE_GRAPHICAL_SESSION_PROPOSAL.md. No implementation/build/guest activated; old profiles and deferred R3.6b preserved. Native OS completion remains open."
 compaction_correction_window = "Eight hosts/two builds/13.597538999980316s second build/one media/three BIOS/zero guests spent. Build02 correctly fails exact PT_LOAD audit: GNU objcopy canonicalizes only the zero-filesz scratch segment file offset1261568 to4096; every allocated section and retained symbol identical, compact file1387904bytes. Preserve raw tool output and original; restore only that nonloaded offset after checking all other header fields, then require complete old layout/loaded bytes/retained symbols unchanged. Freeze two host commands<=600s, one fresh build03<=300s and original unspent media02<=180s/three BIOS plus healthy90s. No relaxed audit, changed media format or guest limit; cumulative ceilingthree builds/two media/six BIOS/one guest."
@@ -20082,3 +20082,15 @@ evidence = [
   "The final QEMU framebuffer package gate passed in 23 seconds and rebuilt the production desktop with the fixed-capacity layout module and packaged reist.desktop-layout/1 document.",
   "The real QEMU USB-mouse runtime moved and durably reloaded a built-in icon and a real filesystem shortcut, validated temporary placement in a smaller work area, reopened the moved shortcut in Notepad and observed no compositor restart or degraded state; no queued package remains and active_id is empty."
 ]
+
+[[packages]]
+id = "R8.3bt-native-text"
+status = "active"
+phase = "native64-userspace"
+title = "Native bounded string formatting and ordinary texttest"
+risk = "AMD64 varargs/LP64, bounded formatting and contained pointer faults"
+scope = "Implement NATIVE_TEXT_RUNTIME_CONTRACT after accepted9e9e31f0. Reuse pinned musl formatter and memory-stream adapters, existing errno/math/FP lifecycle and immutable BS portable binding09. Explicit AMD64 archive/sysroot, ordinary shell texttest, signed eight-file media, actual host and full guest containment proofs. No kernel/device/network authority, quotas, upstream pin, installed-tool or default profile changes. Initial8 hosts600s/2 builds300s/2 media180s/3 diagnostics180s; five frozen gates and ten guests180s/1800s aggregate. Main worktree only, no agents or push; R3.6b deferred."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_TEXT_RUNTIME_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py", "scripts/build_user_text.py", "scripts/build_x86_64_text_runtime.py", "scripts/build_x86_64_text_runtime_media.py", "scripts/check_x86_64_text_runtime_media.py", "scripts/build-x86_64-text-runtime-media.ps1", "scripts/run_qemu_x86_64_text_runtime.py", "scripts/verify_x86_64_text_runtime.py", "userspace/programs/texttest.c", "userspace/sdk/include/reist/x86_64/text_runtime.h", "test/test_x86_64_text_runtime.py", "test/x86_64_text_host.c", "test/x86_64_text_vectors.h", "test/text_vectors.h"]
+targeted_tests = ["python test/test_x86_64_text_runtime.py -v", "python scripts/verify_x86_64_text_runtime.py --defaults"]
+package_tests = ["python scripts/verify_x86_64_text_runtime.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_text_runtime.py --runtime", "python scripts/verify_x86_64_text_runtime.py --review"]
