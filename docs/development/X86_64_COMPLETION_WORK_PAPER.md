@@ -1,5 +1,15 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Aktiv: R8.3bu – größeres vorbereitetes Programmabbild
+
+Erneutes „mach weiter bis alles fertig ist“ gibt den konkreten Vorschlagb8aa7ab4
+frei. Zuerst RNPGv3/CREATE-v7 mit256 Abbildseiten, festen Eigentums-/Rollback-
+Grenzen und echtem Gastnachweis. Das bisherige v2-Bootkatalogformat bleibt;
+nur der Importscratch wird innerhalb des vorhandenen Bootfensters erweitert.
+Dateiladeprofil und QuickJS folgen nach sauberer Abnahme dieser Speichergrenze.
+Umfang, Budgets und fünf Gates: NATIVE_LARGE_IMAGE_CONTRACT.md. Keine erneute
+Routinefreigabe für diese bereits genehmigten Voraussetzungen; R3.6b vertagt.
+
 ## Abgenommen: R8.3bt – native Textformatierung
 
 Kandidat03 besteht alle fünf Gates (85.231/6.427/115.368/899.353/92.294s):13 Hosttests,
@@ -22,10 +32,9 @@ des reservierten Stacks. Der Host-Build ist kein Gast-/JavaScript-Nachweis.
 Konkreter nächster Vorschlag: NATIVE_LARGE_EXECUTABLE_PROPOSAL.md, getrenntes
 1-MiB-/256-Seiten-Profil mit begrenzten höheren FS-/Block-Anfragezahlen;
 Laufzeiten, CPU-, Stack- und Geräteberechtigungen bleiben unverändert.
-Diese Erweiterung überschreitet die ausdrücklich genehmigten Abbild-/Capture-
-Ressourcengrenzen. Gemäß AGENTS.md bleibt sie bis zur Freigabe unimplementiert;
-kein Paket aktiv, keine Kerneländerung oder Gastreservierung. Native64 ist
-weiterhin unvollständig; R3.6b bleibt ausdrücklich zurückgestellt.
+Die damalige Freigabegrenze ist durch die erneute Benutzeranweisung aufgehoben;
+R8.3bu ist jetzt als erste begrenzte Transaktion aktiv. Native64 bleibt
+unvollständig; R3.6b bleibt ausdrücklich zurückgestellt.
 
 ## Abgenommen: R8.3bs – native Mathematiklaufzeit
 

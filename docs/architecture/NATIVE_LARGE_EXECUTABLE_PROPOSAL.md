@@ -1,5 +1,8 @@
 # Native large executable profile: measured proposal
 
+Approved by renewed user continuation after commitb8aa7ab4. Implementation starts
+with R8.3bu; historical decision/evidence text below is retained.
+
 ## Evidence and decision boundary
 
 23 September2026, clean accepted text commit3306169310d4cdddf1ac6e2b93fa1b4ff7e40f42.
