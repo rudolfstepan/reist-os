@@ -2,6 +2,17 @@
 
 Stand: 23. September 2026
 
+## Aktiv: R8.3bs – native Mathematiklaufzeit
+
+C/C++82ce94a0 ist sauber abgenommen. Die nächste gemeinsame JS-Voraussetzung
+ist das bisher i386-spezifische libm-Profil:44 double-Funktionen, lrint und
+fenv werden gemeinsam für AMD64/LP64 portiert. Vorhandene native eager
+FP-Kontextisolation bleibt erhalten; kein neuer Kernelmechanismus.
+Normales mathtest, signierte sieben Dateien, rohe numerische/FP-/Cleanup-
+Nachweise und zehn frische Gäste gehören zum eingefrorenen Paket.
+Kein zusätzliches Datei-, Netzwerk-, Geräte- oder Scriptrecht; R3.6b vertagt.
+Vertrag: [NATIVE_MATH_RUNTIME_CONTRACT](../architecture/NATIVE_MATH_RUNTIME_CONTRACT.md).
+
 ## R8.3br: native C/C++-Allokationslaufzeit abgenommen
 
 Kandidat01 besteht alle fünf Gates (39,484/11,414/29,149/1169,317/95,674s)
