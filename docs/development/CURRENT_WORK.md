@@ -2,6 +2,16 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
+R8.3ca Grafikadapter hostseitig abgenommen:16 Grafikimporte des echten
+Desktops aufgeloest,45 andere SDK-/Diensteimporte bleiben. Ring3-Raster mit
+UTF8/CP437, Bildtransaktionen, Kopieren, Mauszeiger und begrenzter Kachelausgabe;
+bestehende64-Aufruf-/1MiB-Grenze bleibt. O0/O2-Verhaltenstests und beide echten
+Builds bestanden1,278/5,658/6,332s; Originalobjekt bytegleich, native statische
+Sektionen919891 Byte. Noch keine VM-Anbindung: Startup muss die Puffer, den
+gewaehrten Transport und die Ereignisschleife anbinden. Danach verbleibende
+SDK-/Datei-/Anwendungsdienste und Gast-/VMware-Nachweis. Beleg:
+build/codex-agent/native-vmware-desktop/display-gates01/results.json.
+
 Build-Beschleunigung R8.3bz abgenommen: maximal vier parallele Compiler,
 deterministische Logs/Linkreihenfolge, bisherige Zeitgrenzen erhalten.
 Der echte native36-Quellen-Desktop baut in5,861s statt13,747s im abgenommenen

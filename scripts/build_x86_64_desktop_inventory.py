@@ -16,6 +16,14 @@ SECTION = struct.Struct('<IIQQQQIIQQ')
 SYMBOL = struct.Struct('<IBBHQQ')
 RELA = struct.Struct('<QQq')
 DEFAULT_DESKTOP_OBJECT = 'fe63724133e5f3022efe450432c6cc2f9ee8b5f09be25ef1d8ef073621ab814f'
+DISPLAY_IMPORTS = {
+    'x86os_display_activate', 'x86os_display_activate_mode', 'x86os_display_deactivate',
+    'x86os_display_info', 'x86os_display_mode_query', 'x86os_display_frame_begin',
+    'x86os_display_frame_commit', 'x86os_display_frame_cancel',
+    'x86os_display_frame_stage_blit', 'x86os_display_frame_mark_accelerated',
+    'x86os_draw_pixels', 'x86os_draw_text_pixels', 'x86os_draw_text_pixels_clipped',
+    'x86os_display_surface_buffer_draw', 'x86os_fill_rect', 'x86os_pointer_update',
+}
 
 
 def need(condition, message):
@@ -150,7 +158,7 @@ def compile_batches(commands, execute, jobs=4):
                 future.result()
 
 
-def build(output, native_workspace=False, jobs=4):
+def build(output, native_workspace=False, jobs=4, native_display=False):
     from build_user_program import find_zig
     from build_system_programs import PROGRAMS
     from build_user_sdk import (PUBLIC_INCLUDE_ROOTS, CORE_LIBRARY_SOURCES,
@@ -160,9 +168,13 @@ def build(output, native_workspace=False, jobs=4):
           ('x86os.c', 'reist_dns.c', 'reist_dhcp_state.c')],
         *GUI_LIBRARY_SOURCES, *IMAGE_LIBRARY_SOURCES]))
     need(type(native_workspace) is bool, 'explicit native workspace selector')
+    need(type(native_display) is bool and (not native_display or native_workspace),
+         'native display requires native workspace')
     need(type(jobs) is int and 1 <= jobs <= 4, 'compiler worker capacity')
     if native_workspace:
         sources.append(ROOT / 'userspace/gui/compositor/desktop_native_workspace.c')
+    if native_display:
+        sources.append(ROOT / 'userspace/sdk/lib/x86_64/desktop_display.c')
     need(1 <= len(sources) <= 64, 'source capacity')
     need(ROOT / 'userspace/gui/compositor/desktop.c' in sources, 'real desktop')
     includes = [*PUBLIC_INCLUDE_ROOTS, ROOT / 'include']
@@ -222,8 +234,12 @@ def build(output, native_workspace=False, jobs=4):
     if native_workspace:
         need(report['allocated_section_bytes'] < 960 * 1024 and
              len(report['native_workspace_sizes']) == 16, 'native static/workspace capacity')
-        need(set(report['reachable_imports']) == set(baseline['reachable_imports']) |
-             {'x86os_malloc', 'x86os_free'}, 'unchanged services plus native heap only')
+        expected_imports = set(baseline['reachable_imports']) | {'x86os_malloc', 'x86os_free'}
+        if native_display:
+            need(DISPLAY_IMPORTS <= expected_imports, 'actual desktop display imports')
+            expected_imports -= DISPLAY_IMPORTS
+        need(set(report['reachable_imports']) == expected_imports,
+             'exact remaining desktop services')
     else:
         need(digest(linked) == DEFAULT_DESKTOP_OBJECT, 'exact original desktop object')
     inputs = set(sources) | {Path(__file__).resolve(),
@@ -241,6 +257,7 @@ def build(output, native_workspace=False, jobs=4):
     need(len(dependencies) <= 4096, 'aggregate dependency capacity')
     report.update({'source_count': len(sources), 'tool_sha256': digest(zig),
                    'compiler_jobs': jobs,
+                   'native_display_adapter': native_display,
                    'inputs': {p.relative_to(ROOT).as_posix(): digest(p) for p in sorted(inputs)},
                    'objects': {p.name: digest(p) for p in [*objects, linked]},
                    'dependencies': {p.name: digest(p) for p in sorted(output.glob('*.d'))},
@@ -256,6 +273,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--native-workspace', action='store_true')
+    parser.add_argument('--native-display', action='store_true')
     parser.add_argument('--jobs', type=int, choices=range(1, 5), default=4)
     args = parser.parse_args()
-    build(args.output, args.native_workspace, args.jobs)
+    build(args.output, args.native_workspace, args.jobs, args.native_display)
