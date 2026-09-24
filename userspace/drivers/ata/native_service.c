@@ -74,7 +74,12 @@ static int service_init_profile(reist_native_profile_service *s,uint64_t owner,
     reist_pio_ops upstream_snapshot=*upstream;
     reist_block_profile_v1 snapshot=*profile;
     uint64_t now=upstream_snapshot.clock(upstream_snapshot.context);
-    int status=version==2?reist_block_profile_admit_v2(&snapshot,now):reist_block_profile_admit(&snapshot,now);
+    int status;
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(version==3)status=reist_block_profile_admit_v3(&snapshot,now);
+    else
+#endif
+    status=version==2?reist_block_profile_admit_v2(&snapshot,now):reist_block_profile_admit(&snapshot,now);
     if(status)return status;
     s->profile=snapshot;
     return service_init(&s->service,owner,&upstream_snapshot,snapshot.deadline_ms);
@@ -99,3 +104,16 @@ int reist_native_service_dispatch_profile_v2(reist_native_profile_service_v2 *s,
     reist_block_backend b={&s->service,service_clock,service_pace,service_read};
     return reist_block_dispatch_profile_v2(&s->service.server,&s->profile,&b,q,reply);
 }
+
+#ifdef REIST_NATIVE_LARGE_FILE
+int reist_native_service_init_profile_v3(reist_native_profile_service_v3 *s,uint64_t owner,
+    const reist_pio_ops *upstream,const reist_block_profile_v3 *profile){
+    return service_init_profile(s,owner,upstream,profile,3);
+}
+int reist_native_service_dispatch_profile_v3(reist_native_profile_service_v3 *s,
+    const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+    if(!s)return -22;
+    reist_block_backend b={&s->service,service_clock,service_pace,service_read};
+    return reist_block_dispatch_profile_v3(&s->service.server,&s->profile,&b,q,reply);
+}
+#endif

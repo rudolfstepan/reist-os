@@ -93,7 +93,11 @@ static int block_dispatch(reist_block_server *s,const reist_block_backend *b,
     /* Wide ready=1 retains the initial guard until a successful physical read.
      * Rejected requests/failed waits charge attempts, never consume that guard.
      * Legacy ready stays1 and its spacing remains100 throughout. */
+#ifdef REIST_NATIVE_LARGE_FILE
+    unsigned pace=(spacing==50 || spacing==25) && s->ready==1?100:spacing;
+#else
     unsigned pace=spacing==50 && s->ready==1?100:spacing;
+#endif
     if(now-s->last_read_ms<pace){
         unsigned delay=pace-(unsigned)(now-s->last_read_ms);
         if(deadline-now<=delay){status=-110;goto result;}
@@ -107,7 +111,11 @@ static int block_dispatch(reist_block_server *s,const reist_block_backend *b,
     s->last_read_ms=b->clock(b->context);
     if(s->last_read_ms<now)status=-84;
     else if(s->last_read_ms>=deadline)status=-110;
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(!status && (spacing==50 || spacing==25))s->ready=2;
+#else
     if(!status && spacing==50)s->ready=2;
+#endif
 result:
     if(status){if(!block_error(status))status=-5;block_zero(reply->payload+64,1984);}
     else {r.length=512;reply->length=576;}
@@ -137,3 +145,20 @@ int reist_block_dispatch_profile_v2(reist_block_server *s,const reist_block_prof
     if(!profile_fields_v2(p))return -22;
     return block_dispatch(s,b,q,reply,p->request_limit,p->deadline_ms,REIST_WIDE_FILE_MS,50);
 }
+
+#ifdef REIST_NATIVE_LARGE_FILE
+#include <reist/x86_64/large_file.h>
+static int profile_fields_v3(const reist_block_profile_v3 *p){
+    return p && p->version==3 && p->size==24 &&
+        p->request_limit==REIST_LARGE_BLOCK_REQUESTS && !p->reserved && p->deadline_ms;
+}
+int reist_block_profile_admit_v3(const reist_block_profile_v3 *p,uint64_t now){
+    return profile_fields_v3(p) && p->deadline_ms>now &&
+        p->deadline_ms-now<=REIST_LARGE_FILE_MS?0:-22;
+}
+int reist_block_dispatch_profile_v3(reist_block_server *s,const reist_block_profile_v3 *p,
+    const reist_block_backend *b,const x86os_ipc_message_t *q,x86os_ipc_bulk_message_t *reply){
+    if(!profile_fields_v3(p))return -22;
+    return block_dispatch(s,b,q,reply,p->request_limit,p->deadline_ms,REIST_LARGE_FILE_MS,25);
+}
+#endif

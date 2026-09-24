@@ -62,4 +62,10 @@ typedef reist_service_session_v1 reist_service_session_v2;
 int reist_service_session_init_v2(reist_service_session_v2 *,uint64_t owner,unsigned layout);
 int reist_service_session_open_v2(reist_service_session_v2 *,const reist_service_session_ops *,
     uint64_t startup_deadline_ms,uint64_t capture_deadline_ms,unsigned fault_mode);
+#ifdef REIST_NATIVE_LARGE_FILE
+typedef reist_service_session_v1 reist_service_session_v3;
+int reist_service_session_init_v3(reist_service_session_v3 *,uint64_t,unsigned);
+int reist_service_session_open_v3(reist_service_session_v3 *,const reist_service_session_ops *,
+    uint64_t startup_deadline_ms,uint64_t capture_deadline_ms,unsigned fault_mode);
+#endif
 #endif

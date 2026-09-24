@@ -1,5 +1,8 @@
 #include <reist/x86_64/file_image.h>
 #include <reist/x86_64/wide_file.h>
+#ifdef REIST_NATIVE_LARGE_FILE
+#include <reist/x86_64/large_file.h>
+#endif
 typedef uint64_t file_word __attribute__((may_alias,aligned(1)));
 static void file_clear(void *object,unsigned length) {
     volatile unsigned char *p=object;
@@ -91,8 +94,13 @@ static int file_finish(void *output,void *w,unsigned workspace_bytes,
     unsigned char *file,reist_fs_frame *frame,unsigned char *prepared,
     reist_fs_client *c,const reist_fs_transport *t,const reist_file_capture_v1 *p,
     unsigned version,unsigned requests,unsigned milliseconds,unsigned capacity,unsigned rpc_ms) {
+#ifdef REIST_NATIVE_LARGE_FILE
+    const size_t prepared_bytes=version==3?REIST_X64_PREPARED_V3_BYTES:REIST_X64_PREPARED_V2_BYTES;
+#else
+    const size_t prepared_bytes=REIST_X64_PREPARED_V2_BYTES;
+#endif
     const void *objects[]={output,w,c,t,p};
-    const size_t sizes[]={REIST_X64_PREPARED_V2_BYTES,workspace_bytes,sizeof(*c),sizeof(*t),sizeof(*p)};
+    const size_t sizes[]={prepared_bytes,workspace_bytes,sizeof(*c),sizeof(*t),sizeof(*p)};
     int result=file_objects(objects,sizes,5,3);if(result)return result;
     result=file_client(c,t);if(result)return result;
     result=file_observation(p,version,requests,milliseconds,capacity);if(result)return result;
@@ -125,13 +133,17 @@ static int file_finish(void *output,void *w,unsigned workspace_bytes,
             file_copy(file+offset,frame->read.data,requested);offset+=requested;
         } else {
             if(frame->read.transferred) {result=-5;break;}
+#ifdef REIST_NATIVE_LARGE_FILE
+            if(version==3)result=reist_x64_image_prepare_v3(prepared,file,size);
+            else
+#endif
             result=reist_x64_image_prepare_v2(prepared,file,size);
             if(result) break;
             now=transport.clock(transport.context);
             if(now<last || now>=deadline) {result=now<last?-84:-110;break;}
             if(c->owner!=owner || c->sequence!=sequence+call+1) {result=-116;break;}
             /* Single publication after full ELF validation and deadline admission. */
-            file_copy(output,prepared,REIST_X64_PREPARED_V2_BYTES);
+            file_copy(output,prepared,(unsigned)prepared_bytes);
             file_clear(w,workspace_bytes);return 0;
         }
     }
@@ -183,3 +195,27 @@ int reist_x64_file_prepare_v2(void *output,reist_file_image_workspace *w,
     if(!result)result=reist_x64_file_finish_v2(output,w,c,&transport,&observation);
     file_clear(w,sizeof(*w));return result;
 }
+
+#ifdef REIST_NATIVE_LARGE_FILE
+int reist_x64_file_finish_v4(void *output,reist_file_image_workspace_v3 *w,
+    reist_fs_client *c,const reist_fs_transport *t,const reist_file_capture_v3 *p) {
+    if(!file_range(w,sizeof(*w)))return -22;
+    return file_finish(output,w,sizeof(*w),w->file,&w->frame,w->prepared,c,t,p,
+        3,REIST_LARGE_FS_REQUESTS,REIST_LARGE_FILE_MS,REIST_LARGE_FILE_BYTES,1000);
+}
+int reist_x64_file_stat_v3(reist_file_capture_v3 *out,reist_fs_client *c,
+    const reist_fs_transport *t,const char *path,unsigned length,uint64_t deadline) {
+    if(!length || length>=192)return -22;
+    const void *objects[]={out,c,t,path};
+    const size_t sizes[]={sizeof(*out),sizeof(*c),sizeof(*t),length};
+    int result=file_objects(objects,sizes,4,2);if(result)return result;
+    result=file_client(c,t);if(result)return result;
+    if(file_path(path,length))return -22;
+    if(c->sequence>=REIST_LARGE_FS_REQUESTS)return -11;
+    reist_fs_transport transport=*t;
+    uint64_t start=transport.clock(transport.context),owner=c->owner,sequence=c->sequence+1;
+    if(deadline<=start)return -110;
+    if(deadline-start>REIST_LARGE_FILE_MS)return -22;
+    return file_stat_call(out,c,&transport,path,length,(unsigned)(deadline-start),start,owner,sequence,3,1000);
+}
+#endif

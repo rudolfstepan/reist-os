@@ -25,4 +25,11 @@ int reist_native_service_init_profile_v2(reist_native_profile_service_v2 *,uint6
     const reist_pio_ops *,const reist_block_profile_v2 *);
 int reist_native_service_dispatch_profile_v2(reist_native_profile_service_v2 *,
     const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
+#ifdef REIST_NATIVE_LARGE_FILE
+typedef reist_native_profile_service reist_native_profile_service_v3;
+int reist_native_service_init_profile_v3(reist_native_profile_service_v3 *,uint64_t,
+    const reist_pio_ops *,const reist_block_profile_v3 *);
+int reist_native_service_dispatch_profile_v3(reist_native_profile_service_v3 *,
+    const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
+#endif
 #endif

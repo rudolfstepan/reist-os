@@ -63,8 +63,10 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False):
-    if type(large_image) is not bool or large_image and (not wide or any((memory_case,pio,block,task_pool,service_cpu,filesystem,shell_session,text_runtime))):raise ValueError("large image requires plain NativeWide")
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False,large_file=False):
+    if type(large_file) is not bool or large_file and (not large_image or not text_runtime or any((display,input,graphical_session,network_session))):raise ValueError("large file requires separate large image/text shell")
+    if large_file:cc=[*cc,'-DREIST_NATIVE_LARGE_FILE=1']
+    if type(large_image) is not bool or large_image and (not wide or not large_file and any((memory_case,pio,block,task_pool,service_cpu,filesystem,shell_session,text_runtime))):raise ValueError("large image requires plain NativeWide or explicit large file")
     if large_image:
         cc=[*cc,'-DREIST_NATIVE_LARGE_IMAGE=1']
     if type(text_runtime) is not bool or text_runtime and not math_runtime:raise ValueError("native text requires native math runtime")
@@ -161,6 +163,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if text_runtime:
         from build_x86_64_text_runtime import build_tool as build_text_tool
         build_text_tool(attempt,cc,nasm,ld)
+    if large_file:
+        from build_x86_64_large_file import build_tool as build_large_tool
+        build_large_tool(attempt,cc,nasm,ld)
     if graphical_session:
         from build_x86_64_graphical_programs import build_roles,hash_inputs
         graphical_roles=build_roles(attempt,cc,nasm,ld)
@@ -288,8 +293,8 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
              *(['--wrap=main'] if session and n<2 else []),
              *(['--wrap=main'] if shell_session and n==0 else []),
              *(['--gc-sections','--defsym=PROGRAM_SERVICE=1','-Map='+str(attempt/f'program{n}.map')] if block else []),
-             '-T','config/x86_64_native_shell.ld' if shell_root and not shell_session else 'config/x86_64_large_program.ld' if large_image and n==2 else 'config/x86_64_wide_program.ld' if wide else 'config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
-        if large_image and n==2:
+             '-T','config/x86_64_native_shell.ld' if shell_root and not shell_session else 'config/x86_64_large_program.ld' if large_image and not large_file and n==2 else 'config/x86_64_wide_program.ld' if wide else 'config/x86_64_import_program.ld' if import_image and n==0 else 'config/x86_64_boot_program.ld','-o',elf,start,obj,*objects])
+        if large_image and not large_file and n==2:
             from build_x86_64_large_image import prepare as large_prepare
             large_prepare(elf.read_bytes(),[])
         else:
@@ -297,9 +302,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         if app_dns and shell_root:
             cc=cc[:-1];ld=ld[:-1]
         if shell_root:
-            install=attempt/'root/bin';install.mkdir(parents=True)
+            install=attempt/'root/bin';install.mkdir(parents=True,exist_ok=large_file)
             (install/'shell.prg').write_bytes(elf.read_bytes())
-    if large_image:
+    if large_image and not large_file:
         # The large child is only an imported image; catalog slot2 is a small
         # separately owned copy of the existing inert slot3 fixture.
         records[2]=records[3]
@@ -390,7 +395,7 @@ elif __name__=='__main__':
     p.add_argument('--network-session',action='store_true')
     p.add_argument('--app-network',action='store_true')
     p.add_argument('--app-tcp',action='store_true')
-    p.add_argument('--app-dns',action='store_true');p.add_argument('--app-http',action='store_true');p.add_argument('--app-cpp-runtime',action='store_true');p.add_argument('--math-runtime',action='store_true');p.add_argument('--text-runtime',action='store_true');p.add_argument('--large-image',action='store_true')
+    p.add_argument('--app-dns',action='store_true');p.add_argument('--app-http',action='store_true');p.add_argument('--app-cpp-runtime',action='store_true');p.add_argument('--math-runtime',action='store_true');p.add_argument('--text-runtime',action='store_true');p.add_argument('--large-image',action='store_true');p.add_argument('--large-file',action='store_true')
     p.add_argument('--file-launch-case',type=int,choices=range(11),default=0)
     p.add_argument('--memory-case',type=int,choices=range(7),default=0)
     p.add_argument('--pio-case',type=int,choices=range(4),default=0)
@@ -398,4 +403,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput,a.large_file)

@@ -547,7 +547,14 @@ process_run_validate64:
 
 ; Read-only uniqueness across ALL private resources, including retired slots.
 process_run_frames64:
+%ifdef REIST_NATIVE_LARGE_IMAGE
+%ifdef REIST_NATIVE_TASK_POOL
+%define REIST_LARGE_POOL_FRAME_SCAN 1
+%endif
+%endif
+%ifndef REIST_LARGE_POOL_FRAME_SCAN
     sub rsp, NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8
+%endif
 %ifdef REIST_NATIVE_WIDE
     ; Invocation-local negative filter, never cached authority. Collisions
     ; still execute the exact full-width scan below; every frame is recorded.
@@ -555,7 +562,11 @@ process_run_frames64:
     xor eax,eax
 %assign frame_filter_word 0
 %rep 8
+%ifdef REIST_LARGE_POOL_FRAME_SCAN
+    mov [rsp+frame_filter_word*8],rax
+%else
     mov [rsp+NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8+frame_filter_word*8],rax
+%endif
 %assign frame_filter_word frame_filter_word+1
 %endrep
 %endif
@@ -622,9 +633,53 @@ process_run_frames64:
     shr r10,30
     xor r9,r10
     and r9d,511
+%ifdef REIST_LARGE_POOL_FRAME_SCAN
+    bts qword [rsp],r9
+%else
     bts qword [rsp+NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8],r9
+%endif
     jnc .record
 %endif
+%ifdef REIST_LARGE_POOL_FRAME_SCAN
+    ; A collision proves nothing: compare the exact full-width frame against
+    ; every preceding position in the authoritative, read-only owner arrays.
+    ; At most8*261 positions; only the64-byte local filter occupies the stack.
+    ; IRQ/dispatch callers have interrupts disabled; no shared scratch or cache.
+    xor r8d,r8d
+    lea r10,[rel scheduler_tasks]
+    lea r11,[rel scheduler_table_frames]
+.prior_slot:
+    xor r9d,r9d
+.prior_frame:
+    cmp r8d,ebx
+    jne .prior_read
+    cmp r9d,ecx
+    jae .record
+.prior_read:
+    cmp r9d,NATIVE_IMAGE_PAGES
+    jb .prior_private
+    je .prior_stack
+    mov edx,r9d
+    sub edx,NATIVE_IMAGE_PAGES+1
+    mov rdx,[r11+rdx*8]
+    jmp .prior_compare
+.prior_private:
+    mov rdx,[r10+TASK_PRIVATE_FRAMES+r9*8]
+    jmp .prior_compare
+.prior_stack:
+    mov rdx,[r10+TASK_STACK_FRAME]
+.prior_compare:
+    cmp rax,rdx
+    je .bad
+    inc r9d
+    cmp r9d,NATIVE_CLAIM_FRAMES
+    jb .prior_frame
+    inc r8d
+    add r10,NATIVE_TASK_BYTES
+    add r11,32
+    jmp .prior_slot
+.record:
+%else
     xor edx, edx
 .compare:
     cmp edx, r8d
@@ -636,6 +691,7 @@ process_run_frames64:
 .record:
     mov [rsp+r8*8], rax
     inc r8d
+%endif
 .next:
     inc ecx
     cmp ecx, NATIVE_CLAIM_FRAMES
@@ -651,8 +707,11 @@ process_run_frames64:
 %ifdef REIST_NATIVE_WIDE
     add rsp,64
 %endif
+%ifndef REIST_LARGE_POOL_FRAME_SCAN
     add rsp, NATIVE_POOL_TASKS*NATIVE_CLAIM_FRAMES*8
+%endif
     ret
+%undef REIST_LARGE_POOL_FRAME_SCAN
 
 ; Trusted caller pointer is pinned to C rodata by the bridge. No user pointer.
 global x86_64_process_run64

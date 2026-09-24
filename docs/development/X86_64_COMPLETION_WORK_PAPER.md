@@ -1,17 +1,20 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
-## BY abgenommen; BV wird wieder aufgenommen
+## BY und BV abgenommen
 
-Candidate08 besteht alle fuenf Gates,20 Hosttests und sieben vollstaendige
-WHPX-Gaeste mit106 exakten Task-Reaps und unabhaengiger Rohdatenpruefung.
-Explizite128-PIO-Freigabe ist generationsgebunden; alte64er-Profile bleiben.
-Der Referenzblocker ist durch byteidentische Wiederherstellung behoben,
-der vorher benutzte VMware-Datentraeger ist separat erhalten. Alle frueheren
-Fehlversuche bleiben im NATIVE_PIO_THROUGHPUT_CONTRACT.md dokumentiert.
-BV wird nach sauberem Commit aus seinem geprueften Archiv wiederhergestellt;
-seine volle Abnahme und der echte native VMware-Desktop stehen noch aus.
+Abgenommen: R8.3bv-large-file, candidate06. Alle fuenf Gates bestehen:
+25 Hosttests, alte Profile, beide Builds/signierte Medien,14 vollstaendige
+VM-Nachweise und unabhaengige Rohpruefung. Die vom Nutzer ausdruecklich
+freigegebene Wiederverwendung unveraenderter Aufzeichnungen spart neue
+VM-Starts; Herkunft und fruehere Fehler bleiben erhalten. 124729 Dateien
+sind hashgebunden, originale Gastzeit3447,254s. Acht begrenzte Hash-Leser
+reduzieren die Integritaetspruefung auf149,460s; finale Rohpruefung552,500s.
+Beleg: build/codex-agent/r83bv-large-file/candidate06/acceptance-seal.json,
+SHA256 5216da1e29a4a68af35ae255f528fdb346d05122ce83214269064e92281b220e.
+Naechster Schritt nach sauberem lokalem Commit: native QuickJS-/Desktop-
+Integration. Der vollstaendige native VMware-Desktop ist noch nicht fertig.
 
-## Aktiv: R8.3bv – großes unveränderliches Dateiladeprofil
+## Historischer Entwicklungsverlauf R8.3bv
 
 Die freigegebene Korrektur in process_run_frames64 beseitigt den gemessenen
 Stacküberlauf: Diagnose06 bestätigt64 Byte Scratch und unveränderte

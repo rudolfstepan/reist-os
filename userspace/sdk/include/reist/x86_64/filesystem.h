@@ -64,6 +64,13 @@ typedef struct { reist_fs_server state; uint32_t next_slot,reserved; } reist_fs_
 int reist_fs_server_init_v2(reist_fs_server_v2 *,const reist_fs_profile_v2 *,const reist_block_transport *);
 int reist_fs_server_fence_v2(reist_fs_server_v2 *);
 int reist_fs_dispatch_v2(reist_fs_server_v2 *,const x86os_ipc_bulk_message_t *,x86os_ipc_bulk_message_t *);
+#ifdef REIST_NATIVE_LARGE_FILE
+typedef reist_fs_profile_v1 reist_fs_profile_v3;
+typedef reist_fs_server_v2 reist_fs_server_v3;
+int reist_fs_server_init_v3(reist_fs_server_v3 *,const reist_fs_profile_v3 *,const reist_block_transport *);
+int reist_fs_server_fence_v3(reist_fs_server_v3 *);
+int reist_fs_dispatch_v3(reist_fs_server_v3 *,const x86os_ipc_bulk_message_t *,x86os_ipc_bulk_message_t *);
+#endif
 #ifdef __cplusplus
 }
 #endif

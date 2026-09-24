@@ -79,17 +79,37 @@ static int fs_drive(void *v,uint32_t resource,x86os_drive_info_t *info) {
     info->type=X86OS_DRIVE_ATA; info->sectors=s->profile.sectors;
     info->name[0]='n'; info->mount_point[0]='/'; return 1;
 }
+#ifdef REIST_NATIVE_LARGE_FILE
+/* Profile3 keeps hot metadata in the same16-sector storage. At most15 fixed
+ * copies, no allocation, extra I/O, budget reset or unbounded chain cache. */
+static void fs_large_touch(reist_fs_server *s,unsigned index) {
+    if(s->profile.version!=3 || !index)return;
+    uint8_t saved[512];uint32_t lba=s->lba[index];
+    fs_copy(saved,s->data[index],512);
+    for(unsigned n=index;n;n--) {
+        s->lba[n]=s->lba[n-1];fs_copy(s->data[n],s->data[n-1],512);
+    }
+    s->lba[0]=lba;fs_copy(s->data[0],saved,512);
+}
+#endif
 static int fs_sector_read(reist_fs_server *s,uint32_t *cursor,uint32_t resource,uint32_t lba,uint8_t *data) {
     int result=fs_deadline(s);
     if(result) { fs_poison(s); return result; }
     if(resource || lba>=s->profile.sectors || s->used>16) { fs_poison(s); return -5; }
     for(unsigned n=0;n<s->used;n++) if(s->lba[n]==lba) {
-        fs_copy(data,s->data[n],512); return 0;
+        fs_copy(data,s->data[n],512);
+#ifdef REIST_NATIVE_LARGE_FILE
+        fs_large_touch(s,n);
+#endif
+        return 0;
     }
     if(s->used==16 && !cursor) { fs_poison(s); return -11; }
     uint64_t remaining=s->request_deadline-s->last_clock;
     if(remaining>s->profile.deadline_ms-s->last_clock) remaining=s->profile.deadline_ms-s->last_clock;
     unsigned index=s->used==16?*cursor:s->used;
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(s->profile.version==3 && s->used==16)index=15;
+#endif
     if(index>=16) {fs_poison(s);return -5;}
     result=reist_block_read(&s->block,&s->transport,lba,s->data[index],remaining>1000?1000:(unsigned)remaining);
     if(!result) result=fs_deadline(s);
@@ -97,7 +117,11 @@ static int fs_sector_read(reist_fs_server *s,uint32_t *cursor,uint32_t resource,
     s->lba[index]=lba;
     if(s->used<16)s->used++;
     if(cursor)*cursor=(index+1)%16;
-    fs_copy(data,s->data[index],512); return 0;
+    fs_copy(data,s->data[index],512);
+#ifdef REIST_NATIVE_LARGE_FILE
+    fs_large_touch(s,index);
+#endif
+    return 0;
 }
 /* Preserve the legacy private callback's server-pointer contract as well. */
 static int fs_sector(void *v,uint32_t resource,uint32_t lba,uint8_t *data) {
@@ -265,3 +289,23 @@ int reist_fs_call(reist_fs_client *c,const reist_fs_transport *t,reist_fs_frame 
     if(!fs_equal(&canonical,&answer,512)) return fs_client_end(c,-71);
     fs_copy(f,&answer,512); return fs_client_end(c,r.status);
 }
+
+#ifdef REIST_NATIVE_LARGE_FILE
+#include <reist/x86_64/large_file.h>
+int reist_fs_server_init_v3(reist_fs_server_v3 *s,const reist_fs_profile_v3 *p,const reist_block_transport *t) {
+    if(!s || s->reserved)return -22;
+    return fs_init(&s->state,p,t,3,REIST_LARGE_FILE_MS,&s->next_slot);
+}
+int reist_fs_dispatch_v3(reist_fs_server_v3 *s,const x86os_ipc_bulk_message_t *q,x86os_ipc_bulk_message_t *r) {
+    if(!s || s->reserved || s->next_slot>=16)return -22;
+    int result=fs_dispatch(&s->state,q,r,3,REIST_LARGE_FS_REQUESTS,1000,&s->next_slot);
+    if(s->state.failed)s->next_slot=0;
+    return result;
+}
+int reist_fs_server_fence_v3(reist_fs_server_v3 *s) {
+    if(!s || s->reserved)return -22;
+    int result=reist_fs_server_fence(&s->state);
+    if(!result)s->next_slot=0;
+    return result;
+}
+#endif

@@ -11,11 +11,17 @@ VMware-Stand bleibt unter r83by-pio-throughput/reference-recovery01 gesichert.
 Alle vorherigen Fehlversuche bleiben dokumentiert. Vertrag und Evidenz:
 docs/architecture/NATIVE_PIO_THROUGHPUT_CONTRACT.md, candidate08/precommit.json.
 
-Aktiv: R8.3bv-large-file. Nach dem sauberen BY-Commit wird das verifizierte
-35-Datei-Archiv/stash cc29b83e wieder aufgenommen und mit der neuen expliziten
-PIO-Freigabe/25ms-Pausierung integriert. Beide vollstaendigen1MiB-Starts,
-alle14 BV-Gaeste und alle fuenf Gates bleiben erforderlich. Das vollstaendige
-native VMware-Desktop-Abbild ist weiterhin nicht fertig.
+Abgenommen: R8.3bv-large-file, candidate06. Alle fuenf Gates bestehen:
+25 Hosttests, alte Profile, beide Builds/signierte Medien,14 vollstaendige
+VM-Nachweise und unabhaengige Rohpruefung. Die vom Nutzer ausdruecklich
+freigegebene Wiederverwendung unveraenderter Aufzeichnungen spart neue
+VM-Starts; Herkunft und fruehere Fehler bleiben erhalten. 124729 Dateien
+sind hashgebunden, originale Gastzeit3447,254s. Acht begrenzte Hash-Leser
+reduzieren die Integritaetspruefung auf149,460s; finale Rohpruefung552,500s.
+Beleg: build/codex-agent/r83bv-large-file/candidate06/acceptance-seal.json,
+SHA256 5216da1e29a4a68af35ae255f528fdb346d05122ce83214269064e92281b220e.
+Naechster Schritt nach sauberem lokalem Commit: native QuickJS-/Desktop-
+Integration. Der vollstaendige native VMware-Desktop ist noch nicht fertig.
 
 Historische BV-Diagnose vor der oben genannten Freigabe: Diagnose41 zeichnet beide Root-Lebenszyklen
 vollstaendig auf (446,891s Gastaufzeichnung), aber nur ein1MiB-Start gelingt.

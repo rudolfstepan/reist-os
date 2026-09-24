@@ -3,8 +3,21 @@
 #include <reist/x86_64/image.h>
 #include <reist/x86_64/filesystem.h>
 #include "../../../userspace/drivers/ata/native_service.h"
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+#include <reist/x86_64/large_file.h>
+#define reist_native_profile_service reist_native_profile_service_v3
+#define reist_native_service_init_profile reist_native_service_init_profile_v3
+#define reist_native_service_dispatch_profile reist_native_service_dispatch_profile_v3
+#define reist_fs_server reist_fs_server_v3
+#define reist_fs_server_init reist_fs_server_init_v3
+#define reist_fs_dispatch reist_fs_dispatch_v3
+#define reist_fs_server_fence reist_fs_server_fence_v3
+#define CAPTURE_BLOCK_REQUESTS REIST_LARGE_BLOCK_REQUESTS
+#define CAPTURE_FS_REQUESTS REIST_LARGE_FS_REQUESTS
+#elif defined(REIST_NATIVE_WIDE_FILE)
 #include <reist/x86_64/wide_file.h>
+#define CAPTURE_BLOCK_REQUESTS REIST_WIDE_BLOCK_REQUESTS
+#define CAPTURE_FS_REQUESTS REIST_WIDE_FS_REQUESTS
 /* Explicitly selected generation profile. Old service executable stays on v1. */
 #define reist_native_profile_service reist_native_profile_service_v2
 #define reist_native_service_init_profile reist_native_service_init_profile_v2
@@ -260,7 +273,9 @@ int main(int argc,char **argv,char **envp) {
     REQUIRE(!S1(IPC_CREATE,&request_ep) && !S1(IPC_CREATE,&reply_ep),234);
     REQUIRE(!S3(IPC_DELEGATE,request_ep,c.peer>>32,1) && !S3(IPC_DELEGATE,reply_ep,c.peer>>32,2),235);
     reist_pio_ops ops={0,port,now,sleep_ms};
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+    reist_block_profile_v3 profile={3,24,REIST_LARGE_BLOCK_REQUESTS,0,c.deadline};
+#elif defined(REIST_NATIVE_WIDE_FILE)
     reist_block_profile_v2 profile={2,24,REIST_WIDE_BLOCK_REQUESTS,0,c.deadline};
 #else
     reist_block_profile_v1 profile={1,24,16,0,now(0)+2800};
@@ -269,7 +284,7 @@ int main(int argc,char **argv,char **envp) {
     c.deadline=profile.deadline_ms;c.request=request_ep;c.reply=reply_ep;c.sectors=filesystem_block_service.service.server.capacity;c.phase=2;
     REQUIRE(!control_send(control_ep,&c),237);
 #ifdef REIST_NATIVE_WIDE_FILE
-    for(unsigned n=0;n<REIST_WIDE_BLOCK_REQUESTS+1 && now(0)<profile.deadline_ms;n++) {
+    for(unsigned n=0;n<CAPTURE_BLOCK_REQUESTS+1 && now(0)<profile.deadline_ms;n++) {
 #else
     for(unsigned n=0;n<17;n++) {
 #endif
@@ -291,7 +306,9 @@ int main(int argc,char **argv,char **envp) {
     REQUIRE(reist_x64_syscall2(REIST_SYS_DEVICE_CONTROL,29,0)==-13,243);
     request_ep=c.request;reply_ep=c.reply;
     reist_block_transport transport={0,now,block_send,block_receive};
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+    reist_fs_profile_v3 profile={3,40,FILESYSTEM_LAYOUT<2?REIST_FS_FAT:REIST_FS_EXT2,c.sectors,self,c.peer,c.deadline};
+#elif defined(REIST_NATIVE_WIDE_FILE)
     reist_fs_profile_v2 profile={2,40,FILESYSTEM_LAYOUT<2?REIST_FS_FAT:REIST_FS_EXT2,c.sectors,self,c.peer,c.deadline};
 #else
     reist_fs_profile_v1 profile={1,40,FILESYSTEM_LAYOUT<2?REIST_FS_FAT:REIST_FS_EXT2,c.sectors,self,c.peer,c.deadline};
@@ -301,7 +318,7 @@ int main(int argc,char **argv,char **envp) {
     if(result) return 90;
     exercising=1;
 #ifdef REIST_NATIVE_WIDE_FILE
-    for(unsigned n=0;n<REIST_WIDE_FS_REQUESTS+1 && now(0)<profile.deadline_ms;n++) {
+    for(unsigned n=0;n<CAPTURE_FS_REQUESTS+1 && now(0)<profile.deadline_ms;n++) {
 #else
     for(unsigned n=0;n<9;n++) {
 #endif

@@ -1300,3 +1300,189 @@ already allowed package/runtime/review verifier entry points and execute the
 original five gates/14 guests,600s per complete guest,4200s total/5000s gate.
 Diagnostic evidence is never substituted for those gates. No QuickJS or full
 desktop claim yet; next packages follow only after clean BV acceptance.
+
+Resume evidence: host106 stops before source publication on an incorrect
+merge-file exit-code assumption; host107 verifies/restores30 source files,
+retains five metadata files and resolves two producer conflicts preserving BY.
+Host108 fails on Python's unrelated standard-library test package import;
+host109 uses the explicit local test path and passes five targeted checks in
+21.277s: actual old/new PIO selection, all O0/O2 capture geometries, host bounds
+and exact old source/build projections. Build23 rejects an absolute output
+path at wrapper admission (0.386s); no compiler or guest ran. Reserve build24
+<=300s with the required workspace-relative path; all other reservations and
+acceptance limits remain unchanged. These failed attempts remain recorded.
+
+Build24 passes23.552s; media04 passes3.151s. Host110 passes11.008s, including
+exact accepted build22 observer admission, malformed PIO tag/quota rejection
+and private1GiB decoded-envelope boundary. Diagnostic42 records BOTH full
+LARGETEST_OK launches, subsequent cat output and all20 retirements; debugger0,
+capture357.035s, cleanup0.067s. Overall fails378.959s at the inherited second
+512MiB decoded-text check in validate_capture. Update this private BV check to
+the already frozen1GiB envelope and use remaining host111 for independent
+complete replay of the same evidence; no new guest or guest-limit change.
+
+Host111 passes113.238s: full independent diagnostic42 replay,20 tasks,
+15810 snapshots/163738320 bytes,97 binary reads/15035808 bytes,713664 CPU
+bytes and104627 probe steps. Diagnostic42 remains failed as originally run;
+this corrected host replay is development evidence, not an acceptance gate.
+Host112 passes11 of12 case/media compositions but the actual C filesystem
+rejects the new negative EXT2-1k mount: the2k/4k producer's group descriptor
+overlaps the1k superblock. Fix that standard geometry (first data block1,
+group descriptor block2); preserve the intended double-indirect rejection.
+Freeze hosts113–118<=600s and diagnostics43–45<=600s for case/BIOs/raw-oracle
+corrections, no new kernel build. Preserve prior windows and all failures.
+The single signed acceptance medium binds the hardware-qualified image for
+the real BIOS/WHPX reference case; the normal build remains separately bound,
+with byte-identical Ring3 catalog/services/apps. This changes no BIOS format,
+signature verification, frozen case count14 or4200s aggregate gate budget.
+
+Host113 passes32.781s after correcting only the negative EXT2 geometry.
+Host114 passes36.872s: all12 new case compositions, actual C negative media,
+rejection-oracle mutations and raw hardware-bootstrap replay. Diagnostic43
+passes126.987s: unsupported double-indirect access, exact274432-byte prefix
+then -110, no large child, same-root service recovery and cat in BOTH runs;
+18 tasks/4616 snapshots, complete raw CPU/PIO/IPC/cleanup and native calibration.
+The five fault cases use524289-byte ELF input, still above the old512KiB cap,
+with byte-identical prepared256-page image and all low/middle/final witnesses.
+Only nonloaded padding is reduced; package admission proves this for every
+variant. Four normal boundary guests retain1MiB, FAT32 healthy754104 bytes,
+unsupported1MiB, oversized1048577 bytes, plus separate accepted profile1/2
+references. This cohesive14-case matrix fits the unchanged4200s aggregate;
+no per-case safety limit or full-boundary coverage is removed.
+
+Host115 passes5.505s: actual524289/754104/1048576-byte inputs prepare to the
+same complete RNPGv3 image, signed capture removes direct -kernel boot, both
+accepted legacy image/artifact sets remain bound. Host116 passes5.411s:
+actual C reference capture needs2058 sectors/4098 calls/51525 modeled ms;
+FAT32 healthy754104 needs1488 sectors/2948 calls/37275 modeled ms. These are
+host pacing measurements, not guest wall-time claims. Diagnostic44 passes
+551.629s through the SIGNED BIOS HDD: both complete1MiB launches,20 tasks,
+15839 snapshots, complete raw replay/native calibration and unchanged boot
+and data overlays. The hardware bootstrap itself is1.015s; no direct-kernel
+fallback. Host117 profiles the same complete offline replay to identify host
+verification cost before considering any private, oracle-equivalent optimization.
+
+Host117 passes196.921s with profiling: IPC matching costs67.737s and decoded
+token processing100.406s cumulative out of196.664s. Private BV verification
+now indexes IPC candidates by exact endpoint/bytes, retaining unique unused
+sender/order checks, and batches ASCII runs in the unchanged bounded/CRC
+decoder. Host118 passes42.828s: differential valid/corrupt/ambiguous corpora,
+the same host-capacity checks and COMPLETE diagnostic44 replay in37.601s,
+with identical tasks/snapshots/byte/CPU/step proof. Shared legacy validators,
+guest binaries, semantic checks and every frozen limit remain unchanged.
+
+Diagnostic45 passes189.261s: real driver UD2, exact partial physical read,
+fence/reap/recreate/self-test, both subsequent524289-byte large launches and
+cat,22 tasks/8288 snapshots. All development reservations106–118/build23–24/
+media04/diagnostics42–45 remain recorded with their original results. Freeze
+candidate01 at70598088 for the original five gates and14 FRESH guests; reuse
+no diagnostic as a gate result. Direct ABI/scope/stack/cleanup/source review
+finds only the declared opt-in paths, the previously authorized bounded frame
+scan and private verifier changes. No source outside allowed_files is changed.
+
+First freeze admission fails before publishing candidate01 or starting any
+gate: BY uses precommit.json, not acceptance-seal.json. Correct that path and
+require its already accepted b5f7f862b1a5d9a0879e3abb22c6fa09fdae46d4318a4d35b36237f31f085078
+hash. Preserve freeze01-admission.json; no failed gate or candidate is reused.
+
+Candidate01 gate1 fails after73.963s:20 tests pass; the Windows CRT regression
+assumes PATH gcc uses the retained observer CRT. No later gate/build/guest
+starts. Preserve candidate01. Reserve host119 (<=120s) to identify both CRTs,
+host120 (<=180s) for the corrected actual exclusive-open test, then candidate02
+with the same five gates,14 fresh guests and unchanged limits. Only bind the
+CRT-specific regression to the actual pinned observer compiler if confirmed;
+no observer source/binary or guest change.
+
+Host119 confirms PATH WinLibs UCRT accepts wbx, whereas the pinned MSYS
+mingw64 observer CRT rejects it with EINVAL. Host120 passes the complete
+O0/O2 exclusive-create/no-clobber/missing-parent test using that exact compiler.
+Candidate02 changes only the CRT-specific test compiler and evidence selector
+plus this record; all guest/observer binaries, assertions and gates unchanged.
+
+Candidate02 gates1–3 pass. Runtime reference signed BIOS passes359.322s,
+both complete1MiB generations/20 tasks. The8GiB case fails before starting
+a guest: inherited observer/replay admission infers RAM from old case5.
+Preserve candidate02 including the failed second-case receipt. Reserve
+host121<=180s for actual observer generation/admission of all12 declared
+cases and rejected mismatches, then candidate03 with unchanged five gates
+and14 fresh guests. Bind explicit RAM from the frozen case into both capture
+and replay configuration; do not change legacy modules or guest binaries.
+
+Host121 retains failure31.546s: all12 generated observer scripts reach the
+test, which incorrectly compiles the surrounding GDB commands as Python.
+Extract the embedded Python exactly as the accepted text-runtime test does.
+Reserve host122<=180s for the corrected same12-case admission regression.
+
+Host122 passes31.061s: actual observer generation and replay admission for
+all12 cases, opposite-RAM mismatches rejected before capture. Freeze candidate03
+with the same gates, all14 fresh guests and unchanged budgets. Candidate02
+and its successful signed reference remain historical, not reused as a gate.
+
+Candidate03 gates1–3 pass; runtime EXT2-2k4G/8G and4k pass358.882/358.195/
+354.375s. FAT12 execution completes but replay fails350.412s because storage
+and object adapters pass logical names into the short-name wire oracle.
+Preserve all evidence. Reserve hosts123–126<=180s each for FAT alias wire
+regression and complete offline FAT12 replay/correction if evidence requires.
+Then candidate04 retains all five gates and14 fresh guests/600s/4200s, but
+executes previously unqualified FAT32/negative/fault cases before the already
+proven slow EXT2/FAT12 cases. This changes only execution order, not cases,
+proofs, signed BIOS obligation, budgets or fresh-evidence requirement. Save
+actual execution order and canonical complete matrix order separately.
+
+Host123: all12 admission cases plus every file STAT/READ wire regression
+pass22.100s. Complete FAT12 replay reaches final medium check but the host
+invocation supplied a relative folder; retained qcow2 records use absolute
+paths as run_case/review require. Host124 uses that exact absolute path;
+no predicate or runtime code change for this invocation error.
+
+Host124 passes37.633s: complete FAT12 replay,20 tasks/15766 snapshots/
+163736224 bytes and all physical, object, executable, cleanup and media proofs.
+Hosts125–126 unused and closed. Candidate04 freezes only logical-to-wire
+adapters, their full all-case STAT/READ regression and explicit risk-first
+execution order plus records. No guest, observer binary, check or limit change.
+
+Candidate04 gates1–3 pass; all12 fresh new-profile guests pass,3371.645s
+aggregate, including all faults, both negatives and signed BIOS. Legacy-v1
+fails admission before guest startup: verifier passes40-digit Git HEAD to
+an unchanged API requiring64-digit candidate digest. Preserve the failed
+runtime and all12 successes. Reserve host127<=900s for full12 offline replay
+and final-review adapter checks, host128<=180s for exact legacy-admission
+regression, and diagnostic46/47<=600s each for fresh old-v1/v2 execution
+with their unchanged45s/300s capture bounds. Bind them to a fresh development
+source/tool manifest. Candidate05 will keep all five gates and14 fresh guests,
+run both legacy profiles first, and retain every previous failure/counter.
+No reuse of these development guests as acceptance results or weaker limits.
+
+2026-09-24 explicit user approval: Ja, unveraenderte VM-Nachweise
+weiterverwenden. Supersedes the fresh-per-candidate requirement for these
+exact14 successful runs only. All complete raw checks, cases, limits and
+failed histories remain. Candidate04 captures12 and diagnostics46/47 supply
+the two old profiles; originals remain labelled as originally recorded.
+Their frozen guest/observer sources, tools, image identities and manifests
+are pinned. Only verifier/test/this contract differ; all other source hashes
+are identical. Candidate05 executes the original five gate commands: the
+runtime gate admits and hashes these14 retained records, review fully replays
+all14 and verifies unchanged complete raw hashes. No guest restart required.
+Host128 passes legacy admission; diagnostics46/47 pass24.960/53.753s with
+old45/300s capture limits. Host127 passes621.219s, all14 complete review
+paths including BIOS, calibration and unchanged media. This is development
+evidence, retained as such; final gate replay remains required.
+
+Candidate05 gates1–3 pass (24 tests); gate4 is deliberately interrupted
+under the user acceleration request before publishing any retained admission.
+The serial hash scan of124729 files/9982231100 bytes is I/O-bound; preserve
+its failed gate and hash-interruption receipt. No VM started or data changed.
+Reserve host129<=180s to prove identical complete hashes for empty/small/
+chunk-crossing inputs, duplicate rejection and missing-file propagation.
+Candidate06 uses eight readers,256 queued paths maximum,1MiB streaming
+chunks; hashes and raw-set equality stay exact. Same five gate commands,
+limits and approved retained14 captures. No additional authority or guests.
+
+Candidate06 accepted: all five gates pass124.362/31.663/88.124/149.460/
+552.500s.25 host tests;14 complete retained proofs with original aggregate
+3447.254s; all124729 raw-file hashes identical before/after full replay.
+Seal5216da1e29a4a68af35ae255f528fdb346d05122ce83214269064e92281b220e.
+All guest/image/observer source remains exactly frozen; only queue/status
+and these completion records change after acceptance. BV becomes done;
+no active successor until clean-commit inventory. R3.6b stays deferred.
+Native QuickJS and full native VMware desktop integration remain open.

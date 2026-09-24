@@ -51,4 +51,17 @@ int reist_x64_file_stat_v2(reist_file_capture_v2 *,reist_fs_client *,
     const reist_fs_transport *,const char *path,unsigned length,uint64_t deadline_ms);
 int reist_x64_file_finish_v3(void *prepared,reist_file_image_workspace_v2 *,
     reist_fs_client *,const reist_fs_transport *,const reist_file_capture_v2 *);
+#ifdef REIST_NATIVE_LARGE_FILE
+/* Observation3 keeps the552-byte layout; versions are not convertible. */
+typedef reist_file_capture_v1 reist_file_capture_v3;
+typedef struct {
+    uint8_t file[1048576];
+    reist_fs_frame frame;
+    uint8_t prepared[REIST_X64_PREPARED_V3_BYTES];
+} reist_file_image_workspace_v3;
+int reist_x64_file_stat_v3(reist_file_capture_v3 *,reist_fs_client *,
+    const reist_fs_transport *,const char *,unsigned,uint64_t deadline_ms);
+int reist_x64_file_finish_v4(void *,reist_file_image_workspace_v3 *,
+    reist_fs_client *,const reist_fs_transport *,const reist_file_capture_v3 *);
+#endif
 #endif

@@ -60,8 +60,18 @@ static int service_ops(const reist_service_session_ops *o) {
     return o && o->clock && o->endpoint && o->close && o->create && o->delegate &&
         o->pio && o->send && o->receive && o->task;
 }
+static unsigned service_sectors(unsigned version,unsigned layout) {
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(version==3 && layout>=2)return 4096;
+#endif
+    return layout==0?2880U:layout==1?70000U:version==2?2048U:256U;
+}
 static int service_valid(const reist_service_session_v1 *s) {
-    if(!s || (s->version!=1 && s->version!=2) || s->struct_size!=sizeof(*s) || !s->owner ||
+    if(!s || (s->version!=1 && s->version!=2
+#ifdef REIST_NATIVE_LARGE_FILE
+       && s->version!=3
+#endif
+       ) || s->struct_size!=sizeof(*s) || !s->owner ||
        s->owner>0x7fffffff || s->layout>4 || s->phase>REIST_SESSION_ISOLATED || s->bound>1)return 0;
     if(s->driver && ((uint32_t)s->driver!=2 || !(s->driver>>32) || s->driver>INT64_MAX))return 0;
     if(s->filesystem && ((uint32_t)s->filesystem!=3 || !(s->filesystem>>32) || s->filesystem>INT64_MAX))return 0;
@@ -70,7 +80,7 @@ static int service_valid(const reist_service_session_v1 *s) {
         s->driver_endpoint || s->filesystem_endpoint || s->deadline_ms || s->sectors))return 0;
     if(s->phase==REIST_SESSION_HEALTHY && (!s->driver || !s->filesystem || !s->bound ||
         !s->driver_endpoint || !s->filesystem_endpoint || s->driver_endpoint==s->filesystem_endpoint ||
-        !s->deadline_ms || s->sectors!=(s->layout==0?2880U:s->layout==1?70000U:s->version==2?2048U:256U)))return 0;
+        !s->deadline_ms || s->sectors!=service_sectors(s->version,s->layout)))return 0;
     return 1;
 }
 int reist_service_session_init(reist_service_session_v1 *s,uint64_t owner,unsigned layout) {
@@ -136,7 +146,7 @@ static int service_open(reist_service_session_v1 *s,const reist_service_session_
     if(now>SESSION_LAST_MS || now<s->previous_ms)return -5;
     if(deadline<=now)return -110;
     if(deadline-now>3000)return -22;
-    if(version==2 && (deadline-now>1000 || capture_end<deadline ||
+    if(version>=2 && (deadline-now>1000 || capture_end<deadline ||
        capture_end-now>REIST_WIDE_FILE_MS))return -22;
     if(s->starts==UINT64_MAX)return -75;
     s->previous_ms=now;++s->starts;s->phase=REIST_SESSION_STARTING;
@@ -169,8 +179,8 @@ static int service_open(reist_service_session_v1 *s,const reist_service_session_
     s->previous_ms=now;
     if(c.owner!=s->driver || c.peer!=s->filesystem || c.phase!=2 || c.result || c.reserved ||
        !c.request || !c.reply || c.request==c.reply || c.deadline<=now ||
-       (version==2?c.deadline!=capture_end:c.deadline-now>2800) ||
-       c.sectors!=(s->layout==0?2880U:s->layout==1?70000U:version==2?2048U:256U)){result=-71;goto rollback;}
+       (version>=2?c.deadline!=capture_end:c.deadline-now>2800) ||
+       c.sectors!=service_sectors(version,s->layout)){result=-71;goto rollback;}
     uint64_t service_deadline=c.deadline;uint32_t request=c.request,reply=c.reply,sectors=c.sectors;
     c.owner=s->filesystem;c.peer=s->driver;c.phase=3;
     result=service_remaining(s,o,deadline);if(result<0)goto rollback;
@@ -194,3 +204,15 @@ int reist_service_session_open_v2(reist_service_session_v2 *s,const reist_servic
     uint64_t startup_deadline,uint64_t capture_deadline,unsigned fault_mode) {
     return service_open(s,o,startup_deadline,capture_deadline,fault_mode,2);
 }
+
+#ifdef REIST_NATIVE_LARGE_FILE
+int reist_service_session_init_v3(reist_service_session_v3 *s,uint64_t owner,unsigned layout) {
+    int result=reist_service_session_init(s,owner,layout);
+    if(!result)s->version=3;
+    return result;
+}
+int reist_service_session_open_v3(reist_service_session_v3 *s,const reist_service_session_ops *o,
+    uint64_t startup_deadline,uint64_t capture_deadline,unsigned fault_mode) {
+    return service_open(s,o,startup_deadline,capture_deadline,fault_mode,3);
+}
+#endif

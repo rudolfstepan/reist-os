@@ -255,6 +255,18 @@ X86_64_NATIVE_IMPORT ?= 0
 X86_64_NATIVE_PIO ?= 0
 X86_64_PIO_CASE ?= 0
 X86_64_NATIVE_BLOCK ?= 0
+# Explicit large capture requires the accepted ordinary text shell composition.
+X86_64_NATIVE_LARGE_FILE ?= 0
+ifneq ($(words $(X86_64_NATIVE_LARGE_FILE)),1)
+$(error NativeLargeFile selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_LARGE_FILE),0 1),$(X86_64_NATIVE_LARGE_FILE))
+$(error NativeLargeFile selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_LARGE_FILE),1)
+X86_64_NATIVE_LARGE_IMAGE := 1
+X86_64_NATIVE_TEXT := 1
+endif
 # Explicit larger prepared imports; legacy catalogs and versions remain exact.
 X86_64_NATIVE_LARGE_IMAGE ?= 0
 ifneq ($(words $(X86_64_NATIVE_LARGE_IMAGE)),1)
@@ -620,6 +632,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_CPP_RUNTIME)),--app-cpp-ru
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_MATH)),--math-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TEXT)),--text-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_FILE)),--large-file,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
 ifneq ($(words $(X86_64_NATIVE_PIO_THROUGHPUT)),1)
@@ -966,6 +979,12 @@ X86_64_APPLICATION_UDP_MEDIA_INPUT ?= build/x86_64
 X86_64_APPLICATION_UDP_MEDIA_OUTPUT ?= build/codex-agent/native-application-udp-media
 x86_64-application-udp-media:
 	@$(PYTHON) scripts/build_x86_64_application_udp_media.py --input-directory "$(X86_64_APPLICATION_UDP_MEDIA_INPUT)" --output-directory "$(X86_64_APPLICATION_UDP_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
+
+.PHONY: x86_64-large-file-media
+X86_64_LARGE_FILE_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)
+X86_64_LARGE_FILE_MEDIA_OUTPUT ?= build/codex-agent/native-large-file-media
+x86_64-large-file-media:
+	@$(PYTHON) scripts/build_x86_64_large_file_media.py --input-directory "$(X86_64_LARGE_FILE_MEDIA_INPUT)" --output-directory "$(X86_64_LARGE_FILE_MEDIA_OUTPUT)" --nasm "$(AS)" --openssl "$(OPENSSL)"
 
 .PHONY: x86_64-text-runtime-media
 X86_64_TEXT_RUNTIME_MEDIA_INPUT ?= $(X86_64_BOOTSTRAP_DIR)

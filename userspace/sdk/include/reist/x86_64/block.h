@@ -48,6 +48,14 @@ int reist_block_read(reist_block_client *,const reist_block_transport *,uint64_t
 int reist_block_server_init(reist_block_server *,uint64_t owner,uint32_t sectors,uint64_t now);
 int reist_block_dispatch(reist_block_server *,const reist_block_backend *,
                         const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
+#ifdef REIST_NATIVE_LARGE_FILE
+/* Version3 selects the larger read ceiling and100/25ms first/later pacing.
+ * Hardware use requires the separately delegated BIND-v3 grant. */
+typedef reist_block_profile_v1 reist_block_profile_v3;
+int reist_block_profile_admit_v3(const reist_block_profile_v3 *,uint64_t now);
+int reist_block_dispatch_profile_v3(reist_block_server *,const reist_block_profile_v3 *,
+    const reist_block_backend *,const x86os_ipc_message_t *,x86os_ipc_bulk_message_t *);
+#endif
 #ifdef __cplusplus
 }
 #endif

@@ -46,7 +46,18 @@ static uint64_t session_terminal_service,session_previous_terminal_service,sessi
 #ifdef REIST_NATIVE_DISPLAY
 #include <reist/x86_64/display.h>
 #endif
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+#include <reist/x86_64/large_file.h>
+/* Local selected adapter: every ordinary app snapshot is RNPGv3. Driver/FS
+ * startup below explicitly retains the independently admitted v2/v6 path. */
+#define reist_file_image_workspace reist_file_image_workspace_v3
+#define reist_service_session_init reist_service_session_init_v3
+#define reist_x64_file_finish_v2 reist_x64_file_finish_v4
+#define reist_x64_task_import_wide reist_x64_task_import_large
+#define REIST_FS_SESSION_REQUESTS REIST_LARGE_FS_REQUESTS
+#define SESSION_CAPTURE_VERSION 3
+#define SESSION_PREPARED_BYTES REIST_X64_PREPARED_V3_BYTES
+#elif defined(REIST_NATIVE_WIDE_FILE)
 #include <reist/x86_64/wide_file.h>
 #define reist_file_image_workspace reist_file_image_workspace_v2
 #define reist_service_session_init reist_service_session_init_v2
@@ -55,6 +66,9 @@ static uint64_t session_terminal_service,session_previous_terminal_service,sessi
 #define SESSION_CAPTURE_VERSION 2
 #else
 #define SESSION_CAPTURE_VERSION 1
+#endif
+#ifndef SESSION_PREPARED_BYTES
+#define SESSION_PREPARED_BYTES REIST_X64_PREPARED_V2_BYTES
 #endif
 #define SESSION_S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
 #define SESSION_S1(n,a) reist_x64_syscall1(REIST_X64_SYS_##n,(uintptr_t)(a))
@@ -107,6 +121,12 @@ static int service_delegate(void *context,uint32_t ep,uint64_t owner){
 }
 static int service_pio(void *context,uint64_t owner,unsigned operation) {
     (void)context;reist_native_pio_request q={1,64,operation,0,owner,0,0,0,0,0,0,0};
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(operation==REIST_PIO_BIND && session_service.version==3) {
+        int result=reist_x64_pio_throughput_bind_prepare(&q,owner);
+        if(result)return result;
+    }
+#endif
     return (int)reist_x64_pio(&q);
 }
 static int64_t service_task(void *context,unsigned operation,uint64_t owner,unsigned timeout) {
@@ -132,7 +152,7 @@ static int64_t service_create(void *context,unsigned role,uint32_t endpoint,unsi
     result=reist_x64_image_prepare_v2(session_prepared,blob,bytes);if(result)return result;
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK,role==2?1ULL<<49:0,0},0};
     int64_t child=reist_x64_task_import_periodic(session_prepared,&profile,32,1000,&startup);
-    session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));
+    session_zero(session_prepared,SESSION_PREPARED_BYTES);session_zero(&startup,sizeof(startup));
     return child;
 }
 static int service_send(void *context,uint32_t endpoint,const reist_session_control *c,unsigned timeout) {
@@ -202,7 +222,9 @@ static int session_ensure(uint64_t deadline,int fresh_stat) {
     if(session_service.starts==1 || session_case==16)
         fault=session_case==7?5:session_case==8?6:session_case==9 || session_case==16?1:
             session_case==10?2:session_case==11?4:0;
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+    int result=reist_service_session_open_v3(&session_service,&session_ops,deadline,now+REIST_LARGE_FILE_MS,fault);
+#elif defined(REIST_NATIVE_WIDE_FILE)
     int result=reist_service_session_open_v2(&session_service,&session_ops,deadline,now+REIST_WIDE_FILE_MS,fault);
 #else
     int result=reist_service_session_open(&session_service,&session_ops,deadline,fault);
@@ -384,7 +406,9 @@ int reist_vfs_stat(const char *path,x86os_file_info_t *out,uint32_t timeout) {
     if(!out || !timeout || timeout>1000)return -22;
     char canonical[192];int length=session_path(path,canonical);if(length<0)return length;
     uint64_t deadline=session_now()+timeout;
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+    uint64_t capture_end=deadline-timeout+REIST_LARGE_FILE_MS;
+#elif defined(REIST_NATIVE_WIDE_FILE)
     /* Establish the whole-file end before dependency startup or STAT. */
     uint64_t capture_end=deadline-timeout+REIST_WIDE_FILE_MS;
 #endif
@@ -393,7 +417,10 @@ int reist_vfs_stat(const char *path,x86os_file_info_t *out,uint32_t timeout) {
     reist_file_capture_v1 observation;
     if(session_operation_deadline)session_stop(-5);
     session_operation_deadline=deadline;
-#ifdef REIST_NATIVE_WIDE_FILE
+#ifdef REIST_NATIVE_LARGE_FILE
+    if(capture_end>session_service.deadline_ms)capture_end=session_service.deadline_ms;
+    result=reist_x64_file_stat_v3(&observation,&session_fs,&session_transport,canonical,(unsigned)length,capture_end);
+#elif defined(REIST_NATIVE_WIDE_FILE)
     if(capture_end>session_service.deadline_ms)capture_end=session_service.deadline_ms;
     result=reist_x64_file_stat_v2(&observation,&session_fs,&session_transport,canonical,(unsigned)length,capture_end);
 #else
@@ -487,7 +514,7 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     if(session_app_equal(canonical,"/desktop.prg")) {
         session_zero(&startup,sizeof(startup));
         int launched=session_graphical_start(argc,app_capture_end);
-        session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);return launched;
+        session_zero(session_prepared,SESSION_PREPARED_BYTES);return launched;
     }
 #endif
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK|(1ULL<<15)|(1ULL<<20),1ULL<<63,0},0};
@@ -498,7 +525,7 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #ifdef REIST_NATIVE_INPUT
     if(display_program) {
         result=session_input_arguments(argc,argv,&startup,&profile);
-        if(result){session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));return result;}
+        if(result){session_zero(session_prepared,SESSION_PREPARED_BYTES);session_zero(&startup,sizeof(startup));return result;}
     }
 #endif
 #ifdef REIST_NATIVE_APP_FILES
@@ -528,7 +555,7 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #else
     int64_t child=reist_x64_task_import_wide(session_prepared,&profile,32,&startup);
 #endif
-    session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(&startup,sizeof(startup));
+    session_zero(session_prepared,SESSION_PREPARED_BYTES);session_zero(&startup,sizeof(startup));
     if(child<-4095)session_stop(-5);
 #ifdef REIST_NATIVE_INPUT
     if(child<0)session_input_retire();
@@ -653,7 +680,7 @@ int __wrap_main(int argc,char **argv) {
     if(owner<=0 || now<0 || reist_session_policy_init(&session_policy,(uint64_t)owner,(uint64_t)now) ||
        reist_service_session_init(&session_service,(uint64_t)owner,(unsigned)reist_shell_session_selection[2]))session_stop(-5);
     session_authority_selftest((unsigned)owner);
-    session_prepared=(void*)(uintptr_t)SESSION_S1(MALLOC,REIST_X64_PREPARED_V2_BYTES);
+    session_prepared=(void*)(uintptr_t)SESSION_S1(MALLOC,SESSION_PREPARED_BYTES);
     session_workspace=(void*)(uintptr_t)SESSION_S1(MALLOC,sizeof(*session_workspace));
     if((intptr_t)session_prepared<=0 || (intptr_t)session_workspace<=0)session_stop(-5);
     x86os_file_info_t root;
@@ -680,7 +707,7 @@ int __wrap_main(int argc,char **argv) {
     if(session_input_driver||session_input_endpoint||session_input_ingress||session_input_epoch||session_input_end)session_stop(-5);
 #endif
     if(session_child)session_stop(-5);
-    session_zero(session_prepared,REIST_X64_PREPARED_V2_BYTES);session_zero(session_workspace,sizeof(*session_workspace));
+    session_zero(session_prepared,SESSION_PREPARED_BYTES);session_zero(session_workspace,sizeof(*session_workspace));
     if(SESSION_S1(FREE,session_prepared) || SESSION_S1(FREE,session_workspace))session_stop(-5);
     return result;
 }
