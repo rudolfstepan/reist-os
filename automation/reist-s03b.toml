@@ -8,7 +8,7 @@ native_large_after_pio = "BV candidate06 accepted: five gates/25 tests/14 comple
 native_large_host_time_exception = "2026-09-24 user explicitly approved: Ja, laengere Host-Pruefzeit freigeben. BV full two-root host proof may use600s per guest instead of300s. Keep4200s matrix/5000s runtime gate, all14 guests, exact two full generations and all guest limits/pacing/rights. Concrete proposal NATIVE_LARGE_EXECUTABLE_PROPOSAL.md. No unchanged retries or discarded failures."
 desktop_dependency_resume = "2026-09-24 after accepted BW5f0debf9 and BX3b829aee: full desktop requires larger image/capture, so restore attributed BV source from verified stash/archive. Current accepted baseline3b829aee preserves all desktop changes. No spent counters reset. Reserve hosts86..91 <=600s for independent160-pair audit and runtime adapter completion, existing build21/diagnostic35<=60s remain unspent; after positive calibration reserve one full reference diagnostic36<=300s. Original five frozen gates and14 guests unchanged. No new execution-control site or authority, no agents/push. Signed BI image remains rejected as full desktop delivery."
 program = "S0-assurance-completion"
-active_id = "R8.3cd-large-periodic"
+active_id = "R8.3cb-desktop-services"
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -59,7 +59,8 @@ runtime_tests = ["python scripts/verify_x86_64_device_free_trace.py --runtime", 
 
 [[packages]]
 id = "R8.3cd-large-periodic"
-status = "active"
+status = "done"
+acceptance = "qualification05 all five gates pass;5 host tests including actual NASM/SDK O0/O2;56 disabled artifacts exact;six fresh complete normal/exhaust/cancel/OOM/RX/guard guests,full before-after CPU ring and ownership replay plus six corruptions rejected. Closed seal 3428c30ab0a2ce7b8b7a4dab68750c2281bb272e0784f17c81842bc3e8d4d8f2. Nine development hosts/16 builds/18 diagnostics spent; old qualifications01..04 retained. No CPU or other authority increase beyond approved CREATE-v8."
 resume = "CE accepted qualification04; restore exact scope-stop01 candidate/stash5e569584, merge only accepted trace selectors. CD eight hosts/15 builds/15 diagnostics and failed qualifications01..04 retained. Freeze next bounded trace integration window before guest work."
 phase = "native64-userspace"
 title = "Periodic supervisor import of large native services"
@@ -84,8 +85,8 @@ runtime_tests = ["python scripts/verify_x86_64_display_info.py --runtime", "pyth
 
 [[packages]]
 id = "R8.3cb-desktop-services"
-status = "queued"
-blocker = "Approved periodic-large prerequisite CD first; CB nine files preserved in stash0dd64c8ed7c75b1657b396544462f41a3a40ceb7 and verified services-before-periodic01 archive.11/24 hosts and3/4 builds spent; no media/guest/final gate. Resume exact candidate after CD acceptance."
+status = "active"
+resume = "CD periodic-large accepted qualification05 after CE buffered trace. Restore CB nine files from verified services-before-periodic01 archive/stash0dd64c8e.11/24 hosts and3/4 builds remain spent; no CB media/guest/final gates. Full desktop integration continues; separate higher display quota remains pending explicit answer."
 prerequisite = "CC authoritative display geometry query. CB source archived byte-exact at build/codex-agent/native-vmware-desktop/services-before-geometry01/files.zip SHA256611d015daf4b148b728b8407e46ba60599a6befcc53d906156b8a35cb188e3c6; stash be7747004dd7b7604c7dce418170e2d67866aa32. Five of24 initial hosts spent:01 expected absent source;02..05 pass broker/client O0/O2 incl queued/rate/read/launch/revoke and corrupt/late replies. No build/media/diagnostic/gate spent; not accepted. Restore verified five files after CC, no counter reset or new permission question."
 phase = "native64-userspace"
 title = "Supervised full desktop service and startup integration"

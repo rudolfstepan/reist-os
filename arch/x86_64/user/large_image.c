@@ -1,6 +1,10 @@
 /* Bounded Ring3 memory/lifecycle fixture, not a shell or filesystem service. */
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/image.h>
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+#define reist_x64_task_import_large reist_x64_task_import_large_periodic
+#endif
+#line 4
 #define S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
 #define S1(n,a) reist_x64_syscall1(REIST_X64_SYS_##n,(uintptr_t)(a))
 #define S3(n,a,b,c) reist_x64_syscall3(REIST_X64_SYS_##n,(uintptr_t)(a),(uintptr_t)(b),(uintptr_t)(c))
@@ -13,7 +17,25 @@ static void initialize_message(volatile uint32_t *message,unsigned length) {
 }
 #endif
 #if PROGRAM_ID==0
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+/* Qualification input: the observer supplies the actual admitted root epoch. */
+volatile uint64_t reist_large_image_selection[3]={0x31474d494752414cULL,0,0};
+static int wait_next_cpu_period(void) {
+    uint64_t now=(uint64_t)S0(MONOTONIC_MS),origin=reist_large_image_selection[2];
+    if(now<origin)return -1;
+    unsigned remaining=1000-(unsigned)((now-origin)%1000);
+    for(unsigned idle=0;idle<10 && remaining;idle++) {
+        unsigned step=remaining>100?100:remaining;
+        if(S1(SLEEP_MS,step)!=0)return -1;
+        remaining-=step;
+    }
+    return remaining?-1:0;
+}
+#else
+#line 16
 volatile uint64_t reist_large_image_selection[2]={0x31474d494752414cULL,0};
+#endif
+#line 17
 static int64_t control(unsigned op,uint64_t handle,unsigned timeout) {
     reist_task_control_request_t q={1,64,op,0,handle,0,timeout,0,0,0};
     return reist_x64_task_control(&q);
@@ -23,6 +45,7 @@ static void mutate(void *p) {
     for(unsigned i=0;i<REIST_X64_PREPARED_V3_BYTES;i++) b[i]=0x5a;
 }
 #elif PROGRAM_ID==2
+#line 26
 static const unsigned char immutable[81920] __attribute__((section(".rodata.memory_witness")))={[0]=0x53,[81919]=0xa7};
 struct memory_witness {uint64_t magic,owner,stack,bytes,checksum,mode;};
 static volatile struct memory_witness witness __attribute__((section(".data.memory_witness")))={0x31474d494752414cULL,0,0,0,0,0};
@@ -56,6 +79,20 @@ static __attribute__((noinline)) int exercise(unsigned mode,unsigned replacement
     REQUIRE((uintptr_t)stack>=0x408000 && (uintptr_t)stack+sizeof(stack)<=0x410000,213);
     REQUIRE((uintptr_t)exercise>=0x410000,214);
     REQUIRE(S0(MONOTONIC_MS)>=0,215); /* observable while the real stack is live */
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+    if(mode==0) {
+        for(unsigned idle=0;idle<10;idle++)REQUIRE(S1(SLEEP_MS,100)==0,238);
+        /* Six bounded bursts separated by idle periods; the observer verifies
+         * actual sample accounting, never infers CPU samples from wall time. */
+        for(unsigned period=0;period<6;period++) {
+            uint64_t until=(uint64_t)S0(MONOTONIC_MS)+80;
+            while((uint64_t)S0(MONOTONIC_MS)<until)
+                for(unsigned spin=0;spin<32768;spin++)__asm__ volatile("pause");
+            for(unsigned idle=0;idle<9;idle++)REQUIRE(S1(SLEEP_MS,100)==0,235);
+        }
+    }
+#endif
+#line 59
     if(mode==1)*(volatile unsigned char*)0x407fff=1;
     if(mode==2){stack[0]=0xc3;((void(*)(void))(uintptr_t)stack)();}
     if(mode==3)*(volatile unsigned char*)0x410000=1; /* first RX text page */
@@ -65,6 +102,7 @@ static __attribute__((noinline)) int exercise(unsigned mode,unsigned replacement
     return 80;
 }
 #endif
+#line 68
 int main(int argc,char **argv) {
 #if PROGRAM_ID==0
     (void)argc;(void)argv;
@@ -100,19 +138,51 @@ int main(int argc,char **argv) {
         mutate(record); /* admitted image and stack remain immutable private copies */
         volatile uint32_t message[35];initialize_message(message,4);message[3]=0x57494445;
         REQUIRE(S3(IPC_SEND_TIMEOUT,endpoint,message,0)==0,221);
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+        /* Separate fault cleanup from construction under the same CPU quota. */
+        if(mode>=1 && mode<=4)REQUIRE(wait_next_cpu_period()==0,241);
+#endif
+#line 103
         int64_t status=control(2,(uint64_t)child,mode==5?100:1000);
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+        /* Keep each WAIT <=1000ms; finite normal-service proof <=8 waits. */
+        if(mode==0)for(unsigned poll=1;poll<8 && status==-110;poll++)
+            status=control(2,(uint64_t)child,1000);
+#endif
+#line 104
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+        if(mode==5) {
+            REQUIRE(status==-110,206);
+            /* The child deliberately remains asleep for2000ms. Keep the
+             * supervisor's construction and cancellation in separate windows. */
+            for(unsigned idle=0;idle<10;idle++)REQUIRE(S1(SLEEP_MS,100)==0,237);
+            REQUIRE(control(3,(uint64_t)child,0)==0,207);
+            status=control(2,(uint64_t)child,1000);
+        }
+#else
+#line 104
         if(mode==5){REQUIRE(status==-110,206);REQUIRE(control(3,(uint64_t)child,0)==0,207);status=control(2,(uint64_t)child,1000);}
+#endif
+#line 105
         int64_t expected=mode>=1 && mode<=3?((1LL<<32)|142):
                          mode==4?((1LL<<32)|256):mode==5?(2LL<<32):80;
         REQUIRE(status==expected,208);
         REQUIRE(S1(IPC_CLOSE,endpoint)==0,222);
+#ifdef REIST_NATIVE_LARGE_PERIODIC
+        /* Construction/cancellation and the replacement each retain the same
+         * immutable CPU quota. Separate this fixture's two startup bursts. */
+        if(!round)REQUIRE(wait_next_cpu_period()==0,236);
+#endif
+#line 109
     }
     return 78;
 #elif PROGRAM_ID==1
     (void)argc;(void)argv;
+#line 113
     for(unsigned i=0;i<24;i++)REQUIRE(S1(SLEEP_MS,50)==0,209);
     return 77;
 #elif PROGRAM_ID==2
+#line 116
     REQUIRE(argc==3 && argv && argv[1] && argv[1][0]>='0' && argv[1][0]<='5' && !argv[1][1],210);
     uint32_t endpoint=0;for(unsigned i=0;i<8;i++) {
         unsigned ch=(unsigned char)argv[2][i];
@@ -131,6 +201,8 @@ int main(int argc,char **argv) {
     REQUIRE(ready,227);
     return exercise((unsigned)(argv[1][0]-'0'),argv[0][5]=='n');
 #else
+#line 134
     (void)argc;(void)argv;return 77;
 #endif
+#line 136
 }

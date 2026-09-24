@@ -5,6 +5,19 @@
 ; Pure SysV admission over a pinned64-byte snapshot. No output or authority.
 global family_request_admit64
 family_request_admit64:
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifndef REIST_NATIVE_LARGE_IMAGE
+%error NativeLargePeriodic requires NativeLargeImage
+%endif
+%ifndef REIST_NATIVE_SERVICE_CPU
+%error NativeLargePeriodic requires NativeServiceCPU
+%endif
+%ifndef REIST_NATIVE_TASK_POOL
+%error NativeLargePeriodic requires NativeTaskPool
+%endif
+    cmp dword [rdi],8
+    je .startup
+%endif
 %ifdef REIST_NATIVE_LARGE_IMAGE
     cmp dword [rdi],7
     je .startup
@@ -36,8 +49,15 @@ family_request_admit64:
     jne .invalid
 .header:
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rdi],8
+    je .periodic_header
+%endif
     cmp dword [rdi],6
     jne .legacy_header
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.periodic_header:
+%endif
     cmp dword [rdi+4],80
     jne .invalid
     cmp qword [rdi+64],1000
@@ -134,8 +154,15 @@ family_request_admit64:
 ; Old versions intentionally retain lifetime accounting. No writes or grants.
 global family_cpu_attenuate64
 family_cpu_attenuate64:
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rdi],8
+    je .periodic_parent
+%endif
     cmp dword [rdi],6
     jne .okay
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.periodic_parent:
+%endif
     cmp rsi,100
     jne .denied
     mov rax,rdx
@@ -808,8 +835,15 @@ family_syscall64:
     jz .pointer
 %ifdef REIST_NATIVE_SERVICE_CPU
     mov rax,[rel syscall_rdi]
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rax],8
+    je .periodic_range
+%endif
     cmp dword [rax],6
     jne .snapshot_range
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.periodic_range:
+%endif
     mov edx,80
     mov ecx,PF_R
     call scheduler_validate_shell_range64
@@ -821,8 +855,15 @@ family_syscall64:
     lea rdi,[rel family_request]
     mov ecx,8
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rsi],8
+    je .periodic_copy
+%endif
     cmp dword [rsi],6
     jne .snapshot_copy
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.periodic_copy:
+%endif
     mov ecx,10
 .snapshot_copy:
 %endif
@@ -883,8 +924,15 @@ family_syscall64:
     jne .range_v1
 %endif
 %ifdef REIST_NATIVE_LARGE_IMAGE
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rel family_request],8
+    je .large_range
+%endif
     cmp dword [rel family_request],7
     jne .range_v2
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.large_range:
+%endif
     call family_import_range_v3_64
     jmp .range_ready
 .range_v2:
@@ -913,8 +961,15 @@ family_syscall64:
 %endif
     mov ecx,NATIVE_PREPARED_V2_BYTES/8
 %ifdef REIST_NATIVE_LARGE_IMAGE
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rel family_request],8
+    je .large_copy
+%endif
     cmp dword [rel family_request],7
     jne .copy_ready
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.large_copy:
+%endif
     mov ecx,NATIVE_PREPARED_V3_BYTES/8
 %endif
 .copy_ready:
@@ -933,8 +988,15 @@ family_syscall64:
 %endif
     mov esi,NATIVE_PREPARED_V2_BYTES
 %ifdef REIST_NATIVE_LARGE_IMAGE
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rel family_request],8
+    je .large_admit
+%endif
     cmp dword [rel family_request],7
     jne .admit_ready
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.large_admit:
+%endif
     mov esi,NATIVE_PREPARED_V3_BYTES
 %endif
 .admit_ready:
@@ -956,8 +1018,15 @@ family_syscall64:
 %endif
     lea rdi,[rel elf_import_record+262240]
 %ifdef REIST_NATIVE_LARGE_IMAGE
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rel family_request],8
+    je .large_tail
+%endif
     cmp dword [rel family_request],7
     jne .tail_ready
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.large_tail:
+%endif
     lea rdi,[rel elf_import_record+1048864]
 %endif
 .tail_ready:
@@ -1206,8 +1275,15 @@ family_create64:
     mov [r13+24],rax
 %ifdef REIST_NATIVE_SERVICE_CPU
     xor eax,eax
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+    cmp dword [rel family_request],8
+    je .cpu_periodic
+%endif
     cmp dword [rel family_request],6
     jne .cpu_lifetime
+%ifdef REIST_NATIVE_LARGE_PERIODIC
+.cpu_periodic:
+%endif
     mov eax,100
 .cpu_lifetime:
     lea rcx,[rel process_run_plan+272]

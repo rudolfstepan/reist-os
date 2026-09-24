@@ -625,6 +625,18 @@ ifneq ($(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_PIO)$(
 $(error NativeServiceCPU requires device-free NativeTaskPool)
 endif
 endif
+X86_64_NATIVE_LARGE_PERIODIC ?= 0
+ifneq ($(words $(X86_64_NATIVE_LARGE_PERIODIC)),1)
+$(error NativeLargePeriodic selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_LARGE_PERIODIC),0 1),$(X86_64_NATIVE_LARGE_PERIODIC))
+$(error NativeLargePeriodic selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_LARGE_PERIODIC),1)
+ifneq ($(X86_64_NATIVE_LARGE_IMAGE)$(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_SERVICE_CPU),111)
+$(error NativeLargePeriodic requires large image, task pool and service CPU)
+endif
+endif
 X86_64_NATIVE_CPU_TRACE ?= 0
 ifneq ($(words $(X86_64_NATIVE_CPU_TRACE)),1)
 $(error NativeCPUTrace selector must be one explicit value)
@@ -639,6 +651,7 @@ endif
 endif
 X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_SERVICE_CPU=1,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SESSION)),-DREIST_NATIVE_SESSION=1,)
+X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_LARGE_PERIODIC)),-DREIST_NATIVE_LARGE_PERIODIC=1,)
 X86_64_SESSION_ARG = $(if $(filter 1,$(X86_64_NATIVE_SESSION)),--session,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),-DREIST_NATIVE_SESSION=1 -DREIST_NATIVE_SHELL_SESSION=1,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_SHELL_SESSION)),--shell-session,)
@@ -657,6 +670,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_HTTP)),--app-http,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_CPP_RUNTIME)),--app-cpp-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_MATH)),--math-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TEXT)),--text-runtime,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_PERIODIC)),--large-periodic,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_FILE)),--large-file,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)

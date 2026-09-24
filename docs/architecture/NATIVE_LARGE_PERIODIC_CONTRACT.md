@@ -300,3 +300,19 @@ preimplementation baseline01/head6f5dfc65 for disabled raw artifact equality;
 CE exact disabled guards introduce no guest code. The new setup commit is the
 CD source binding HEAD; history still binds original baseline and every failure.
 No extra authority, CPU quota, pool, guest limit, display approval or gate waiver.
+
+Build16 selected+trace passed6.2s. Diagnostics16/17/18 passed normal42.008s,
+RX28.474s,guard28.512s; both complete roots, exact before/after CPU traces and
+all original ownership/cleanup/fault proofs. The failing supervisor quota path
+now completed without changing kernel accounting or guest workload. Host09
+independent replay rejected16 mutations of initial budget/window/plan/image,
+root phase, actual trace before/after,sequence/slot/generation/time/result/IF/mode.
+
+Buffered drains have their own raw callback blocks, preserving every original
+ownership callback body and evidence predicate. Trace-v1 is independently read
+from actual ring header/chunks with zero boot, live generation, sequence/window,
+full before/after and final reap equivalence; the separately closed raw stream
+must match every decoded record. No charge sampling or inferred pre-state.
+Qualification05 runs now, unchanged five gates/six cases. Apply CE's corrected
+closed-log sealing: review-proof excludes only its open gate-5.log; outer verifier
+checks that proof after closure and seals all logs/results. Prior failures remain.

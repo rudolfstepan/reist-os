@@ -1,3 +1,15 @@
+# Current: large periodic services accepted; resume actual desktop
+
+CD qualification05 passed all five gates and six fresh two-generation guest
+cases (normal,exhaustion,cancel,OOM,RX,guard). Full ownership/CPU replay and raw
+corruption rejection passed; disabled artifacts remain byte-exact. Evidence:
+build/codex-agent/r83cd-large-periodic/qualification05/acceptance-seal.json.
+CE ecb00165 buffered trace prerequisite remains accepted. Original failed CD
+qualifications01..04 and all development counters are preserved.
+CB resumes its exact nine-file archive with11/24 hosts and3/4 builds spent.
+The genuine VMware desktop integration and visual acceptance remain unfinished.
+An asynchronous question for higher display quota is pending; no approval assumed.
+
 # Current: buffered device-free CPU trace accepted; resume CD
 
 CE qualification04 passed all five gates,7 actual host tests and two complete
