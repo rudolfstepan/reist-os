@@ -61,7 +61,11 @@ Real guest proofs cover actual copies, boundary exhaustion, retirement and
 new generations while the serial supervisor remains alive. Preserve all
 prior evidence; reuse only demonstrably unchanged captures under the user's
 explicit reuse approval, with complete validation of changed behavior.
-Follow with real desktop SDK/service integration and VMware input/frame/
+The pending quota decision blocks only this display-mechanism extension.
+Real desktop SDK/service integration may proceed independently under the
+existing limits and its own frozen package; it must not silently adopt the
+proposed quota. Development speed alone is not approval of that quota.
+Complete real desktop integration and VMware input/frame/
 window movement/application dispatch/recovery measurements. Publish the VM
 for visual testing only with accurate supported-function status. BV and
 these prerequisites do not finish the complete native OS. R3.6b stays deferred.

@@ -24,8 +24,20 @@ Naechste Prioritaet: echtes desktop.c mit nativen SDK-/Diensteadaptern,
 vor weiterem QuickJS-Ausbau. Die feste Displayquote64/1MiB pro100ms ist
 eine konkrete Leistungsgrenze. Vorschlag:
 docs/architecture/NATIVE_DESKTOP_DISPLAY_THROUGHPUT_PROPOSAL.md.
-Neue Displayquote noch nicht freigegeben; kein aktives Umsetzungspaket.
+Neue Displayquote noch nicht freigegeben; nur ihre Erweiterung wartet auf
+die Ressourcenentscheidung. Die bereits beauftragte SDK-/Diensteanbindung
+des echten Desktops darf nach eigener Paketfestlegung unter den bestehenden
+Grenzen weitergehen. Aktuell kein aktives Umsetzungspaket.
 Der vollstaendige native VMware-Desktop ist noch nicht fertig.
+
+Arbeitsablauf nach erneuter Beschleunigungsanweisung24.09: abgenommene,
+unveraenderte Abhaengigkeiten mit exakter Herkunft weiterverwenden. Neue
+Gates anhand geaenderten Verhaltens und konkreter Integrationsrisiken
+festlegen; keine erneuten Vollsuiten oder VM-Matrizen nur fuer Buchhaltung.
+Adapter-/Zulassungsfehler vor teuren Gastlaeufen pruefen. Bereits eingefrorene
+Gates, vollstaendige Laufzeitnachweise fuer Aenderungen und alle Grenzen
+bleiben verbindlich. Kurze Ergebnisberichte, gebuendelte unabhaengige
+Inspektionen; keine weitere vollstaendige BV-Abnahme fuer diesen Ablaufwechsel.
 
 Historische BV-Diagnose vor der oben genannten Freigabe: Diagnose41 zeichnet beide Root-Lebenszyklen
 vollstaendig auf (446,891s Gastaufzeichnung), aber nur ein1MiB-Start gelingt.
