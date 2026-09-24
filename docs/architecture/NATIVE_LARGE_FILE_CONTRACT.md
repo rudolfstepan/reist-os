@@ -1267,3 +1267,36 @@ are outside BV allowed_files: explicit architecture/scope stop pending that
 resource decision. No pacing, guest deadline or kernel quota was changed.
 Host106 remains unused; no new guest/build is reserved. The approved600s
 host exception persists and is not requested again.
+
+## Resume after accepted BY01d88a52
+
+BY candidate08 passes all five gates, seven full WHPX guests and independent
+raw replay. Its explicit root-only BIND-v3/128 calls per100ms is now available;
+old BIND-v1 grants remain64. The user repeatedly authorized automatic completion,
+including the concrete128-call/25ms proposal. Restore the35 archived BV files
+from verified paused-bv-throughput/files.zip without replacing accepted BY:
+retain current queue/docs and perform explicit three-way merges of Makefile,
+the PowerShell wrapper and the program producer against archived df9523be.
+Preserve the stash and all historical failures. No other package is active.
+
+Select the accepted BIND-v3 constructor only for the existing new service
+profile3, before starting its driver. That profile alone uses25ms subsequent
+sector pacing, keeping the100ms first guard,120000ms capture,1000ms RPC,
+200ms ATA,16-word transfers,CPU32/1000ms,8192 block/4098 FS calls and all
+generation/fencing rules. Old profile1/2 retain their100/50ms behavior and
+64-call grants. This explicit authorization supersedes the original profile3
+50ms/64-call paragraph above, never the old public profiles or other limits.
+Extend the private verifier's PIO state/tag decoder to the exact accepted BY
+tag and bound its host decoded evidence at1GiB: diagnostic41 declared753230213
+bytes, exceeding the former512MiB host envelope. This is host evidence storage,
+not a guest memory/resource expansion; each raw semantic record stays exact.
+
+Freeze hosts106–112<=600s, one native kernel build23<=300s, one signed media04
+production<=180s only if required by changed byte bindings, and one full
+reference diagnostic42<=600s only after targeted host/binding checks. Reuse
+unchanged build22 observer binaries only after their existing hash/source
+admission; no new observer-control site or debugger authority. Finish the
+already allowed package/runtime/review verifier entry points and execute the
+original five gates/14 guests,600s per complete guest,4200s total/5000s gate.
+Diagnostic evidence is never substituted for those gates. No QuickJS or full
+desktop claim yet; next packages follow only after clean BV acceptance.
