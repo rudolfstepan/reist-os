@@ -39,6 +39,7 @@ param(
     [switch]$NativePIOThroughput,
     [switch]$NativePIOThroughputHardware,
     [switch]$NativeServiceCPU,
+    [switch]$NativeCPUTrace,
     [switch]$NativeSession,
     [switch]$NativeShellSession,
     [switch]$NativeWideFile,
@@ -146,6 +147,7 @@ if ($NativeServicePIO) {
     if ($NativeServiceCPU) { throw 'NativeServicePIO is distinct from device-free NativeServiceCPU.' }
     $NativePoolPIO = [switch]$true
 }
+if ($NativeCPUTrace -and -not $NativeServiceCPU) { throw 'NativeCPUTrace requires explicit device-free NativeServiceCPU.' }
 if ($NativeServiceCPU) {
     if ($NativePoolPIO -or $NativePIO -or $NativeBlock -or $NativeBlockProfile -or $NativeFilesystem -or $NativeFileLaunch) {
         throw 'NativeServiceCPU requires device-free NativeTaskPool.'
@@ -486,6 +488,7 @@ try {
         "X86_64_NATIVE_PIO_THROUGHPUT=$([int]$NativePIOThroughput.IsPresent)" `
         "X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE=$([int]$NativePIOThroughputHardware.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
+        "X86_64_NATIVE_CPU_TRACE=$([int]$NativeCPUTrace.IsPresent)" `
         "X86_64_NATIVE_SESSION=$([int]$NativeSession.IsPresent)" `
         "X86_64_NATIVE_SHELL_SESSION=$([int]$NativeShellSession.IsPresent)" `
         "X86_64_NATIVE_WIDE_FILE=$([int]$NativeWideFile.IsPresent)" `

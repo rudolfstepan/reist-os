@@ -1,3 +1,12 @@
+# Current: buffered device-free CPU trace accepted; resume CD
+
+CE qualification04 passed all five gates,7 actual host tests and two complete
+VM proofs (normal and exhaustion/recovery). Full evidence and closed seal:
+build/codex-agent/r83ce-device-free-trace/qualification04/acceptance-seal.json.
+Disabled artifacts/old PIO recipe and producer remain exact; no quota extension.
+CD resumes from scope-stop01 with all previous failed attempts preserved.
+The real VMware desktop remains unfinished.
+
 # Current work: device-free buffered CPU qualification
 
 CE active after user continuation. CD failed qualification04 is preserved byte-exact

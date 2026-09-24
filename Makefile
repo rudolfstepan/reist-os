@@ -625,6 +625,18 @@ ifneq ($(X86_64_NATIVE_TASK_POOL)$(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_PIO)$(
 $(error NativeServiceCPU requires device-free NativeTaskPool)
 endif
 endif
+X86_64_NATIVE_CPU_TRACE ?= 0
+ifneq ($(words $(X86_64_NATIVE_CPU_TRACE)),1)
+$(error NativeCPUTrace selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_CPU_TRACE),0 1),$(X86_64_NATIVE_CPU_TRACE))
+$(error NativeCPUTrace selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_CPU_TRACE),1)
+ifneq ($(X86_64_NATIVE_SERVICE_CPU),1)
+$(error NativeCPUTrace requires device-free NativeServiceCPU)
+endif
+endif
 X86_64_SERVICE_CPU_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU) $(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_SERVICE_CPU=1,)
 X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_SESSION)),-DREIST_NATIVE_SESSION=1,)
 X86_64_SESSION_ARG = $(if $(filter 1,$(X86_64_NATIVE_SESSION)),--session,)
@@ -1172,7 +1184,7 @@ endif
 		-DUSER_CHILD_PATH=\"$(X86_64_USER_CHILD_ELF)\" \
 		-DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/exec/elf64_loader.asm -o $(X86_64_ELF64_LOADER_OBJ)
 	@$(AS) -f elf32 -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/user_execution.asm -o $(X86_64_USER_EXECUTION_OBJ)
-	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) $(X86_64_PROGRAM_ASM) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),-DREIST_NATIVE_PIO_TRACE=1,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_CPU_TRACE=1,) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
+	@$(AS) -f elf32 $(X86_64_RUNTIME_ASM) $(X86_64_PROGRAM_ASM) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),-DREIST_NATIVE_PIO_TRACE=1,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO) $(X86_64_NATIVE_LIVE_FILE)),-DREIST_NATIVE_CPU_TRACE=1,) $(if $(filter 1,$(X86_64_NATIVE_CPU_TRACE)),-DREIST_NATIVE_CPU_TRACE=1 -DREIST_NATIVE_DEVICE_FREE_CPU_TRACE=1,) -DC_CORE_LAYOUT_PATH=\"$(X86_64_C_CORE_LAYOUT)\" -DX86_64_NATIVE_RAM=$(X86_64_NATIVE_RAM) arch/x86_64/proc/cooperative_scheduler.asm -o $(X86_64_PROCESS_SCHEDULER_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/fp_context.asm -o $(X86_64_FP_OBJ)
 	@$(AS) -f elf32 arch/x86_64/cpu/user_fault.asm -o $(X86_64_FAULT_OBJ)
 	@$(AS) -f elf32 arch/x86_64/proc/queue_core.asm -o $(X86_64_QUEUE_OBJ)

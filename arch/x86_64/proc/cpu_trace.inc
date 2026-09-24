@@ -8,8 +8,17 @@
 %ifndef REIST_NATIVE_SERVICE_CPU
 %error "CPU trace requires periodic service accounting"
 %endif
+%ifdef REIST_NATIVE_DEVICE_FREE_CPU_TRACE
+%if REIST_NATIVE_DEVICE_FREE_CPU_TRACE != 1
+%error "Device-free CPU trace must be explicitly enabled"
+%endif
+%ifdef REIST_NATIVE_POOL_PIO
+%error "Device-free CPU trace excludes PIO authority"
+%endif
+%else
 %ifndef REIST_NATIVE_POOL_PIO
-%error "CPU trace is restricted to the PIO qualification profile"
+%error "CPU trace requires an explicit qualification profile"
+%endif
 %endif
 %macro cpu_trace_save 0
     pushfq
