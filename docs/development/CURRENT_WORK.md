@@ -2,7 +2,14 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
-Aktiv R8.3cb: Dienst-/SDK-Anbindung als uncommitteter Kandidat vorhanden.
+Aktiv R8.3cd: freigegebener periodischer Import grosser Dienste.
+CREATE-v8 verbindet RNPGv3 mit dem bestehenden Elternbudget1..32/1000ms.
+CB-Kandidat byteverifiziert in Archiv und Stash0dd64c8e gesichert;
+elf Hosts/drei Builds bleiben verbraucht. CB folgt nach CD-Abnahme.
+Noch keine neue Gastabnahme und kein fertiges VMware-Desktopabbild.
+
+Vorheriger CB-Inventurstand (durch diese Freigabe ergaenzt):
+Dienst-/SDK-Anbindung als uncommitteter Kandidat vorhanden.
 Host11 besteht Broker/Client/Plattform und echte VFS-Clients bei O0/O2.
 Build03:41 echte Desktop-Quelldateien,952552 allozierte Sektionsbytes,
 keine erreichbaren offenen Importe,5.116s; noch kein startfaehiges Desktopabbild.

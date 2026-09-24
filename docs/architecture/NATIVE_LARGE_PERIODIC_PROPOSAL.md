@@ -84,4 +84,6 @@ ISO C byte implementation and resolve all SDK imports. No CB media, guest or
 final gate has run. Preserve all failures and counters; no implementation commit
 or runtime acceptance until the full frozen package gates pass.
 
-Approval status: pending explicit user decision.
+Approval status: user renewed "mach weiter" immediately after the concrete
+approval question for this proposal0b05b708. Approves this bounded extension
+only; the independent display-throughput increase remains unapproved.
