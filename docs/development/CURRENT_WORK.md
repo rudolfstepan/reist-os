@@ -1,5 +1,14 @@
 # REIST OS – aktueller Arbeitsstand
 
+## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
+
+R8.3bw inventarisiert und baut die echten Desktop-Quellen als ELF64-Portierungsobjekt.
+BI ist nur der vom Benutzer zurueckgewiesene Grafikprototyp; noch keine
+Bedienbarkeits-/Performanceabnahme. BV ist mit allen34 Dateistaenden und
+Pruefsummen unter build/codex-agent/native-vmware-desktop/paused-bv sowie
+Git stash8e5102d0e1d748066a24a7a05ec67c22fbc9278c gesichert und pausiert.
+Details: docs/architecture/NATIVE_DESKTOP_PORT_CONTRACT.md.
+
 Stand: 23. September 2026
 
 ## Aktiv: R8.3bv – großes unveränderliches Dateiladeprofil
