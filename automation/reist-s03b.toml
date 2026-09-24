@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3bw-desktop-port"
+active_id = ""
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -20114,7 +20114,7 @@ acceptance_notes = ["Candidate01 passes all five frozen gates (39.402/45.715/9.0
 
 [[packages]]
 id = "R8.3bv-large-file"
-status = "queued"
+status = "paused"
 phase = "native64-userspace"
 title = "Large immutable capture and ordinary shell launch"
 risk = "Complete bounded capture, exact generations and service fault containment"
@@ -20127,7 +20127,9 @@ runtime_tests = ["python scripts/verify_x86_64_large_file.py --runtime", "python
 
 [[packages]]
 id = "R8.3bw-desktop-port"
-status = "active"
+status = "done"
+acceptance = "Host-only prerequisite: four parser/dependency behavior tests0.138s and fresh35-source real desktop ELF64 porting object10.160s. Report identifies59 unresolved platform APIs and8187060 reachable section bytes. No runtime claim. Evidence build/codex-agent/native-vmware-desktop/gates01 and qualification01. BV remains paused for user priority; next full native desktop runtime contract must be frozen before activation."
+evidence = ["python test/test_x86_64_desktop_inventory.py -v: PASS 0.138s", "python scripts/build_x86_64_desktop_inventory.py --output build/codex-agent/native-vmware-desktop/qualification01: PASS 10.160s"]
 phase = "native64-userspace"
 title = "Full desktop native port: reproducible compiler and service boundary inventory"
 risk = "Mistaking a compiled desktop or the BI prototype for a complete native desktop"

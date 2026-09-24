@@ -8,10 +8,14 @@ Bedienbarkeits-/Performanceabnahme. BV ist mit allen34 Dateistaenden und
 Pruefsummen unter build/codex-agent/native-vmware-desktop/paused-bv sowie
 Git stash8e5102d0e1d748066a24a7a05ec67c22fbc9278c gesichert und pausiert.
 Details: docs/architecture/NATIVE_DESKTOP_PORT_CONTRACT.md.
+BW-Hostgates bestanden:4 Verhaltenstests0,138s und35 echte ELF64-Quellen10,160s.
+59 Plattformfunktionen offen;8187060 Byte erreichbare Sektionen, davon7543607
+Zero-fill. Keine Gast-/Desktopabnahme. Naechster Schritt ist der begrenzte
+native Workspace samt Display-Anbindung des vollstaendigen Desktop-Codes.
 
 Stand: 23. September 2026
 
-## Aktiv: R8.3bv – großes unveränderliches Dateiladeprofil
+## Pausiert: R8.3bv – großes unveränderliches Dateiladeprofil
 
 Auf sauberem Commit67fa5dfd folgt das bereits genehmigte1MiB-Dateiladeprofil:
 versionierte Capture-/FS-/Block-/Dienstadapter, normaler Shellstart und signierte

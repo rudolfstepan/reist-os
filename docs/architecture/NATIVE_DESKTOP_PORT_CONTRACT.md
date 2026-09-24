@@ -62,3 +62,27 @@ movement, menu/application dispatch, frame/input latency and component fault
 recovery are demonstrated. Report unsupported functions explicitly. Follow
 with remaining native OS completion; do not mark all work done from this
 host-only prerequisite or re-deliver the BI prototype as the real desktop.
+
+## Accepted host evidence (24 September)
+
+Development01:35 production sources compile and partially link in10.748s.
+Development02: unittest module invocation failed because the installed Python
+`test` package shadows the repository directory; no test executed.
+Development03: direct-file four selected behavior tests pass. Three of eight
+host slots spent. All historical inventory/build records remain retained.
+The two frozen gates pass once: four behavior tests0.138s, fresh full native
+porting-object build10.160s. Evidence gates01/results.json and
+qualification01/report.json under build/codex-agent/native-vmware-desktop.
+Exact reachable imports59; conservative section bytes8187060, of which
+7543607 zero-fill. Largest objects: font input3145728, startup mappings2097152,
+Surface state448552, embedded splash442428, explorer434184 bytes.
+These are host measurements, not a guest load layout. No runtime service is
+stubbed, no kernel/desktop source altered and no VMware image replaced.
+
+Next implementation boundary: native full-desktop workspace and display
+adapter, starting from the real desktop.c and preserving the old i386 build.
+Large native buffers must be allocated with fixed startup capacities in the
+existing bounded heap; image inputs exceed the old512KiB profile unless the
+embedded splash is loaded separately. Freeze exact integration and recovery
+gates before production edits. Runtime SDK/IPC/namespace/app dispatch and
+VMware responsiveness remain outstanding; this host package is not a desktop.
