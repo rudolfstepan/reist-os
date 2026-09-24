@@ -2,6 +2,53 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
+Aktiv: R8.3by-pio-throughput nach Nutzerfreigabe des128-PIO/25ms-Vorschlags.
+BV ist als35-Datei-Archiv mit SHA256 und Git-Stash cc29b83e gesichert und
+pausiert. BY verifiziert zuerst die versionierte Kernel-Quota-Mediation;
+anschliessend wird BV wiederhergestellt und muss die komplette1MiB-
+Integration bestehen. Keine Gastdeadline und kein altes Profil wird erweitert.
+Vertrag: docs/architecture/NATIVE_PIO_THROUGHPUT_CONTRACT.md.
+
+Architekturentscheidung offen: Diagnose41 zeichnet beide Root-Lebenszyklen
+vollstaendig auf (446,891s Gastaufzeichnung), aber nur ein1MiB-Start gelingt.
+Die unabhängigen Streaming-Auswertungen Host103..105 zeigen beim zweiten
+Laden4088 statt4098 Dateianfragen und Deadline242290ms kurz vor Ende.
+Die nachgelagerte Gesamtauswertung stoppt ausserdem am512MiB-Decode-Limit
+(tatsaechlich753230213 Byte). Diagnose41 bleibt fehlgeschlagen.
+Konkreter Vorschlag fuer ein separat gewaehrtes schnelleres Nur-Lese-Profil:
+128 PIO-Aufrufe/100ms,25ms Sektorabstand, alte Profile/Gastdeadlines/CPU-
+und Transfergrenzen unveraendert. NATIVE_LARGE_EXECUTABLE_PROPOSAL.md nennt
+Abnahme und notwendige Kernel-Mediation ausserhalb der BV-Dateiliste.
+Keine Umsetzung vor ausdruecklicher Ressourcenfreigabe; keine weitere VM
+reserviert. Das vollstaendige native VMware-Desktop-Abbild ist weiterhin offen.
+
+BV-Pruefung: Nutzer hat600s Host-Pruefzeit fuer zwei vollstaendige
+Root-Generationen ausdruecklich genehmigt;4200s Gesamtbudget und alle
+Gastgrenzen bleiben bestehen. Isolierter Beobachter build22 und Host99/100
+bestanden. Diagnose40 nach173,935s gestoppt, weil die Eingabepruefung noch
+297s enthielt; Korrektur samt ausgefuehrten Grenzfaellen in Host101 bestanden.
+Diagnose41 lief mit konsistenten600s/597s-Hostgrenzen und groesseren,
+weiter begrenzten Beweispuffern. Ergebnis und Scope-Stop stehen oben.
+Verifier --defaults ergaenzt: bisherige Quell-/Buildpfade, Altprofilverhalten,
+gehashte akzeptierte GUI/Netzwerk/Anwendungs/Text/BU-Artefakte. Host102
+prueft Artefakt-Manipulation und Quell-/Buildprojektion erfolgreich1,911s;
+das vollstaendige Defaults-Gate wurde noch nicht gestartet.
+
+Aktuell: BV-Diagnose38 erreicht erstmals den vollstaendigen1MiB-Start mit
+LARGETEST_OK, anschliessend cat und normalen Root-Austritt. Abbruch nach
+235,539s an zu kleiner Host-Aufzeichnungsgrenze fuer zusammengesetzte
+Cleanup-Daten; kein Timerfehler. Private2MiB-Grenze korrigiert, Host93 zeigt
+den Fehler,94/96 pruefen echte Schreib-/Lesepfade und Cleanup-Pruefung samt
+Korruptionsfaellen. Host95 prueft Replay-Begrenzung und Profiladapter.
+Diagnose39 endet wie vorgesehen nach8192 Ereignissen/GDB75 in41,610s;
+Host96 bestaetigt unabhaengig160 Live-CPU/RAM-Paare (3,221s zusammen mit
+Cleanup-Regression). Keine vollstaendige Laufzeitabnahme, kein BV-Commit.
+Offen: Prueflaufleistung fuer zwei Root-Generationen innerhalb300s,
+vollstaendiger Verifier/Fehlermatrix und eigentliche Desktop-Integration.
+Das bestehende50ms-Sektorintervall verursacht allein etwa102s je1MiB-
+Capture; es wurde nicht veraendert. Details und alle Fehlversuche im
+NATIVE_LARGE_FILE_CONTRACT.md; Diagnosen38/39 bleiben keine Gate-Evidenz.
+
 BX-Speicheranpassung bestanden:16 feste Startup-Allokationen,7291652 Byte
 innerhalb8MiB; statische Sektionen von8187060 auf897542 Byte reduziert.
 Alle16 Allokationsfehler, Nullinitialisierung, Statusweitergabe, Reentry und
@@ -14,7 +61,9 @@ R8.3bw inventarisiert und baut die echten Desktop-Quellen als ELF64-Portierungso
 BI ist nur der vom Benutzer zurueckgewiesene Grafikprototyp; noch keine
 Bedienbarkeits-/Performanceabnahme. BV ist mit allen34 Dateistaenden und
 Pruefsummen unter build/codex-agent/native-vmware-desktop/paused-bv sowie
-Git stash8e5102d0e1d748066a24a7a05ec67c22fbc9278c gesichert und pausiert.
+Git stash8e5102d0e1d748066a24a7a05ec67c22fbc9278c gesichert. Nach BX wurden
+32 BV-Dateien bytegenau wiederhergestellt; aktuelle Queue/Desktop-Dokumentation
+bleiben erhalten. BV ist wieder aktiv als Voraussetzung fuer das echte Desktop-Abbild.
 Details: docs/architecture/NATIVE_DESKTOP_PORT_CONTRACT.md.
 BW-Hostgates bestanden:4 Verhaltenstests0,138s und35 echte ELF64-Quellen10,160s.
 59 Plattformfunktionen offen;8187060 Byte erreichbare Sektionen, davon7543607
@@ -23,7 +72,7 @@ native Workspace samt Display-Anbindung des vollstaendigen Desktop-Codes.
 
 Stand: 23. September 2026
 
-## Pausiert: R8.3bv – großes unveränderliches Dateiladeprofil
+## Wieder aktiv als Desktop-Ladevoraussetzung: R8.3bv – großes unveränderliches Dateiladeprofil
 
 Auf sauberem Commit67fa5dfd folgt das bereits genehmigte1MiB-Dateiladeprofil:
 versionierte Capture-/FS-/Block-/Dienstadapter, normaler Shellstart und signierte

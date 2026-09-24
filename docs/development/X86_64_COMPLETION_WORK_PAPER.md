@@ -2,6 +2,50 @@
 
 ## Aktiv: R8.3bv – großes unveränderliches Dateiladeprofil
 
+Die freigegebene Korrektur in process_run_frames64 beseitigt den gemessenen
+Stacküberlauf: Diagnose06 bestätigt64 Byte Scratch und unveränderte
+Besitzertabellen. Build05 und signierte Medien03 bestehen. Diagnose08 startet
+das1MiB-Programm zweimal über die normale Shell, jeweils LARGETEST_OK/Exit0,
+gefolgt von cat und regulärem Shell-Ende; beide Datenträger bleiben unverändert.
+Die Rohdatenprüfung wird für gemischte RNPGv2/v3-Abbilder vervollständigt.
+Host18 prüft den zusammengesetzten Beobachter und bis261 Frames; Host19 belegt
+die alten Windows-/Make-/Python-Baupfade bei ausgeschaltetem neuen Profil.
+Die vollständige Fehlermatrix und alle fünf Abnahmegates stehen noch aus.
+Die native QEMU-Prüfsteuerung einschließlich freigegebener WHPX-Messung ist
+implementiert. Die Messung rechtfertigt keinen anderen VM-Stopp. Kopierarme,
+explizit seitenbegrenzte Aufzeichnung senkt die native Beobachtungszeit der
+Stichprobe von255 auf37ms je256 Stopps; Host76 bestätigt32 reale Rücksprungpaare.
+Build19 besteht. Host77 besteht alle13 aktualisierten BV-Hostregressionen
+in32,436s, einschließlich der korrigierten2320-Byte-ELF-Kontextprüfung.
+Diagnose33 endet nach276,179s mit abgewiesenem largetest und einem Fehler der
+alten Beobachter-Kontextgröße. Letzteres ist korrigiert, aber noch nicht erneut
+im Gast geprüft. Cat, Shell-Ende, internes Aufräumen und No-write sind belegt.
+Bei119940ms wurde noch ab Offset1030656 gelesen; kein vollständiger Großstart.
+Nächster konkreter Vorschlag im Paketvertrag: native Prüfsteuerung auch für
+wiederholte Task-Eintritte und PIO-Probes (zwei vorhandene RET-Stellen).
+Erste Generationseintritte, CREATE/Console und mutierende Prüfpunkte bleiben
+synchron. Diese Erweiterung über die ausdrücklich freigegebenen drei Stellen
+ist noch nicht genehmigt oder implementiert. Fristen/IRQ/Gastzeit bleiben fest.
+Verbraucht: Hosts01..79, Builds01..19, Medien01..03, Diagnosen01..31 und33;
+Diagnose32, Build20 und Medien04 unbenutzt. Kein Abnahmegate oder BV-Commit.
+Hardware-Build06 besteht; FAT-8.3-Zuordnung LARGETST.PRG und vollständige
+1MiB-Wire-Rekonstruktion sind zusätzlich hostgeprüft. Details und alle endlichen
+Versuchsfenster stehen im Paketvertrag; noch keine Laufzeitabnahme.
+BV bleibt aktiv und nicht abgenommen; alle früheren Fehlversuche bleiben erhalten.
+
+
+Fortsetzung genehmigt: Die erneute Benutzeranweisung gibt die dokumentierte
+Ein-Datei-Erweiterung für config/x86_64_bootstrap.ld frei. Gates und verbrauchte
+Versuche bleiben erhalten.
+
+Historischer Umfangsstopp nach Build02: Programme/Dienste kompilieren; die abschließende
+Acht-Prozess-Prüfung in config/x86_64_bootstrap.ld erlaubt den bereits geprüften
+großen Scratchbereich noch nicht. Diese Datei fehlt im eingefrorenen Umfang.
+Konkrete Ein-Datei-Erweiterung samt unveränderten Gates ist im Abschnitt
+„Scope stop“ von NATIVE_LARGE_FILE_CONTRACT.md dokumentiert, noch nicht umgesetzt.
+Host04 besteht11,457s;4/12 Hostversuche und2/4 Builds verbraucht, keine BV-Gäste
+oder Abnahme. Änderungen und sämtliche Fehlnachweise bleiben erhalten.
+
 Auf sauberem Commit67fa5dfd folgt das bereits genehmigte1MiB-Dateiladeprofil:
 versionierte Capture-/FS-/Block-/Dienstadapter, normaler Shellstart und signierte
 Medien mit geeignetem EXT2-Layout. Alter Dateipfad und alle CPU-/Heap-/Stack-/

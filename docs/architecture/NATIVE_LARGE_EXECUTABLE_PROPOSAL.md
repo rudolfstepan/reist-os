@@ -102,3 +102,77 @@ Each transaction gets exact allowed files, finite reservations and frozen
 acceptance gates before implementation. No failed or diagnostic run counts
 as qualification; one active package, local commit only after all gates,
 clean-worktree boundary, no nested agent and no push.
+# Host verification time proposal, 24 September 2026 (approved)
+
+User reply: "Ja, laengere Host-Pruefzeit freigeben". This approves only the
+exception below; previous diagnostic failures remain failed.
+
+The BV full reference requires two complete1MiB captures in separate root
+generations. Diagnostic38 proves the first normal launch/cat/root exit at
+235.539s, then fails a host cleanup-record envelope check. Existing50ms
+sector pacing alone accounts for approximately102.4s per1MiB capture.
+Diagnostic39's8192-event profile distinguishes additional observer work;
+it supplies no evidence to relax any guest operation or safety limit.
+
+Requested explicit exception to the frozen per-guest HOST verification
+wall-clock limit:600s instead of300s for BV complete two-root references.
+Keep total runtime matrix allowance4200s, runtime gate5000s, first-failure
+stop, all14 fresh guests, both complete generations, full independent raw
+replay and all failure/recovery predicates. Do not repeat unchanged failures.
+Every guest-side limit stays exact:120000ms capture/service lifetime,
+1000ms RPC,200ms ATA,100/50ms pacing, task CPU, creation/restart,8192 block
+and4098 FS counts, ownership, revocation and fencing. No clock correction,
+device rate increase, rights or kernel change is requested.
+
+Until approval, no extended guest is run and no frozen timeout is changed.
+This proposal concerns verification capacity only; it neither fixes desktop
+responsiveness nor qualifies the desktop/VMware delivery. Its purpose is to
+finish the full proof rather than repeatedly sample the already measured
+slow path. User approval must be recorded before enabling the exception.
+
+## Approved: bounded faster read-only VM storage profile
+
+Evidence: diagnostic41 completes both root lifecycles, but only the first
+large launch succeeds. Host105's complete streaming IPC inventory finds4098
+requests/EOF at offset1048576 in the first capture (850..118870ms). The second
+has4088 requests, last data offset1046016 at242260ms and an absolute242290ms
+deadline. No FS error reply or new child appears for that failed capture.
+The former50ms delay after each sector completion consumes most of the
+unchanged120000ms whole-capture budget. The kernel independently limits
+mediated PIO to64 calls per100ms and16 words per transfer; merely shortening
+the Ring3 delay can cause quota rejection. This is an architecture/resource
+decision, not another diagnostic reservation.
+
+Concrete requested authorization: a separately selected, generation-bound
+read-only VM-storage throughput profile with128 mediated PIO calls per100ms
+and a minimum25ms delay after successful sector completion. Keep the first
+100ms guard,16-word transfer bound, exact ATA port/command whitelist, primary
+master target,200ms ATA/1000ms RPC/120000ms capture deadlines, CPU32/1000ms,
+8192 block and4098 FS limits, immutable media and all recovery/fencing rules.
+No raw PIO/IOPL, writes, DMA, extra ports, larger transfer buffers, clock edits,
+implicit retry, quota fallback or reset within a generation. This is a
+proposed maximum, not a promised measured throughput.
+
+Old PIO profiles retain64/100ms and old storage profiles retain100/50ms.
+Append an explicitly versioned profile admission; only the existing trusted
+root may delegate it to the exact ATA-service generation. Validate the quota
+ceiling before publishing ownership; revocation/poison/reap erase that grant.
+Ring3 retains the ATA driver/FS; Ring0 adds only bounded quota mediation.
+
+Implementation requires a prerequisite package including the existing
+arch/x86_64/devices/pio_domain.inc mechanism, its state/admission/call-site
+dependencies, SDK PIO envelope and behavior/guest tests. These kernel files
+are outside the active BV allowed_files, so AGENTS.md requires a scope stop.
+Before implementation, preserve/archive the attributed BV work, freeze one
+separate package and its precise file inventory/gates. No silent scope growth.
+
+Required proof: old64 profile unchanged;128 admitted calls and rejected129th
+with no port/buffer effect; exact100ms window boundary and backward-clock
+rejection; stale generations, fence/rebind, crash/hang and restart exhaustion;
+actual two complete1MiB captures plus full raw CPU/PIO/IPC/cleanup replay.
+VMware desktop/rendering acceptance remains separate. No new profile or
+kernel code will be enabled before explicit user approval of this proposal.
+
+User authorization24 September: renewed "dann man alles was noetig ist" after
+the concrete resource proposal/question approves this bounded profile. BY
+first verifies kernel mediation; BV then must still pass full1MiB integration.
