@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3bx-desktop-workspace"
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -20137,4 +20137,17 @@ scope = "User24.09 prioritizes actual desktop and VMware responsiveness. First e
 allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_DESKTOP_PORT_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "scripts/build_x86_64_desktop_inventory.py", "test/test_x86_64_desktop_inventory.py"]
 targeted_tests = ["python test/test_x86_64_desktop_inventory.py -v"]
 package_tests = ["python scripts/build_x86_64_desktop_inventory.py --output build/codex-agent/native-vmware-desktop/qualification01"]
+runtime_tests = []
+
+
+[[packages]]
+id = "R8.3bx-desktop-workspace"
+status = "active"
+phase = "native64-userspace"
+title = "Real desktop bounded native startup workspace"
+risk = "Partial allocation, lost cleanup, old desktop compatibility and image capacity"
+scope = "NATIVE_DESKTOP_WORKSPACE_CONTRACT.md after5f0debf9. Native-only fixed16-slot/8MiB startup workspace, all-or-nothing zero/init/free, actual desktop entry wrapper, exact default source/object preservation. Host-only dormant selector until native service adapter and guest qualification. No increased kernel limits or rights. Eight development hosts and three frozen host/package gates180s each."
+allowed_files = ["automation/reist-s03b.toml", "docs/architecture/NATIVE_DESKTOP_WORKSPACE_CONTRACT.md", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "userspace/gui/compositor/desktop.c", "userspace/gui/compositor/desktop_native_workspace.c", "userspace/gui/compositor/desktop_native_workspace.h", "scripts/build_x86_64_desktop_inventory.py", "test/test_x86_64_desktop_workspace.py", "test/x86_64_desktop_workspace_host.c"]
+targeted_tests = ["python test/test_x86_64_desktop_workspace.py -v"]
+package_tests = ["python scripts/build_x86_64_desktop_inventory.py --output build/codex-agent/native-vmware-desktop/workspace-default01", "python scripts/build_x86_64_desktop_inventory.py --native-workspace --output build/codex-agent/native-vmware-desktop/workspace-native01"]
 runtime_tests = []
