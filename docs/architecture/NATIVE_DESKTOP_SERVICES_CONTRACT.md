@@ -91,3 +91,7 @@ build/codex-agent/native-vmware-desktop (SHA256
 611d015daf4b148b728b8407e46ba60599a6befcc53d906156b8a35cb188e3c6), also preserved
 in stash be7747004dd7b7604c7dce418170e2d67866aa32. No candidate acceptance claim.
 Restore them after CC; service approval and every frozen CB gate remain valid.
+
+CC accepted all five gates on24.09; actual geometry now available via the
+explicit NativeDisplayInfo profile. Resume CB from the byte-verified archive,
+retaining all five spent hosts and the full original service acceptance gates.

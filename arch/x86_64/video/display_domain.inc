@@ -115,6 +115,19 @@ native_display_syscall64:
     lea rdi,[rel native_display_request]
     mov ecx,8
     rep movsq
+%ifdef REIST_NATIVE_DISPLAY_INFO
+    cmp dword [rel native_display_request],2
+    jne .info_pointer_ready
+    cmp dword [rel native_display_request+8],5
+    jne .info_pointer_ready
+    mov rax,[rel syscall_rsi]
+    mov edx,64
+    mov ecx,PF_W
+    call scheduler_validate_shell_range64
+    cmp eax,1
+    jne .pointer
+.info_pointer_ready:
+%endif
     cmp dword [rel native_display_request+8],3
     jne .shape_ready
     lea rdi,[rel native_display_request]
@@ -198,6 +211,27 @@ native_display_syscall64:
     je scheduler_fail
     test rax,rax
     jnz .result
+%ifdef REIST_NATIVE_DISPLAY_INFO
+    cmp dword [rel native_display_request+8],5
+    jne .not_info
+    ; Both complete user ranges admitted, owner/epoch validated, no quota use.
+    mov eax,[rel native_display_boot+12]
+    mov [rel native_display_request+32],eax
+    mov eax,[rel native_display_boot+16]
+    mov [rel native_display_request+36],eax
+    mov eax,[rel native_display_boot+8]
+    mov [rel native_display_request+40],eax
+    mov dword [rel native_display_request+44],32
+    mov dword [rel native_display_request+48],16
+    mov dword [rel native_display_request+52],8
+    lea rsi,[rel native_display_request]
+    mov rdi,[rel syscall_rsi]
+    mov ecx,8
+    rep movsq
+    xor eax,eax
+    jmp .result
+.not_info:
+%endif
     cmp dword [rel native_display_request+8],3
     jne .result
     ; Validate all touched leaves before the first MMIO store.

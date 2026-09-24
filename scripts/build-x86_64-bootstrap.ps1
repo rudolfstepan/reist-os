@@ -57,6 +57,7 @@ param(
     [switch]$NativeMathHardware,
     [switch]$NativeInput,
     [switch]$NativeDisplay,
+    [switch]$NativeDisplayInfo,
     [switch]$NativeServicePIO,
     [switch]$NativeLiveFile,
     [switch]$NativeConsole,
@@ -102,6 +103,7 @@ if ($NativeNetworkDMA) { $NativeTaskPool = [switch]$true }
 if ($NativeGraphicalSession) { $NativeTerminalService = [switch]$true }
 if ($NativeTerminalService) { $NativeInput = [switch]$true }
 if ($NativeInput) { $NativeDisplay = [switch]$true }
+if ($NativeDisplayInfo) { $NativeDisplay = [switch]$true }
 if ($NativeDisplay) { $NativeAppFiles = [switch]$true }
 if ($NativeAppFiles) { $NativeWideFile = [switch]$true }
 if ($NativeWideFile) { $NativeShellSession = [switch]$true }
@@ -502,6 +504,7 @@ try {
         "X86_64_NATIVE_MATH=$([int]$NativeMath.IsPresent)" `
         "X86_64_NATIVE_MATH_HARDWARE=$([int]$NativeMathHardware.IsPresent)" `
         "X86_64_NATIVE_DISPLAY=$([int]$NativeDisplay.IsPresent)" `
+        "X86_64_NATIVE_DISPLAY_INFO=$([int]$NativeDisplayInfo.IsPresent)" `
         "X86_64_NATIVE_SERVICE_PIO=$([int]$NativeServicePIO.IsPresent)" `
         "X86_64_NATIVE_LIVE_FILE=$([int]$NativeLiveFile.IsPresent)" `
         "X86_64_NATIVE_CONSOLE=$([int]$NativeConsole.IsPresent)" `

@@ -21,6 +21,39 @@ static int output(const char *s,unsigned count) {
     }
     return done==count;
 }
+#ifdef REIST_NATIVE_DISPLAY_INFO
+static int info_same(const reist_display_info_v2 *a,const reist_display_info_v2 *b) {
+    const unsigned char *x=(const void *)a,*y=(const void *)b;
+    for(unsigned n=0;n<64;n++)if(x[n]!=y[n])return 0;
+    return 1;
+}
+static int info_denied(reist_display_info_v2 q,int64_t expected) {
+    reist_display_info_v2 before=q;
+    return reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&q)==expected && info_same(&q,&before);
+}
+static int info_test(uint64_t owner,uint64_t epoch) {
+    reist_display_info_v2 q={.version=2,.size=64,.operation=REIST_DISPLAY_INFO,.owner=owner,.epoch=epoch};
+    reist_display_info_v2 clean=q;
+    if(reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&q))return 0;
+    if(q.version!=2 || q.size!=64 || q.operation!=5 || q.flags || q.owner!=owner || q.epoch!=epoch ||
+       q.bits_per_pixel!=32 || q.red_field_position!=16 || q.green_field_position!=8 ||
+       q.blue_field_position || q.reserved || q.pitch<q.width*4 || q.pitch>16384)return 0;
+    unsigned width=q.width,height=q.height;
+    if(!((width==1024 && height==768)||(width==800 && height==600)))return 0;
+    q=clean;q.epoch--;if(!info_denied(q,-116))return 0;
+    q=clean;q.owner++;if(!info_denied(q,-116))return 0;
+    q=clean;q.flags=1;if(!info_denied(q,-22))return 0;
+    q=clean;q.reserved=1;if(!info_denied(q,-22))return 0;
+    q=clean;q.width=1;if(!info_denied(q,-22))return 0;
+    if(reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,UINT64_MAX)!=-14)return 0;
+    static const reist_display_info_v2 readonly={.version=2,.size=64,.operation=REIST_DISPLAY_INFO};
+    if(reist_x64_syscall2(REIST_X64_SYS_DEVICE_CONTROL,30,(uintptr_t)&readonly)!=-14)return 0;
+    return width==1024?output("DISPLAY_INFO_1024\n",18):output("DISPLAY_INFO_800\n",17);
+}
+#else
+/* Preserve the disabled profile's existing DWARF source coordinates. */
+#line 23
+#endif
 int main(int argc,char **argv) {
     unsigned mode=argc>1 && argv && argv[1]?(unsigned char)argv[1][0]:0;
     int64_t pid=reist_x64_syscall0(REIST_X64_SYS_GETPID);
@@ -38,6 +71,11 @@ int main(int argc,char **argv) {
         if(reist_x64_syscall1(REIST_X64_SYS_SLEEP_MS,10))return 250;
     }
     if(lease)return 248;
+#ifdef REIST_NATIVE_DISPLAY_INFO
+    if(!info_test(r.owner,(uint64_t)epoch))return 235;
+#else
+#line 40
+#endif
     for(unsigned y=0;y<64;y++)for(unsigned x=0;x<64;x++)
         pixels[y*64+x]=(x*4u<<16)|(y*4u<<8)|0x5a;
     r.operation=REIST_DISPLAY_COMMIT;r.epoch=(uint64_t)epoch;

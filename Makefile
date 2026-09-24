@@ -308,6 +308,19 @@ $(error NativeDisplay requires explicit NativeAppFiles)
 endif
 endif
 X86_64_DISPLAY_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),-DREIST_NATIVE_DISPLAY=1,)
+X86_64_NATIVE_DISPLAY_INFO ?= 0
+ifneq ($(words $(X86_64_NATIVE_DISPLAY_INFO)),1)
+$(error NativeDisplayInfo selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_DISPLAY_INFO),0 1),$(X86_64_NATIVE_DISPLAY_INFO))
+$(error NativeDisplayInfo selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_DISPLAY_INFO),1)
+ifneq ($(X86_64_NATIVE_DISPLAY),1)
+$(error NativeDisplayInfo requires explicit NativeDisplay)
+endif
+endif
+X86_64_DISPLAY_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY_INFO)),-DREIST_NATIVE_DISPLAY_INFO=1,)
 # NativeNetworkDMA: independent hardware-mediation profile.
 X86_64_NATIVE_NETWORK_DMA ?= 0
 ifneq ($(words $(X86_64_NATIVE_NETWORK_DMA)),1)
@@ -621,6 +634,7 @@ X86_64_SERVICE_CPU_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),-DREIST_
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_WIDE_FILE)),--wide-file,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY_INFO)),--display-info,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)

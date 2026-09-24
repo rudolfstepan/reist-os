@@ -115,6 +115,10 @@ native_display_core_apply64:
     jnz .corrupt
     cmp rcx,[rdi+40]
     jb .corrupt
+%ifdef REIST_NATIVE_DISPLAY_INFO
+    cmp dword [rsi],2
+    je .info
+%endif
     cmp dword [rsi],1
     jne .invalid
     cmp dword [rsi+4],64
@@ -143,6 +147,28 @@ native_display_core_apply64:
     jnz .return
     mov rax,[rdi+16]
     ret
+%ifdef REIST_NATIVE_DISPLAY_INFO
+.info:
+    cmp dword [rsi+4],64
+    jne .invalid
+    cmp dword [rsi+8],5
+    jne .invalid
+    cmp dword [rsi+12],0
+    jne .invalid
+    mov rax,[rsi+32]
+    or rax,[rsi+40]
+    or rax,[rsi+48]
+    or rax,[rsi+56]
+    jnz .invalid
+    call .owner
+    test rax,rax
+    jnz .return
+    mov rax,[rsi+24]
+    cmp rax,[rdi+16]
+    jne .stale
+    xor eax,eax
+    ret
+%endif
 .bind:
     test edx,edx
     jnz .denied

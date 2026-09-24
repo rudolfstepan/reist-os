@@ -2,15 +2,15 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
-Aktiv R8.3cc: kleine native Abfrage der tatsaechlichen Bildschirmgroesse unter
-bestehenden Grafikrechten. Bisherige QUERY liefert nur die Epoche;1024x768
-oder800x600 darf der echte Desktop nicht erraten. Kernelmechanismus liegt
-ausserhalb des CB-Umfangs, daher separat gepruefte Voraussetzung.
-CB-Dienstcode vollstaendig gesichert: services-before-geometry01/files.zip
-(611d015daf4b148b728b8407e46ba60599a6befcc53d906156b8a35cb188e3c6),
-Stash be774700. Fuenf von24 Hostreservierungen verbraucht,02..05 bestehen
-O0/O2 mit echter Broker-/Client-Implementierung; noch keine Laufzeitabnahme.
-Nach CC exakt wiederherstellen und genehmigte Desktop-Anbindung fortsetzen.
+Aktiv R8.3cb: genehmigte Desktop-Dienstanbindung fortsetzen.
+R8.3cc Bildschirmabfrage abgenommen: alle fuenf Gates,93 bytegleiche alte
+Buildartefakte, echte1024x768/800x600-Gaeste29.133/27.600s und vollstaendige
+Nachpruefung. Neue Abfrage bestaetigt Groesse unter bestehenden Rechten;
+keine Aenderung von Grafikbudgets. Nachweise: r83cc-display-info/qualification02.
+Der erste Vergleich stoppte wegen verschobener Debugzeilen; Ursache korrigiert,
+fehlgeschlagene Nachweise erhalten. Kein fertiger Desktop aus dieser Abnahme.
+CB-Dienstcode aus services-before-geometry01/files.zip exakt wiederherstellen;
+fuenf von24 Entwicklungs-Hosts bereits verbraucht, keine CB-Laufzeitabnahme.
 
 R8.3ca Grafikadapter hostseitig abgenommen:16 Grafikimporte des echten
 Desktops aufgeloest,45 andere SDK-/Diensteimporte bleiben. Ring3-Raster mit

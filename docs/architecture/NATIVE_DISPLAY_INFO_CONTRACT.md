@@ -50,3 +50,21 @@ Five frozen gates, once:
 After clean acceptance restore the exact CB candidate archive and continue its
 approved service integration with spent counters intact. CC is a mechanism
 prerequisite, not a usable desktop or completed native OS.
+
+Qualification01 stopped at defaults:92/93 artifacts exact, including complete
+boot ELF/program binaries; only file-program.o DWARF line coordinates moved
+because opt-in source was inserted. Full objdump comparison recorded the cause.
+Preserve all bytes, including debug coordinates, using disabled #line anchors;
+do not weaken artifact comparison. Hosts01..04 spent (01 expected absent ABI,
+02 O2 test assertions incorrectly disabled by NDEBUG,03/04 pass after test fix).
+Baseline build and disabled01 spent; enabled build/media/guests remain unused.
+Reserve one additional disabled02 build<=300s and qualification02 with the same
+five gates, two320s guests/640s aggregate. Original evidence stays immutable.
+
+Qualification02 accepted: all five frozen gates passed. Host2 tests exercise
+actual assembly enabled/disabled at O0/O2 and replay mutations. All93 disabled
+artifacts, including DWARF, match the clean baseline exactly. Signed media and
+two real BIOS/Ring3 guests pass (29.133s1024,27.600s800), with three actual query/
+denial self-tests each and complete existing display/CLI/reap/COW assertions.
+Independent full replay passed4.076s. Seal under r83cc-display-info/qualification02.
+No display budget increase or full desktop completion claimed. Resume CB.
