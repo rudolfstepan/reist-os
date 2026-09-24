@@ -77,3 +77,17 @@ stops it. Complete the adapters and cheap admission checks before guests.
 VMware visual/performance proof is still required after guest acceptance, using
 the actual image with supported functions stated accurately. Neither partial
 linking nor a painted screenshot completes native64. R3.6b remains deferred.
+
+## Preserved prerequisite boundary
+
+CB development hosts01..05 spent, leaving19/24. First expected absent source;
+02..05 pass actual broker/client O0/O2 read/launch/queue/rate/revoke and malformed,
+late and oversized replies. No build/media/diagnostic/final gate spent.
+The existing native display query exposes only epoch, not actual dimensions;
+kernel source needed for a truthful geometry query is outside this frozen scope.
+CC therefore precedes runtime integration. All five attributed candidate files
+are byte-verified in services-before-geometry01/files.zip under
+build/codex-agent/native-vmware-desktop (SHA256
+611d015daf4b148b728b8407e46ba60599a6befcc53d906156b8a35cb188e3c6), also preserved
+in stash be7747004dd7b7604c7dce418170e2d67866aa32. No candidate acceptance claim.
+Restore them after CC; service approval and every frozen CB gate remain valid.
