@@ -6,7 +6,7 @@ native_large_after_pio = "BV candidate06 accepted: five gates/25 tests/14 comple
 native_large_host_time_exception = "2026-09-24 user explicitly approved: Ja, laengere Host-Pruefzeit freigeben. BV full two-root host proof may use600s per guest instead of300s. Keep4200s matrix/5000s runtime gate, all14 guests, exact two full generations and all guest limits/pacing/rights. Concrete proposal NATIVE_LARGE_EXECUTABLE_PROPOSAL.md. No unchanged retries or discarded failures."
 desktop_dependency_resume = "2026-09-24 after accepted BW5f0debf9 and BX3b829aee: full desktop requires larger image/capture, so restore attributed BV source from verified stash/archive. Current accepted baseline3b829aee preserves all desktop changes. No spent counters reset. Reserve hosts86..91 <=600s for independent160-pair audit and runtime adapter completion, existing build21/diagnostic35<=60s remain unspent; after positive calibration reserve one full reference diagnostic36<=300s. Original five frozen gates and14 guests unchanged. No new execution-control site or authority, no agents/push. Signed BI image remains rejected as full desktop delivery."
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ca-desktop-display"
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -42,6 +42,17 @@ allow_parallel_writers = false
 max_read_only_reviewers = 3
 external_writes = false
 push = false
+
+[[packages]]
+id = "R8.3ca-desktop-display"
+status = "active"
+phase = "native64-userspace"
+title = "Real desktop Ring3 software display adapter"
+scope = "On clean36feeecc implement the actual desktop display SDK in private Ring3 memory: XRGB8888 clipped raster, strict UTF8/CP437, staged frames/cancel/blit, software cursor, coalesced tile publication under existing64 commits/1MiB per100ms. Caller-owned bounded buffers and explicit generation/epoch transport; no grant creation, heap/syscall/kernel/quota changes. Host behavior and actual full desktop partial link only; no bootable or runtime acceptance claim until lifecycle transport integration. Eight development hosts180s; three final gates180s below once. Preserve all earlier evidence and deferred R3.6b."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/architecture/NATIVE_DESKTOP_DISPLAY_ADAPTER_CONTRACT.md", "userspace/sdk/include/reist/x86_64/desktop_display.h", "userspace/sdk/lib/x86_64/desktop_display.c", "test/x86_64_desktop_display_host.c", "test/test_x86_64_desktop_display.py", "scripts/build_x86_64_desktop_inventory.py"]
+targeted_tests = ["python test/test_x86_64_desktop_display.py -v"]
+package_tests = ["python scripts/build_x86_64_desktop_inventory.py --output build/codex-agent/native-vmware-desktop/display-default01", "python scripts/build_x86_64_desktop_inventory.py --native-workspace --native-display --output build/codex-agent/native-vmware-desktop/display-native01"]
+runtime_tests = []
 
 [[packages]]
 id = "R8.3bz-desktop-build"
