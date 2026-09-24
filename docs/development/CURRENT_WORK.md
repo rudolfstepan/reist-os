@@ -1,3 +1,11 @@
+# Current work: device-free buffered CPU qualification
+
+CE active after user continuation. CD failed qualification04 is preserved byte-exact
+in scope-stop01 and stash5e569584;8 hosts/15 builds/15 diagnostics plus four failed
+qualifications remain spent. Existing256-entry trace removes per-charge debugger
+stops without new authority or budget. See NATIVE_DEVICE_FREE_TRACE_CONTRACT.md.
+Native64 real VMware desktop remains unfinished.
+
 # REIST OS – aktueller Arbeitsstand
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
