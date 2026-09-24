@@ -17,8 +17,10 @@ Prototyp schliesst Dateisystem-/Applet-Startrechte ausdruecklich aus. Der echte
 Desktop braucht vermittelte Leserechte fuer das Bootabbild und Start/Steuerung
 seiner zugelassenen Anwendungen. Vorschlag NATIVE_DESKTOP_SERVICE_PROPOSAL.md
 begrenzt dies auf bestehende zwei Clientplaetze, ohne Schreib-/Geraeterechte
-oder erhoehte Kernelgrenzen. Umsetzung dieser neuen Domaene wartet auf die
-nach AGENTS erforderliche Freigabe; unabhaengige Arbeiten bleiben erlaubt.
+oder erhoehte Kernelgrenzen. Nutzer hat diese Domaene ausdruecklich freigegeben:
+"Ja, begrenzte Desktop-Dienstrechte freigeben" (Vorschlag80aaf346).
+Umsetzung und Abnahme folgen ohne erneute Routinefrage. Die groessere
+Displayquote ist dadurch nicht freigegeben.
 
 Build-Beschleunigung R8.3bz abgenommen: maximal vier parallele Compiler,
 deterministische Logs/Linkreihenfolge, bisherige Zeitgrenzen erhalten.

@@ -4,6 +4,10 @@ Prepared2026-09-24 after accepted display adapter1402c13e. No new authority
 is implemented or assumed by this document. User priority: usable real native
 desktop in VMware, then complete native64 integration.
 
+Explicitly approved2026-09-24: "Ja, begrenzte Desktop-Dienstrechte freigeben"
+in response to the concrete question referencing proposal commit80aaf346.
+Implementation may proceed within the bounds below; approval is not acceptance.
+
 ## Concrete missing boundary
 
 NATIVE_GRAPHICAL_SESSION_CONTRACT explicitly excludes porting the large
@@ -63,5 +67,5 @@ Then measure input/frame/window/application behavior on the actual VMware image.
 
 AGENTS.md requires a stop for new authority domains. The existing standing
 completion instruction covers implementation workflow, but explicitly does not
-grant this previously excluded desktop service authority. Approval is required
-for this concrete extension; administrative package transitions are not blockers.
+grant this previously excluded desktop service authority. The explicit approval
+above now authorizes this extension; administrative transitions are not blockers.
