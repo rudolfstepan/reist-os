@@ -12,6 +12,14 @@ gewaehrten Transport und die Ereignisschleife anbinden. Danach verbleibende
 SDK-/Datei-/Anwendungsdienste und Gast-/VMware-Nachweis. Beleg:
 build/codex-agent/native-vmware-desktop/display-gates01/results.json.
 
+Konkrete offene Berechtigungsgrenze nach1402c13e: Der freigegebene grafische
+Prototyp schliesst Dateisystem-/Applet-Startrechte ausdruecklich aus. Der echte
+Desktop braucht vermittelte Leserechte fuer das Bootabbild und Start/Steuerung
+seiner zugelassenen Anwendungen. Vorschlag NATIVE_DESKTOP_SERVICE_PROPOSAL.md
+begrenzt dies auf bestehende zwei Clientplaetze, ohne Schreib-/Geraeterechte
+oder erhoehte Kernelgrenzen. Umsetzung dieser neuen Domaene wartet auf die
+nach AGENTS erforderliche Freigabe; unabhaengige Arbeiten bleiben erlaubt.
+
 Build-Beschleunigung R8.3bz abgenommen: maximal vier parallele Compiler,
 deterministische Logs/Linkreihenfolge, bisherige Zeitgrenzen erhalten.
 Der echte native36-Quellen-Desktop baut in5,861s statt13,747s im abgenommenen
