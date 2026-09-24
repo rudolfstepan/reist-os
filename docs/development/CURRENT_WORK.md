@@ -2,15 +2,25 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
-Aktiv R8.3cb: genehmigte Desktop-Dienstanbindung fortsetzen.
+Aktiv R8.3cb: Dienst-/SDK-Anbindung als uncommitteter Kandidat vorhanden.
+Host11 besteht Broker/Client/Plattform und echte VFS-Clients bei O0/O2.
+Build03:41 echte Desktop-Quelldateien,952552 allozierte Sektionsbytes,
+keine erreichbaren offenen Importe,5.116s; noch kein startfaehiges Desktopabbild.
+Blocker: CREATE-v6 periodisch nur RNPGv2; CREATE-v7 gross nur Lebenszeitbudget.
+Der genehmigte Vorschlag fuer grosse Programme schliesst periodische CPU-
+Erweiterung explizit aus. NATIVE_LARGE_PERIODIC_PROPOSAL.md liegt zur Freigabe
+vor. Keine Rechte aus der Desktop-Dateidienstfreigabe hinzuerfinden.
+Neun Kandidatendateien bleiben sichtbar und sind in services-before-periodic01
+vollstaendig gesichert (ZIP eff172ae42f2b5c489582d13de9d775e5ab79e09d55e827f5f4bf868f016294c).
+Elf Hosts/drei Builds verbraucht; keine CB-Medien-/Gast-/finalen Pruefungen.
 R8.3cc Bildschirmabfrage abgenommen: alle fuenf Gates,93 bytegleiche alte
 Buildartefakte, echte1024x768/800x600-Gaeste29.133/27.600s und vollstaendige
 Nachpruefung. Neue Abfrage bestaetigt Groesse unter bestehenden Rechten;
 keine Aenderung von Grafikbudgets. Nachweise: r83cc-display-info/qualification02.
 Der erste Vergleich stoppte wegen verschobener Debugzeilen; Ursache korrigiert,
 fehlgeschlagene Nachweise erhalten. Kein fertiger Desktop aus dieser Abnahme.
-CB-Dienstcode aus services-before-geometry01/files.zip exakt wiederherstellen;
-fuenf von24 Entwicklungs-Hosts bereits verbraucht, keine CB-Laufzeitabnahme.
+CB wurde nach CC aus services-before-geometry01 bytegleich wiederhergestellt;
+der neuere vollstaendige Kandidat liegt nun unter services-before-periodic01.
 
 R8.3ca Grafikadapter hostseitig abgenommen:16 Grafikimporte des echten
 Desktops aufgeloest,45 andere SDK-/Diensteimporte bleiben. Ring3-Raster mit

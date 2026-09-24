@@ -95,3 +95,24 @@ Restore them after CC; service approval and every frozen CB gate remain valid.
 CC accepted all five gates on24.09; actual geometry now available via the
 explicit NativeDisplayInfo profile. Resume CB from the byte-verified archive,
 retaining all five spent hosts and the full original service acceptance gates.
+
+## Large periodic import authority boundary
+
+After CC, CB hosts06..11 and builds01..03 advanced the actual SDK/storage
+adapter. Host11 passes O0/O2 including unchanged VFS file/read clients,
+1792-byte prefetch, bulk short-read CRC, path reads, queued absolute deadline,
+write/foreign-process denial and supervised launch/identity/cancel/wait.
+Build03 compiles41 real sources in5.116s,952552 reachable allocated bytes,
+zero reachable undefined imports. This is an ET_REL porting object, not a boot
+image or acceptance of every unsupported calendar/storage/namespace feature.
+11/24 development hosts and3/4 builds spent; media/diagnostics/final gates0.
+
+Startup inventory found that CREATE-v6 is periodic but RNPGv2-only, whereas
+large CREATE-v7 is lifetime-only. The previously approved large-image proposal
+explicitly excludes periodic CPU increase. Keep the service approval intact,
+but stop before extending this separate kernel resource combination. Concrete
+NATIVE_LARGE_PERIODIC_PROPOSAL.md requires explicit approval before freezing
+that prerequisite. All nine attributed CB files remain visible and verified in
+services-before-periodic01/files.zip (SHA256
+ eff172ae42f2b5c489582d13de9d775e5ab79e09d55e827f5f4bf868f016294c).
+No counter reset, silent scope expansion, source commit or partial acceptance.
