@@ -8,6 +8,9 @@
  * bounded. Legacy console applications intentionally run full-screen.
  */
 #include "x86os.h"
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+#include "desktop_native_workspace.h"
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 #include "desktop_drag.h"
 #include "desktop_explorer.h"
 #include "desktop_file_move.h"
@@ -235,13 +238,44 @@ static uint32_t desktop_shortcut_probe_restart_phase;
 static uint64_t desktop_shortcut_probe_restart_deadline_ms;
 static void desktop_shortcut_selection_reset(void);
 static desktop_drag_state_t desktop_drag;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_layout_document_t desktop_layout_document_native_type;
+#define desktop_layout_document (*(desktop_layout_document_native_type *)reist_desktop_workspaces[11])
+#else
 static desktop_layout_document_t desktop_layout_document;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_layout_document_t desktop_layout_candidate_native_type;
+#define desktop_layout_candidate (*(desktop_layout_candidate_native_type *)reist_desktop_workspaces[12])
+#else
 static desktop_layout_document_t desktop_layout_candidate;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_layout_view_t desktop_layout_view_native_type;
+#define desktop_layout_view (*(desktop_layout_view_native_type *)reist_desktop_workspaces[9])
+#else
 static desktop_layout_view_t desktop_layout_view;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_layout_view_t desktop_layout_probe_view_native_type;
+#define desktop_layout_probe_view (*(desktop_layout_probe_view_native_type *)reist_desktop_workspaces[10])
+#else
 static desktop_layout_view_t desktop_layout_probe_view;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_layout_identity_t desktop_layout_identities_native_type[
+    DESKTOP_LAYOUT_ENTRY_CAPACITY];
+#define desktop_layout_identities (*(desktop_layout_identities_native_type *)reist_desktop_workspaces[13])
+#else
 static desktop_layout_identity_t desktop_layout_identities[
     DESKTOP_LAYOUT_ENTRY_CAPACITY];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef uint8_t desktop_layout_file_bytes_native_type[DESKTOP_LAYOUT_FILE_CAPACITY];
+#define desktop_layout_file_bytes (*(desktop_layout_file_bytes_native_type *)reist_desktop_workspaces[8])
+#else
 static uint8_t desktop_layout_file_bytes[DESKTOP_LAYOUT_FILE_CAPACITY];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 static uint32_t desktop_layout_drag_source_index = UINT32_MAX;
 static desktop_layout_cell_t desktop_layout_hover_cell;
 static uint32_t desktop_layout_hover_valid;
@@ -809,11 +843,28 @@ typedef struct desktop_file_icon_cache_entry {
     uint32_t desktop[DESKTOP_FILE_ICON_PIXELS];
 } desktop_file_icon_cache_entry_t;
 
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_file_icon_cache_entry_t
+    desktop_file_icon_cache_native_type[DESKTOP_EXPLORER_ICON_COUNT];
+#define desktop_file_icon_cache (*(desktop_file_icon_cache_native_type *)reist_desktop_workspaces[6])
+#else
 static desktop_file_icon_cache_entry_t
     desktop_file_icon_cache[DESKTOP_EXPLORER_ICON_COUNT];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_file_icon_cache_entry_t
+    desktop_trash_icon_cache_native_type[DESKTOP_TRASH_ICON_COUNT];
+#define desktop_trash_icon_cache (*(desktop_trash_icon_cache_native_type *)reist_desktop_workspaces[14])
+#else
 static desktop_file_icon_cache_entry_t
     desktop_trash_icon_cache[DESKTOP_TRASH_ICON_COUNT];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef uint8_t desktop_file_icon_encoded_native_type[DESKTOP_FILE_ICON_ENCODED_CAPACITY];
+#define desktop_file_icon_encoded (*(desktop_file_icon_encoded_native_type *)reist_desktop_workspaces[15])
+#else
 static uint8_t desktop_file_icon_encoded[DESKTOP_FILE_ICON_ENCODED_CAPACITY];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 static uint32_t desktop_file_icon_decoded[DESKTOP_FILE_ICON_PIXELS];
 static reist_gui_font_t desktop_font;
 typedef union desktop_startup_workspace {
@@ -823,9 +874,24 @@ typedef union desktop_font_file_storage {
     uint8_t bytes[DESKTOP_FONT_FILE_CAPACITY];
     uint32_t alignment;
 } desktop_font_file_storage_t;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_startup_workspace_t desktop_startup_workspace_native_type;
+#define desktop_startup_workspace (*(desktop_startup_workspace_native_type *)reist_desktop_workspaces[1])
+#else
 static desktop_startup_workspace_t desktop_startup_workspace;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_font_file_storage_t desktop_font_file_native_type;
+#define desktop_font_file (*(desktop_font_file_native_type *)reist_desktop_workspaces[0])
+#else
 static desktop_font_file_storage_t desktop_font_file;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef uint32_t desktop_splash_strip_native_type[DESKTOP_SPLASH_STRIP_PIXELS];
+#define desktop_splash_strip (*(desktop_splash_strip_native_type *)reist_desktop_workspaces[7])
+#else
 static uint32_t desktop_splash_strip[DESKTOP_SPLASH_STRIP_PIXELS];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 extern const uint8_t reist_desktop_splash_bmp[];
 extern const uint32_t reist_desktop_splash_bmp_size;
 static uint32_t desktop_font_pixels[
@@ -839,8 +905,14 @@ typedef struct desktop_editor_font_slot {
     uint8_t bytes[DESKTOP_EDITOR_FONT_FILE_CAPACITY];
     uint32_t ready;
 } desktop_editor_font_slot_t;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_editor_font_slot_t desktop_editor_fonts_native_type[
+    REIST_GUI_FONT_FAMILY_COUNT - 1U][REIST_GUI_FONT_SIZE_COUNT];
+#define desktop_editor_fonts (*(desktop_editor_fonts_native_type *)reist_desktop_workspaces[4])
+#else
 static desktop_editor_font_slot_t desktop_editor_fonts[
     REIST_GUI_FONT_FAMILY_COUNT - 1U][REIST_GUI_FONT_SIZE_COUNT];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 typedef struct desktop_font_glyph_cache_entry {
     uint32_t valid;
     uint32_t family;
@@ -851,8 +923,14 @@ typedef struct desktop_font_glyph_cache_entry {
     uint32_t width;
     uint32_t pixels[REIST_GUI_FONT_MAX_WIDTH * REIST_GUI_FONT_MAX_HEIGHT];
 } desktop_font_glyph_cache_entry_t;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_font_glyph_cache_entry_t desktop_font_glyph_cache_native_type[
+    DESKTOP_FONT_GLYPH_CACHE_CAPACITY];
+#define desktop_font_glyph_cache (*(desktop_font_glyph_cache_native_type *)reist_desktop_workspaces[5])
+#else
 static desktop_font_glyph_cache_entry_t desktop_font_glyph_cache[
     DESKTOP_FONT_GLYPH_CACHE_CAPACITY];
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
 static uint32_t desktop_font_glyph_cache_next;
 static const char *const desktop_file_icon_paths[
     DESKTOP_EXPLORER_ICON_COUNT] = {
@@ -9341,12 +9419,28 @@ static int desktop_lifecycle_publish_progress(
     return 0;
 }
 
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+typedef desktop_surface_manager_t surfaces_native_type;
+#define surfaces (*(surfaces_native_type *)reist_desktop_workspaces[2])
+typedef desktop_explorer_t explorer_native_type;
+#define explorer (*(explorer_native_type *)reist_desktop_workspaces[3])
+static int desktop_native_main(int argc, char **argv) {
+#else
 int main(int argc, char **argv) {
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
     x86os_display_info_t display;
     desktop_wm_t manager;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+    /* Fixed startup workspace is owned by the entry wrapper. */
+#else
     static desktop_surface_manager_t surfaces;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
     desktop_surface_runtime_t surface_runtime;
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+    /* Fixed startup workspace is owned by the entry wrapper. */
+#else
     static desktop_explorer_t explorer;
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
     static desktop_filetypes_t filetypes;
     static desktop_system_sound_state_t system_sounds;
     desktop_ui_state_t ui;
@@ -10848,3 +10942,26 @@ int main(int argc, char **argv) {
         }
     }
 }
+#ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+int main(int argc, char **argv) {
+    static const size_t native_workspace_sizes[REIST_DESKTOP_WORKSPACE_SLOTS] = {
+        sizeof(desktop_font_file_native_type),
+        sizeof(desktop_startup_workspace_native_type),
+        sizeof(surfaces_native_type),
+        sizeof(explorer_native_type),
+        sizeof(desktop_editor_fonts_native_type),
+        sizeof(desktop_font_glyph_cache_native_type),
+        sizeof(desktop_file_icon_cache_native_type),
+        sizeof(desktop_splash_strip_native_type),
+        sizeof(desktop_layout_file_bytes_native_type),
+        sizeof(desktop_layout_view_native_type),
+        sizeof(desktop_layout_probe_view_native_type),
+        sizeof(desktop_layout_document_native_type),
+        sizeof(desktop_layout_candidate_native_type),
+        sizeof(desktop_layout_identities_native_type),
+        sizeof(desktop_trash_icon_cache_native_type),
+        sizeof(desktop_file_icon_encoded_native_type)
+    };
+    return reist_desktop_workspace_run(argc, argv, desktop_native_main, native_workspace_sizes);
+}
+#endif /* REIST_NATIVE_DESKTOP_WORKSPACE */

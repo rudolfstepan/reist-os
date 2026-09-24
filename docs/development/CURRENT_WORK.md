@@ -2,6 +2,14 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
+BX-Speicheranpassung bestanden:16 feste Startup-Allokationen,7291652 Byte
+innerhalb8MiB; statische Sektionen von8187060 auf897542 Byte reduziert.
+Alle16 Allokationsfehler, Nullinitialisierung, Statusweitergabe, Reentry und
+Aufraeumen O0/O2 geprueft. Alter Desktop-Objektcode bytegenau unveraendert.
+Drei Gates1,200/13,983/13,963s; noch keine Gast-/Darstellungsabnahme.
+Graphical-Importer ist noch RNPGv2/196608-Byte-Span. Der echte Desktop braucht
+das freigegebene grosse Ladeprofil; BV ist damit eine Integrationsvoraussetzung.
+
 R8.3bw inventarisiert und baut die echten Desktop-Quellen als ELF64-Portierungsobjekt.
 BI ist nur der vom Benutzer zurueckgewiesene Grafikprototyp; noch keine
 Bedienbarkeits-/Performanceabnahme. BV ist mit allen34 Dateistaenden und

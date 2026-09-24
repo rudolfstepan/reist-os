@@ -14,6 +14,7 @@ HEADER = struct.Struct('<16sHHIQQQIHHHHHH')
 SECTION = struct.Struct('<IIQQQQIIQQ')
 SYMBOL = struct.Struct('<IBBHQQ')
 RELA = struct.Struct('<QQq')
+DEFAULT_DESKTOP_OBJECT = 'fe63724133e5f3022efe450432c6cc2f9ee8b5f09be25ef1d8ef073621ab814f'
 
 
 def need(condition, message):
@@ -100,11 +101,23 @@ def inspect_object(data):
              'alignment': s[8], 'writable': bool(s[2] & 1),
              'executable': bool(s[2] & 4), 'zero_fill': s[1] == 8}
             for i, s in enumerate(sections) if i in reached and s[2] & 2]
+    workspace_sizes = []
+    for name, sym in zip(names, symbols):
+        if name != 'main.native_workspace_sizes':
+            continue
+        need(not workspace_sizes and 0 < sym[3] < count and sym[5] == 16 * 8,
+             'one fixed native workspace size table')
+        table = sections[sym[3]]
+        need(table[1] == 1 and sym[4] <= table[5] - sym[5], 'workspace size table bounds')
+        workspace_sizes = list(struct.unpack_from('<16Q', data, table[4] + sym[4]))
+        need(all(workspace_sizes) and sum(workspace_sizes) <= 8 * 1024 * 1024,
+             'compiled native startup workspace budget')
     return {'format': 'ELF64 x86-64 ET_REL', 'entry_root': 'main',
             'bootable': False, 'runtime_accepted': False,
             'reachable_imports': sorted(imports), 'reachable_sections': rows,
             'allocated_section_bytes': sum(r['bytes'] for r in rows),
             'zero_fill_bytes': sum(r['bytes'] for r in rows if r['zero_fill']),
+            'native_workspace_sizes': workspace_sizes,
             'size_note': 'Conservative reachable section sum; not a linked PT_LOAD span.'}
 
 
@@ -123,7 +136,7 @@ def dependency_paths(text):
             for token in tokens]
 
 
-def build(output):
+def build(output, native_workspace=False):
     from build_user_program import find_zig
     from build_system_programs import PROGRAMS
     from build_user_sdk import (PUBLIC_INCLUDE_ROOTS, CORE_LIBRARY_SOURCES,
@@ -132,6 +145,9 @@ def build(output):
         *[p for p in CORE_LIBRARY_SOURCES if p.name not in
           ('x86os.c', 'reist_dns.c', 'reist_dhcp_state.c')],
         *GUI_LIBRARY_SOURCES, *IMAGE_LIBRARY_SOURCES]))
+    need(type(native_workspace) is bool, 'explicit native workspace selector')
+    if native_workspace:
+        sources.append(ROOT / 'userspace/gui/compositor/desktop_native_workspace.c')
     need(1 <= len(sources) <= 64, 'source capacity')
     need(ROOT / 'userspace/gui/compositor/desktop.c' in sources, 'real desktop')
     includes = [*PUBLIC_INCLUDE_ROOTS, ROOT / 'include']
@@ -164,6 +180,8 @@ def build(output):
               '-fno-pic', '-fno-pie', '-mno-mmx', '-mno-sse', '-mno-sse2',
               '-ffunction-sections', '-fdata-sections',
               *['-I' + str(p) for p in includes]]
+    if native_workspace:
+        common.append('-DREIST_NATIVE_DESKTOP_WORKSPACE=1')
     objects = []
     for index, source in enumerate(sources):
         obj = output / f'{index:02}-{source.stem}.o'
@@ -178,6 +196,17 @@ def build(output):
     linked = output / 'desktop-port.o'
     run([zig, 'ld.lld', '-m', 'elf_x86_64', '-r', '-o', linked, *objects])
     report = inspect_object(linked.read_bytes())
+    baseline_object = ROOT / 'build/codex-agent/native-vmware-desktop/qualification01/desktop-port.o'
+    need(digest(baseline_object) == DEFAULT_DESKTOP_OBJECT,
+         'accepted desktop inventory baseline')
+    baseline = inspect_object(baseline_object.read_bytes())
+    if native_workspace:
+        need(report['allocated_section_bytes'] < 960 * 1024 and
+             len(report['native_workspace_sizes']) == 16, 'native static/workspace capacity')
+        need(set(report['reachable_imports']) == set(baseline['reachable_imports']) |
+             {'x86os_malloc', 'x86os_free'}, 'unchanged services plus native heap only')
+    else:
+        need(digest(linked) == DEFAULT_DESKTOP_OBJECT, 'exact original desktop object')
     inputs = set(sources) | {Path(__file__).resolve(),
         ROOT / 'scripts/build_system_programs.py', ROOT / 'scripts/build_user_sdk.py',
         ROOT / 'scripts/build_user_program.py', ROOT / 'assets/images/reist-splash.bmp'}
@@ -206,4 +235,6 @@ def build(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
-    build(parser.parse_args().output)
+    parser.add_argument('--native-workspace', action='store_true')
+    args = parser.parse_args()
+    build(args.output, args.native_workspace)

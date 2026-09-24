@@ -42,3 +42,26 @@ Eight development host commands<=180s each. Three frozen gates exactly once:
 Native desktop SDK/IPC/files/assets/application lifecycle adapters and VMware
 latency/recovery acceptance follow in subsequent frozen transactions. Do not
 mark the full desktop complete from these host gates or launch this ET_REL file.
+
+## Host acceptance24.09
+
+Development01 confirms absent implementation with a compiler failure; host02
+passes O0/O2 lifecycle and complete default-source projection. Development03
+builds the native full desktop in11.886s. Three of eight host slots spent.
+All three frozen gates pass once: behavior/projection1.200s, exact original
+object rebuild13.983s, native36-source build13.963s. Evidence:
+build/codex-agent/native-vmware-desktop/workspace-gates01/results.json.
+Native workspace7291652 bytes in16 unchanged-capacity allocations, within8MiB.
+Static reachable section bytes897542 (zero-fill252084), down from8187060.
+The default object remains SHA256
+fe63724133e5f3022efe450432c6cc2f9ee8b5f09be25ef1d8ef073621ab814f.
+The native import set is exactly the old59 services plus malloc/free.
+No native guest/desktop/latency claim; the source selector remains opt-in.
+
+Integration dependency found: shell_graphical.inc still captures/hashes/imports
+RNPGv2 and the graphical roles have a196608-byte linker span. The real desktop
+requires the approved larger image profile plus complete immutable capture;
+BV is a functional prerequisite, not merely QuickJS work. Its paused source
+must be reconciled after this commit without dropping the accepted desktop
+work or resetting historical attempts. Runtime SDK adapters/rendering remain
+required after the loader/capture boundary is qualified.

@@ -1,6 +1,6 @@
 version = 1
 program = "S0-assurance-completion"
-active_id = "R8.3bx-desktop-workspace"
+active_id = ""
 native_large_executable_authority = "Renewed user mach weiter bis alles fertig ist directly after concrete b8aa7ab4 proposal approves the separately bounded1MiB input/256-image-slot and4098-FS/8192-block profile. All proposal exclusions and old profiles retained. First R8.3bu mapping/import ownership; capture and native QuickJS follow without routine renewed approval. No additional authority or R3.6b activation."
 native_large_executable_authority_boundary = "After clean text33061693, host-only native QuickJS inventory links754104-byte ELF with923968-byte loaded span, exceeding current524288-byte input and196608-byte linker image limits. Existing explicitly granted RNPGv2/64-page mapping and wide capture2050-FS/4096-block budgets remain authoritative. Concrete proposal docs/architecture/NATIVE_LARGE_EXECUTABLE_PROPOSAL.md requests a separate1MiB-input/256-page profile plus4098-FS/8192-block bounds, unchanged120000ms lifetime/CPU/stack/device/rights. No package active pending this resource-authority decision; no guest or kernel changes. Prior diagnostic failures retained; R3.6b deferred."
 native_application_network_authority_boundary = "2026-09-22 explicit user approval of proposal da228540: Ja, begrenzte Anwendungs-Netzwerkrechte freigeben. Destination- and application/service-generation-bound UDP/TCP objects in the existing local QEMU test network are authorized; TCP/DNS follow in separately frozen transactions without renewed approval of this domain. No public network, arbitrary destination, device/DMA rights, configuration/lifecycle rights or implicit browser/script access. Approval is not runtime acceptance. BL a4c8bc96 remains accepted; R3.6b deferred."
@@ -20142,7 +20142,8 @@ runtime_tests = []
 
 [[packages]]
 id = "R8.3bx-desktop-workspace"
-status = "active"
+status = "done"
+evidence = ["Host O0/O2 allocation/cleanup and exact default source: PASS1.200s", "Full default desktop object exact SHA256: PASS13.983s", "Native36-source desktop static897542 bytes, workspace7291652 bytes, old APIs plus malloc/free: PASS13.963s; host-only, no guest claim"]
 phase = "native64-userspace"
 title = "Real desktop bounded native startup workspace"
 risk = "Partial allocation, lost cleanup, old desktop compatibility and image capacity"
