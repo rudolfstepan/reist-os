@@ -1,5 +1,6 @@
 """Compile the real desktop to an ELF64 porting object, never a boot image."""
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 import argparse
 import hashlib
 import json
@@ -136,7 +137,20 @@ def dependency_paths(text):
             for token in tokens]
 
 
-def build(output, native_workspace=False):
+def compile_batches(commands, execute, jobs=4):
+    """Join every bounded batch, including failures, before starting more work."""
+    need(type(jobs) is int and 1 <= jobs <= 4, 'compiler worker capacity')
+    need(1 <= len(commands) <= 64, 'compile command capacity')
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        for at in range(0, len(commands), jobs):
+            pending = [pool.submit(execute, command)
+                       for command in commands[at:at + jobs]]
+            # Stable error selection; the executor joins the rest on failure.
+            for future in pending:
+                future.result()
+
+
+def build(output, native_workspace=False, jobs=4):
     from build_user_program import find_zig
     from build_system_programs import PROGRAMS
     from build_user_sdk import (PUBLIC_INCLUDE_ROOTS, CORE_LIBRARY_SOURCES,
@@ -146,6 +160,7 @@ def build(output, native_workspace=False):
           ('x86os.c', 'reist_dns.c', 'reist_dhcp_state.c')],
         *GUI_LIBRARY_SOURCES, *IMAGE_LIBRARY_SOURCES]))
     need(type(native_workspace) is bool, 'explicit native workspace selector')
+    need(type(jobs) is int and 1 <= jobs <= 4, 'compiler worker capacity')
     if native_workspace:
         sources.append(ROOT / 'userspace/gui/compositor/desktop_native_workspace.c')
     need(1 <= len(sources) <= 64, 'source capacity')
@@ -161,18 +176,16 @@ def build(output, native_workspace=False):
     env['ZIG_LOCAL_CACHE_DIR'] = str(output / 'zig-cache')
     commands = []
 
-    def run(args):
+    def run(index):
         remaining = 180 - (time.monotonic() - started)
         need(remaining > 0, 'whole build deadline')
-        commands.append(list(map(str, args)))
-        with (output / f'command-{len(commands):02}.log').open('xb') as log:
-            r = subprocess.run(commands[-1], cwd=ROOT, env=env, stdout=log,
+        with (output / f'command-{index + 1:02}.log').open('xb') as log:
+            r = subprocess.run(commands[index], cwd=ROOT, env=env, stdout=log,
                                stderr=subprocess.STDOUT, timeout=min(30, remaining),
                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        (output / 'commands.json').write_text(json.dumps(commands, indent=2))
-        need((output / f'command-{len(commands):02}.log').stat().st_size <= 1024 * 1024,
+        need((output / f'command-{index + 1:02}.log').stat().st_size <= 1024 * 1024,
              'compiler log capacity')
-        need(r.returncode == 0, f'command {len(commands)} failed; inspect its log')
+        need(r.returncode == 0, f'command {index + 1} failed; inspect its log')
 
     common = [zig, 'cc', '-target', 'x86_64-freestanding-none', '-Oz',
               '-ffreestanding', '-nostdlib', '-fno-builtin', '-fno-stack-protector',
@@ -191,10 +204,16 @@ def build(output, native_workspace=False):
         else:
             need(source.suffix == '.s', 'known assembly input')
             args = [zig, 'cc', '-target', 'x86_64-freestanding-none']
-        run([*args, '-c', source, '-o', obj])
+        commands.append(list(map(str, [*args, '-c', source, '-o', obj])))
         objects.append(obj)
+    # Only the coordinator writes manifests; workers own disjoint numbered logs.
+    (output / 'commands.json').write_text(json.dumps(commands, indent=2))
+    compile_batches(list(range(len(commands))), run, jobs)
     linked = output / 'desktop-port.o'
-    run([zig, 'ld.lld', '-m', 'elf_x86_64', '-r', '-o', linked, *objects])
+    commands.append(list(map(str,
+        [zig, 'ld.lld', '-m', 'elf_x86_64', '-r', '-o', linked, *objects])))
+    (output / 'commands.json').write_text(json.dumps(commands, indent=2))
+    run(len(commands) - 1)
     report = inspect_object(linked.read_bytes())
     baseline_object = ROOT / 'build/codex-agent/native-vmware-desktop/qualification01/desktop-port.o'
     need(digest(baseline_object) == DEFAULT_DESKTOP_OBJECT,
@@ -221,6 +240,7 @@ def build(output, native_workspace=False):
             dependencies.add(p)
     need(len(dependencies) <= 4096, 'aggregate dependency capacity')
     report.update({'source_count': len(sources), 'tool_sha256': digest(zig),
+                   'compiler_jobs': jobs,
                    'inputs': {p.relative_to(ROOT).as_posix(): digest(p) for p in sorted(inputs)},
                    'objects': {p.name: digest(p) for p in [*objects, linked]},
                    'dependencies': {p.name: digest(p) for p in sorted(output.glob('*.d'))},
@@ -236,5 +256,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--native-workspace', action='store_true')
+    parser.add_argument('--jobs', type=int, choices=range(1, 5), default=4)
     args = parser.parse_args()
-    build(args.output, args.native_workspace)
+    build(args.output, args.native_workspace, args.jobs)

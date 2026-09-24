@@ -2,6 +2,16 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
+Build-Beschleunigung R8.3bz abgenommen: maximal vier parallele Compiler,
+deterministische Logs/Linkreihenfolge, bisherige Zeitgrenzen erhalten.
+Der echte native36-Quellen-Desktop baut in5,861s statt13,747s im abgenommenen
+seriellen Vergleichslauf (rund57% weniger). Alle37 Objektdateien inklusive
+Linkergebnis sind bytegleich. Standardpfad ebenfalls bytegleich und schneller:
+5,658s statt13,796s. Sieben Tests und beide Builds bestanden; keine neuen VMs.
+Dies beschleunigt die Entwicklung; SDK-Anbindung und flüssige Darstellung
+im VMware-Gast sind weiterhin offen. Belege: parallel-gates01/results.json
+unter build/codex-agent/native-vmware-desktop/.
+
 BY abgenommen: Candidate08 besteht alle fuenf Gates und sieben vollstaendige
 WHPX-Gaeste mit unabhaengigem Rohdaten-Replay.20 Hosttests,106 Task-Reaps;
 Gates1,648/33,501/10,970/136,188/3,336s. Alte64-Aufruf-Freigaben bleiben

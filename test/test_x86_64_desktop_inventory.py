@@ -3,6 +3,7 @@ from pathlib import Path
 import struct
 import sys
 import unittest
+import threading
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from build_x86_64_desktop_inventory import (
@@ -43,6 +44,55 @@ def fixture():
 
 
 class DesktopInventoryTests(unittest.TestCase):
+    def test_bounded_compile_batches(self):
+        from build_x86_64_desktop_inventory import compile_batches
+        barrier = threading.Barrier(4, timeout=5)
+        lock = threading.Lock()
+        active = 0
+        peak = 0
+        finished = []
+        def compile_one(index):
+            nonlocal active, peak
+            with lock:
+                if index >= 4:
+                    self.assertTrue(set(range(4)).issubset(finished))
+                active += 1
+                peak = max(peak, active)
+            barrier.wait()
+            with lock:
+                active -= 1
+                finished.append(index)
+        compile_batches(list(range(8)), compile_one, 4)
+        self.assertEqual(peak, 4)
+        self.assertEqual(active, 0)
+        self.assertEqual(sorted(finished), list(range(8)))
+        sequential = []
+        compile_batches(list(range(6)), sequential.append, 1)
+        self.assertEqual(sequential, list(range(6)))
+
+    def test_compile_failure_joins_batch_and_stops(self):
+        from build_x86_64_desktop_inventory import compile_batches
+        barrier = threading.Barrier(4, timeout=5)
+        finished = []
+        failure = RuntimeError('compiler failed')
+        def compile_one(index):
+            barrier.wait()
+            if index == 0:
+                raise failure
+            finished.append(index)
+        with self.assertRaises(RuntimeError) as caught:
+            compile_batches(list(range(8)), compile_one, 4)
+        self.assertIs(caught.exception, failure)
+        self.assertEqual(sorted(finished), [1, 2, 3])
+
+    def test_compile_admission_before_work(self):
+        from build_x86_64_desktop_inventory import compile_batches
+        calls = []
+        for count, jobs in ((0, 4), (65, 4), (1, 0), (1, 5), (1, True), (1, 1.5)):
+            with self.subTest(count=count, jobs=jobs), self.assertRaises(ValueError):
+                compile_batches(list(range(count)), calls.append, jobs)
+        self.assertEqual(calls, [])
+
     def test_dependency_paths(self):
         self.assertEqual([str(p).replace('\\', '/') for p in dependency_paths(
             'D:/build/file.o: D:/source/file.c \\\n  C:/tool/header.h D:/space\\ name/local.h\n')],

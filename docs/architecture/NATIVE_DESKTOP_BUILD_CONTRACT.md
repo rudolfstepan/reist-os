@@ -29,3 +29,17 @@ Retain complete command logs under ignored build/codex-agent. Compare measured
 build elapsed time with the accepted same-mode baseline; do not promise a
 specific speedup before measurement. No full guest matrix is relevant to this
 host-only change. Actual native SDK/service integration remains outstanding.
+
+## Acceptance2026-09-24
+
+Development01 records the expected missing-function regression; development02
+passes all seven tests. Two of six host reservations spent. All three frozen
+gates pass once in0.137/5.811/6.011s. Actual compile/build times are5.658s
+(default) and5.861s(native), versus accepted sequential13.796/13.747s.
+All36 default and37 native individual/linked objects are byte-identical to
+the accepted workspace builds, verified against both stored hashes and actual
+files. The timing comparison uses prior accepted runs, not a controlled
+benchmark; current host load/cache can affect elapsed time. Source hashes
+match before/after all gates. Evidence and full per-command logs are retained
+under build/codex-agent/native-vmware-desktop/parallel-gates01 and the two
+parallel-default01/parallel-native01 directories. No new guest or UI claim.
