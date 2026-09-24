@@ -20,8 +20,12 @@ sind hashgebunden, originale Gastzeit3447,254s. Acht begrenzte Hash-Leser
 reduzieren die Integritaetspruefung auf149,460s; finale Rohpruefung552,500s.
 Beleg: build/codex-agent/r83bv-large-file/candidate06/acceptance-seal.json,
 SHA256 5216da1e29a4a68af35ae255f528fdb346d05122ce83214269064e92281b220e.
-Naechster Schritt nach sauberem lokalem Commit: native QuickJS-/Desktop-
-Integration. Der vollstaendige native VMware-Desktop ist noch nicht fertig.
+Naechste Prioritaet: echtes desktop.c mit nativen SDK-/Diensteadaptern,
+vor weiterem QuickJS-Ausbau. Die feste Displayquote64/1MiB pro100ms ist
+eine konkrete Leistungsgrenze. Vorschlag:
+docs/architecture/NATIVE_DESKTOP_DISPLAY_THROUGHPUT_PROPOSAL.md.
+Neue Displayquote noch nicht freigegeben; kein aktives Umsetzungspaket.
+Der vollstaendige native VMware-Desktop ist noch nicht fertig.
 
 Historische BV-Diagnose vor der oben genannten Freigabe: Diagnose41 zeichnet beide Root-Lebenszyklen
 vollstaendig auf (446,891s Gastaufzeichnung), aber nur ein1MiB-Start gelingt.
