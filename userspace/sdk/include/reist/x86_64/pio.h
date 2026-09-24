@@ -26,4 +26,13 @@ static inline int reist_x64_pio_deadline_prepare(reist_native_pio_request *out,
 static inline uint64_t reist_x64_pio_deadline_ms(const reist_native_pio_request *q) {
     return q && q->version==2?q->reserved1:0;
 }
+/* Append-only BIND-v3: trusted root delegates128 calls/100ms to one exact
+ * driver generation. Operations retain v1/v2 and16-word transfer semantics.
+ * Rejected construction leaves the caller's request unchanged. */
+static inline __attribute__((unused)) int reist_x64_pio_throughput_bind_prepare(reist_native_pio_request *out,uint64_t owner) {
+    if(!out || (uint32_t)owner<2 || (uint32_t)owner>7 ||
+       !(owner>>32) || owner>>32>0x7fffffff)return -22;
+    reist_native_pio_request q={3,64,REIST_PIO_BIND,0,owner,0,0,0,0,0,128,0};
+    *out=q;return 0;
+}
 #endif

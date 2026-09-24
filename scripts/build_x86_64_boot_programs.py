@@ -63,7 +63,7 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False):
     if type(large_image) is not bool or large_image and (not wide or any((memory_case,pio,block,task_pool,service_cpu,filesystem,shell_session,text_runtime))):raise ValueError("large image requires plain NativeWide")
     if large_image:
         cc=[*cc,'-DREIST_NATIVE_LARGE_IMAGE=1']
@@ -127,6 +127,8 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if import_image and not startup:raise ValueError('import requires startup')
     if startup and (not family or family_case or case):raise ValueError('startup requires normal family')
     if network_dma:cc=[*cc,'-DREIST_NATIVE_NETWORK_DMA=1']
+    if type(pio_throughput) is not bool or pio_throughput and (not pool_pio or service_cpu or service_pio or live_file):raise ValueError('PIO throughput fixture requires plain pool PIO')
+    if pio_throughput:cc=[*cc,'-DREIST_NATIVE_PIO_THROUGHPUT=1']
     if pool_pio:cc=[*cc,'-DREIST_NATIVE_POOL_PIO=1']
     if service_cpu:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-Dmain=reist_pool_finite_fixture_main']
     if service_pio:cc=[*cc,'-DREIST_NATIVE_SERVICE_CPU=1','-DREIST_NATIVE_SERVICE_PIO=1']
@@ -257,7 +259,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             objects.append(parser)
         if pio and n==2:
             driver=attempt/'ata-pio.o'
-            run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/drivers/ata/native_pio.c','-o',driver])
+            run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2' if pio_throughput else '-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-Iuserspace/sdk/include','-c','userspace/drivers/ata/native_pio.c','-o',driver])
             objects.append(driver)
         if block and (n in (0,2) or filesystem and n==3):
             sources=['userspace/storage/lib/native_block.c']
@@ -267,7 +269,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             if file_launch and n==0:sources+=['userspace/sdk/lib/x86_64/file_image.c']
             for index,source in enumerate(sources):
                 unit=attempt/f'block-{n}-{index}.o'
-                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include','-c',source,'-o',unit])
+                run([*cc,'-target','x86_64-freestanding-none','-std=c11','-O2' if pio_throughput else '-Oz','-Wall','-Wextra','-Werror','-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone','-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie','-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections','-Iuserspace/sdk/include','-c',source,'-o',unit])
                 objects.append(unit)
         run([*cc,'-target','x86_64-freestanding-none','-std=c11','-Oz' if shell_root or pio and not pool_pio else '-O2','-Wall','-Wextra','-Werror',
              '-ffreestanding','-nostdlib','-fno-builtin','-fno-stack-protector','-mno-red-zone',
@@ -368,6 +370,7 @@ elif __name__=='__main__':
     p.add_argument('--file-launch',action='store_true')
     p.add_argument('--task-pool',action='store_true')
     p.add_argument('--pool-pio',action='store_true')
+    p.add_argument('--pio-throughput',action='store_true')
     p.add_argument('--service-cpu',action='store_true')
     p.add_argument('--service-pio',action='store_true')
     p.add_argument('--live-file',action='store_true')
@@ -395,4 +398,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput)

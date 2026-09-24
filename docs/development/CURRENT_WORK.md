@@ -2,14 +2,22 @@
 
 ## Vorrang ab24.09: vollstaendiger nativer VMware-Desktop
 
-Aktiv: R8.3by-pio-throughput nach Nutzerfreigabe des128-PIO/25ms-Vorschlags.
-BV ist als35-Datei-Archiv mit SHA256 und Git-Stash cc29b83e gesichert und
-pausiert. BY verifiziert zuerst die versionierte Kernel-Quota-Mediation;
-anschliessend wird BV wiederhergestellt und muss die komplette1MiB-
-Integration bestehen. Keine Gastdeadline und kein altes Profil wird erweitert.
-Vertrag: docs/architecture/NATIVE_PIO_THROUGHPUT_CONTRACT.md.
+BY abgenommen: Candidate08 besteht alle fuenf Gates und sieben vollstaendige
+WHPX-Gaeste mit unabhaengigem Rohdaten-Replay.20 Hosttests,106 Task-Reaps;
+Gates1,648/33,501/10,970/136,188/3,336s. Alte64-Aufruf-Freigaben bleiben
+unveraendert; neue128-Aufruf-Freigaben sind explizit generationsgebunden.
+Die alte VMware-Referenz ist byteidentisch wiederhergestellt; der benutzte
+VMware-Stand bleibt unter r83by-pio-throughput/reference-recovery01 gesichert.
+Alle vorherigen Fehlversuche bleiben dokumentiert. Vertrag und Evidenz:
+docs/architecture/NATIVE_PIO_THROUGHPUT_CONTRACT.md, candidate08/precommit.json.
 
-Architekturentscheidung offen: Diagnose41 zeichnet beide Root-Lebenszyklen
+Aktiv: R8.3bv-large-file. Nach dem sauberen BY-Commit wird das verifizierte
+35-Datei-Archiv/stash cc29b83e wieder aufgenommen und mit der neuen expliziten
+PIO-Freigabe/25ms-Pausierung integriert. Beide vollstaendigen1MiB-Starts,
+alle14 BV-Gaeste und alle fuenf Gates bleiben erforderlich. Das vollstaendige
+native VMware-Desktop-Abbild ist weiterhin nicht fertig.
+
+Historische BV-Diagnose vor der oben genannten Freigabe: Diagnose41 zeichnet beide Root-Lebenszyklen
 vollstaendig auf (446,891s Gastaufzeichnung), aber nur ein1MiB-Start gelingt.
 Die unabhängigen Streaming-Auswertungen Host103..105 zeigen beim zweiten
 Laden4088 statt4098 Dateianfragen und Deadline242290ms kurz vor Ende.

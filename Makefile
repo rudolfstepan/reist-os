@@ -276,6 +276,9 @@ X86_64_NATIVE_FILE_LAUNCH ?= 0
 X86_64_FILE_LAUNCH_CASE ?= 0
 X86_64_NATIVE_TASK_POOL ?= 0
 X86_64_NATIVE_POOL_PIO ?= 0
+X86_64_NATIVE_PIO_THROUGHPUT ?= 0
+X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE ?= 0
+
 X86_64_NATIVE_SERVICE_CPU ?= 0
 X86_64_NATIVE_SESSION ?= 0
 X86_64_NATIVE_SHELL_SESSION ?= 0
@@ -438,6 +441,7 @@ ifeq ($(X86_64_NATIVE_MATH_HARDWARE),1)
 X86_64_NATIVE_MATH := 1
 endif
 X86_64_MATH_HARDWARE_ASM = $(if $(filter 1,$(X86_64_NATIVE_MATH_HARDWARE)),-DREIST_NATIVE_MATH_HARDWARE=1,)
+X86_64_MATH_HARDWARE_ASM += $(if $(filter 1,$(X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE)),-DREIST_NATIVE_MATH_HARDWARE=1,)
 X86_64_NATIVE_MATH ?= 0
 ifneq ($(words $(X86_64_NATIVE_MATH)),1)
 $(error NativeMath selector must be one value)
@@ -618,6 +622,28 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TEXT)),--text-runtime,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_GRAPHICAL_SESSION)),--graphical-session,)
+ifneq ($(words $(X86_64_NATIVE_PIO_THROUGHPUT)),1)
+$(error NativePIOThroughput selector must be one value)
+endif
+ifneq ($(words $(X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE)),1)
+$(error NativePIOThroughputHardware selector must be one value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE),0 1),$(X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE))
+$(error NativePIOThroughputHardware selector must be0 or1)
+endif
+ifeq ($(X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE),1)
+ifneq ($(X86_64_NATIVE_PIO_THROUGHPUT),1)
+$(error NativePIOThroughputHardware requires the explicit throughput profile)
+endif
+endif
+ifneq ($(filter $(X86_64_NATIVE_PIO_THROUGHPUT),0 1),$(X86_64_NATIVE_PIO_THROUGHPUT))
+$(error NativePIOThroughput selector must be0 or1)
+endif
+ifeq ($(X86_64_NATIVE_PIO_THROUGHPUT),1)
+ifneq ($(X86_64_NATIVE_POOL_PIO)$(X86_64_NATIVE_SERVICE_CPU)$(X86_64_NATIVE_SERVICE_PIO)$(X86_64_NATIVE_LIVE_FILE),1000)
+$(error NativePIOThroughput requires plain pool PIO)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_POOL_PIO)),1)
 $(error NativePoolPIO selector must be one explicit value)
 endif
@@ -995,7 +1021,7 @@ x86_64-bootstrap:
 	@mkdir -p $(X86_64_BOOTSTRAP_DIR)
 ifeq ($(X86_64_NATIVE_PROGRAMS),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --directory $(X86_64_BOOTSTRAP_DIR) \
-		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,) $(X86_64_LIVE_FILE_ARG) $(X86_64_CONSOLE_ARG) $(X86_64_SESSION_ARG)
+		--cc $(X86_64_CC) --nasm $(AS) --ld $(LD) --case $(X86_64_PROGRAM_CASE) $(if $(filter 1,$(X86_64_NATIVE_LIFECYCLE)),--family --family-case $(X86_64_FAMILY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_STARTUP)),--startup --startup-case $(X86_64_STARTUP_CASE),) $(if $(filter 1,$(X86_64_NATIVE_IMPORT)),--import-image,) $(if $(filter 1,$(X86_64_NATIVE_PIO)),--pio --pio-case $(X86_64_PIO_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK)),--block,) $(if $(filter 1,$(X86_64_NATIVE_WIDE)),--wide --memory-case $(X86_64_MEMORY_CASE),) $(if $(filter 1,$(X86_64_NATIVE_BLOCK_PROFILE)),--block-profile --block-profile-case $(X86_64_BLOCK_PROFILE_CASE),) $(if $(filter 1,$(X86_64_NATIVE_FILESYSTEM)),--filesystem --filesystem-case $(X86_64_FILESYSTEM_CASE) --filesystem-layout $(X86_64_FILESYSTEM_LAYOUT),) $(if $(filter 1,$(X86_64_NATIVE_FILE_LAUNCH)),--file-launch --file-launch-case $(X86_64_FILE_LAUNCH_CASE),) $(if $(filter 1,$(X86_64_NATIVE_TASK_POOL)),--task-pool,) $(if $(filter 1,$(X86_64_NATIVE_POOL_PIO)),--pool-pio,) $(if $(filter 1,$(X86_64_NATIVE_PIO_THROUGHPUT)),--pio-throughput,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_CPU)),--service-cpu,) $(if $(filter 1,$(X86_64_NATIVE_SERVICE_PIO)),--service-pio,) $(X86_64_LIVE_FILE_ARG) $(X86_64_CONSOLE_ARG) $(X86_64_SESSION_ARG)
 endif
 	@$(AS) -f elf64 -DX86_64_NATIVE_PROCESSES=$(X86_64_NATIVE_PROCESSES) \
 		-DX86_64_NATIVE_IPC=$(X86_64_NATIVE_IPC) -DX86_64_NATIVE_IPC_CASE=$(X86_64_NATIVE_IPC_CASE) \

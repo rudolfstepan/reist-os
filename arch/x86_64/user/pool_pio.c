@@ -9,6 +9,9 @@
 #define S3(n,a,b,c) reist_x64_syscall3(REIST_X64_SYS_##n,(uintptr_t)(a),(uintptr_t)(b),(uintptr_t)(c))
 #define REQUIRE(x,e) do{if(!(x))return(e);}while(0)
 #if PROGRAM_ID==0 || PROGRAM_ID==2
+#if defined(REIST_NATIVE_PIO_THROUGHPUT) && PROGRAM_ID==0
+static unsigned pio_throughput_selected;
+#endif
 static uint32_t request_ep,reply_ep,notice_ep;
 static x86os_ipc_message_t message,request;
 static void zero(void *p,unsigned n){unsigned char *b=p;for(unsigned i=0;i<n;i++)b[i]=0;}
@@ -16,6 +19,12 @@ static void copy(void *p,const void *s,unsigned n){unsigned char *a=p;const unsi
 static uint64_t clock_ms(void *v){(void)v;return (uint64_t)S0(MONOTONIC_MS);}
 static int64_t pio(uint64_t owner,unsigned op){
     reist_native_pio_request q={1,64,op,0,owner,op==REIST_PIO_READ8?0x1f7:0,0,0,0,0,0,0};
+#if defined(REIST_NATIVE_PIO_THROUGHPUT) && PROGRAM_ID==0
+    if(op==REIST_PIO_BIND && pio_throughput_selected) {
+        int result=reist_x64_pio_throughput_bind_prepare(&q,owner);
+        if(result)return result;
+    }
+#endif
     return reist_x64_pio(&q);
 }
 #endif
@@ -95,6 +104,9 @@ int main(int argc,char **argv,char **envp){
 #if PROGRAM_ID==0
     REQUIRE(argc==2&&argv[1][0]=='0'&&pool_pio_root[1]<=15,201);
     unsigned mode=(unsigned)pool_pio_root[1],fillers=mode<=5?mode:5,slot=fillers+2;
+#ifdef REIST_NATIVE_PIO_THROUGHPUT
+    pio_throughput_selected=mode!=0; /* Same image retains one old-profile case. */
+#endif
     pool_pio_root[2]=(uint64_t)S0(GETPID);pool_pio_root[3]=1;pool_pio_root[9]=fillers;
     void *template=(void*)(uintptr_t)S1(MALLOC,REIST_X64_PREPARED_V2_BYTES);
     void *record=(void*)(uintptr_t)S1(MALLOC,REIST_X64_PREPARED_V2_BYTES);

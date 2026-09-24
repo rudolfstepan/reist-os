@@ -35,6 +35,8 @@ param(
     [switch]$NativeFileLaunch,
     [switch]$NativeTaskPool,
     [switch]$NativePoolPIO,
+    [switch]$NativePIOThroughput,
+    [switch]$NativePIOThroughputHardware,
     [switch]$NativeServiceCPU,
     [switch]$NativeSession,
     [switch]$NativeShellSession,
@@ -124,6 +126,11 @@ if ($NativeConsole) {
         throw 'NativeConsole requires plain NativePrograms and excludes device/lifecycle/fault fixtures.'
     }
     $NativePrograms = [switch]$true
+}
+if ($NativePIOThroughputHardware) { $NativePIOThroughput = [switch]$true }
+if ($NativePIOThroughput) {
+    if ($NativeLiveFile -or $NativeServiceCPU -or $NativeServicePIO) { throw 'NativePIOThroughput requires the separate pool fixture.' }
+    $NativePoolPIO = [switch]$true
 }
 if ($NativeLiveFile) {
     if ($NativeServiceCPU -or $NativeServicePIO) { throw 'NativeLiveFile excludes other service fixtures.' }
@@ -471,6 +478,8 @@ try {
         "X86_64_NATIVE_FILE_LAUNCH=$([int]$NativeFileLaunch.IsPresent)" `
         "X86_64_NATIVE_TASK_POOL=$([int]$NativeTaskPool.IsPresent)" `
         "X86_64_NATIVE_POOL_PIO=$([int]$NativePoolPIO.IsPresent)" `
+        "X86_64_NATIVE_PIO_THROUGHPUT=$([int]$NativePIOThroughput.IsPresent)" `
+        "X86_64_NATIVE_PIO_THROUGHPUT_HARDWARE=$([int]$NativePIOThroughputHardware.IsPresent)" `
         "X86_64_NATIVE_SERVICE_CPU=$([int]$NativeServiceCPU.IsPresent)" `
         "X86_64_NATIVE_SESSION=$([int]$NativeSession.IsPresent)" `
         "X86_64_NATIVE_SHELL_SESSION=$([int]$NativeShellSession.IsPresent)" `

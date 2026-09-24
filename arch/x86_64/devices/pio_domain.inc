@@ -3,16 +3,24 @@ global native_pio_admit64
 native_pio_admit64:
     mov eax,[rdi]
     dec eax
-    cmp eax,1
+    cmp eax,2
     ja .bad
     cmp dword [rdi+4],64
     jne .bad
     mov eax,[rdi+12]
     or eax,[rdi+36]
     mov rcx,[rdi+56]
+    cmp dword [rdi],3
+    je .throughput_format
     cmp dword [rdi],2
     je .deadline_format
     or rcx,[rdi+48]
+    jmp .reserved
+.throughput_format:
+    cmp dword [rdi+8],1
+    jne .bad
+    cmp qword [rdi+48],128
+    jne .bad
     jmp .reserved
 .deadline_format:
     cmp qword [rdi+48],0
@@ -137,10 +145,20 @@ native_pio_state_admit64:
     jne .bad
     cmp qword [rdi+16],1
     ja .bad
+    cmp qword [rdi+56],0
+    je .legacy_quota
+    mov rax,0xffffff7f00000080
+    cmp [rdi+56],rax
+    jne .bad
+    cmp qword [rdi],0
+    je .bad
+    cmp qword [rdi+40],128
+    ja .bad
+    jmp .quota_valid
+.legacy_quota:
     cmp qword [rdi+40],64
     ja .bad
-    cmp qword [rdi+56],0
-    jne .bad
+.quota_valid:
     mov rax,1<<60
     cmp [rdi+32],rax
     jae .bad
@@ -181,7 +199,9 @@ native_pio_state_admit64:
     xor eax,eax
     ret
 
-; State64: owner/inverse/fenced/window/last/count/reset_tick/reserved.
+; State64: owner/inverse/fenced/window/last/count/reset_tick/profile_tag.
+; Profile tag0 preserves legacy64; 0xffffff7f00000080 admits128. A fenced
+; tag is diagnostic only; rebind selects anew and final reap clears it.
 ; RDI state, RSI pinned request, RDX caller handle, RCX monotonic PIT tick,
 ; R8 bind witness bits (1 old generation reaped,2 target live). All pointers
 ; are trusted pinned objects; the runtime adapter validates user buffers.
@@ -252,7 +272,12 @@ native_pio_apply64:
     mov [r12+24],r15
     mov qword [r12+40],0
 .charge:
-    cmp qword [r12+40],64
+    mov eax,64
+    cmp qword [r12+56],0
+    je .quota_selected
+    mov eax,128
+.quota_selected:
+    cmp [r12+40],rax
     je .quota
     inc qword [r12+40]
     mov edi,[r13+24]
@@ -300,6 +325,12 @@ native_pio_apply64:
     mov rax,[r13+16]
     cmp rax,[r12]
     je .denied
+    mov qword [r12+56],0
+    cmp dword [r13],3
+    jne .bind_profile_ready
+    mov rcx,0xffffff7f00000080
+    mov [r12+56],rcx
+.bind_profile_ready:
     mov [r12],rax
     not rax
     mov [r12+8],rax
