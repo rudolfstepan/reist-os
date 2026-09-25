@@ -1,5 +1,63 @@
 # Real native desktop service authority proposal
 
+## Approved: bounded full-desktop startup profile (2026-09-25)
+
+**Explicitly approved 2026-09-25:** user "ja mach weiter" in direct response
+to the request for the exclusive10-second full-desktop startup deadline.
+Implementation and acceptance remain pending. The current native full desktop repeatedly
+reaches the existing3000ms startup deadline before its first complete frame.
+The only earlier successful first-boot diagnostic is guest06; it is not full
+runtime acceptance. Preserve every failed diagnostic, its original limits and
+all old qualification evidence.
+
+Concrete requested change: allow **10000ms maximum STARTING time exclusively
+for the explicit native full-desktop selector**, including first startup and
+the existing bounded replacement startup. This is an absolute monotonic
+deadline fixed when the supervisor begins that transition. Progress, partial
+frames, client messages and restarts cannot renew it. Expiry still revokes,
+fences, reaps and enters the existing failure/degraded transition. The profile
+must not announce READY until the actual frame, input and both app surfaces
+have passed the existing checks.
+
+The old graphical profile retains3000ms and byte-identical disabled artifacts.
+Keep32 CPU samples/1000ms, the existing1000ms health deadline, original restart
+and reap budgets, per-call IPC limits, eight task slots, two application slots,
+heap bounds, read-only authority and unchanged display quota. Application
+Surface response deadlines after HELLO remain unchanged. This proposal adds no
+filesystem, device, network, DMA or process-management rights.
+
+Required implementation is a separately frozen prerequisite transaction:
+preserve/archive the attributed unaccepted CB candidate, then add the explicit
+profile consistently to graphical state validation, role argument admission
+and bounded startup loops. In addition to the CB adapters, this needs
+`userspace/sdk/lib/x86_64/graphical_session.c`,
+`userspace/gui/lib/native_surface.c`,
+`userspace/gui/apps/native_client.c`,
+`userspace/drivers/ps2/native_session.c`,
+`scripts/build_x86_64_graphical_programs.py` and their matching tests/contracts.
+These files are outside the current CB allowed-file list; no such edit is
+authorized by the current package alone. Freeze their exact scope and finite
+build/guest reservation before implementation; keep one active package.
+
+Required proof: original and new deadline boundary/overflow/replay rejection,
+unchanged post-READY health and CPU exhaustion, deadline cancellation and
+complete generation cleanup, actual first frame/input/app startup in a fresh
+guest, bounded replacement startup, and exact disabled-profile projection.
+Then resume CB and run its original five final gates, including all eight
+affected runtime cases and independent replay, with this explicitly approved
+startup limit recorded in the acceptance contract. No diagnostic is promoted
+to acceptance. VMware visual/performance acceptance remains required.
+
+Evidence-directed changes already made before this request: nonblocking root
+FS transport; paced capture; lazy allocation of5MiB external-font scratch;
+native-O2 compilation; bounded startup allocation pacing; and no retry on
+permanent acceleration ENOTSUP. Host regression tests pass for those changes.
+Guest27 still reaches the original deadline before completing initialization.
+This requests a timing-policy decision, not permission for another routine
+development attempt.
+
+---
+
 Prepared2026-09-24 after accepted display adapter1402c13e. No new authority
 is implemented or assumed by this document. User priority: usable real native
 desktop in VMware, then complete native64 integration.
