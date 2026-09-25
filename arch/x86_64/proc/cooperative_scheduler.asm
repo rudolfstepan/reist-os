@@ -2902,7 +2902,11 @@ scheduler_profile_apply64:
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
     jne .legacy
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     je family_profile_apply64
 .legacy:
 %endif
@@ -6668,7 +6672,11 @@ scheduler_task_frame_alloc64:
 %ifdef REIST_NATIVE_LIFECYCLE
     cmp byte [rel scheduler_mode],SCHEDULER_MODE_PROCESS
     jne .legacy
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne scheduler_fail
     cmp ebx,2
     jb scheduler_fail

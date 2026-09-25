@@ -97,6 +97,17 @@ static inline int64_t reist_x64_task_import_large_periodic(const void *prepared,
         (uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup,1000,0};
     return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uintptr_t)&q);
 }
+#ifdef REIST_NATIVE_DESKTOP_CPU
+/* Explicit64-sample large import; existing v6/v8 stay bounded at32. */
+#define REIST_TASK_DESKTOP_CPU_IMPORT_VERSION 9U
+static inline int64_t reist_x64_task_import_desktop_cpu(const void *prepared,
+        const reist_task_profile_v1_t *profile,uint64_t cpu_samples,
+        const reist_task_startup_v1_t *startup) {
+    reist_task_create_v6_t q={REIST_TASK_DESKTOP_CPU_IMPORT_VERSION,80,1,0,0,
+        (uintptr_t)prepared,0,(uintptr_t)profile,cpu_samples,(uintptr_t)startup,1000,0};
+    return reist_x64_syscall1(REIST_SYS_TASK_CONTROL,(uintptr_t)&q);
+}
+#endif
 #endif
 #line 90
 /* Ordinary lifetime CPU accounting. v6 periodic imports still require RNPGv2. */

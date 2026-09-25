@@ -70,3 +70,48 @@ Execute once per frozen candidate, in order, stop on first failure:
 After all gates, direct scope/ABI/cleanup diff review and local clean commit,
 resume CF for actual GUI/input/apps/replacement/start deadline and VMware gates.
 CG acceptance alone is not a working native64 VMware desktop.
+
+## Development ledger (2026-09-25, unaccepted)
+
+Build01 disabled baseline succeeded before source edits (6.082s, HEAD ed1bba6b).
+Host01 failed: test passed the wrong charge timestamp and incorrectly expected
+terminal exhaustion to renew. Oracle corrected to the actual core contract.
+Host02 exposed the missing selected parent64 attenuation; implementation added.
+Host03 passed O0/O2 selected and disabled admission/accounting.
+Host04 passed four O0/O2 groups, adding real SDK80-byte transport, all partial
+request preflights, RNPG dispatch/copy and periodic publication (5.806s).
+Build02 selected CPU64+trace succeeded. Build03 disabled comparison found NASM
+macro invocation IDs changed symbol bytes even with identical instructions;
+macro calls now exist only under the selected flag. Build04 disabled matches
+55/56 complete artifacts, including linked kernel and scheduler object. Only
+root object differs because its generated header has a different directory.
+No binary stripping or normalization accepted. Exact-header recompilation next.
+
+Initial4 build reservations spent; evidence-directed continuation reserves
+build05..08 (each300s): exact-header root comparison, extended selected workload
+and at most two source-directed corrections. Hosts4/12 and guests0/8 spent.
+No frozen gate has run. No GUI/VMware or package acceptance is claimed.
+
+Build05 exact-header full root object comparison passed. Build06 selected longer
+normal workload passed. Guest01 failed at live-plan validation after CREATE:
+initial-slot32 admission was also used for an already admitted child64. Added a
+separate internal live-plan entry: peer1 stays32, child64 requires period100 and
+child<=immutable root, initial/unused admission remains32. Existing generation,
+ownership and whole-run checks still apply. Host05 passed regression O0/O2.
+Build07/guest02 passed normal cross-period proof51.784s; totals143,137,134,124.
+Build08 adds deliberate root exhaustion after live child proof. Guest03 passed
+14.151s: roots1/4 reach64 in their window, children3/6 cancelled and reaped,
+peers2/5 exit77, all frame/heap/profile/IPC/FP/queue cleanup replayed.
+Development now5/12 hosts,8/8 builds,3/8 guests spent. Guest01 failure retained.
+New selected fixture work and observers remain unaccepted until frozen gates.
+
+## Acceptance
+
+All five frozen gates passed in qualification01, including seven fresh guests,
+full raw ownership/CPU replay and six deliberate evidence corruptions rejected.
+All56 disabled artifacts match baseline (root object with identical header path).
+Acceptance seal SHA256 52d6948f20726a00ac0bb73fbd354a7e602dbeac51b795af99e121a5d16fbf8d.
+Direct diff review covered ABI append-only transport, initial versus live plan
+admission, default-only macro expansion, bounded accounting and complete cleanup.
+No authority, quota period, timeout or gate was weakened. CG done; resume CF.
+This accepts the CPU prerequisite only, not GUI/VMware/native64 completion.

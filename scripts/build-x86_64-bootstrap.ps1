@@ -31,6 +31,7 @@ param(
     [switch]$NativeWide,
     [switch]$NativeLargeImage,
     [switch]$NativeLargePeriodic,
+    [switch]$NativeDesktopCPU,
     [switch]$NativeLargeFile,
     [switch]$NativeBlockProfile,
     [switch]$NativeFilesystem,
@@ -84,6 +85,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+if ($NativeDesktopCPU) { $NativeLargePeriodic = [switch]$true }
 if ($NativeLargePeriodic) { $NativeLargeImage = [switch]$true; $NativeServiceCPU = [switch]$true; $NativeTaskPool = [switch]$true }
 if ($NativeLargeFile) { $NativeLargeImage = [switch]$true; $NativeText = [switch]$true }
 if ($NativeLargeImage) { $NativeWide = [switch]$true }
@@ -481,6 +483,7 @@ try {
         "X86_64_NATIVE_BLOCK=$([int]$NativeBlock.IsPresent)" `
         "X86_64_NATIVE_WIDE=$([int]$NativeWide.IsPresent)" `
         "X86_64_NATIVE_LARGE_PERIODIC=$([int]$NativeLargePeriodic.IsPresent)" `
+        "X86_64_NATIVE_DESKTOP_CPU=$([int]$NativeDesktopCPU.IsPresent)" `
         "X86_64_NATIVE_LARGE_IMAGE=$([int]$NativeLargeImage.IsPresent)" `
         "X86_64_NATIVE_LARGE_FILE=$([int]$NativeLargeFile.IsPresent)" `
         "X86_64_NATIVE_BLOCK_PROFILE=$([int]$NativeBlockProfile.IsPresent)" `

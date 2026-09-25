@@ -15,6 +15,10 @@ family_request_admit64:
 %ifndef REIST_NATIVE_TASK_POOL
 %error NativeLargePeriodic requires NativeTaskPool
 %endif
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],9
+    je .startup
+%endif
     cmp dword [rdi],8
     je .startup
 %endif
@@ -50,6 +54,10 @@ family_request_admit64:
 .header:
 %ifdef REIST_NATIVE_SERVICE_CPU
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],9
+    je .periodic_header
+%endif
     cmp dword [rdi],8
     je .periodic_header
 %endif
@@ -121,8 +129,19 @@ family_request_admit64:
 .cpu:
     mov rax,[rdi+48]
     dec rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],9
+    jne .old_cpu_limit
+    cmp rax,63
+    ja .invalid
+    jmp .cpu_valid
+.old_cpu_limit:
+%endif
     cmp rax,31
     ja .invalid
+%ifdef REIST_NATIVE_DESKTOP_CPU
+.cpu_valid:
+%endif
     mov rax,[rdi+40]
     cmp dword [rdi],4
 %ifdef REIST_NATIVE_WIDE
@@ -155,6 +174,10 @@ family_request_admit64:
 global family_cpu_attenuate64
 family_cpu_attenuate64:
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],9
+    je .periodic_parent
+%endif
     cmp dword [rdi],8
     je .periodic_parent
 %endif
@@ -167,7 +190,11 @@ family_cpu_attenuate64:
     jne .denied
     mov rax,rdx
     dec rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp rax,63
+%else
     cmp rax,31
+%endif
     ja .denied
     cmp [rdi+48],rdx
     ja .denied
@@ -533,7 +560,11 @@ family_initialize64:
     ret
 
 family_root_built64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
     mov edi,[rel process_run_build_slot]
     call family_record64
@@ -836,6 +867,10 @@ family_syscall64:
 %ifdef REIST_NATIVE_SERVICE_CPU
     mov rax,[rel syscall_rdi]
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rax],9
+    je .periodic_range
+%endif
     cmp dword [rax],8
     je .periodic_range
 %endif
@@ -856,6 +891,10 @@ family_syscall64:
     mov ecx,8
 %ifdef REIST_NATIVE_SERVICE_CPU
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rsi],9
+    je .periodic_copy
+%endif
     cmp dword [rsi],8
     je .periodic_copy
 %endif
@@ -925,6 +964,10 @@ family_syscall64:
 %endif
 %ifdef REIST_NATIVE_LARGE_IMAGE
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rel family_request],9
+    je .large_range
+%endif
     cmp dword [rel family_request],8
     je .large_range
 %endif
@@ -962,6 +1005,10 @@ family_syscall64:
     mov ecx,NATIVE_PREPARED_V2_BYTES/8
 %ifdef REIST_NATIVE_LARGE_IMAGE
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rel family_request],9
+    je .large_copy
+%endif
     cmp dword [rel family_request],8
     je .large_copy
 %endif
@@ -989,6 +1036,10 @@ family_syscall64:
     mov esi,NATIVE_PREPARED_V2_BYTES
 %ifdef REIST_NATIVE_LARGE_IMAGE
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rel family_request],9
+    je .large_admit
+%endif
     cmp dword [rel family_request],8
     je .large_admit
 %endif
@@ -1019,6 +1070,10 @@ family_syscall64:
     lea rdi,[rel elf_import_record+262240]
 %ifdef REIST_NATIVE_LARGE_IMAGE
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rel family_request],9
+    je .large_tail
+%endif
     cmp dword [rel family_request],8
     je .large_tail
 %endif
@@ -1276,6 +1331,10 @@ family_create64:
 %ifdef REIST_NATIVE_SERVICE_CPU
     xor eax,eax
 %ifdef REIST_NATIVE_LARGE_PERIODIC
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rel family_request],9
+    je .cpu_periodic
+%endif
     cmp dword [rel family_request],8
     je .cpu_periodic
 %endif
@@ -1412,7 +1471,11 @@ family_wait64:
     jmp family_result64
 
 family_wait_expired64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
     push rax
     push r10
@@ -1431,7 +1494,11 @@ family_wait_expired64:
     ret
 
 family_terminal64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
 %ifdef REIST_NATIVE_TERMINAL
     call native_terminal_retire_hook64
@@ -1506,7 +1573,11 @@ family_terminal64:
     ret
 
 family_reaped64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
     mov edi,[rel scheduler_current_slot]
     call family_record64
@@ -1524,7 +1595,11 @@ family_reaped64:
     ret
 
 family_dispatch64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
     call process_run_validate64
     cmp eax,1
@@ -1670,7 +1745,11 @@ family_cancel_one64:
     ret
 
 family_finish64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .done
     cmp dword [rel family_cancel_mask],0
     jne scheduler_fail

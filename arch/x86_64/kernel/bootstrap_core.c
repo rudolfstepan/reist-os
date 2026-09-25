@@ -14,7 +14,10 @@
 #define X86_64_NATIVE_PROCESSES 0
 #endif
 #if X86_64_NATIVE_PROCESSES
-#if REIST_NATIVE_SERVICE_CPU
+#if REIST_NATIVE_DESKTOP_CPU
+extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v6 *plan);
+#elif REIST_NATIVE_SERVICE_CPU
+#line 18
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v5 *plan);
 #elif REIST_NATIVE_TASK_POOL
 extern reist_u32 x86_64_c_process_run64(const struct reist_x64_run_v4 *plan);
@@ -59,13 +62,23 @@ const reist_u64 native_shell_session_profile_v1[6]={1,48,0,1000,2,10000};
 #else
 #define NATIVE_SERVICE_ROOT_MASK NATIVE_RUN_MASK
 #endif
-static const struct reist_x64_run_v5 native_runs[2] = {
-    {5,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+#if REIST_NATIVE_DESKTOP_CPU
+#define NATIVE_SERVICE_PLAN reist_x64_run_v6
+#define NATIVE_SERVICE_PLAN_VERSION 6
+#define NATIVE_SERVICE_ROOT_CPU 64
+#else
+#define NATIVE_SERVICE_PLAN reist_x64_run_v5
+#define NATIVE_SERVICE_PLAN_VERSION 5
+#define NATIVE_SERVICE_ROOT_CPU 32
+#endif
+#line 62
+static const struct NATIVE_SERVICE_PLAN native_runs[2] = {
+    {NATIVE_SERVICE_PLAN_VERSION,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,NATIVE_SERVICE_ROOT_CPU,3},{1,NATIVE_RUN_MASK,32,4},
                 {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
                 {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
                 {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},
                {100,100,0,0,0,0,0,0}},
-    {5,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,32,3},{1,NATIVE_RUN_MASK,32,4},
+    {NATIVE_SERVICE_PLAN_VERSION,336,8,0,{{1,NATIVE_SERVICE_ROOT_MASK,NATIVE_SERVICE_ROOT_CPU,3},{1,NATIVE_RUN_MASK,32,4},
                 {0,NATIVE_RUN_MASK,32,7},{0,NATIVE_RUN_MASK,32,8},
                 {0,NATIVE_RUN_MASK,32,9},{0,NATIVE_RUN_MASK,32,10},
                 {0,NATIVE_RUN_MASK,32,11},{0,NATIVE_RUN_MASK,32,12}},

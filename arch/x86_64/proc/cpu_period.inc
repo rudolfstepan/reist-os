@@ -56,7 +56,11 @@ reist_x64_period_apply:
     jz .bad
     mov eax,r13d
     dec rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp rax,63
+%else
     cmp rax,31
+%endif
     ja .bad
     mov rax,[rdi]
     or rax,[rdi+8]
@@ -97,7 +101,11 @@ reist_x64_period_apply:
     jne .bad
     mov rax,[rdi+8]
     dec rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp rax,63
+%else
     cmp rax,31
+%endif
     ja .bad
     cmp [rsi+8],r14
     ja .bad
@@ -134,7 +142,7 @@ reist_x64_period_apply:
     inc rdx
     cmp r10,rdx
     ja .bad
-    ; index <2^60/100 and limit<=32: multiplication cannot overflow64 bits.
+    ; index <2^60/100 and limit<=64: multiplication cannot overflow64 bits.
     inc rax
     imul rax,[rdi+8]
     cmp [rdi+16],rax

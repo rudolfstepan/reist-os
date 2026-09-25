@@ -17,6 +17,18 @@
 %define NATIVE_POOL_RUN_VERSION 3
 %define NATIVE_POOL_RUN_BYTES 144
 %endif
+; ZF-only plan membership test; no register clobber. Selected v6 shares
+; lifecycle/cleanup with v5. Disabled expansion is the original comparison.
+%macro NATIVE_POOL_PLAN_CMP 1
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp %1,6
+    je %%done
+%endif
+    cmp %1,NATIVE_POOL_RUN_VERSION
+%ifdef REIST_NATIVE_DESKTOP_CPU
+%%done:
+%endif
+%endmacro
 %define NATIVE_POOL_MASK ((1 << NATIVE_POOL_TASKS)-1)
 %define NATIVE_POOL_CHILD_MASK (NATIVE_POOL_MASK & ~3)
 %ifdef REIST_NATIVE_SERVICE_CPU
@@ -89,4 +101,13 @@
     cmp rax,USER_STACK_TOP
 %endif
 %endmacro
+%endif
+
+%ifdef REIST_NATIVE_DESKTOP_CPU
+%if REIST_NATIVE_DESKTOP_CPU != 1
+%error NativeDesktopCPU must be an explicit enabled selector
+%endif
+%ifndef REIST_NATIVE_LARGE_PERIODIC
+%error NativeDesktopCPU requires NativeLargePeriodic
+%endif
 %endif

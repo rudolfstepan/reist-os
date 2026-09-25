@@ -31,4 +31,13 @@ struct reist_x64_run_v5 {
     unsigned long long period_ticks[8];
 };
 _Static_assert(sizeof(struct reist_x64_run_v5)==336, "native run-v5 descriptor size");
+#if REIST_NATIVE_DESKTOP_CPU
+/* Append-only private v6: only root slot0 can initially request up to64. */
+struct reist_x64_run_v6 {
+    unsigned int version,size,count,reserved;
+    struct reist_x64_run_task_v1 tasks[8];
+    unsigned long long period_ticks[8];
+};
+_Static_assert(sizeof(struct reist_x64_run_v6)==336,"native run-v6 descriptor size");
+#endif
 #endif

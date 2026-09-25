@@ -5,12 +5,20 @@
 
 ; Pure read-only SysV descriptor admission. Arguments remain opaque64 bits.
 process_run_admit64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    xor r10d,r10d
+.body:
+%endif
     test rdi, rdi
     jz .bad
     test rdi, 7
     jnz .bad
 %ifdef REIST_NATIVE_TASK_POOL
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    je .service_header
+%endif
     cmp dword [rdi],5
     je .service_header
 %endif
@@ -97,6 +105,10 @@ process_run_admit64:
 .console_version:
 %endif
 %ifdef REIST_NATIVE_SERVICE_CONSOLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    je .console_admitted
+%endif
     cmp dword [rdi],5
 %else
     cmp dword [rdi],2
@@ -108,8 +120,35 @@ process_run_admit64:
     jz .bad
     mov rax, [r9+16]
     dec rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    jne .old_plan_limit
+    test ecx,ecx
+    jz .desktop_limit
+    ; Only the internal live-plan gate admits an already published child64.
+    ; Initial admission keeps every other slot at32; peer1 always stays32.
+    test r10d,r10d
+    jz .old_plan_limit
+    cmp ecx,2
+    jb .old_plan_limit
+    cmp qword [rdi+272+rcx*8],100
+    jne .old_plan_limit
+    cmp qword [rdi+272],100
+    jne .bad
+    mov r11,[r9+16]
+    cmp r11,[rdi+32]
+    ja .bad
+.desktop_limit:
+    cmp rax,63
+    ja .bad
+    jmp .plan_limit_valid
+.old_plan_limit:
+%endif
     cmp rax, 31
     ja .bad
+%ifdef REIST_NATIVE_DESKTOP_CPU
+.plan_limit_valid:
+%endif
 %ifdef REIST_NATIVE_PROGRAMS
     cmp dword [rdi],2
     jb .v1
@@ -118,6 +157,10 @@ process_run_admit64:
 %ifdef REIST_NATIVE_TASK_POOL
     je .family_entry
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    je .family_entry
+%endif
     cmp dword [rdi],5
     je .family_entry
 %endif
@@ -127,6 +170,10 @@ process_run_admit64:
 %ifdef REIST_NATIVE_TASK_POOL
 .family_entry:
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    je .family_dimensions
+%endif
     cmp dword [rdi],5
     je .family_dimensions
 %endif
@@ -168,8 +215,15 @@ process_run_admit64:
     jnz .bad
 .next:
 %ifdef REIST_NATIVE_SERVICE_CPU
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    cmp dword [rdi],6
+    je .desktop_period
+%endif
     cmp dword [rdi],5
     jne .nonperiodic_entry
+%ifdef REIST_NATIVE_DESKTOP_CPU
+.desktop_period:
+%endif
     mov rax,[rdi+272+rcx*8]
     cmp ecx,2
     jb .root_period
@@ -205,6 +259,12 @@ process_run_admit64:
     xor eax, eax
     ret
 
+%ifdef REIST_NATIVE_DESKTOP_CPU
+process_run_live_admit64:
+    mov r10d,1
+    jmp process_run_admit64.body
+%endif
+
 ; Read-only whole-run ownership gate; all registers except RAX preserved.
 process_run_validate64:
     push rbx
@@ -226,11 +286,19 @@ process_run_validate64:
     cmp byte [rel scheduler_active], 1
     jne .bad
 %ifdef REIST_NATIVE_TASK_POOL
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .bad
 %endif
     lea rdi, [rel process_run_plan]
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    call process_run_live_admit64
+%else
     call process_run_admit64
+%endif
     test eax, eax
     jz .bad
     lea rax, [rel scheduler_tasks]
@@ -311,7 +379,11 @@ process_run_validate64:
     test esi, esi
 %ifdef REIST_NATIVE_LIFECYCLE
     jnz .has_generation
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     je .outside
 .has_generation:
 %endif
@@ -319,7 +391,11 @@ process_run_validate64:
     cmp esi, [rel process_run_generation]
     ja .bad
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     je .generation_ready
 %endif
     mov eax, [rel process_run_generation]
@@ -511,7 +587,11 @@ process_run_validate64:
     jne .bad
     add ebp, [rel scheduler_reap_count]
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .legacy_total
     cmp ebp,[rel family_total]
     jne .bad
@@ -724,7 +804,11 @@ x86_64_process_run64:
 %ifdef REIST_NATIVE_TASK_POOL
     ; Pure admission also understands legacy descriptors. This selected
     ; runtime may copy its full extent only from its explicitly admitted ABI.
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rdi]
+%else
     cmp dword [rdi],NATIVE_POOL_RUN_VERSION
+%endif
     jne .reject
 %endif
     cmp byte [rel scheduler_active], 0
@@ -867,7 +951,11 @@ x86_64_process_run64:
     inc dword [rel process_run_build_slot]
     mov eax, [rel process_run_build_slot]
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .all_initial
     cmp eax,2
     jb .build
@@ -887,7 +975,11 @@ x86_64_process_run64:
     call process_ipc_service64
     inc ebx
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .all_ipc
     cmp ebx,2
     jb .ipc_bind
@@ -910,7 +1002,11 @@ x86_64_process_run64:
     jnz scheduler_fail
     inc ebx
 %ifdef REIST_NATIVE_LIFECYCLE
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    NATIVE_POOL_PLAN_CMP dword [rel process_run_plan]
+%else
     cmp dword [rel process_run_plan],NATIVE_POOL_RUN_VERSION
+%endif
     jne .all_heap
     cmp ebx,2
     jb .heap_bind

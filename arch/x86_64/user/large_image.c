@@ -1,8 +1,18 @@
 /* Bounded Ring3 memory/lifecycle fixture, not a shell or filesystem service. */
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/image.h>
-#ifdef REIST_NATIVE_LARGE_PERIODIC
+#ifdef REIST_NATIVE_DESKTOP_CPU
+#define reist_x64_task_import_large reist_x64_task_import_desktop_cpu
+#define LARGE_FIXTURE_CASE_MAX 7
+#define LARGE_FIXTURE_CPU 64
+#define LARGE_FIXTURE_BURST_MS 160
+#elif defined(REIST_NATIVE_LARGE_PERIODIC)
 #define reist_x64_task_import_large reist_x64_task_import_large_periodic
+#endif
+#ifndef LARGE_FIXTURE_CPU
+#define LARGE_FIXTURE_CASE_MAX 6
+#define LARGE_FIXTURE_CPU 32
+#define LARGE_FIXTURE_BURST_MS 80
 #endif
 #line 4
 #define S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
@@ -85,7 +95,7 @@ static __attribute__((noinline)) int exercise(unsigned mode,unsigned replacement
         /* Six bounded bursts separated by idle periods; the observer verifies
          * actual sample accounting, never infers CPU samples from wall time. */
         for(unsigned period=0;period<6;period++) {
-            uint64_t until=(uint64_t)S0(MONOTONIC_MS)+80;
+            uint64_t until=(uint64_t)S0(MONOTONIC_MS)+LARGE_FIXTURE_BURST_MS;
             while((uint64_t)S0(MONOTONIC_MS)<until)
                 for(unsigned spin=0;spin<32768;spin++)__asm__ volatile("pause");
             for(unsigned idle=0;idle<9;idle++)REQUIRE(S1(SLEEP_MS,100)==0,235);
@@ -106,13 +116,17 @@ static __attribute__((noinline)) int exercise(unsigned mode,unsigned replacement
 int main(int argc,char **argv) {
 #if PROGRAM_ID==0
     (void)argc;(void)argv;
-    REQUIRE(reist_large_image_selection[0]==0x31474d494752414cULL && reist_large_image_selection[1]<=6,230);
+    REQUIRE(reist_large_image_selection[0]==0x31474d494752414cULL && reist_large_image_selection[1]<=LARGE_FIXTURE_CASE_MAX,230);
     void *record=(void*)(uintptr_t)S1(MALLOC,REIST_X64_PREPARED_V3_BYTES);
     REQUIRE((int64_t)(uintptr_t)record>0,201);
     uint64_t previous=0;
     for(unsigned round=0;round<2;round++) {
         unsigned mode=round?0:(unsigned)reist_large_image_selection[1];
         if(mode==6)mode=0;
+#ifdef REIST_NATIVE_DESKTOP_CPU
+        if(mode==7)mode=0;
+#endif
+#line 78
         uint32_t endpoint=0;REQUIRE(S1(IPC_CREATE,&endpoint)==0 && endpoint,219);
         char port[9];for(unsigned i=0;i<8;i++)port[i]="0123456789abcdef"[(endpoint>>(28-i*4))&15];port[8]=0;
         char text[2]={(char)('0'+mode),0};const char *arguments[]={round?"wide-new":"wide-child",text,port};
@@ -131,13 +145,22 @@ int main(int argc,char **argv) {
             }
             REQUIRE(matches==1,218);
         }
-        int64_t child=reist_x64_task_import_large(record,&profile,32,&startup);
-        if(!round && reist_large_image_selection[1]==6){REQUIRE(child==-12,204);child=reist_x64_task_import_large(record,&profile,32,&startup);}
+        int64_t child=reist_x64_task_import_large(record,&profile,LARGE_FIXTURE_CPU,&startup);
+        if(!round && reist_large_image_selection[1]==6){REQUIRE(child==-12,204);child=reist_x64_task_import_large(record,&profile,LARGE_FIXTURE_CPU,&startup);}
         REQUIRE(child>0 && (uint64_t)child>previous,205);previous=(uint64_t)child;
         REQUIRE(S3(IPC_DELEGATE,endpoint,(uint64_t)child>>32,2)==0,220);
         mutate(record); /* admitted image and stack remain immutable private copies */
         volatile uint32_t message[35];initialize_message(message,4);message[3]=0x57494445;
         REQUIRE(S3(IPC_SEND_TIMEOUT,endpoint,message,0)==0,221);
+#ifdef REIST_NATIVE_DESKTOP_CPU
+        if(reist_large_image_selection[1]==7) {
+            /* Let the child publish its live-stack proof before exhausting
+             * the root. The kernel must fence/reap the complete family. */
+            for(unsigned idle=0;idle<5;idle++)REQUIRE(S1(SLEEP_MS,100)==0,242);
+            for(;;)__asm__ volatile("pause");
+        }
+#endif
+#line 103
 #ifdef REIST_NATIVE_LARGE_PERIODIC
         /* Separate fault cleanup from construction under the same CPU quota. */
         if(mode>=1 && mode<=4)REQUIRE(wait_next_cpu_period()==0,241);

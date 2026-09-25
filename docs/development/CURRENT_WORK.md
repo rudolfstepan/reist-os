@@ -1,10 +1,33 @@
+# Current: CG accepted; resume CF desktop integration (2026-09-25)
+
+R8.3cg-desktop-cpu: all five frozen gates passed qualification01. Seven fresh
+VMs cover normal cross-period child64, exhaustion, cancel, OOM, RX, guard and
+root64 failure. Independent replay plus corrupted-evidence rejection passed.
+Default profile56 artifacts byte-exact. CG done; CF sole active package.
+Restore preserved CF source bytes deliberately, retaining CG ABI/selector code;
+then freeze the in-scope CPU64 desktop integration reservation. CF/CB counters,
+failed proofs, original GUI/input/replacement/fault gates remain mandatory.
+No accepted VMware full desktop yet. Never apply archived queue wholesale.
+
+# Preserved previous boundary
+
 # Current: approved desktop CPU prerequisite R8.3cg (2026-09-25)
 
 Supervisor and compositor64 explicitly approved; other peers/defaults remain32.
 CG sole active package; CF queued and unaccepted,19-file candidate preserved in
 stash e5a1c1008004cbaa1af453a77224ef953615005f and before-cpu-prerequisite01.
 CG contract freezes new plan-v6/CREATE-v9, scope, limits and seven guest cases.
-No CG implementation/gates yet. Next disabled baseline then regression first.
+CG implementation includes explicit plan-v6/CREATE-v9 and default-off selectors.
+Host05 passed four production O0/O2 groups; added selector/membership tests await
+frozen gates. Builds01..08 spent. Build05 root exact-header comparison passed;
+all56 default artifacts matched before the later selected-only fixture edits.
+Guest01 exposed live-plan child64 rejection; corrected separate internal live
+admission retains initial/unused32 and child<=parent. Host05 covers this case.
+Guest02 normal passed51.784s: child totals143/137/134/124, exact ownership cleanup.
+Guest03 root exhaustion passed14.151s: two roots exhausted at window sample64,
+children cancelled/reaped, independent peers exited, all frames restored.
+CG guests3/8 spent (one failure preserved), hosts5/12, builds8/8. No frozen gate
+yet. Seven fresh acceptance guests and independent corrupted-evidence replay next.
 CF counters68 hosts/4 role builds/26 builds/media/39 guests retained. No accepted
 VMware desktop; CF/CB original GUI/replacement/fault/visual obligations remain.
 
