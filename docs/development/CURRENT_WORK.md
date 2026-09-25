@@ -1,3 +1,19 @@
+# Current: approved empty-IPC return prerequisite CI (2026-09-25)
+
+User continuation approves the immediately preceding explicit kernel proposal.
+CI sole active, CF queued/unaccepted. CF20 files archived and hash-verified in
+r83cf-desktop-startup/after-routing78/candidate.zip, SHA256
+ d9d27ab6823b83a70c0c55762140bafc1e59d08063da2576bfc760a22110dada;
+stash664aab38b599608dc17d031b49073b2cfe13db6c. Clean CH4a755fdc boundary verified.
+CF127hosts/4rolebuilds/51build-media/78guests retained. No implementation yet.
+Inventory excludes syscall51 (implicit1000ms wait); only admitted syscall54,
+timeout0,result-11 may share CH8-query budget after unchanged IPC work/scrub.
+Exact scope, finite development reservation and six final gates are frozen in
+NATIVE_EMPTY_IPC_RETURN_CONTRACT.md. Both GUI300ms limits required. No agents,
+worktree, push, weakened quota or full OS claim; R3.6b deferred.
+
+# Preserved accepted CH boundary
+
 # CH accepted; resume CF text response (2026-09-25)
 
 All six CH qualification01 gates passed: hosts1.66s, default56 exact8.06s,
