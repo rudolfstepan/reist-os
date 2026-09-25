@@ -1,5 +1,8 @@
 /** @file desktop_surface_runtime.c @brief Bounded desktop Surface broker. */
 #include "desktop_surface_runtime.h"
+#ifdef REIST_NATIVE_FULL_DESKTOP
+#include <reist/x86_64/desktop_platform.h>
+#endif
 static void clear_bytes(void *memory, uint32_t size) { uint8_t *b = memory; for (uint32_t i=0;i<size;++i) b[i]=0U; }
 static int send_response(x86os_ipc_handle_t endpoint, const reist_gui_surface_message_t *message) {
     x86os_ipc_message_t ipc; clear_bytes(&ipc, sizeof(ipc));
@@ -267,6 +270,12 @@ static void poll_retiring_client(desktop_surface_runtime_client_t *client) {
         client->active != DESKTOP_SURFACE_RUNTIME_RETIRING ||
         client->owner.pid <= 0 ||
         client->owner.process_generation == 0U) return;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    reist_desktop_channels *channels=reist_desktop_platform_channels();
+    if(channels && channels->phase==1)for(unsigned n=0;n<2;n++)
+        if(channels->config.children[n]>>32==client->owner.pid && channels->application_closed[n])
+            return; /* Root owns the one consuming reap and bounded replacement. */
+#endif
     x86os_process_identity_t identity;
     int identity_status = x86os_process_identity_of(
         client->owner.pid, &identity);
@@ -290,19 +299,50 @@ static void poll_retiring_client(desktop_surface_runtime_client_t *client) {
     }
 }
 
-int desktop_surface_runtime_poll(desktop_surface_runtime_t *runtime, desktop_surface_manager_t *manager) {
+static int poll_clients(desktop_surface_runtime_t *runtime, desktop_surface_manager_t *manager,
+    void (*route)(void *,void *),void *context) {
+#ifndef REIST_NATIVE_FULL_DESKTOP
+    (void)route;(void)context;
+#endif
     if (runtime == 0 || manager == 0) return DESKTOP_SURFACE_EINVAL;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    int recovery=reist_desktop_frontend_recover(runtime,manager);
+    if(recovery)return recovery;
+#endif
     int result = 0;
+#ifndef REIST_NATIVE_FULL_DESKTOP
     uint32_t input_sent[DESKTOP_SURFACE_RUNTIME_CAPACITY] = {0U};
+#endif
     for (uint32_t i = 0U; i < DESKTOP_SURFACE_RUNTIME_CAPACITY; ++i)
         poll_retiring_client(&runtime->clients[i]);
     for (uint32_t round = 0U;
          round < DESKTOP_SURFACE_RUNTIME_DRAIN_ROUNDS; ++round) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* Input shares each existing fair round with paint replies. A client
+         * transaction must not hold later input behind all16 drain rounds. */
+        uint32_t input_sent[DESKTOP_SURFACE_RUNTIME_CAPACITY] = {0U};
+#endif
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* Synchronous trusted caller, never retained or obtained over IPC. */
+        if(route)route(context,manager);
+#endif
         uint32_t processed_round = 0U;
         for (uint32_t i = 0U;
              i < DESKTOP_SURFACE_RUNTIME_CAPACITY; ++i) {
             if (runtime->clients[i].active != DESKTOP_SURFACE_RUNTIME_BOUND)
                 continue;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+            /* Publish admitted FIFO input before spending this fair round on
+             * client paint requests. At most one attempt per client/round. */
+            input_sent[i] = 1U;
+            int input_status = send_pending_input(&runtime->clients[i], manager);
+            if (input_status == 1) processed_round = 1U;
+            else if (input_status != 0 && input_status != -11) {
+                disconnect_client(&runtime->clients[i], manager);
+                if (result == 0) result = input_status;
+                continue;
+            }
+#endif
             int status = 0;
             for (uint32_t request = 0U;
                  request < X86OS_IPC_QUEUE_DEPTH; ++request) {
@@ -324,6 +364,9 @@ int desktop_surface_runtime_poll(desktop_surface_runtime_t *runtime, desktop_sur
                     &runtime->clients[i], manager);
                 if (input_status == 1) {
                     input_sent[i] = 1U;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+                    processed_round = 1U;
+#endif
                     input_status = 0;
                 }
                 if (input_status == -11) input_status = 0;
@@ -334,6 +377,26 @@ int desktop_surface_runtime_poll(desktop_surface_runtime_t *runtime, desktop_sur
             }
         }
         if (!processed_round || result != 0) break;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* Yield can ingest native input while paint replies are drained.
+         * Return after a fair slice so the WM routes it in original FIFO order. */
+        reist_desktop_channels *channels = reist_desktop_platform_channels();
+        if (channels && channels->phase == 1U && channels->frontend_ready) {
+            unsigned paint_ready = 0U;
+            for (unsigned surface = 0U; surface < DESKTOP_SURFACE_CAPACITY; ++surface)
+                if (manager->slots[surface].active &&
+                    manager->slots[surface].paint_generation !=
+                        manager->slots[surface].presented_generation)
+                    paint_ready = 1U;
+            /* Both clients got their fair slice. Raster committed content now;
+             * further producer draining belongs to the next compositor turn. */
+            if (paint_ready) break;
+        }
+        if (channels && channels->phase == 1U && channels->frontend_ready &&
+            channels->config.input && (channels->config.input->key_count ||
+                                       channels->config.input->mouse_count))
+            break;
+#endif
         /* Every active client received one fair queue-depth-sized slice.
          * Yield once so blocked producers can refill before the next round. */
         if (round + 1U < DESKTOP_SURFACE_RUNTIME_DRAIN_ROUNDS)
@@ -341,6 +404,17 @@ int desktop_surface_runtime_poll(desktop_surface_runtime_t *runtime, desktop_sur
     }
     return result;
 }
+int desktop_surface_runtime_poll(desktop_surface_runtime_t *runtime, desktop_surface_manager_t *manager) {
+    return poll_clients(runtime,manager,0,0);
+}
+#ifdef REIST_NATIVE_FULL_DESKTOP
+/* Private compositor continuation within the unchanged16 fair rounds. */
+int desktop_surface_runtime_poll_routed(desktop_surface_runtime_t *runtime,
+    desktop_surface_manager_t *manager,void (*route)(void *,void *),void *context) {
+    if(route && !context)return DESKTOP_SURFACE_EINVAL;
+    return poll_clients(runtime,manager,route,context);
+}
+#endif
 int desktop_surface_runtime_send_close(
     desktop_surface_runtime_t *runtime, reist_gui_surface_owner_t owner,
     reist_gui_surface_handle_t surface) {

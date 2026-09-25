@@ -1,8 +1,73 @@
 #include <assert.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "userspace/gui/compositor/desktop_surface.h"
 #include "reist/gui/font_catalog.h"
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+#define CHECK(x) do { if (!(x)) { fprintf(stderr,"atomic line failed: %s\n",#x); exit(1); } } while(0)
+static void atomic_line_test(void) {
+    static desktop_surface_manager_t m;
+    static desktop_surface_slot_t before;
+    reist_gui_surface_owner_t o={42,7};
+    reist_gui_surface_handle_t h;
+    reist_gui_surface_configure_t c;
+    desktop_surface_initialize(&m);
+    CHECK(!desktop_surface_create(&m,o,REIST_GUI_SURFACE_ROLE_TOPLEVEL,320,192,&h,&c));
+    reist_gui_surface_message_t q={0},r;
+    q.protocol_version=6;q.message_size=sizeof(q);q.type=24;q.surface=h;
+    q.serial=c.serial;q.format=1;q.flags=0xeaf2fa;q.buffer_id=0x18222d;
+    q.damage=(reist_gui_rect_t){12,48,296,16};q.byte_size=3;
+    memcpy(&q.input,"abc",3);
+    before=m.slots[h.id-1];
+    CHECK(desktop_surface_dispatch_message(&m,o,&q,&r)<0);
+    CHECK(!memcmp(&before,&m.slots[h.id-1],sizeof(before)));
+    CHECK(!desktop_surface_ack_configure(&m,o,h,c.serial));
+    CHECK(!desktop_surface_dispatch_message(&m,o,&q,&r));
+    CHECK(r.type==24 && r.serial==c.serial && !r.flags);
+    desktop_surface_slot_t *slot=&m.slots[h.id-1];
+    CHECK(slot->committed_dynamic_paint_count==1 && slot->paint_generation);
+    CHECK(!memcmp(slot->committed_dynamic_paint[0].text,"abc",3));
+    before=*slot;
+    for(unsigned n=0;n<19;n++) {
+        reist_gui_surface_message_t bad=q;reist_gui_surface_owner_t wrong=o;
+        switch(n) {
+        case 0:bad.reserved=1;break; case 1:bad.format=2;break;
+        case 2:bad.serial++;break;case 3:bad.surface.generation++;break;
+        case 4:wrong.process_generation++;break;case 5:bad.byte_size=40;break;
+        case 6:bad.byte_size=0;break;case 7:((char *)&bad.input)[0]=1;break;
+        case 8:((char *)&bad.input)[39]=1;break;case 9:bad.damage.x=-1;break;
+        case 10:bad.damage.height=17;break;case 11:bad.damage.width=321;break;
+        case 12:bad.flags|=0xff000000;break;case 13:bad.buffer_id|=0xff000000;break;
+        case 14:bad.width=1;break;case 15:bad.parent_surface.id=1;break;
+        case 16:bad.buffer_generation=1;break;case 17:bad.stride_bytes=1;break;
+        default:bad.damage.width=8;break;
+        }
+        CHECK(desktop_surface_dispatch_message(&m,wrong,&bad,&r)<0);
+        CHECK(!memcmp(&before,slot,sizeof(before)));
+    }
+    CHECK(!desktop_surface_paint_begin(&m,o,h));before=*slot;
+    CHECK(desktop_surface_dispatch_message(&m,o,&q,&r)<0);
+    CHECK(!memcmp(&before,slot,sizeof(before)));
+    CHECK(!desktop_surface_paint_commit(&m,o,h));
+    CHECK(!desktop_surface_dispatch_message(&m,o,&q,&r));before=*slot;
+    CHECK(!desktop_surface_dispatch_message(&m,o,&q,&r));
+    CHECK(!memcmp(&before,slot,sizeof(before))); /* identical frame causes no damage */
+    q.byte_size=1;memset(&q.input,0,sizeof(q.input));memcpy(&q.input,"x",1);
+    CHECK(!desktop_surface_dispatch_message(&m,o,&q,&r));
+    CHECK(slot->committed_dynamic_paint[0].text_length==1);
+    CHECK(slot->committed_dynamic_paint[0].rect.width==296);
+    desktop_surface_revoke_owner(&m,o);before=*slot;
+    CHECK(desktop_surface_dispatch_message(&m,o,&q,&r)<0);
+    CHECK(!memcmp(&before,slot,sizeof(before)));
+}
+#endif
+
 int main(void) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    atomic_line_test();
+#endif
     desktop_surface_manager_t manager;
     desktop_surface_initialize(&manager);
     reist_gui_surface_owner_t owner = {42U, 7U};

@@ -65,6 +65,11 @@ static int graphical_capture(uint64_t first_end) {
     return 0;
 }
 static int graphical_create(unsigned role,uint32_t endpoint,uint64_t end) {
+#if defined(REIST_NATIVE_FULL_DESKTOP) || defined(REIST_NATIVE_FULL_DESKTOP_STARTUP)
+    uint64_t now=session_now();
+    if(end<REIST_GRAPHICAL_START_MS || now>=end || end-now>REIST_GRAPHICAL_START_MS)return -110;
+#endif
+#line 68
     if(role>=4 || !endpoint || !graphical_images[role])return -22;
     char ep[9],peer[9],eh[9],el[9],dh[9],dl[9],mode[2]={(char)graphical_modes[role],0};
     session_hex(ep,endpoint);session_hex(peer,role?(uint32_t)(graphical.roles[0].owner>>32):(uint32_t)session_policy.owner);
@@ -83,10 +88,19 @@ static int graphical_create(unsigned role,uint32_t endpoint,uint64_t end) {
     session_zero(&startup,sizeof(startup));if(child<0)return (int)child;
     r=reist_graphical_bind(&graphical,role,(uint64_t)child,session_now());
     if(r)session_stop(-5); /* unexpected slot/identity: root terminal path fences all children */
+#if defined(REIST_NATIVE_FULL_DESKTOP) || defined(REIST_NATIVE_FULL_DESKTOP_STARTUP)
+    graphical.roles[role].health_ms=end-REIST_GRAPHICAL_START_MS;
+#endif
+#line 86
     if(!role) {
         session_child=(uint64_t)child;
         return (int)SESSION_S3(IPC_DELEGATE,graphical_control,(uint64_t)child>>32,3);
     }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if(role>=2 && full_backend && full_backend->children[role-2].owner) {
+        r=full_graphical_replace_binding(role,(uint64_t)child);if(r)return r;
+    }
+#endif
     reist_graphical_control q={1,64,REIST_GRAPHICAL_BIND,role,graphical.epoch,1,(uint64_t)child,endpoint,0,0,0};
     return graphical_send(&q);
 }
@@ -146,7 +160,7 @@ static int graphical_launch(void) {
     uint64_t end=graphical.start_end;
     if((r=(int)SESSION_S1(IPC_CREATE,&graphical_control)) || (r=graphical_create(0,graphical_control,end)))return r;
     unsigned created=0,confirmed=0,granted=0;
-    for(unsigned turn=0;turn<300 && session_now()<end;turn++) {
+    for(unsigned turn=0;turn<REIST_GRAPHICAL_START_MS/10 && session_now()<end;turn++) {
         for(unsigned n=0;n<8;n++) {
             reist_graphical_control q;r=graphical_receive(&q);
             if(r==-11)break;if(r)return r;
@@ -165,7 +179,11 @@ static int graphical_launch(void) {
             } else return -71;
         }
         if(confirmed==14 && !granted){r=graphical_grant();if(r)return r;granted=1;}
+#if defined(REIST_NATIVE_FULL_DESKTOP) || defined(REIST_NATIVE_FULL_DESKTOP_STARTUP)
+        if(x86os_sleep_ms(50))return -5;
+#else
         if(x86os_sleep_ms(10))return -5;
+#endif
     }
     return -110;
 }
@@ -185,8 +203,14 @@ static int graphical_replace(unsigned role,unsigned restart) {
     int r=reist_graphical_restart(&graphical,&session_policy,session_now());if(r)return r;
     reist_graphical_control reaped={1,64,REIST_GRAPHICAL_CLIENT_REAPED,role,graphical.epoch,2,old,0,0,0,0};
     r=graphical_send(&reaped);if(r)return r;
-    uint64_t end=session_now()+3000;unsigned created=0;
-    for(unsigned turn=0;turn<300 && session_now()<end;turn++) {
+#if defined(REIST_NATIVE_FULL_DESKTOP) || defined(REIST_NATIVE_FULL_DESKTOP_STARTUP)
+    uint64_t now=session_now();if(now>UINT64_MAX-REIST_GRAPHICAL_START_MS)return -75;
+    uint64_t end=now+REIST_GRAPHICAL_START_MS;unsigned created=0;
+#else
+    uint64_t end=session_now()+REIST_GRAPHICAL_START_MS;unsigned created=0;
+#endif
+#line 189
+    for(unsigned turn=0;turn<REIST_GRAPHICAL_START_MS/10 && session_now()<end;turn++) {
         reist_graphical_control q;r=graphical_receive(&q);
         if(r==-11){x86os_sleep_ms(10);continue;}if(r)return r;
         if(q.type==REIST_GRAPHICAL_HEALTH) {
@@ -220,6 +244,9 @@ static int session_graphical_start(int argc,uint64_t capture_end) {
     if(graphical_fault==11)graphical_modes[0]='l';
     if(graphical_fault==13)graphical_modes[2]='u';
     if(graphical_fault==14)graphical_modes[0]='u';
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if(graphical_fault==15)graphical_modes[0]='s';
+#endif
     int r=graphical_capture(capture_end);
     if(r){graphical_free();return r;}
     r=graphical_launch();

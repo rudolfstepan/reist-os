@@ -8,6 +8,12 @@
  * bounded. Legacy console applications intentionally run full-screen.
  */
 #include "x86os.h"
+#ifdef REIST_NATIVE_FULL_DESKTOP
+#include <reist/x86_64/desktop_platform.h>
+extern int reist_desktop_platform_render_checkpoint(unsigned wait);
+extern int reist_desktop_platform_live_checkpoint(unsigned wait,uint64_t end);
+#endif
+#line 11
 #ifdef REIST_NATIVE_DESKTOP_WORKSPACE
 #include "desktop_native_workspace.h"
 #endif /* REIST_NATIVE_DESKTOP_WORKSPACE */
@@ -465,6 +471,12 @@ static int desktop_svga2d_activate_bounded(void) {
          attempt < DESKTOP_SVGA2D_CONNECT_ATTEMPTS; ++attempt) {
         status = desktop_svga2d_connect(1U, 1U);
         if (status == 0) return 0;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* This profile explicitly has no acceleration service. A permanent
+         * ENOTSUP must not enter transient reconnect sleeps. */
+        if (status == -95) return status;
+#endif
+#line 468
         if (desktop_mode_width && status != -11 && status != -9 && status != -110)
             return status;
         desktop_svga2d_forget_endpoint();
@@ -1393,6 +1405,33 @@ static int desktop_splash_show(
         lifecycle_heartbeat_ms);
 }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static unsigned desktop_font_storage_ready;
+static int desktop_font_storage_prepare(void) {
+    if (desktop_font_storage_ready) return 0;
+    x86os_file_info_t info;
+    int status = x86os_stat(DESKTOP_FONT_PATH, &info);
+    if (status != 0) return status;
+    if (info.type != X86OS_FILE || !info.size ||
+        info.size > DESKTOP_FONT_FILE_CAPACITY) return -84;
+    void *file = x86os_malloc(sizeof(desktop_font_file_native_type));
+    if (!file) return -12;
+    void *mappings = x86os_malloc(sizeof(desktop_startup_workspace_native_type));
+    if (!mappings) { x86os_free(file); return -12; }
+    /* Both allocations succeeded before replacing the existing owned slots.
+     * The file reader/font parser initializes their used extents; the normal
+     * workspace destructor owns both buffers on every later exit path. */
+    void *old_file = reist_desktop_workspaces[0];
+    void *old_mappings = reist_desktop_workspaces[1];
+    reist_desktop_workspaces[0] = file;
+    reist_desktop_workspaces[1] = mappings;
+    desktop_font_storage_ready = 1;
+    x86os_free(old_mappings);
+    x86os_free(old_file);
+    return 0;
+}
+#endif
+#line 1396
 static int desktop_font_load_progress(
         const x86os_display_info_t *display,
         uint32_t lifecycle_supervised, uint32_t *lifecycle_sequence,
@@ -1400,6 +1439,11 @@ static int desktop_font_load_progress(
     desktop_font_ready = 0U;
     desktop_font_attempted = 1U;
     if (display == 0) return -22;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    int storage_status = desktop_font_storage_prepare();
+    if (storage_status != 0) return storage_status;
+#endif
+#line 1403
     uint64_t phase_started = 0U;
     (void)x86os_monotonic_ms(&phase_started);
     size_t size = 0U;
@@ -1594,6 +1638,21 @@ static void desktop_icon_cache_load(desktop_file_icon_cache_entry_t *entry,
 static int desktop_file_icon_cache_initialize(
         uint32_t lifecycle_supervised, uint32_t *lifecycle_sequence,
         uint64_t *lifecycle_heartbeat_ms) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* A native optional theme requires its directory grant. Missing/denied
+     * themes use the same vector fallback as missing individual icon files;
+     * this avoids eleven doomed opens of the immutable boot profile. */
+    x86os_file_info_t theme;
+    int theme_status = x86os_stat("/usr/share/icons", &theme);
+    if (theme_status == -2 || theme_status == -13) {
+        for (uint32_t kind = 0; kind < DESKTOP_EXPLORER_ICON_COUNT; ++kind)
+            desktop_file_icon_cache[kind].valid = 0;
+        for (uint32_t kind = 0; kind < DESKTOP_TRASH_ICON_COUNT; ++kind)
+            desktop_trash_icon_cache[kind].valid = 0;
+        return desktop_lifecycle_publish_progress(
+            lifecycle_supervised, lifecycle_sequence, lifecycle_heartbeat_ms);
+    }
+#endif
     for (uint32_t kind = 0U; kind < DESKTOP_EXPLORER_ICON_COUNT; ++kind) {
         desktop_icon_cache_load(
             &desktop_file_icon_cache[kind], desktop_file_icon_paths[kind]);
@@ -5395,6 +5454,60 @@ static void render_desktop_rect_difference(
         omitted_kind, omitted_window);
 }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+/* Same clipped scene, disjoint vertical strips, one enclosing frame. The
+ * adapter services control without changing the scene while publication waits. */
+static int render_native_startup(const x86os_display_info_t *display,
+                                 const desktop_wm_t *manager,
+                                 const desktop_explorer_t *explorer,
+                                 const desktop_surface_manager_t *surfaces,
+                                 const desktop_ui_state_t *ui,
+                                 const desktop_dirty_region_t *dirty,uint64_t live_end) {
+    unsigned pixels = 0;
+    int result;
+    for (uint32_t index = 0; index < dirty->count; ++index) {
+        desktop_rect_t rect = dirty->rects[index];
+        for (uint32_t offset = 0; rect.width && offset < rect.height;) {
+            uint32_t rows = rect.height - offset;
+            if (rows > 128U) rows = 128U;
+            unsigned area = rect.width * rows;
+            if (pixels > 128U * 1024U - area) {
+                result = live_end ? reist_desktop_platform_live_checkpoint(50,live_end) :
+                    reist_desktop_platform_render_checkpoint(50);
+                if (result) return result;
+                pixels = 0;
+            }
+            pixels += area;
+            desktop_render_context_t context = {
+                .display = display,
+                .clip = {rect.x, rect.y + (int32_t)offset, rect.width, rows},
+                .omitted_kind = DESKTOP_MOVE_CACHE_NONE,
+                .omitted_window = DESKTOP_WM_NO_TARGET,
+            };
+            render_desktop_clip(&context, manager, explorer, surfaces, ui);
+            offset += rows;
+        }
+    }
+    return live_end ? reist_desktop_platform_live_checkpoint(0,live_end) :
+        reist_desktop_platform_render_checkpoint(0);
+}
+static int begin_native_startup_frame(uint32_t *serial,uint64_t live_end) {
+    int result = live_end ? reist_desktop_platform_live_checkpoint(50,live_end) :
+        reist_desktop_platform_render_checkpoint(50);
+    return result ? result : x86os_display_frame_begin(serial);
+}
+static unsigned native_large_frame(const desktop_dirty_region_t *dirty) {
+    uint64_t total=0;
+    for(unsigned n=0;n<dirty->count;n++) {
+        uint64_t area=(uint64_t)dirty->rects[n].width*dirty->rects[n].height;
+        if(area>128U*1024U-total)return 1;
+        total+=area;
+    }
+    return 0;
+}
+/* End native startup slicing. */
+#endif
+
 static uint32_t render_desktop_frame(const x86os_display_info_t *display,
                                      const desktop_wm_t *manager,
                                      const desktop_explorer_t *explorer,
@@ -5404,12 +5517,37 @@ static uint32_t render_desktop_frame(const x86os_display_info_t *display,
     if (dirty == 0 || dirty->count == 0U) return 0U;
     uint32_t menu_local = menu_overlay_local_damage(display, ui, dirty);
     uint32_t serial = 0U;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    reist_desktop_channels *native_channels = reist_desktop_platform_channels();
+    unsigned native_starting = native_channels && (!native_channels->frontend_ready ||
+        native_channels->recovery[0] || native_channels->recovery[1]);
+    unsigned native_paced = native_starting || native_large_frame(dirty);
+    uint64_t live_end=0;
+    if(native_paced && !native_starting) {
+        if(x86os_monotonic_ms(&live_end) || live_end>UINT64_MAX-1000)
+            return DESKTOP_RENDER_FALLBACK;
+        live_end+=1000;
+    }
+    int begin = native_paced ? begin_native_startup_frame(&serial,live_end)
+                            : x86os_display_frame_begin(&serial);
+    /* A paced checkpoint failure must not enter an unpaced fallback raster. */
+    if (begin != 0 && native_paced) return DESKTOP_RENDER_FALLBACK;
+#else
     int begin = x86os_display_frame_begin(&serial);
+#endif
     if (begin != 0) {
         /* Oversized/direct framebuffers retain the compatible immediate path. */
         render_desktop(display, manager, explorer, surfaces, ui, dirty);
         return DESKTOP_RENDER_FALLBACK;
     }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if (native_paced) {
+        if (render_native_startup(display, manager, explorer, surfaces, ui, dirty,live_end)) {
+            (void)x86os_display_frame_cancel(serial);
+            return DESKTOP_RENDER_FALLBACK;
+        }
+    } else
+#endif
     if (menu_local)
         render_menu_overlay_damage(
             display, manager, explorer, surfaces, ui, dirty);
@@ -5708,6 +5846,73 @@ static uint32_t enqueue_surface_keyboard(
         surfaces, surface->owner, surface->handle, &event) == 0;
 }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static desktop_rect_t native_surface_raster_damage(
+    desktop_rect_t damage, uint32_t width, uint32_t height) {
+    if (damage.x < 0 || damage.y < 0 || !damage.width || !damage.height ||
+        (uint32_t)damage.x >= width || (uint32_t)damage.y >= height ||
+        damage.width > width - (uint32_t)damage.x ||
+        damage.height > height - (uint32_t)damage.y)
+        return (desktop_rect_t){0};
+    /* Surface's existing plain-text wire rectangle has height1. The native
+     * PSF raster is8x16; include its full footprint, including removed text.
+     * Conservatively expand other damage too, bounded by the same client. */
+    uint32_t remaining = height - (uint32_t)damage.y - damage.height;
+    damage.height += remaining < 15U ? remaining : 15U;
+    return damage;
+}
+#endif
+
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static void native_surface_route_during_poll(void *,void *);
+extern int desktop_surface_runtime_poll_routed(desktop_surface_runtime_t *,
+    desktop_surface_manager_t *,void (*)(void *,void *),void *);
+static void native_surface_input_flush(desktop_surface_runtime_t *runtime,
+    desktop_surface_manager_t *surfaces, uint32_t online_cpus,
+    const desktop_wm_t *manager,unsigned keyboard) {
+    void (*route)(void *,void *)=keyboard?native_surface_route_during_poll:0;
+    (void)desktop_surface_runtime_poll_routed(runtime,surfaces,route,(void *)manager);
+    /* The fair poll already gave each client its slice. Present completed
+     * paint before another scheduling handoff or producer drain. */
+    if(surfaces)for(unsigned n=0;n<DESKTOP_SURFACE_CAPACITY;n++)
+        if(surfaces->slots[n].active && surfaces->slots[n].paint_generation!=
+           surfaces->slots[n].presented_generation)return;
+    if (online_cpus == 1U) {
+        /* Send first, then let the addressed client receive and respond. */
+        (void)x86os_yield();
+        (void)desktop_surface_runtime_poll_routed(runtime,surfaces,route,(void *)manager);
+    }
+}
+static int native_surface_poll_before_input(desktop_surface_runtime_t *runtime,
+    desktop_surface_manager_t *surfaces,unsigned frontend_ready) {
+    /* Once live, dispatch/publish input before draining client paint traffic. */
+    return frontend_ready ? 0 : desktop_surface_runtime_poll(runtime,surfaces);
+}
+
+#endif
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static void native_surface_keyboard_batch(reist_desktop_input_state *input,
+    const desktop_wm_t *manager, desktop_surface_manager_t *surfaces) {
+    /* First key already passed UI dispatch. Drain only immediately following
+     * printable bytes; a prior mouse, control key or full Surface stops us. */
+    for (unsigned n=0;n<7;n++) {
+        int key=reist_desktop_input_peek_key(input);
+        if (key<32 || key>126) break;
+        if (!enqueue_surface_keyboard(manager,surfaces,key)) break;
+        (void)reist_desktop_input_key(input);
+    }
+}
+#endif
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static void native_surface_route_during_poll(void *manager,void *surfaces) {
+    reist_desktop_channels *channels=reist_desktop_platform_channels();
+    if(channels && channels->phase==1 && channels->frontend_ready)
+        native_surface_keyboard_batch(channels->config.input,manager,surfaces);
+}
+#endif
+
+
+
 /** Publish acknowledged Ring-3 surfaces as ordinary server-decorated windows. */
 static void sync_surface_windows(
     desktop_wm_t *manager, const desktop_explorer_t *explorer,
@@ -5782,6 +5987,14 @@ static void sync_surface_windows(
                 if (damage_status == DESKTOP_SURFACE_OK) {
                     desktop_rect_t client = desktop_window_client_rect(
                         manager, surface->window_index);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+                    desktop_rect_t raster_damage = native_surface_raster_damage(
+                        (desktop_rect_t){local_damage.x, local_damage.y,
+                            local_damage.width, local_damage.height},
+                        surface->width, surface->height);
+                    local_damage = (reist_gui_rect_t){raster_damage.x, raster_damage.y,
+                        raster_damage.width, raster_damage.height};
+#endif
                     desktop_rect_t presentation_damage = {
                         client.x + local_damage.x,
                         client.y + local_damage.y,
@@ -5993,6 +6206,20 @@ static desktop_pointer_present_result_t desktop_pointer_present(
     desktop_pointer_present_result_t result = {0};
     result.clock_valid = x86os_monotonic_ms(&result.started_ms) == 0;
     result.status = x86os_pointer_update(x, y, visible);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* The software adapter queues pixels. Service the live pointer before
+     * entering another raster pass, using the existing bounded display pump.
+     * Initial scene publication remains coalesced until actual READY. */
+    if (result.status == 0) {
+        reist_desktop_channels *channels = reist_desktop_platform_channels();
+        if (channels && channels->frontend_ready) {
+            /* The loop already checked input/control health. Publish the
+             * cursor now, before admitting another batch of those messages. */
+            extern int reist_desktop_display_service(void);
+            result.status = reist_desktop_display_service();
+        }
+    }
+#endif
     if (!result.clock_valid ||
         x86os_monotonic_ms(&result.finished_ms) != 0 ||
         result.finished_ms < result.started_ms)
@@ -9407,6 +9634,15 @@ static int prepare_trash_documentation_probe(
 
 static int desktop_lifecycle_publish_progress(
         uint32_t supervised, uint32_t *sequence, uint64_t *heartbeat_ms) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    int native_pump_status = reist_desktop_platform_pump();
+    if (native_pump_status != 0) {
+        x86os_puts("DESKTOP_STARTUP_PUMP status=");
+        x86os_print_number(native_pump_status); x86os_putchar('\n');
+        return -1;
+    }
+#endif
+#line 9410
     if (supervised == 0U) return 0;
     if (sequence == 0 || heartbeat_ms == 0 || *sequence == 0U) return -22;
     uint64_t now_ms = 0U;
@@ -9490,6 +9726,10 @@ int main(int argc, char **argv) {
     uint64_t startup_started_ms = 0U;
     uint32_t startup_clock_valid =
         x86os_monotonic_ms(&startup_started_ms) == 0;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if (!startup_clock_valid) return 1;
+#endif
+#line 9493
     uint32_t online_cpu_count = 1U;
     x86os_cpu_topology_t topology;
     if (x86os_cpu_topology(&topology) == 0 &&
@@ -9752,16 +9992,24 @@ int main(int argc, char **argv) {
     x86os_puts("DESKTOP_WINDOW_OPTIONS shadows="); x86os_print_number((int)manager.window_shadows);
     x86os_puts(" contents="); x86os_print_number((int)manager.drag_contents); x86os_putchar('\n');
     desktop_surface_initialize(&surfaces);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    x86os_puts("DESKTOP_STARTUP_SURFACES_READY\n");
+#endif
     if (desktop_surface_runtime_initialize(&surface_runtime) != 0) {
         if (runtime_activated) (void)desktop_display_deactivate();
         x86os_puts("desktop: Surface-IPC konnte nicht gestartet werden\n");
         return 1;
     }
+#line 9760
     int lifecycle_self_test = x86os_reist_report(
         X86OS_REIST_REPORT_SELF_TEST, 1U);
     uint32_t lifecycle_supervised = lifecycle_self_test == 0;
     uint32_t lifecycle_sequence = 1U;
     uint64_t lifecycle_heartbeat_ms = 0U;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    x86os_puts("DESKTOP_STARTUP_LIFECYCLE_BEGIN\n");
+#endif
+#line 9765
     if ((lifecycle_self_test != 0 && lifecycle_self_test != -1) ||
         desktop_lifecycle_publish_progress(
             lifecycle_supervised, &lifecycle_sequence,
@@ -9771,6 +10019,10 @@ int main(int argc, char **argv) {
         x86os_puts("desktop: Supervisor-Lifecycle nicht verfuegbar\n");
         return 1;
     }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    x86os_puts("DESKTOP_STARTUP_LIFECYCLE_READY\n");
+#endif
+#line 9774
     if (surface_probe || notepad_probe || notepad_font_probe || browser_probe ||
         shortcut_probe || icon_layout_probe || argc == 1) {
         (void)x86os_monotonic_ms(&phase_started_ms);
@@ -9783,6 +10035,12 @@ int main(int argc, char **argv) {
      * first complete desktop frame have finished on the BSP.  Keep the
      * existing two-second healthy deadline alive between bounded strips and
      * asset reads instead of widening it for a slow virtual display. */
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* Native startup goes straight to the actual desktop. Referencing the
+     * helper only as a value lets section GC discard its442422-byte bitmap. */
+    (void)desktop_splash_show;
+#else
+#line 9786
     if (argc == 1) {
         (void)x86os_monotonic_ms(&phase_started_ms);
         if (desktop_splash_show(
@@ -9794,6 +10052,8 @@ int main(int argc, char **argv) {
         }
         desktop_startup_phase_metric("splash", phase_started_ms);
     }
+#endif
+#line 9797
     desktop_explorer_initialize(&explorer);
     desktop_drag_state_initialize(&desktop_drag);
     desktop_load_mouse_settings();
@@ -9903,6 +10163,8 @@ int main(int argc, char **argv) {
         x86os_puts("DESKTOP_EXPLORER_OK\n");
     if (shortcut_probe)
         x86os_puts("DESKTOP_SHORTCUT_PROBE_EXPLORERS_OK\n");
+#ifndef REIST_NATIVE_FULL_DESKTOP
+#line 9906
     if (filetypes_status != 0)
         desktop_ui_open_error(
             &ui, &display, &initial_dirty,
@@ -9917,6 +10179,12 @@ int main(int argc, char **argv) {
             &ui, &display, &initial_dirty,
             "Desktop-Verzeichnis ist nicht verfuegbar.",
             DESKTOP_SHORTCUT_DIRECTORY);
+#else
+    /* This profile exposes an immutable boot volume. Writable desktop/trash
+     * setup and a file-association config are not startup requirements. */
+    (void)filetypes_status; (void)trash_status;
+#endif
+#line 9920
     if ((trash_context_probe || trash_confirm_probe || trash_restore_probe) &&
         prepare_trash_documentation_probe(
             &manager, &explorer, &ui, &display, &initial_dirty,
@@ -9935,23 +10203,40 @@ int main(int argc, char **argv) {
     }
     desktop_clock_refresh(&display, &initial_dirty, 1U);
     desktop_dirty_full(&initial_dirty);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* Service both client paint transactions before rasterizing the first
+     * native scene. No empty/intermediate app frames need to be drawn. */
+    unsigned native_first_frame = 1;
+    uint32_t initial_render_outcome = 0;
+#else
     uint32_t initial_render_outcome = render_desktop_measured(
         &display, &manager, &explorer, &surfaces, &ui,
         &initial_dirty, 0, 0U, 0U, &metrics);
+#endif
     pointer_overlay_active =
         (initial_render_outcome & DESKTOP_RENDER_FALLBACK) == 0U;
     (void)x86os_pointer_update(pointer_x, pointer_y, 1U);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if (desktop_lifecycle_publish_progress(
+            lifecycle_supervised, &lifecycle_sequence,
+            &lifecycle_heartbeat_ms) != 0) {
+#else
+#line 9944
     if (desktop_lifecycle_publish_progress(
             lifecycle_supervised, &lifecycle_sequence,
             &lifecycle_heartbeat_ms) != 0 ||
         (lifecycle_supervised != 0U &&
          x86os_reist_report(
              X86OS_REIST_REPORT_SERVICE_READY, 1U) != 0)) {
+#endif
+#line 9950
         desktop_surface_runtime_shutdown(&surface_runtime);
         if (runtime_activated) (void)desktop_display_deactivate();
         x86os_puts("desktop: Supervisor-Lifecycle nicht verfuegbar\n");
         return 1;
     }
+#ifndef REIST_NATIVE_FULL_DESKTOP
+#line 9955
     uint64_t startup_ready_ms = 0U;
     if (startup_clock_valid &&
         x86os_monotonic_ms(&startup_ready_ms) == 0 &&
@@ -9962,6 +10247,8 @@ int main(int argc, char **argv) {
         x86os_putchar('\n');
     }
     x86os_puts("DESKTOP_OK\n");
+#endif
+#line 9965
     if (terminal_probe) {
         x86os_process_identity_t identity;
         if (x86os_process_identity(&identity) != 0) return 1;
@@ -10181,7 +10468,28 @@ int main(int argc, char **argv) {
         render_probe_error(&metrics);
     }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* Clients start their bounded Surface reply wait after HELLO. Finish
+     * desktop assets before greeting them, then service IPC immediately. */
+    int native_adopt_status = reist_desktop_frontend_adopt(&surface_runtime);
+    if (native_adopt_status != 0) {
+        x86os_puts("DESKTOP_STARTUP_ADOPT status=");
+        x86os_print_number(native_adopt_status); x86os_putchar('\n');
+        desktop_surface_runtime_shutdown(&surface_runtime);
+        if (runtime_activated) (void)desktop_display_deactivate();
+        return 1;
+    }
+#endif
+#line 10184
     for (;;) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        if (reist_desktop_platform_pump() != 0) {
+            desktop_surface_runtime_shutdown(&surface_runtime);
+            if (runtime_activated) (void)desktop_display_deactivate();
+            return 1;
+        }
+#endif
+#line 10185
         desktop_system_sound_poll(&system_sounds);
         desktop_rect_t outline_before_iteration;
         (void)desktop_wm_move_outline(&manager,&outline_before_iteration);
@@ -10212,8 +10520,16 @@ int main(int argc, char **argv) {
             x86os_puts("DESKTOP_AUDIO_HEARTBEAT_OK\n");
             sound_probe_reported = 1U;
         }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        reist_desktop_channels *native_iteration_channels=reist_desktop_platform_channels();
+        unsigned native_deferred_surface_poll=native_iteration_channels &&
+            native_iteration_channels->frontend_ready;
+        int surface_poll_status = native_surface_poll_before_input(
+            &surface_runtime,&surfaces,native_deferred_surface_poll);
+#else
         int surface_poll_status = desktop_surface_runtime_poll(
             &surface_runtime, &surfaces);
+#endif
         if (desktop_surface_runtime_take_display(&surface_runtime)) {
             int opened = launch_program(&surface_runtime, "/usr/gui/bin/display.prg",
                                         control_probe ? "--fault-probe" : 0);
@@ -10389,6 +10705,9 @@ int main(int argc, char **argv) {
         uint64_t mouse_batch_started_ms = 0U;
         uint32_t mouse_batch_clock_valid = 0U;
         uint32_t surface_input_queued = 0U;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        unsigned native_surface_key_queued=0;
+#endif
         /* Dispatch the sampled key before later mouse reports can change
          * menu capture or the focused client. Escape must not close a menu
          * which was opened by a subsequently consumed Start click. */
@@ -10447,6 +10766,15 @@ int main(int argc, char **argv) {
             uint32_t surface_key_consumed = navigation_key_consumed ? 0U :
                 enqueue_surface_keyboard(&manager, &surfaces, key);
             surface_input_queued |= surface_key_consumed;
+#ifdef REIST_NATIVE_FULL_DESKTOP
+            if (surface_key_consumed && key>=32 && key<=126) {
+                reist_desktop_channels *channels=reist_desktop_platform_channels();
+                if (channels && channels->phase==1)
+                    native_surface_keyboard_batch(channels->config.input,&manager,&surfaces);
+                native_surface_key_queued=1;
+            }
+#endif
+
             uint32_t explorer_key = explorer_key_from_input(key);
             if (!navigation_key_consumed && !surface_key_consumed &&
                 explorer_key != 0U &&
@@ -10748,6 +11076,22 @@ int main(int argc, char **argv) {
                 manager.capture_kind == DESKTOP_WM_CAPTURE_CLIENT, 0);
         }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* Native live pointer precedes client work. Surface handoff and
+         * activation can schedule other processes before the raster branch. */
+        reist_desktop_channels *native_channels = reist_desktop_platform_channels();
+        if (native_channels && native_channels->frontend_ready &&
+            pointer_overlay_active && pointer_present_pending) {
+            desktop_pointer_present_result_t pointer_result =
+                desktop_pointer_present(pointer_x, pointer_y, 1U);
+            if (desktop_pointer_present_completed(
+                    &hover_probe_state, pointer_pending_clock_valid,
+                    pointer_pending_since_ms, &pointer_result)) {
+                pointer_present_pending = 0U;
+                pointer_pending_clock_valid = 0U;
+            }
+        }
+#endif
         if ((actions & DESKTOP_ACTION_OPEN_CONTROL_PANEL) != 0U) {
             control_panel_activate = 1U;
             actions &= ~DESKTOP_ACTION_OPEN_CONTROL_PANEL;
@@ -10821,13 +11165,22 @@ int main(int argc, char **argv) {
                 &manager, &explorer, &ui, &display, &dirty,
                 DESKTOP_TRASH_FILES_PATH, &action_target);
         if (surface_input_queued) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+            native_surface_input_flush(&surface_runtime, &surfaces, online_cpu_count,
+                &manager,native_surface_key_queued);
+#else
             /* One CPU needs an explicit bounded handoff so the addressed
              * client can paint. On SMP it can run concurrently; yielding the
              * compositor there only adds global scheduler contention. */
             if (online_cpu_count == 1U) (void)x86os_yield();
             (void)desktop_surface_runtime_poll(
                 &surface_runtime, &surfaces);
+#endif
         }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        if (!surface_input_queued && native_deferred_surface_poll)
+            (void)desktop_surface_runtime_poll(&surface_runtime,&surfaces);
+#endif
         sync_surface_windows(
             &manager, &explorer, &surfaces, &surface_runtime, &dirty);
 
@@ -10864,6 +11217,31 @@ int main(int argc, char **argv) {
                          DESKTOP_WM_RESULT_EXIT)) != 0U))
             move_cache.valid = 0U;
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        if (native_first_frame) {
+            extern int reist_desktop_frontend_scene_ready(
+                const desktop_surface_runtime_t *,const desktop_surface_manager_t *,const desktop_wm_t *);
+            int scene_ready = reist_desktop_frontend_scene_ready(&surface_runtime,&surfaces,&manager);
+            if (scene_ready < 0) {
+                desktop_surface_runtime_shutdown(&surface_runtime);
+                if (runtime_activated) (void)desktop_display_deactivate();
+                return 1;
+            }
+            if (!scene_ready) {
+                /* Give the initial producers a bounded scheduling interval;
+                 * generic sleep pumps repeatedly even when all queues are empty. */
+                if (reist_desktop_platform_render_checkpoint(50)) {
+                    desktop_surface_runtime_shutdown(&surface_runtime);
+                    if (runtime_activated) (void)desktop_display_deactivate();
+                    return 1;
+                }
+                continue;
+            }
+            desktop_dirty_full(&dirty);
+            move_cache.valid = 0;
+            native_first_frame = 0;
+        }
+#endif
         if (dirty.count != 0U) {
             uint32_t motion_present = pointer_present_pending;
             if (pointer_overlay_active && !move_cache.valid) {
@@ -10917,10 +11295,34 @@ int main(int argc, char **argv) {
                 pointer_present_pending = 0U;
                 pointer_pending_clock_valid = 0U;
             }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+            extern int reist_desktop_platform_idle_wait(void);
+            if (native_channels && native_channels->frontend_ready)
+                (void)reist_desktop_platform_idle_wait();
+            else
+#endif
             (void)x86os_sleep_ms(DESKTOP_IDLE_POLL_MS);
         } else {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+            extern int reist_desktop_platform_idle_wait(void);
+            if (native_channels && native_channels->frontend_ready)
+                (void)reist_desktop_platform_idle_wait();
+            else
+#endif
             (void)x86os_sleep_ms(DESKTOP_IDLE_POLL_MS);
         }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        extern int reist_desktop_frontend_finish_frame(desktop_surface_runtime_t *,
+            desktop_surface_manager_t *,const desktop_wm_t *);
+        if ((dirty.count || !native_channels || !native_channels->frontend_ready ||
+             native_channels->recovery[0] || native_channels->recovery[1]) &&
+            reist_desktop_frontend_finish_frame(&surface_runtime, &surfaces, &manager) != 0) {
+            desktop_surface_runtime_shutdown(&surface_runtime);
+            if (runtime_activated) (void)desktop_display_deactivate();
+            return 1;
+        }
+#endif
+#line 10924
         if (window_controls_probe) report_window_controls(&manager,&surfaces,&display);
         hover_probe_record_transition(
             &hover_probe_state, &ui, &dirty, &metrics,
@@ -10943,10 +11345,20 @@ int main(int argc, char **argv) {
     }
 }
 #ifdef REIST_NATIVE_DESKTOP_WORKSPACE
+#line 10946
 int main(int argc, char **argv) {
     static const size_t native_workspace_sizes[REIST_DESKTOP_WORKSPACE_SLOTS] = {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+        /* External font scratch is allocated only after a readable file is
+         * found. Preserve all full parser capacities on that later path. */
+        sizeof(uint64_t),
+        sizeof(uint64_t),
+#else
+#line 10948
         sizeof(desktop_font_file_native_type),
         sizeof(desktop_startup_workspace_native_type),
+#endif
+#line 10950
         sizeof(surfaces_native_type),
         sizeof(explorer_native_type),
         sizeof(desktop_editor_fonts_native_type),
@@ -10962,6 +11374,10 @@ int main(int argc, char **argv) {
         sizeof(desktop_trash_icon_cache_native_type),
         sizeof(desktop_file_icon_encoded_native_type)
     };
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    desktop_font_storage_ready = 0;
+#endif
+#line 10965
     return reist_desktop_workspace_run(argc, argv, desktop_native_main, native_workspace_sizes);
 }
 #endif /* REIST_NATIVE_DESKTOP_WORKSPACE */

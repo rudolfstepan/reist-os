@@ -7,7 +7,12 @@
 #define REIST_GRAPHICAL_ROLES 4U
 #define REIST_GRAPHICAL_PREPARED_HASH_BYTES 262240U
 #define REIST_GRAPHICAL_HEALTH_MS 1000U
+#if defined(REIST_NATIVE_FULL_DESKTOP) || defined(REIST_NATIVE_FULL_DESKTOP_STARTUP)
+#define REIST_GRAPHICAL_START_MS 10000U
+#else
 #define REIST_GRAPHICAL_START_MS 3000U
+#endif
+#line 11
 #define REIST_GRAPHICAL_RETIRE_MS 5000U
 enum { REIST_GRAPHICAL_OFF,REIST_GRAPHICAL_STARTING,REIST_GRAPHICAL_LIVE,
        REIST_GRAPHICAL_FENCING,REIST_GRAPHICAL_REAPED,REIST_GRAPHICAL_DEGRADED };
@@ -25,7 +30,7 @@ typedef struct {
 } reist_graphical_control;
 _Static_assert(sizeof(reist_graphical_control)==64,"graphical control-v1");
 typedef struct {
-    /* health_ms is the fixed bind instant during STARTING (3000ms), then
+    /* health_ms is the fixed STARTING anchor for the selected profile, then
      * the most recent accepted LIVE heartbeat (1000ms). No renewal on bind. */
     uint64_t owner,sequence,health_ms,retire_end;
     uint32_t phase,fences;

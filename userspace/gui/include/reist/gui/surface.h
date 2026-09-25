@@ -77,6 +77,8 @@ enum reist_gui_surface_message_type {
     REIST_GUI_SURFACE_OPEN_DISPLAY,
     /* Opt-in fixed Mouse applet; v6 envelope and all earlier IDs unchanged. */
     REIST_GUI_SURFACE_OPEN_MOUSE,
+    /* Optional atomic dynamic ASCII line, extension1; unchanged v6 envelope. */
+    REIST_GUI_SURFACE_PAINT_DYNAMIC_TEXT = 24U,
     REIST_GUI_SURFACE_CONFIGURE = 0x80U,
     REIST_GUI_SURFACE_INPUT,
     REIST_GUI_SURFACE_CLOSE,
@@ -213,6 +215,13 @@ typedef struct reist_gui_surface_message {
  * later-rendered lists with their declared fixed capacities. Applications
  * must use surface_client.h rather than constructing this representation
  * themselves.
+ * PAINT_DYNAMIC_TEXT (optional extension1) replaces only DYNAMIC with one
+ * complete 16-pixel bitmap line. format=1; serial=acknowledged configure serial;
+ * damage bounds the line, flags/buffer_id are 24-bit XRGB colors, byte_size is
+ * 1..39 printable ASCII bytes in input, zero-padded. Other fields are zero.
+ * Reject while any paint transaction is open. Reply echoes type/surface/serial
+ * with status in flags. Unsupported peers reject; clients never speculate or
+ * retry with an older transaction. No public struct/opcode is renumbered.
  */
 
 #ifdef __cplusplus

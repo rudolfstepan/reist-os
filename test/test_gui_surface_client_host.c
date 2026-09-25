@@ -13,6 +13,7 @@ static unsigned count, outbound_full, refill, drain_after_sleeps;
 static unsigned sends, receives, published, sleeps, clock_calls, blocking_sends;
 static unsigned yields, handoff_drains;
 static int yield_error;
+static int atomic_reply_error,atomic_reply_serial;
 static uint64_t now_ms;
 static int send_error, clock_error, sleep_error, frozen_clock, backwards_clock;
 static reist_gui_surface_client_t owner, dialog;
@@ -58,7 +59,10 @@ int x86os_ipc_send_timeout(x86os_ipc_handle_t endpoint,
     }
     /* The broker consumes the request and replies, without further input. */
     ++published;
-    queue[count++] = *message;
+    queue[count] = *message;
+    reist_gui_surface_message_t *reply=(void *)queue[count].payload;
+    if(reply->type==24) { reply->flags=(uint32_t)atomic_reply_error;reply->serial+=atomic_reply_serial; }
+    ++count;
     return 0;
 }
 int x86os_ipc_receive_timeout(x86os_ipc_handle_t endpoint,
@@ -105,6 +109,21 @@ static void expect_events(unsigned amount) {
     assert(owner.deferred_count == 0);
 }
 int main(void) {
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    reset();owner.width=320;owner.height=192;owner.acknowledged_serial=1;
+    full_input();
+    assert(!reist_gui_surface_client_dynamic_text(&owner,12,48,296,"abc",3,0xeaf2fa,0x18222d));
+    assert(published==1 && !blocking_sends);expect_events(4);
+    unsigned prior=sends;
+    assert(reist_gui_surface_client_dynamic_text(&owner,12,48,296,"\n",1,0,0)==-22);
+    assert(reist_gui_surface_client_dynamic_text(&owner,12,190,296,"a",1,0,0)==-22);
+    assert(sends==prior);
+    atomic_reply_error=-22; /* old peer rejects unknown opcode */
+    assert(reist_gui_surface_client_dynamic_text(&owner,12,48,296,"abc",3,0,0)==-22);
+    atomic_reply_error=0;atomic_reply_serial=1;
+    assert(reist_gui_surface_client_dynamic_text(&owner,12,48,296,"abc",3,0,0)==-84);
+    atomic_reply_serial=0;
+#endif
     /* Queue holds our requests and a ready broker needs a CPU turn, not an
      * idle timer. A non-progressing peer gets only one such handoff. */
     reset(); full_input(); outbound_full=1; handoff_drains=1;

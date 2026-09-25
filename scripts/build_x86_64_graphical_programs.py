@@ -60,7 +60,8 @@ def font_header(directory):
         ','.join(map(str,raw[32:32+2048]))+'};\n',encoding='ascii')
     return path
 
-def build_roles(directory,cc,nasm,ld):
+def build_roles(directory,cc,nasm,ld,full_desktop=False):
+    if type(full_desktop) is not bool:raise ValueError('explicit full desktop startup selector')
     from build_x86_64_boot_programs import prepare
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     environment=os.environ.copy()
@@ -77,6 +78,7 @@ def build_roles(directory,cc,nasm,ld):
         '-fno-unwind-tables','-fno-asynchronous-unwind-tables','-fno-pic','-fno-pie',
         '-mno-mmx','-mno-sse','-mno-sse2','-ffunction-sections','-fdata-sections',
         '-Iuserspace/sdk/include','-Iuserspace/gui/include','-I'+str(directory)]
+    if full_desktop:common+=['-DREIST_NATIVE_FULL_DESKTOP_STARTUP=1']
     runtime=['userspace/gui/lib/native_surface.c']
     roles={
         'desktop':runtime+['userspace/gui/compositor/native_desktop.c','userspace/gui/compositor/native_session.c',

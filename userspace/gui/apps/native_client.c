@@ -27,13 +27,53 @@ static int paint(void) {
     }
     return reist_gui_surface_client_paint_commit(&client);
 }
+#if REIST_GRAPHICAL_START_MS == 10000U && REIST_NATIVE_CLIENT == 0
+static int paint_update(void) {
+    static unsigned painted_size;
+    /* The base frame already owns the background and hint. Atomically replace
+     * only the text layer; its full line background also erases shorter text. */
+    int r;
+    /* Fold only already queued printable keys; preserve every FIFO barrier. */
+    reist_gui_surface_client_t *queue=client.event_owner;
+    for(unsigned n=0;n<8 && queue && queue->deferred_count;n++) {
+        const reist_gui_surface_message_t *next=&queue->deferred[queue->deferred_head];
+        if(next->type!=REIST_GUI_SURFACE_INPUT ||
+           next->input.type!=REIST_GUI_SURFACE_INPUT_KEYBOARD || !next->input.pressed ||
+           next->input.key<32 || next->input.key>126)break;
+        if(!next->input.serial || next->input.reserved ||
+           next->surface.id!=client.surface.id || next->surface.generation!=client.surface.generation)return -71;
+        reist_gui_surface_message_t key;r=reist_gui_surface_client_receive(&client,&key,0);
+        if(r)return r;
+        if(text_size<37){text[text_size++]=(char)key.input.key;text[text_size]=0;}
+    }
+    /* Erase the previous text footprint, without repainting the unused line. */
+    unsigned extent=text_size>painted_size?text_size:painted_size;
+    if(!extent)extent=1;
+    r=reist_gui_surface_client_dynamic_text(&client,12,48,extent*8,text_size?text:" ",
+        text_size?text_size:1,0xeaf2fa,0x18222d);
+    if(!r)painted_size=text_size;
+    return r;
+}
+#else
+#define paint_update paint
+#endif
 int main(int argc,char **argv) {
     if(reist_native_role_arguments(argc,argv,6+REIST_NATIVE_CLIENT,&args))return 22;
     reist_graphical_control hello;unsigned length=0;int r=-9;
-    for(unsigned n=0;n<300 && reist_native_now()<args.deadline;n++) {
+#if REIST_GRAPHICAL_START_MS == 10000U
+    for(unsigned n=0;n<REIST_GRAPHICAL_START_MS/10;n++) {
+        uint64_t now=reist_native_now();if(now>=args.deadline)break;
+        unsigned wait=args.deadline-now<100?(unsigned)(args.deadline-now):100;
+        r=reist_native_receive(args.endpoint,&hello,sizeof(hello),&length,wait);
+        if(r==-11 || r==-110)continue; /* Empty or bounded wait expired. */
+        if(r!=-9)break;if(reist_native_sleep(10))return 5;
+    }
+#else
+    for(unsigned n=0;n<REIST_GRAPHICAL_START_MS/10 && reist_native_now()<args.deadline;n++) {
         r=reist_native_receive(args.endpoint,&hello,sizeof(hello),&length,0);
         if(r!=-9&&r!=-11)break;if(reist_native_sleep(10))return 5;
     }
+#endif
     if(r || length!=64 || !reist_native_control_valid(&hello,REIST_GRAPHICAL_HELLO,
         2+REIST_NATIVE_CLIENT,args.epoch,args.owner,1) || hello.endpoint!=args.endpoint || hello.flags)return 71;
     reist_gui_surface_handle_t previous={(uint32_t)hello.value,(uint32_t)(hello.value>>32)};
@@ -56,8 +96,19 @@ int main(int argc,char **argv) {
                 args.mode='0';
             }
         }
+#if REIST_GRAPHICAL_START_MS == 10000U
+        unsigned idle_waited=0;
+#endif
         for(unsigned n=0;n<8;n++) {
-            reist_gui_surface_message_t m;r=reist_gui_surface_client_receive(&client,&m,0);
+            unsigned wait=0;
+#if REIST_GRAPHICAL_START_MS == 10000U
+            /* Block only while idle; incoming IPC wakes the client immediately. */
+            if(!n && !dirty)wait=50;
+#endif
+            reist_gui_surface_message_t m;r=reist_gui_surface_client_receive(&client,&m,wait);
+#if REIST_GRAPHICAL_START_MS == 10000U
+            if(r==-110 && wait){idle_waited=1;break;}
+#endif
             if(r==-11)break;if(r)return 71;
             if(m.type==REIST_GUI_SURFACE_CLOSE)return 0;
             if(m.type!=REIST_GUI_SURFACE_INPUT)continue;
@@ -79,8 +130,21 @@ int main(int argc,char **argv) {
         }
         now=reist_native_now();
         /* <=Six requests/frame and <=10 frames/s retain the128 request budget. */
-        if(dirty && now-last_paint>=100){if(paint())return 71;dirty=0;last_paint=reist_native_now();}
+        if(dirty && now-last_paint>=100){
+            if(paint_update())return 71;
+            dirty=0;
+#if REIST_GRAPHICAL_START_MS == 10000U && REIST_NATIVE_CLIENT == 0
+            /* Bound frame starts; IPC response time is already elapsed work. */
+            last_paint=now;
+#else
+            last_paint=reist_native_now();
+#endif
+        }
         now=reist_native_now();if(now-heartbeat>=250){if(health(1))return 71;heartbeat=now;}
+#if REIST_GRAPHICAL_START_MS == 10000U
+        if(!idle_waited && reist_native_sleep(10))return 5;
+#else
         if(reist_native_sleep(10))return 5;
+#endif
     }
 }

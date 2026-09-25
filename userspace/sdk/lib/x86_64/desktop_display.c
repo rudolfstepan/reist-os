@@ -16,6 +16,22 @@ static struct {
 } state;
 static uint64_t last_epoch;
 
+/* AMD64 integer string copy for validated, disjoint pixel buffers. MOVSQ
+ * accepts the adapter's four-byte alignment; retain an odd final pixel.
+ * No SIMD state or toolchain memcpy dependency is required. */
+static void copy_pixels(uint32_t *destination,const uint32_t *source,size_t pixels) {
+    size_t pairs=pixels/2;
+    __asm__ volatile("cld; rep movsq"
+        : "+D"(destination), "+S"(source), "+c"(pairs) : : "memory", "cc");
+    if(pixels&1) *destination=*source;
+}
+static void clear_pixels(uint32_t *destination,size_t pixels) {
+    size_t pairs=pixels/2;
+    __asm__ volatile("cld; rep stosq"
+        : "+D"(destination), "+c"(pairs) : "a"(UINT64_C(0)) : "memory", "cc");
+    if(pixels&1) *destination=0;
+}
+
 static int status(void) {
     if (!state.attached) return -19;
     if (state.failure) return state.failure;
@@ -56,7 +72,10 @@ int reist_desktop_display_attach(const reist_desktop_display_config *c) {
     if (r || now>UINT64_MAX-100) return r<0?r:-75;
     state.config=*c; state.previous=now; state.attached=1;
     state.columns=(c->width+63)/64; last_epoch=c->epoch;
-    for (size_t n=0;n<(size_t)c->width*c->height;n++) c->front[n]=c->back[n]=0;
+    const size_t pixels=(size_t)c->width*c->height;
+    uint32_t *front=c->front,*back=c->back;
+    clear_pixels(front,pixels);
+    clear_pixels(back,pixels);
     return 0;
 }
 void reist_desktop_display_detach(void) {
@@ -84,6 +103,9 @@ static void mark(uint64_t *set,int32_t l,int32_t t,int32_t r,int32_t b) {
 }
 static void damage(int32_t l,int32_t t,int32_t r,int32_t b) {
     mark(state.frame?state.staged:state.dirty,l,t,r,b);
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    if(!state.frame)mark(state.staged,l,t,r,b);
+#endif
 }
 static uint32_t *target(void) { return state.frame?state.config.back:state.config.front; }
 int x86os_display_activate(void) {
@@ -96,7 +118,12 @@ int x86os_display_activate(void) {
 int x86os_display_deactivate(void) {
     if (!state.attached) return -19;
     state.active=state.frame=state.blit=0;
-    for (unsigned n=0;n<3;n++) state.dirty[n]=state.staged[n]=0;
+    for (unsigned n=0;n<3;n++) {
+        state.dirty[n]=0;
+#ifndef REIST_NATIVE_FULL_DESKTOP
+        state.staged[n]=0;
+#endif
+    }
     return 0;
 }
 int x86os_display_info(x86os_display_info_t *out) {
@@ -126,8 +153,25 @@ int x86os_display_frame_begin(uint32_t *serial) {
     int r=status(); if (r) return r;
     if (state.frame) return -16;
     if (state.serial==UINT32_MAX) return -75;
-    for (size_t n=0;n<(size_t)state.config.width*state.config.height;n++)
-        state.config.back[n]=state.config.front[n];
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* Between frames staged describes back-buffer tiles differing from front.
+     * Repair before any draw; within a frame the same bitmap tracks new writes.
+     * Caller-owned buffers remain exclusively adapter-written while attached. */
+    const unsigned width=state.config.width,height=state.config.height;
+    for(unsigned tile=0;tile<state.columns*((height+63)/64);tile++) {
+        if(!(state.staged[tile/64]&(UINT64_C(1)<<(tile%64))))continue;
+        unsigned x=(tile%state.columns)*64,y=(tile/state.columns)*64;
+        unsigned w=width-x<64?width-x:64,h=height-y<64?height-y:64;
+        for(unsigned row=0;row<h;row++) {
+            size_t offset=(size_t)(y+row)*width+x;
+            copy_pixels(state.config.back+offset,state.config.front+offset,w);
+        }
+    }
+    for(unsigned n=0;n<3;n++)state.staged[n]=0;
+#else
+    const size_t count=(size_t)state.config.width*state.config.height;
+    copy_pixels(state.config.back,state.config.front,count);
+#endif
     state.frame=++state.serial; *serial=state.frame;
     return 0;
 }
@@ -135,7 +179,9 @@ int x86os_display_frame_cancel(uint32_t serial) {
     int r=status(); if (r) return r;
     if (!serial || serial!=state.frame) return -116;
     state.frame=state.blit=0;
+#ifndef REIST_NATIVE_FULL_DESKTOP
     for (unsigned n=0;n<3;n++) state.staged[n]=0;
+#endif
     return 0;
 }
 int x86os_display_frame_stage_blit(uint32_t serial,uint32_t sx,uint32_t sy,
@@ -163,16 +209,28 @@ int x86os_display_frame_commit(uint32_t serial) {
             (int32_t)(state.dx+state.bw),(int32_t)(state.dy+state.bh));
     }
     uint32_t *swap=state.config.front; state.config.front=state.config.back; state.config.back=swap;
-    for (unsigned n=0;n<3;n++) { state.dirty[n]|=state.staged[n]; state.staged[n]=0; }
+    for (unsigned n=0;n<3;n++) {
+        state.dirty[n]|=state.staged[n];
+#ifndef REIST_NATIVE_FULL_DESKTOP
+        state.staged[n]=0;
+#endif
+    }
     state.frame=state.blit=0;
     return 0;
 }
 int x86os_fill_rect(int32_t x,int32_t y,uint32_t w,uint32_t h,uint32_t rgb) {
     int result=status(); if (result) return result;
     int32_t l,t,r,b; if (!bounds(x,y,w,h,&l,&t,&r,&b)) return 0;
+    /* The dimensions are validated at attach and fixed for this transaction.
+     * Snapshot them before stores: uint32_t output otherwise forces the
+     * compiler to reload possibly aliased config.width for every pixel. */
     uint32_t *pixels=target();
-    for (int32_t py=t;py<b;py++) for (int32_t px=l;px<r;px++)
-        pixels[(unsigned)py*state.config.width+(unsigned)px]=rgb&0xffffff;
+    const unsigned width=state.config.width,count=(unsigned)(r-l);
+    rgb&=0xffffff;
+    for (int32_t py=t;py<b;py++) {
+        uint32_t *row=pixels+(size_t)(unsigned)py*width+(unsigned)l;
+        for (unsigned px=0;px<count;px++) row[px]=rgb;
+    }
     damage(l,t,r,b); return 0;
 }
 int x86os_draw_pixels(int32_t x,int32_t y,uint32_t w,uint32_t h,
@@ -185,9 +243,12 @@ int x86os_draw_pixels(int32_t x,int32_t y,uint32_t w,uint32_t h,
         overlaps((uintptr_t)pixels,bytes,(uintptr_t)state.config.back,frame_bytes)) return -22;
     int32_t l,t,r,b; if (!bounds(x,y,w,h,&l,&t,&r,&b)) return 0;
     uint32_t *out=target();
-    for (int32_t py=t;py<b;py++) for (int32_t px=l;px<r;px++)
-        out[(unsigned)py*state.config.width+(unsigned)px]=
-            pixels[(size_t)((int64_t)py-y)*stride+(size_t)((int64_t)px-x)]&0xffffff;
+    const unsigned width=state.config.width,count=(unsigned)(r-l);
+    for (int32_t py=t;py<b;py++) {
+        uint32_t *row=out+(size_t)(unsigned)py*width+(unsigned)l;
+        const uint32_t *source=pixels+(size_t)((int64_t)py-y)*stride+(size_t)((int64_t)l-x);
+        for (unsigned px=0;px<count;px++) row[px]=source[px]&0xffffff;
+    }
     damage(l,t,r,b); return 0;
 }
 int x86os_draw_text_pixels_clipped(int32_t x,int32_t y,const char *text,size_t length,
@@ -238,6 +299,18 @@ int x86os_display_surface_buffer_draw(int owner,uint32_t generation,uint32_t buf
     (void)sx; (void)sy; (void)dx; (void)dy; (void)w; (void)h; return -95;
 }
 static int pending(void) { return !!(state.dirty[0]|state.dirty[1]|state.dirty[2]); }
+int reist_desktop_display_idle(void) {
+    int result=status();
+    if (result) return result;
+    return !!state.frame || pending();
+}
+int reist_desktop_display_service(void) {
+    if (state.failure) return state.failure;
+    if (!state.attached || !state.active || state.frame) return 0;
+    uint64_t next;
+    int r=reist_desktop_display_pump(&next);
+    return r<0?r:0;
+}
 int reist_desktop_display_pump(uint64_t *next) {
     if (!next) return -22;
     int result=status(); if (result) return result;
@@ -260,11 +333,21 @@ int reist_desktop_display_pump(uint64_t *next) {
         unsigned w=state.config.width-x,h=state.config.height-y;
         if (w>64) w=64;
         if (h>64) h=64;
-        for (unsigned py=0;py<h;py++) for (unsigned px=0;px<w;px++) {
-            uint32_t pixel=state.config.front[(y+py)*state.config.width+x+px];
-            int64_t rx=(int64_t)x+px-state.px,ry=(int64_t)y+py-state.py;
-            if (state.visible && rx>=0 && rx<8 && ry>=0 && ry<12 && (!rx || !ry || rx==ry/2)) pixel=0xffffff;
-            state.tile[py*w+px]=pixel;
+        const unsigned width=state.config.width;
+        const uint32_t *front=state.config.front;
+        for (unsigned py=0;py<h;py++) {
+            const uint32_t *source=front+(size_t)(y+py)*width+x;
+            uint32_t *row=state.tile+py*w;
+            copy_pixels(row,source,w);
+        }
+        /* Cursor work is bounded by its8x12 bitmap, not by every screen pixel. */
+        int64_t left=(int64_t)state.px-x,top=(int64_t)state.py-y;
+        if (state.visible && left<(int64_t)w && top<(int64_t)h && left+8>0 && top+12>0) {
+            for (unsigned cy=0;cy<12;cy++) for (unsigned cx=0;cx<8;cx++) {
+                int64_t tx=left+cx,ty=top+cy;
+                if ((!cx || !cy || cx==cy/2) && tx>=0 && ty>=0 && tx<w && ty<h)
+                    state.tile[(unsigned)ty*w+(unsigned)tx]=0xffffff;
+            }
         }
         reist_display_request_v1 q={1,64,REIST_DISPLAY_COMMIT,0,state.config.owner,state.config.epoch,
             now+100,(uintptr_t)state.tile,x,y,(uint16_t)w,(uint16_t)h,w*4};

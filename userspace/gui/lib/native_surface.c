@@ -1,5 +1,11 @@
 /* Conventional SDK wrappers over existing native IPC/clock/sleep operations. */
 #include "native_surface.h"
+/* Surface-v6 dynamic BEGIN/COMMIT replies, selected profile diagnostics only. */
+#if REIST_GRAPHICAL_START_MS == 10000U
+#define NATIVE_PAINT_REPLY(type) ((type)==16U || (type)==17U || (type)==24U)
+#else
+#define NATIVE_PAINT_REPLY(type) 0
+#endif
 volatile reist_native_audit_buffer reist_native_audit;
 void reist_native_audit_init(uint64_t owner,uint64_t epoch) {
     volatile unsigned char *p=(volatile unsigned char*)&reist_native_audit;
@@ -15,7 +21,7 @@ void reist_native_audit_append(uint32_t endpoint,const x86os_ipc_message_t *m,ui
     const unsigned char *payload=m->payload;
     unsigned version=payload[0]|(unsigned)payload[1]<<8|(unsigned)payload[2]<<16|(unsigned)payload[3]<<24;
     unsigned type=payload[8]|(unsigned)payload[9]<<8|(unsigned)payload[10]<<16|(unsigned)payload[11]<<24;
-    if(!((m->length==64 && version==2)||(m->length==124 && version==6 && type==129)))return;
+    if(!((m->length==64 && version==2)||(m->length==124 && version==6 && (type==129 || NATIVE_PAINT_REPLY(type)))))return;
     uint64_t seq=reist_native_audit.sequence;
     if(seq==UINT64_MAX){reist_native_audit.exhausted=1;return;}
     volatile reist_native_audit_entry *entry=&reist_native_audit.entries[seq%128];
@@ -27,7 +33,7 @@ void reist_native_audit_append(uint32_t endpoint,const x86os_ipc_message_t *m,ui
 static void audit_received(uint32_t ep,const x86os_ipc_message_t *m) {
     if(m->version==1 && m->struct_size==140 &&
        ((m->length==64 && m->payload[0]==2) ||
-        (m->length==124 && m->payload[0]==6 && m->payload[8]==129)))
+        (m->length==124 && m->payload[0]==6 && (m->payload[8]==129 || NATIVE_PAINT_REPLY(m->payload[8])))))
         reist_native_audit_append(ep,m,reist_native_now());
 }
 void *memcpy(void *to,const void *from,size_t n) {
@@ -56,7 +62,7 @@ int reist_native_role_arguments(int argc,char **argv,unsigned slot,reist_native_
        !ep||!peer||peer>0x7fffffff)return -22;
     uint64_t epoch=(uint64_t)eh<<32|el,end=(uint64_t)dh<<32|dl,now=reist_native_now();
     int64_t pid=reist_x64_syscall0(REIST_X64_SYS_GETPID);
-    if(pid<=0||pid>0x7fffffff||!epoch||end<=now||end-now>3000||end>UINT64_MAX-500)return -22;
+    if(pid<=0||pid>0x7fffffff||!epoch||end<=now||end-now>REIST_GRAPHICAL_START_MS||end>UINT64_MAX-500)return -22;
     *out=(reist_native_role_args){ep,peer,(unsigned char)argv[7][0],epoch,end,(uint64_t)pid<<32|slot};
     reist_native_audit_init(out->owner,epoch);return 0;
 }

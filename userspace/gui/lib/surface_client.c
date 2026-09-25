@@ -681,3 +681,28 @@ int reist_gui_surface_client_open_mouse(reist_gui_surface_client_t *client) {
     request.surface = client->surface;
     return transact(client, &request, REIST_GUI_SURFACE_OPEN_MOUSE);
 }
+
+#if defined(REIST_NATIVE_FULL_DESKTOP_STARTUP) || defined(REIST_NATIVE_FULL_DESKTOP)
+int reist_gui_surface_client_dynamic_text(
+    reist_gui_surface_client_t *client, int32_t x, int32_t y,
+    uint32_t maximum_width, const char *text, uint32_t length,
+    uint32_t foreground, uint32_t background) {
+    if(!valid_client(client) || !client->acknowledged_serial ||
+       !text || !length || length>=REIST_GUI_SURFACE_PAINT_TEXT_CAPACITY ||
+       x<0 || y<0 || (uint32_t)x>=client->width ||
+       (uint32_t)y>=client->height || client->height-(uint32_t)y<16U ||
+       !maximum_width || maximum_width>client->width-(uint32_t)x ||
+       length>maximum_width/8U || foreground>0xffffffU || background>0xffffffU)
+        return -22;
+    for(uint32_t i=0;i<length;i++)if((unsigned char)text[i]<32 || (unsigned char)text[i]>126)return -22;
+    reist_gui_surface_message_t request,response;
+    prepare(&request,REIST_GUI_SURFACE_PAINT_DYNAMIC_TEXT,client);
+    request.serial=client->acknowledged_serial;request.format=1;
+    request.damage=(reist_gui_rect_t){x,y,maximum_width,16};
+    request.flags=foreground;request.buffer_id=background;request.byte_size=length;
+    for(uint32_t i=0;i<length;i++)((char *)&request.input)[i]=text[i];
+    int result=transact_response(client,&request,request.type,&response);
+    if(result)return result;
+    return response.serial==request.serial ? 0 : -84;
+}
+#endif

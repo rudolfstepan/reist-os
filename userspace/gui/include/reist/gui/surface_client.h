@@ -59,6 +59,13 @@ int reist_gui_surface_client_set_title(reist_gui_surface_client_t *client,
                                        const char *title);
 int reist_gui_surface_client_open_display(reist_gui_surface_client_t *client);
 int reist_gui_surface_client_open_mouse(reist_gui_surface_client_t *client);
+/** Optional extension1: replace DYNAMIC with one complete 16px ASCII line.
+ * Rejects unsupported peers; no fallback/retry or implicit BEGIN. XRGB8888
+ * colors, client-local rectangle, 1..39 printable bytes; one confirmed reply. */
+int reist_gui_surface_client_dynamic_text(
+    reist_gui_surface_client_t *client, int32_t x, int32_t y,
+    uint32_t maximum_width, const char *text, uint32_t length,
+    uint32_t foreground, uint32_t background);
 /** Start an atomic retained paint frame, replacing no visible content yet. */
 int reist_gui_surface_client_paint_begin(reist_gui_surface_client_t *client);
 /** Start an atomic frame for BASE or the bounded later-rendered OVERLAY. */

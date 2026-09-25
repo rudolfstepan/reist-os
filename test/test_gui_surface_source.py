@@ -105,10 +105,11 @@ int main(void) {
 
     def test_client_drains_input_backpressure_without_losing_events(self):
         from test_gui_browser_source import run_host
-        run_host(["test/test_gui_surface_client_host.c",
-                  "userspace/gui/lib/surface_client.c",
-                  "userspace/gui/lib/font_catalog.c"],
-                 flags=["-Iuserspace/sdk/include"])
+        for profile in ([], ["-DREIST_NATIVE_FULL_DESKTOP=1"]):
+            run_host(["test/test_gui_surface_client_host.c",
+                      "userspace/gui/lib/surface_client.c",
+                      "userspace/gui/lib/font_catalog.c"],
+                     flags=["-Iuserspace/sdk/include", *profile])
 
     def test_public_protocol_is_bounded_and_local(self):
         header = (ROOT / "userspace/gui/include/reist/gui/surface.h").read_text()
@@ -201,20 +202,22 @@ int main(void) {
         environment = os.environ.copy()
         environment["ZIG_GLOBAL_CACHE_DIR"] = str(ROOT / "build/codex-agent/browser-host/zig-global")
         environment["ZIG_LOCAL_CACHE_DIR"] = str(ROOT / "build/codex-agent/browser-host/zig-local")
-        for source in ("test/test_desktop_surface_host.c",
-                       "test/test_desktop_surface_dispatch.c"):
+        for source, profile in ((src, profile) for src in (
+                "test/test_desktop_surface_host.c", "test/test_desktop_surface_dispatch.c")
+                for profile in ([], ["-DREIST_NATIVE_FULL_DESKTOP=1"])):
             with tempfile.TemporaryDirectory(prefix="reist-surface-") as temp:
                 executable = Path(temp) / "surface-test.exe"
                 result = subprocess.run([
-                    *command, "-std=c11", "-Wall", "-Wextra", "-Werror",
+                    *command, *profile, "-std=c11", "-Wall", "-Wextra", "-Werror",
                     "-I.", "-Iuserspace/gui/include", source,
                     "userspace/gui/compositor/desktop_surface.c",
                     "userspace/gui/lib/font_catalog.c",
                     "-o", str(executable)], cwd=ROOT, env=environment,
                     capture_output=True, text=True, timeout=90)
                 self.assertEqual(result.returncode, 0, result.stderr)
-                subprocess.run([str(executable)], cwd=ROOT, check=True,
-                               capture_output=True, text=True, timeout=5)
+                result = subprocess.run([str(executable)], cwd=ROOT,
+                                        capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_endpoint_bootstrap_is_fail_closed(self):
         client = (ROOT / "userspace/gui/lib/surface_client.c").read_text()

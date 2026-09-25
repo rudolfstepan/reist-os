@@ -756,6 +756,42 @@ int desktop_surface_destroy(desktop_surface_manager_t *manager,
     return DESKTOP_SURFACE_OK;
 }
 
+#ifdef REIST_NATIVE_FULL_DESKTOP
+static int atomic_dynamic_text(desktop_surface_manager_t *manager,
+    reist_gui_surface_owner_t owner, const reist_gui_surface_message_t *q) {
+    int index=find_slot(manager,owner,q->surface);
+    if(index<0)return DESKTOP_SURFACE_ESTALE;
+    desktop_surface_slot_t *slot=&manager->slots[index];
+    if(!slot->acknowledged_serial || q->serial!=slot->acknowledged_serial ||
+       slot->paint_active)return DESKTOP_SURFACE_ESTATE;
+    if(q->format!=1U || q->buffer_generation || q->width || q->height ||
+       q->stride_bytes || q->reserved || q->parent_surface.id ||
+       q->parent_surface.generation || q->flags>0xffffffU ||
+       q->buffer_id>0xffffffU || !q->byte_size ||
+       q->byte_size>=REIST_GUI_SURFACE_PAINT_TEXT_CAPACITY ||
+       q->damage.height!=16U || !valid_local_rect(slot,q->damage) ||
+       q->byte_size>q->damage.width/8U)return DESKTOP_SURFACE_EINVAL;
+    const unsigned char *text=(const unsigned char *)&q->input;
+    for(uint32_t i=0;i<sizeof(q->input);i++) {
+        if(i<q->byte_size ? (text[i]<32 || text[i]>126) : text[i]!=0)
+            return DESKTOP_SURFACE_EINVAL;
+    }
+    desktop_surface_paint_command_t candidate={0};
+    candidate.type=DESKTOP_SURFACE_PAINT_TEXT;candidate.rect=q->damage;
+    candidate.foreground=q->flags;candidate.background=q->buffer_id;
+    candidate.text_length=q->byte_size;
+    copy_bounded_text(candidate.text,(const char *)text,q->byte_size);
+    /* All admission is complete. No failure path follows publication. */
+    uint32_t changed=accumulate_layer_difference(slot,
+        slot->committed_dynamic_paint,slot->committed_dynamic_paint_count,
+        &candidate,1U);
+    slot->committed_dynamic_paint[0]=candidate;
+    slot->committed_dynamic_paint_count=1U;
+    if(changed)slot->paint_generation=next_nonzero(&slot->paint_generation);
+    return DESKTOP_SURFACE_OK;
+}
+#endif
+
 int desktop_surface_dispatch_message(
     desktop_surface_manager_t *manager,
     reist_gui_surface_owner_t owner,
@@ -786,6 +822,12 @@ int desktop_surface_dispatch_message(
             response->width = configure.width;
             response->height = configure.height;
         }
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    } else if (request->type == REIST_GUI_SURFACE_PAINT_DYNAMIC_TEXT) {
+        result=atomic_dynamic_text(manager,owner,request);
+        response->type=request->type;
+        response->serial=request->serial;
+#endif
     } else if (request->type == REIST_GUI_SURFACE_ACK_CONFIGURE) {
         result = desktop_surface_ack_configure(
             manager, owner, request->surface, request->serial);

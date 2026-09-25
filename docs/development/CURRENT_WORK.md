@@ -1,3 +1,124 @@
+# CF accepted; CB integration resumed (2026-09-25)
+
+CF qualification05 passed all four original gates, including300ms mouse/text,
+crash/CPU replacement and startup-timeout cleanup in four fresh guests.
+Acceptance seal SHA256 edfce3c99981181f07bf0eb049ce008fe5c79f89d143959c058d8b5fe277a7da. Counters184/22/77/121.
+CB is the sole active package; preserve its actual spent73 hosts/45 builds/
+23 media/27 guests and all five original gates/eight fresh guests. VMware
+visual package exists under build/vmware/reist-native64-full-desktop-20260925-current;
+its VMware acceptance is still pending. R3.6b remains deferred.
+
+# CF qualification05 running (2026-09-25)
+
+Accepted CI8b4baee1; CF sole active and uncommitted. Current candidate passes
+normal mouse/abc300ms (GUI11680.812s) and isolated stable replacement (GUI117109.662s).
+Fixes: small IPC envelopes, event-driven idle clients, bounded text damage,
+immediate completed-frame publication, paced pending recovery, and bounded large
+live raster with one unchanged1000ms frame deadline. Startup/recovery deadlines
+and64/32 CPU budgets remain. Host184 all15 tests pass. Qualification05 runs the
+original four gates once, three role builds, build/media77 and fresh guests118..121.
+Development spent184 hosts/19 roles/76 builds/117 guests before these final gates;
+01..04 qualifications remain failed and preserved. No CF/CB/full-OS acceptance.
+CB remains queued; R3.6b deferred. No agents or push.
+
+Preliminary real-desktop VMware visual package (earlier GUI104):
+build/vmware/reist-native64-full-desktop-20260925-input/START-VMWARE.cmd.
+Original GUI97 VMware desktop boot was proven; latest package VMware acceptance
+remains open. Evidence: build/codex-agent/r83cf-desktop-startup/.
+
+# Previous boundary and history
+
+# CF targeted application recovery implemented (2026-09-25)
+
+CI8b4baee1 remains accepted; CF sole active and uncommitted.
+User approved the four proposed supervisor/broker files by renewed continue
+instruction. Broker replacement and root receipt binding now preserve the other
+app; frontend fences/reaps old owner, binds a strictly new generation and waits
+for healthy configured/presented window before reintegration.
+Hosts155/156 all11 groups pass26.040/25.743s; host157 all12 pass23.365s.
+GUI92 new build/media60 pass31.206/3.701s; actual text17 reap and replacement19,
+desktop15/input16/paint18 preserved, replacement prompt visible. Evidence:
+build/codex-agent/r83cf-desktop-startup/gui92/lifecycle/guest/lifecycle-proof.json.
+Collection is not final acceptance. GUI93/build61 extends stable observation.
+Spent157 hosts/7 role builds/61 build-media/93 guests (93 in progress).
+Remaining current reservation host158/build62/guests94..95; retain all failures.
+Direct review also found the initial successful launch already resets ordinary
+fault modes; the redundant added pre-CREATE reset must be removed after GUI93
+because selector13 intentionally supplies a stale-handle replacement mode.
+No CF frozen gate, CB or VMware/full-OS acceptance yet. No agents or push.
+
+# Previous boundary and history
+
+# CF latency passed; application recovery blocked at supervisor scope (2026-09-25)
+
+CI8b4baee1 accepted. CF sole active, no final qualification or implementation commit.
+Host150 exact scope/syntax/diff passes;149 caught and corrected own queue scope
+placement error (seven already approved paths). Complete candidate archive:
+build/codex-agent/r83cf-desktop-startup/after-gui91/candidate.zip.
+Spent150 hosts/7 role builds/59 integration build-media/91 guests. Host147 all10
+behavior groups pass. Defaults-dev03 all4 old role PRGs exact against0af9682e,
+selected roles built. GUI90 after early-raster correction passes pointer and
+exact abc300ms; GUI88 remains failed, GUI89 diagnostic pass retained.
+GUI91 selector7 text crash: UD on text17, adapter-95, all GUI/storage roles reaped,
+unsuccessful group restart and shell return. Collection succeeded; lifecycle
+FAILED (explicit lifecycle-proof.json), no replacement reintegration.
+Concrete four-file supervisor/broker recovery scope proposal is at the end of
+NATIVE_DESKTOP_STARTUP_PROFILE_CONTRACT.md. Do not edit those immutable CB files
+before approval. Frontend rejects CLIENT_REAPED/BIND; broker/backend only know
+initial generation. Fix must preserve unrelated roles, exact reap/fencing,
+strict new generation and unchanged budgets/gates. No new authority requested.
+All QEMU/GDB/test processes closed. Eight old images NTFS-compressed with hashes
+unchanged,4GiB freed; no evidence deleted. Full OS/CB/VMware acceptance still open.
+
+# Previous boundary and history
+
+# CF atomic text implemented; latency qualification still open (2026-09-25)
+
+User renewed "mach weiter da es schnell fertig werden muss" immediately after
+Surface scope question approved exactly the seven proposed source/test files;
+queue allowed_files and contract record it. CI8b4baee1 remains accepted.
+CF sole active. Spent145 hosts/4 role builds/58 build-media/89 guests reserved
+and running (exact88 media, read-only paused adapter capture). Host144 all10
+behavior groups passed19.890s. No final CF gate started.
+Selected native text uses atomic Surface-v6 optional opcode24, one correlated
+reply, validated whole-line dynamic replacement with rollback on rejection.
+Old profiles retain original paths. Existing deferred printable FIFO folding
+remains; no speculative BEGIN/TEXT/COMMIT. Selected display reuses staged tile
+bitmap to repair only changed back-buffer tiles between frames; cancel/direct
+writes/blit/odd edges/deactivate covered at O0/O2, no new allocation or quotas.
+GUI87/88 real desktop stable and pointer pass, final300ms abc still fails;
+later snapshots show abc. GUI88 c reached client38460, replies38490/38620,
+keyboard snapshot latest CPU38740. Do not infer exact raster time from coarse
+samples. Diagnostic89 captures adapter state AFTER the unchanged keyboard
+snapshot, no guest writes/debugger/build. See contract finite reservations.
+Prior failures including79 input exit71 and83 preboot timeout retained.
+No CF/CB/VMware/full OS acceptance, no implementation commit, R3.6b deferred.
+
+# Previous boundary and history
+
+# CF pending Surface extension; CI accepted8b4baee1 (2026-09-25)
+
+CI completed six gates and eleven guest cases; accepted commit8b4baee1,
+seal1ac6459a82ac5b2d947968b4937a6bf5aad02489741ec75aec11f61ff77ecea5.
+CF sole active/unaccepted. Counters140 hosts/4 role builds/56 builds-media/
+86 guests; no CF final qualification. Latest host140 all8 passed; GUI86 stable,
+pointer300ms passed, abc300ms failed. GUI79 input exit71 remains retained and
+unresolved (not reproduced by81); GUI83 QMP preboot timeout retained.
+SSE experiment archived in after-gui86 and reverted exactly to after-gui84
+REP copies. Current CF changes include post-BEGIN queued-key folding, one-pump
+input priority before display, and input publication before paint polling.
+The100ms coalescing experiment was archived and removed; frame cadence stays100ms.
+
+Concrete next proposal: one bounded atomic dynamic text-frame operation, one
+reply, upfront validation and rollback on any failure. Requires Surface library,
+protocol and dispatcher files outside CF allowed_files. See final section of
+NATIVE_DESKTOP_STARTUP_PROFILE_CONTRACT.md. Stop before those source edits until
+scope approval, retaining original final latency/safety and CF/CB/VMware gates.
+No task/VM/debugger left running. D: approximately6GiB free, RAM19GiB free at
+last read; no evidence deletion. No OS/VMware completion claim; R3.6b deferred.
+
+# Previous boundary and history
+
 # CI accepted; resume CF text response (2026-09-25)
 
 All six qualification03 gates passed: host9.502s, exact default56 artifacts
@@ -18471,3 +18592,7 @@ spätestens nach Button-Up. Der Compositor zerlegt Dirty-Regionen außerdem in
 feste sichtbare Teilrechtecke und rastert vollständig verdeckte Flächen nicht.
 Erschöpft die feste Regionliste, zeichnet er den ursprünglichen Clip komplett;
 Kapazitätsdruck darf daher Laufzeit, aber keine Pixelkorrektheit kosten.
+
+## Latest stop: host disk full (supersedes earlier in-progress notes)
+
+CF uncommitted; spent160 hosts/7 roles/62 build-media/95 guests. GUI94 CPU isolated replacement passes; GUI95 abc300ms fails though stable abc is present. Selected text pacing correction passes host160, build62(gui96) failed at full D: before media/guest. Free49152 bytes. See build/codex-agent/r83cf-desktop-startup/disk-full-blocker.json; restore disk capacity and verify recorded image SHA before new build63/guest96. No running VM/compiler or completed OS claim.

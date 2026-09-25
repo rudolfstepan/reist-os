@@ -4,7 +4,10 @@
 #include <x86os.h>
 #include <reist/x86_64/desktop_display.h>
 
-static uint32_t a[1024*768], b[1024*768], screen[1024*768];
+static struct { uint32_t before,pixels[1024*768],after; } guarded_a,guarded_b;
+#define a guarded_a.pixels
+#define b guarded_b.pixels
+static uint32_t screen[1024*768];
 static unsigned char font[4096];
 static uint64_t now = 1000, epoch = 1;
 static unsigned calls, fail_at;
@@ -47,6 +50,7 @@ static void drain(void) {
     assert(!"bounded drain");
 }
 int main(void) {
+    guarded_a.before=guarded_a.after=guarded_b.before=guarded_b.after=0xdeadbeef;
     memset(a,0x5a,sizeof(a)); memset(b,0xa5,sizeof(b));
     memset(font+65*16,0xff,16);
     font[142*16]=0x80; /* CP437 capital A umlaut, addressed through UTF-8. */
@@ -57,6 +61,7 @@ int main(void) {
     bad=c; bad.width=UINT32_MAX; assert(reist_desktop_display_attach(&bad)==-22);
     bad=c; bad.font_bytes=4095; assert(reist_desktop_display_attach(&bad)==-22);
     assert(reist_desktop_display_attach(&c)==0);
+    for(unsigned n=0;n<1024*768;n++)assert(!a[n] && !b[n]);
     assert(reist_desktop_display_attach(&c)==-16);
     assert(x86os_display_activate()==0);
     x86os_display_info_t info; assert(x86os_display_info(&info)==0 && info.width==1024 && info.font_height==16);
@@ -103,6 +108,17 @@ int main(void) {
     assert(x86os_pointer_update(200,200,1)==0); drain();
     assert(!screen[100*1024+100] && screen[200*1024+200]==0xffffff);
     assert(x86os_pointer_update(0,0,0)==0); drain(); assert(!screen[200*1024+200]);
+    const unsigned cursor_positions[][2]={{63,63},{1020,764}};
+    for(unsigned position=0;position<2;position++) {
+        unsigned cx=cursor_positions[position][0],cy=cursor_positions[position][1];
+        uint32_t original[12][8]={{0}};
+        for(unsigned y=0;y<12 && cy+y<768;y++)for(unsigned x=0;x<8 && cx+x<1024;x++)
+            original[y][x]=screen[(cy+y)*1024+cx+x];
+        assert(!x86os_pointer_update(cx,cy,1));drain();
+        for(unsigned y=0;y<12 && cy+y<768;y++)for(unsigned x=0;x<8 && cx+x<1024;x++)
+            assert(screen[(cy+y)*1024+cx+x]==((!x || !y || x==y/2)?0xffffff:original[y][x]));
+        assert(!x86os_pointer_update(0,0,0));drain();
+    }
     assert(x86os_fill_rect(0,0,1024,768,0x112233)==0);
     now+=100; /* Begin this boundary check after all prior sends have expired. */
     before=calls; unsigned full=0;
@@ -129,6 +145,69 @@ int main(void) {
     assert(x86os_display_deactivate()==0 && reist_desktop_display_pump(&next)==-19);
     assert(x86os_display_activate()==0); drain();
     reist_desktop_display_detach();
+    epoch++; c=config();
+    assert(!reist_desktop_display_attach(&c) && !x86os_display_activate());
+    assert(!x86os_display_frame_begin(&serial));
+    memset(screen,0,sizeof(screen));
+    const struct { int32_t x,y;uint32_t w,h,color; } fills[]={
+        {-3,-5,1031,137,0xff2468ac},{5,123,999,631,0xaacdef12},
+        {1021,765,UINT32_MAX,UINT32_MAX,0x12345678},{0,0,0,768,9}};
+    for(unsigned n=0;n<sizeof(fills)/sizeof(fills[0]);n++) {
+        assert(!x86os_fill_rect(fills[n].x,fills[n].y,fills[n].w,fills[n].h,fills[n].color));
+        for(unsigned y=0;y<768;y++)for(unsigned x=0;x<1024;x++)
+            if((int64_t)x>=fills[n].x && (int64_t)y>=fills[n].y &&
+               (int64_t)x<(int64_t)fills[n].x+fills[n].w &&
+               (int64_t)y<(int64_t)fills[n].y+fills[n].h)
+                screen[y*1024+x]=fills[n].color&0xffffff;
+    }
+    assert(!memcmp(b,screen,sizeof(b)));
+    for(unsigned n=0;n<1024*768;n++)assert(!a[n]);
+    assert(!x86os_display_frame_cancel(serial));
+    assert(!x86os_display_frame_begin(&serial));
+    for(unsigned n=0;n<1024*768;n++)assert(!b[n]);
+    assert(!x86os_fill_rect(0,0,1024,768,0xab112233));
+    assert(!x86os_display_frame_commit(serial));
+    assert(!x86os_display_frame_begin(&serial));
+    for(unsigned n=0;n<1024*768;n++)assert(a[n]==0x112233 && b[n]==0x112233);
+    assert(!x86os_display_frame_cancel(serial));
+    reist_desktop_display_detach();
+    epoch++;c=config();c.width=321;c.height=241;
+    memset(a,0x5a,sizeof(a));memset(b,0xa5,sizeof(b));
+    assert(!reist_desktop_display_attach(&c) && !x86os_display_activate());
+    for(unsigned n=0;n<321*241;n++)assert(!a[n] && !b[n]);
+    assert(a[321*241]==0x5a5a5a5a && b[321*241]==0xa5a5a5a5);
+    /* Caller buffers are only4-byte aligned; preserve every odd-tail pixel. */
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    for(unsigned n=0;n<321*241;n++)screen[n]=((n*1709U)^0x123456)&0xffffff;
+    assert(!x86os_draw_pixels(0,0,321,241,screen,321));
+#else
+    for(unsigned n=0;n<321*241;n++)a[n]=(n*1709U)^0x123456;
+#endif
+    b[321*241]=0x987654;
+    assert(!x86os_display_frame_begin(&serial));
+    for(unsigned n=0;n<321*241;n++)assert(a[n]==b[n]);
+    assert(b[321*241]==0x987654);
+    assert(!x86os_display_frame_cancel(serial));
+#ifdef REIST_NATIVE_FULL_DESKTOP
+    /* Cross-tile direct writes, canceled back writes and lifecycle transitions
+     * preserve every pixel outside later tiny committed regions. */
+    assert(!x86os_display_frame_begin(&serial));
+    assert(!x86os_fill_rect(63,63,3,3,0xabcdef));
+    assert(!x86os_display_frame_cancel(serial));
+    assert(!x86os_display_deactivate() && !x86os_display_activate());
+    assert(!x86os_fill_rect(128,128,1,1,0x112233));screen[128*321+128]=0x112233;
+    for(unsigned i=0;i<20;i++) {
+        assert(!x86os_display_frame_begin(&serial));
+        unsigned x=(i*47)%321,y=(i*29)%241;
+        assert(!x86os_fill_rect(x,y,1,1,0x334455+i));screen[y*321+x]=0x334455+i;
+        assert(!x86os_display_frame_commit(serial));
+        const uint32_t *visible=(i&1)?a:b;
+        assert(!memcmp(visible,screen,321*241*4));
+    }
+#endif
+    reist_desktop_display_detach();
+    assert(guarded_a.before==0xdeadbeef && guarded_a.after==0xdeadbeef);
+    assert(guarded_b.before==0xdeadbeef && guarded_b.after==0xdeadbeef);
     puts("display: raster, transaction, cursor, quota and lifecycle passed");
     return 0;
 }
