@@ -127,12 +127,29 @@ native_input_syscall64:
     jmp .result
 .pointer: mov rax,-14
 .result:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    mov r8d,[rel native_input_request+8]
+%endif
     push rax
     lea rdi,[rel native_input_request]
     xor eax,eax
     mov ecx,8
     rep stosq
     pop rax
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    ; Only completed/empty reads share the existing bounded query burst.
+    ; All request checks and scratch erasure precede this return decision.
+    cmp r8d,3
+    jne .dispatch_result
+    cmp rax,-11
+    je .read_return
+    lea rdx,[rax-1]
+    cmp rdx,65535
+    ja .dispatch_result
+.read_return:
+    jmp query_resume64
+.dispatch_result:
+%endif
     jmp process_run_resume64
 
 native_input_terminal64:

@@ -725,6 +725,59 @@ process_run_frames64:
     ; every preceding position in the authoritative, read-only owner arrays.
     ; At most8*261 positions; only the64-byte local filter occupies the stack.
     ; IRQ/dispatch callers have interrupts disabled; no shared scratch or cache.
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    xor r8d,r8d
+    lea r10,[rel scheduler_tasks]
+    lea r11,[rel scheduler_table_frames]
+..@ci_slot:
+    ; Compare the same exact prefix as contiguous regions. Region selection
+    ; is once per slot, instead of once per private-frame position.
+    mov r9d,NATIVE_IMAGE_PAGES
+    cmp r8d,ebx
+    jne ..@ci_private_range
+    cmp ecx,r9d
+    cmovb r9d,ecx
+..@ci_private_range:
+    test r9d,r9d
+    jz ..@ci_private_end
+    lea rdi,[r10+TASK_PRIVATE_FRAMES]
+    mov esi,ecx
+    mov ecx,r9d
+    cld
+    repne scasq
+    mov ecx,esi
+    je .bad
+..@ci_private_end:
+    cmp r8d,ebx
+    jne ..@ci_stack
+    cmp ecx,NATIVE_IMAGE_PAGES
+    jbe .record
+..@ci_stack:
+    cmp rax,[r10+TASK_STACK_FRAME]
+    je .bad
+    mov r9d,NATIVE_CLAIM_FRAMES-NATIVE_IMAGE_PAGES-1
+    cmp r8d,ebx
+    jne ..@ci_table_range
+    mov r9d,ecx
+    sub r9d,NATIVE_IMAGE_PAGES+1
+..@ci_table_range:
+    test r9d,r9d
+    jz ..@ci_table_end
+    mov rdi,r11
+    mov esi,ecx
+    mov ecx,r9d
+    cld
+    repne scasq
+    mov ecx,esi
+    je .bad
+..@ci_table_end:
+    cmp r8d,ebx
+    je .record
+    inc r8d
+    add r10,NATIVE_TASK_BYTES
+    add r11,32
+    jmp ..@ci_slot
+%else
     xor r8d,r8d
     lea r10,[rel scheduler_tasks]
     lea r11,[rel scheduler_table_frames]
@@ -758,6 +811,7 @@ process_run_frames64:
     add r10,NATIVE_TASK_BYTES
     add r11,32
     jmp .prior_slot
+%endif
 .record:
 %else
     xor edx, edx

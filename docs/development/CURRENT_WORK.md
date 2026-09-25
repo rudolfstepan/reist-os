@@ -1,3 +1,93 @@
+# CI gates passed; local commit blocked by automatic approval review (2026-09-25)
+
+All four qualification01 gates passed; acceptance seal and raw evidence kept.
+Both commit attempts were rejected before execution. Automatic reviewer does
+not accept renewed mach weiter as explicit process_run.inc authorization.
+Explicit named-file approval requested via async question. No workaround,
+no commit/staging occurred, no push. CI candidate/queue transition remains
+uncommitted; do not restore CB or start another implementation transaction.
+Prepared VMware20260925-ci package has not been launched. Existing source
+proofs are complete; no unchanged rerun needed after explicit approval.
+
+# CI accepted; CB resumes after local commit (2026-09-25)
+
+CI qualification01 all four gates PASS:5.278/37.651/218.786/5.233s.
+Three fresh guests prove801 movements+10s stable owners, original300ms
+pointer/abc, CPU fault isolation/replacement with unchanged CPU32/64.
+Exact frame checks and disabled profiles pass host tests. Kernel1391504B.
+CB sole active; restore source-only archive28394e53 after CI commit.
+CB spent86/50/28/38 preserved, five gates/eight cases remain. Prepared VMware
+build/vmware/reist-native64-full-desktop-20260925-ci has not been run yet.
+No complete OS or VMware stability claim. All evidence/failures retained.
+
+# CI: qualification01 frozen next (2026-09-25)
+
+READ route plus bounded contiguous frame scan passes host differential tests;
+disabled profiles byte-exact. Development guest5 passes801 mouse batches
+and10s stability, pointer516/386, unchanged owners and CPU32. Build4/media4.
+Host11 independent admission passes. Counters11/4/4/5; failed attempts kept.
+Run original four CI gates once in qualification01, three fresh guests.
+No final acceptance or VMware stability claim yet. CB archive28394e53 intact.
+
+# CI: contiguous string comparison variant (2026-09-25)
+
+Hosts6 green; build3/media3 passed. Guest4 failed48.666s after87 batches,
+input CPU256, despite host speedup. Counters6/3/3/4 retained. No acceptance.
+Same approved exact prefix scan now uses bounded REPNE SCASQ instead of
+per-element CMP/ADD/JMP; zero counts checked before flags, outer index restored.
+Every frame remains compared; original64-byte scratch/bounds unchanged.
+Reserve build4<=300s/media4<=180s, guests5..6<=600s each for changed scan
+and follow-up diagnosis. Existing host7..8 retained; no unchanged retry.
+Final verifier is prepared but four frozen gates remain unstarted.
+
+# CI: frame-scan proof passed; compact symbol correction (2026-09-25)
+
+User approved process_run.inc; scope recorded. Hosts4 baseline/5 green:
+actual baseline/candidate dense, sparse, captured, duplicate/invalid and
+stack-canary tests pass. Host1000 scans baseline0.058s/candidate0.015..016s.
+Build2 passed; media2 failed before guest4: extra local symbol names grew
+compact kernel1391608 to1391732 bytes, crossing last FAT12 reserved sector.
+Same machine code now uses NASM special private labels without the long
+function-name prefix; no removed diagnostic evidence, formats or limits.
+Reserve build3<=300s/media3<=180s for this evidenced size correction;
+existing hosts6..8 and guest4<=600s remain. Counters5/2/2/3 spent.
+No final gates started and no target performance acceptance yet.
+
+# CI: frame-scan scope proposal ready (2026-09-25)
+
+Baseline b6a7eeb2, CI sole active; CB archive28394e53 retained. Kernel
+READ shortcut implemented and host-tested but not accepted: guest1 quota
+failure; guest2 input CPU256. Guest3 READY snapshot47.339s passed, not stress.
+Host3 original production frame scan proves52514 comparisons per validation
+on exact desktop arrays; O0/O2 both200 successful scans0.012s, no mutation.
+This is host evidence only. Spent3 hosts/1 build/1 media/3 guests.
+
+Proposed extension: process_run.inc large-pool collision scan, same prior
+frames via contiguous ranges, same64-byte scratch/all checks/limits. Concrete
+proposal at end of NATIVE_INPUT_RETURN_CONTRACT.md awaits required file-scope
+approval; no frame-scan edit yet. Four original CI gates remain unstarted;
+verifier not yet implemented. No CI/CB/VMware/native64 completion claim.
+All guests closed, media unchanged; no source outside frozen scope edited.
+
+# CI: READ shortcut alone insufficient; frame-scan diagnosis (2026-09-25)
+
+Development2 hosts/1 build/1 media/2 guests spent. Guest2 failed49.686s
+with input CPU256, original CPU32 reached. Do not claim improvement.
+Read-only inventory finds process_run_validate64 calls exact all-frame
+uniqueness at each syscall and dispatch; large-pool collision path scans
+all prior positions with per-position type branches. Guest3 uses reserved
+600s only to capture actual frame ownership arrays at READY, no stress
+retry, no debugger; host3 will count existing comparisons without editing
+kernel validation. Original frozen four CI gates remain unstarted.
+
+# CI development: routed READ host proof passed (2026-09-25)
+
+Contract commit b6a7eeb2. Hosts1 red/2 green4.826s (six tests);
+build1 29.422s/media1 passed. Guest1 failed48.737s after114 mouse batches:
+desktop EDQUOT(-122), input exit71; no CPU256 this run. Guest2 reserves
+existing600s read-only failure-site observer on unchanged media1.
+No acceptance gates started, no limit change, CB archive28394e53 intact.
+
 # CI active: approved bounded input READ return (2026-09-25)
 
 CB archived28394e53; baseline f5ebfb0d clean before scope freeze.
