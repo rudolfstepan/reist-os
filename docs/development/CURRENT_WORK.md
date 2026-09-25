@@ -1,3 +1,15 @@
+# Current: approved desktop CPU prerequisite R8.3cg (2026-09-25)
+
+Supervisor and compositor64 explicitly approved; other peers/defaults remain32.
+CG sole active package; CF queued and unaccepted,19-file candidate preserved in
+stash e5a1c1008004cbaa1af453a77224ef953615005f and before-cpu-prerequisite01.
+CG contract freezes new plan-v6/CREATE-v9, scope, limits and seven guest cases.
+No CG implementation/gates yet. Next disabled baseline then regression first.
+CF counters68 hosts/4 role builds/26 builds/media/39 guests retained. No accepted
+VMware desktop; CF/CB original GUI/replacement/fault/visual obligations remain.
+
+# Preserved previous boundary
+
 # Current: approved full-desktop startup prerequisite (2026-09-25)
 
 User explicitly approved exclusive10-second STARTING via "ja mach weiter".
