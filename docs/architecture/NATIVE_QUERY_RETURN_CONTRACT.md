@@ -74,7 +74,9 @@ source/tool/image bindings and final diff review precede candidate commit.
    Preserve baseline68 images and original strict pointer/abc300ms failures;
    build selected candidate with identical CF sources/profile/media setup and
    run original uninstrumented input checks. Require actual READY/stable real
-   desktop/both applications, no role loss and both original300ms checks.
+   desktop/both applications, no role loss and original pointer300ms check.
+   Record abc300ms unchanged; its mandatory acceptance remains in CF by the
+   explicit user approval2026-09-25 below. No finished OS claim without it.
    Compare baseline and candidate timing/pixels without weakening the oracle;
    if no safe benefit, do not accept the prerequisite as fixing responsiveness.
    Temporary fixture overlays byte-restored; no actual VMware claim.
@@ -86,3 +88,60 @@ source/tool/image bindings and final diff review precede candidate commit.
 
 A/B GUI acceptance here does not waive CF startup/replacement/health gates,
 CB services/lifecycle tests, or actual VMware visual/performance qualification.
+
+## Development continuation 2026-09-25
+
+Build04 adds a zero-byte admission label to avoid observer traps on every
+same-task return. Guest03 missed the second cleanup observation; guests04/05
+did not observe the eighth-query branch for both roots. All failures retained;
+no runtime cap acceptance. Reserve one additional kernel build05<=300s for
+the already frozen GUI comparison with the initial media/guest reservation.
+Finite administrative extension only; no gate or runtime-limit change.
+
+GUI attempt06 built successfully but media construction rejected FAT12 extent;
+no physical guest launched. Exact CF overlays restored. Allocated ELF sections
+have identical extents to CF68; added private symbol names enlarged the file.
+Shorten private names only and verify identical allocated bytes. Reserve build06
+<=300s with media02<=180s and guest attempt07<=600s; no format/safety change.
+
+## Proposed gate allocation after GUI08 - awaiting user approval
+
+GUI08 reuses GUI07 media without rebuilding; VM closed and exact overlays
+restored, media hashes unchanged. Pointer300ms check passes, abc300ms fails.
+Text receive audit contains a39500ms, b39600ms, c40150ms; final buffer is abc.
+The client issues a complete begin/fill/hint/text/commit paint transaction
+between event drains. Begin and commit await replies in surface_client.c;
+this is an identified separate Ring3 latency path, not yet a measured sole cause.
+
+Proposed CH gate5: still require original pointer300ms, real READY/stable
+desktop and both clients, no role loss, byte-bound identical CF fixture and
+unchanged media. Record original abc300ms failure without accepting it.
+Keep all CH host/default/package/nine guest/replay safety gates unchanged.
+Then locally accept CH only as a bounded query-return prerequisite and restore
+CF byte-exact. CF retains the original mandatory abc300ms and pointer300ms
+acceptance, and all startup/replacement/health checks; CB and actual VMware
+qualification remain mandatory. Native OS/VMware completion requires them all.
+
+This moves the remaining client-latency fix into its existing authorized CF
+source scope, with one implementation package at a time. No runtime deadline,
+CPU allowance, rights, protocol or final OS acceptance limit changes. CH gate5
+is frozen, so do not apply this allocation without explicit user approval.
+
+User approved proposed gate allocation2026-09-25: Ja, getrennt abnehmen;
+alle endgueltigen Grenzen behalten. Apply allocation above to CH gate5/6;
+CF retains both strict300ms GUI checks and all existing safety gates.
+
+GUI08 consumed attempt08/physical guest07; media reused exactly, no build.
+Reserve build07<=300s, hosts09..10<=180s, guest09/10<=360s each for the two
+query cases. For these cases alone select QEMU instruction-counted TCG time
+(-icount shift=3,sleep=on): debugger wall time must not manufacture guest IRQs
+between queries. Guest PIT frequency, IRQs, quotas and limits stay identical.
+All seven reference cases and GUI retain their existing timing backend.
+Observe the actual eighth-query branch; do not remove that proof obligation.
+This host-only clock selection is not desktop performance evidence.
+
+Guest09 reached the actual eighth-query branch but transport cloning reread
+the original file and lost existing357/360s host bounds. Failed29.335s retained.
+Host09 now checks preserved bounds; helper explicitly clones all three changes.
+Guest10 uses corrected transport for case8; reserve guest11<=360s for case9.
+No image rebuild or guest limit change; no unchanged retry.

@@ -1044,6 +1044,12 @@ x86_64_process_run64:
     ret
 
 process_run_dispatch64:
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    lea rdi, [rel query_state64]
+    call qr_reset
+    cmp eax, 1
+    jne scheduler_fail
+%endif
     call process_run_validate64
     test eax, eax
     jz scheduler_fail
@@ -1104,11 +1110,26 @@ process_run_enter64:
     lea rdx, [rel process_run_generations]
     cmp [rdx+rdi*4], eax
     jne scheduler_fail
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    push rdi
+    push r11
+    mov esi, edi
+    mov rdx, [r11+TASK_GENERATION]
+    lea rdi, [rel query_state64]
+    call qr_bind
+    pop r11
+    pop rdi
+    cmp eax, 1
+    jne scheduler_fail
+%endif
 %ifdef REIST_NATIVE_HEAP_BINDING
     bt dword [rel process_heap_pending_mask],edi
     jc process_heap_enter64
 %endif
     mov qword [r11+TASK_STATE], TASK_RUNNING
+%ifdef REIST_NATIVE_DESKTOP_CPU
+.query_admitted:
+%endif
     jmp scheduler_enter_task64.state_published
 
 process_run_syscall64:
@@ -1229,10 +1250,18 @@ process_run_syscall64:
     mov eax, [rel scheduler_last_tick]
 %endif
     imul rax, 10
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    jmp query_resume64
+%else
     jmp process_run_resume64
+%endif
 .pid:
     mov rax, [r12+TASK_GENERATION]
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    jmp query_resume64
+%else
     jmp process_run_resume64
+%endif
 .yield:
     xor eax, eax
     jmp process_run_resume64
@@ -1289,6 +1318,35 @@ process_run_syscall64:
 %endif
     mov rax, REIST_EACCES
     jmp process_run_resume64
+
+%ifdef REIST_NATIVE_DESKTOP_CPU
+query_resume64:
+    ; Successful queries only: preserve result and validate burst ownership.
+    push rax
+    lea rdi, [rel query_state64]
+    mov esi, [rel scheduler_current_slot]
+    mov rdx, [r12+TASK_GENERATION]
+    call qr_take
+    test eax, eax
+    js scheduler_fail
+    jz .dispatch
+    pop rax
+%ifdef REIST_NATIVE_SHELL_SESSION
+    call native_session_probe_return64
+%endif
+    mov r15, rax
+    call scheduler_save_syscall_context64
+    mov [r12+TASK_RAX], r15
+    cmp qword [r12+TASK_STATE], TASK_RUNNING
+    jne scheduler_fail
+    mov r11, r12
+    mov edi, [rel scheduler_current_slot]
+    jmp scheduler_enter_task64.state_published
+.dispatch:
+    pop rax
+    jmp process_run_resume64
+; QUERY_RETURN_ADAPTER_END
+%endif
 
 process_run_resume64:
 %ifdef REIST_NATIVE_SHELL_SESSION

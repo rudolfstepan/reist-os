@@ -1,3 +1,47 @@
+# CH accepted; resume CF text response (2026-09-25)
+
+All six CH qualification01 gates passed: hosts1.66s, default56 exact8.06s,
+selected build7.65s, nine fresh guests348.65s, GUI97.00s, independent review
+16.67s. Actual eighth-query dispatch, IRQ/CPU limits, generation/context and
+cleanup proved. Six query-state corruption classes rejected. Acceptance seal
+63a80ffdc2b9a23398b2d3a271a10f5efe14da598ca36910ea9f9380746f96ce.
+Original pointer300ms passes. Original abc300ms remains mandatory in CF by
+explicit user approval; no completed OS/VMware claim. CG remains accepted.
+CH done; CF sole active. Preserve immutable21-file CF archive; restore18 source
+files and CF contract exactly after this accepted local commit. Do not restore
+archived queue/CURRENT_WORK. Then append this boundary/reservation to CF contract.
+
+Next cohesive correction: full-profile text client reuses the existing dynamic
+paint layer for the changed line; initial base frame and paint client unchanged.
+Source evidence: current input redraw sends begin/fill/hint/text/commit and
+blocks on begin/commit before draining later keys. Guest08 audit confirms
+a39500/b39600/c40150ms, abc only later; do not assert sole cause before A/B.
+Test first in existing startup host harness: fixed3-command text transaction,
+exact line/color/clear behavior, error propagation; legacy profile unchanged.
+Within existing CF allowed_files; no rights, protocol or quota changes.
+Freeze development hosts114..118<=180s, integration build/media46..47 with
+existing300/180s bounds, guests69..70<=600s. Previous113/4/45/68 counters and
+all failures retained. Final CF four gates unchanged and still required, then CB
+and actual VMware qualification. No agents, worktrees or push.
+
+# Preserved CH qualification boundary
+
+# CH qualification start 2026-09-25
+
+User approved separate CH acceptance and mandatory remaining CF abc300ms.
+GUI08 reused GUI07 media; text audit a39500/b39600/c40150ms, eventual abc,
+300ms still fails; all media/overlays restored. Case8 guest10 passes77.242s:
+both roots actual remaining8..1, mandatory eighth dispatch and complete cleanup.
+Case9 guest11 passes21.384s: query flood capped, IRQ/CPU exhaustion and family
+cleanup verified. Guest09 transport deadline regression retained; host09 covers
+its correction. Query-only instruction-counted TCG time isolates debugger delay;
+seven reference cases and GUI retain original timing. Host10 verifier syntax OK.
+Spent10 hosts/7 builds/2 media/11 guest attempts (10 physical). No frozen gate
+run yet. qualification01 now frozen once for all six gates; sources, tools,
+contract, font, archive and baseline identities bound. No acceptance/commit yet.
+
+# Preserved earlier CH boundary
+
 # Current: approved bounded native query-return prerequisite CH (2026-09-25)
 
 User approved separate kernel package. CH sole active, CF queued/unaccepted.
@@ -8,9 +52,35 @@ stash. CF113 hosts/4 role builds/45 builds-media/68 guests retained; host113
 seven groups passes12.089s, guest68 still fails original pointer/abc300ms.
 CG fa790cf0 accepted. CH contract freezes cap8 queries, same-task validated
 return only for successful clock/PID reads, unchanged CPU/IRQ/rights/defaults,
-actual host/9-case guest/A-B GUI gates. No implementation or gate yet.
-Next commit definition, preserve disabled baseline, test pure assembly budget
-before return wiring. No agents, separate worktrees or push.
+actual host/9-case guest/A-B GUI gates. Definition committed aecdfa84.
+Disabled preimplementation baseline01 preserves all56 artifacts. Selected
+query core and return adapter implemented; host07 passes actual assembly core,
+admission/reset/return paths at O0/O2. Host08 also passes after default-only
+label guard correction. Host01/03 red baselines and host04 test-constant error
+retained. No frozen acceptance gate has run; no implementation commit.
+Guest01 normal two-start ownership/CPU/cleanup passed45.089s; guest02 root CPU
+exhaustion/family cleanup passed10.873s. Guest03 missing second cleanup read;
+guests04/05 fail observed eighth-query boundary for both roots. Their normal
+lifecycle/CPU replay passed, but this is not query-cap acceptance. Do not retry
+unchanged or silently remove the cap obligation. Query cases8/9 and bounded
+observer exist; case9 flood has not run. Observer maps these to legacy0/7 for
+unchanged lifecycle replay and separately checks exact query state/cleanup.
+GUI attempt06 (build05/media01) failed FAT12 capacity, no guest launched.
+Only private symbol names shortened: all14 allocated ELF sections byte-identical
+between GUI06/07. GUI07 (build06/media02, physical guest06) boots real desktop;
+original300ms pointer pixel check now passes, abc glyph check still FAILS.
+Postrun keyboard glyphs absent at300ms, present only in stable image at364,333.
+Guest elapsed60.029s; VM closed, media hashes unchanged, both fixture overlays
+restored exactly. Kernel1391608 bytes leaves only8 bytes before the current
+FAT12 kernel-size ceiling. No boot-format or safety-limit change.
+Spent: eight hosts, six kernel builds, two media builds,
+seven guest attempts/six physical guests. Administrative build05/06 reservations
+recorded in CH contract. First launch shell parse error started no guest.
+Next: inspect remaining keyboard path using retained GUI07 evidence before any
+new bounded diagnostic; runtime cap proof and full frozen verifier/gates remain
+unfinished. Default-only query_admitted label now guarded to avoid symbol drift;
+full default56 comparison still pending. CH/CF/CB and VMware remain unaccepted.
+No agents, separate worktrees or push. Preserve all failures and CF archive.
 
 # Preserved previous boundary
 

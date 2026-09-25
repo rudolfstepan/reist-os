@@ -3,7 +3,7 @@
 #include <reist/x86_64/image.h>
 #ifdef REIST_NATIVE_DESKTOP_CPU
 #define reist_x64_task_import_large reist_x64_task_import_desktop_cpu
-#define LARGE_FIXTURE_CASE_MAX 7
+#define LARGE_FIXTURE_CASE_MAX 9
 #define LARGE_FIXTURE_CPU 64
 #define LARGE_FIXTURE_BURST_MS 160
 #elif defined(REIST_NATIVE_LARGE_PERIODIC)
@@ -124,7 +124,19 @@ int main(int argc,char **argv) {
         unsigned mode=round?0:(unsigned)reist_large_image_selection[1];
         if(mode==6)mode=0;
 #ifdef REIST_NATIVE_DESKTOP_CPU
-        if(mode==7)mode=0;
+        if(mode>=7)mode=0;
+        if(reist_large_image_selection[1]==8) {
+            /* Finite successful queries plus unchanged argument rejection. */
+            int64_t owner=S0(GETPID),before=S0(MONOTONIC_MS);
+            REQUIRE(owner>0 && before>=0,243);
+            for(unsigned query=0;query<32;query++) {
+                REQUIRE(S0(GETPID)==owner,244);
+                int64_t now=S0(MONOTONIC_MS);
+                REQUIRE(now>=before,245);before=now;
+            }
+            REQUIRE(S1(GETPID,1)==-22 && S1(MONOTONIC_MS,1)==-22,246);
+            REQUIRE(S0(YIELD)==0,247);
+        }
 #endif
 #line 78
         uint32_t endpoint=0;REQUIRE(S1(IPC_CREATE,&endpoint)==0 && endpoint,219);
@@ -153,10 +165,12 @@ int main(int argc,char **argv) {
         volatile uint32_t message[35];initialize_message(message,4);message[3]=0x57494445;
         REQUIRE(S3(IPC_SEND_TIMEOUT,endpoint,message,0)==0,221);
 #ifdef REIST_NATIVE_DESKTOP_CPU
-        if(reist_large_image_selection[1]==7) {
+        if(reist_large_image_selection[1]==7 || reist_large_image_selection[1]==9) {
             /* Let the child publish its live-stack proof before exhausting
              * the root. The kernel must fence/reap the complete family. */
             for(unsigned idle=0;idle<5;idle++)REQUIRE(S1(SLEEP_MS,100)==0,242);
+            if(reist_large_image_selection[1]==9)
+                for(;;)(void)S0(GETPID); /* deliberately bounded by CPU fencing */
             for(;;)__asm__ volatile("pause");
         }
 #endif

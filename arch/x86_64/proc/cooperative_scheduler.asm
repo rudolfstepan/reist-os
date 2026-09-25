@@ -8298,6 +8298,9 @@ scheduler_profile_ranges64:
     ret
 %endif
 
+%ifdef REIST_NATIVE_DESKTOP_CPU
+%include "arch/x86_64/proc/query_return.inc"
+%endif
 %include "arch/x86_64/proc/process_run.inc"
 %ifdef REIST_NATIVE_SHELL_SESSION
 %include "arch/x86_64/proc/native_identity.inc"
@@ -8656,6 +8659,10 @@ alignb 8
 process_run_plan: resb NATIVE_POOL_RUN_BYTES
 process_run_generations: resd NATIVE_POOL_TASKS
 process_run_receipt: resb 32
+%ifdef REIST_NATIVE_DESKTOP_CPU
+alignb 8
+query_state64: resq 6
+%endif
 
 scheduler_caller_rsp:
     resq 1
