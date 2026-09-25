@@ -1,3 +1,21 @@
+# CI accepted; resume CF text response (2026-09-25)
+
+All six qualification03 gates passed: host9.502s, exact default56 artifacts
+9.033s, package8.753s, eleven fresh guests440.151s, GUI99.458s, independent
+review15.772s. Seal SHA256:
+1ac6459a82ac5b2d947968b4937a6bf5aad02489741ec75aec11f61ff77ecea5.
+Every sealed artifact hash checked again before queue transition. Prior failed
+qualification01/02 and all10 diagnostic guests retained;10 hosts/8 development
+builds/2 media spent. Same shared query cap,32-sample peers unchanged, no new
+rights or resource limits. Pointer300ms and stable roles pass; abc300ms still
+fails and remains mandatory CF/final under the approved allocation.
+CI done; CF sole active. Restore CF after-routing78 archive exact except queue
+and CURRENT_WORK, retaining its stash and all historical proofs. Clean accepted
+commit precedes restoration. No full OS/VMware completion claim; CB unaccepted,
+R3.6b deferred. Continue bounded text-transaction correction inside CF scope.
+
+# Preserved CI history
+
 # Current: approved empty-IPC return prerequisite CI (2026-09-25)
 
 User continuation approves the immediately preceding explicit kernel proposal.
@@ -5,7 +23,20 @@ CI sole active, CF queued/unaccepted. CF20 files archived and hash-verified in
 r83cf-desktop-startup/after-routing78/candidate.zip, SHA256
  d9d27ab6823b83a70c0c55762140bafc1e59d08063da2576bfc760a22110dada;
 stash664aab38b599608dc17d031b49073b2cfe13db6c. Clean CH4a755fdc boundary verified.
-CF127hosts/4rolebuilds/51build-media/78guests retained. No implementation yet.
+CF127hosts/4rolebuilds/51build-media/78guests retained.
+CI candidate now exists, unaccepted: admitted54/timeout0/-11 uses shared CH
+return only for actual periodic64/100-tick budgets.32-sample peers unchanged.
+10 hosts/7 builds/2 media/8 diagnostics spent. Host09 all11 groups pass.
+Development07 mixed/flood guests pass both generations; qualification01 failed at duplicated case1 release callback; diagnostic09
+corrected observer passes on identical guest. qualification02 retained failed at case9 fixture timeout. Exact faster memory
+mutation now also covers8/9; diagnostic10 passes. qualification03 starts with
+all11 cases, checking9/10/11 first. Spent10 hosts/8 builds/2 media/10 diagnostics.
+GUI01 paint32 quota failure retained; GUI02 roles stable and pointer passes,
+but abc300ms fails. No frozen qualification run and no new accepted commit.
+Proposed explicit gate allocation decision in NATIVE_EMPTY_IPC_RETURN_CONTRACT:
+CI safety/pointer/no-role-loss first, original mandatory abc300ms at CF final.
+User renewed continuation directly after the explicit request approves that
+allocation. Proceed with CI qualification; abc300ms remains mandatory in CF.
 Inventory excludes syscall51 (implicit1000ms wait); only admitted syscall54,
 timeout0,result-11 may share CH8-query budget after unchanged IPC work/scrub.
 Exact scope, finite development reservation and six final gates are frozen in

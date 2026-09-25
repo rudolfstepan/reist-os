@@ -3,7 +3,7 @@
 #include <reist/x86_64/image.h>
 #ifdef REIST_NATIVE_DESKTOP_CPU
 #define reist_x64_task_import_large reist_x64_task_import_desktop_cpu
-#define LARGE_FIXTURE_CASE_MAX 9
+#define LARGE_FIXTURE_CASE_MAX 11
 #define LARGE_FIXTURE_CPU 64
 #define LARGE_FIXTURE_BURST_MS 160
 #elif defined(REIST_NATIVE_LARGE_PERIODIC)
@@ -51,6 +51,16 @@ static int64_t control(unsigned op,uint64_t handle,unsigned timeout) {
     return reist_x64_task_control(&q);
 }
 static void mutate(void *p) {
+#ifdef REIST_NATIVE_DESKTOP_CPU
+    if(reist_large_image_selection[1]>=8) {
+        _Static_assert(REIST_X64_PREPARED_V3_BYTES%8==0,"whole mutation words");
+        void *out=p;unsigned long words=REIST_X64_PREPARED_V3_BYTES/8;
+        __asm__ volatile("cld; rep stosq" : "+D"(out), "+c"(words)
+                         : "a"(0x5a5a5a5a5a5a5a5aULL) : "memory","cc");
+        return;
+    }
+#endif
+#line 22
     volatile unsigned char *b=p;
     for(unsigned i=0;i<REIST_X64_PREPARED_V3_BYTES;i++) b[i]=0x5a;
 }
@@ -137,6 +147,32 @@ int main(int argc,char **argv) {
             REQUIRE(S1(GETPID,1)==-22 && S1(MONOTONIC_MS,1)==-22,246);
             REQUIRE(S0(YIELD)==0,247);
         }
+        if(reist_large_image_selection[1]==10) {
+            uint32_t empty=0;REQUIRE(S1(IPC_CREATE,&empty)==0 && empty,248);
+            volatile uint32_t probe[35];initialize_message(probe,0);
+            int64_t previous_clock=0;
+            for(unsigned n=0;n<32;n++) {
+                if(!(n&7))REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,probe,0)==-11,249);
+                else if(n&2) {
+                    int64_t now=S0(MONOTONIC_MS);REQUIRE(now>=previous_clock,250);previous_clock=now;
+                } else REQUIRE(S0(GETPID)>0,251);
+            }
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,1,0)==-14,252);
+            probe[0]=0;REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,probe,0)==-22,253);probe[0]=1;
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,0,probe,0)==-9,254);
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,probe,1)==-110,255);
+            probe[2]=4;probe[3]=0x454d5054;
+            REQUIRE(S3(IPC_SEND_TIMEOUT,empty,probe,0)==0,248);
+            initialize_message(probe,0);
+            /* Endpoints intentionally exclude messages from the same generation.
+             * Actual peer delivery is proved by the child exchange below. */
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,probe,0)==-11,249);
+            REQUIRE(S1(IPC_CLOSE,empty)==0,250);
+            uint32_t fresh=0;REQUIRE(S1(IPC_CREATE,&fresh)==0 && fresh!=empty,251);
+            initialize_message(probe,0);
+            REQUIRE(S3(IPC_RECEIVE_TIMEOUT,empty,probe,0)==-9,252);
+            REQUIRE(S1(IPC_CLOSE,fresh)==0 && S0(YIELD)==0,253);
+        }
 #endif
 #line 78
         uint32_t endpoint=0;REQUIRE(S1(IPC_CREATE,&endpoint)==0 && endpoint,219);
@@ -165,10 +201,14 @@ int main(int argc,char **argv) {
         volatile uint32_t message[35];initialize_message(message,4);message[3]=0x57494445;
         REQUIRE(S3(IPC_SEND_TIMEOUT,endpoint,message,0)==0,221);
 #ifdef REIST_NATIVE_DESKTOP_CPU
-        if(reist_large_image_selection[1]==7 || reist_large_image_selection[1]==9) {
+        if(reist_large_image_selection[1]==7 || reist_large_image_selection[1]==9 || reist_large_image_selection[1]==11) {
             /* Let the child publish its live-stack proof before exhausting
              * the root. The kernel must fence/reap the complete family. */
             for(unsigned idle=0;idle<5;idle++)REQUIRE(S1(SLEEP_MS,100)==0,242);
+            if(reist_large_image_selection[1]==11) {
+                initialize_message(message,0);
+                for(;;)(void)S3(IPC_RECEIVE_TIMEOUT,endpoint,message,0);
+            }
             if(reist_large_image_selection[1]==9)
                 for(;;)(void)S0(GETPID); /* deliberately bounded by CPU fencing */
             for(;;)__asm__ volatile("pause");

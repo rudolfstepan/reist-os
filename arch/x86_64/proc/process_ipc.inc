@@ -468,6 +468,29 @@ process_ipc_syscall64:
     call process_ipc_ready64
     call process_ipc_copyout64
     mov rax, [r13+40]
+; EMPTY_IPC_RETURN_BEGIN
+%ifdef REIST_NATIVE_DESKTOP_CPU
+    ; Only completed, fully admitted empty timeout-zero receives. Syscall51
+    ; has an implicit1000ms wait and must retain ordinary scheduling.
+    cmp rax,-11
+    jne .return
+    cmp qword [r13],54
+    jne .return
+    cmp qword [r13+24],0
+    jne .return
+    ; Preserve ordinary scheduling for 32-sample peers and lifetime tasks.
+    mov ecx,[rel scheduler_current_slot]
+    shl ecx,5
+    lea rdx,[rel scheduler_cpu_budgets]
+    cmp qword [rdx+rcx+8],64
+    jne .return
+    lea rdx,[rel scheduler_cpu_windows]
+    cmp qword [rdx+rcx],100
+    jne .return
+    call process_ipc_zero64
+    add rsp,2144
+    jmp query_resume64
+%endif
     jmp .return
 .pointer:
     mov rax, -14
@@ -478,6 +501,7 @@ process_ipc_syscall64:
     call process_ipc_zero64
     add rsp, 2144
     jmp process_run_resume64
+; EMPTY_IPC_RETURN_END
 .block:
     cmp qword [r13+56], 0
     jne scheduler_fail

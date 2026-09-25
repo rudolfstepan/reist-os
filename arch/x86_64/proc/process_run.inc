@@ -1321,7 +1321,7 @@ process_run_syscall64:
 
 %ifdef REIST_NATIVE_DESKTOP_CPU
 query_resume64:
-    ; Successful queries only: preserve result and validate burst ownership.
+    ; Admitted queries/empty IPC polls share one cap; preserve result/ownership.
     push rax
     lea rdi, [rel query_state64]
     mov esi, [rel scheduler_current_slot]
