@@ -4,8 +4,8 @@ R8.3cg-desktop-cpu: all five frozen gates passed qualification01. Seven fresh
 VMs cover normal cross-period child64, exhaustion, cancel, OOM, RX, guard and
 root64 failure. Independent replay plus corrupted-evidence rejection passed.
 Default profile56 artifacts byte-exact. CG done; CF sole active package.
-Restore preserved CF source bytes deliberately, retaining CG ABI/selector code;
-then freeze the in-scope CPU64 desktop integration reservation. CF/CB counters,
+Restore16 preserved CF source files; CPU64 fixture wiring is now frozen.
+Reservation: hosts69..74, integration builds/media27..29, guests40..42. CF/CB counters,
 failed proofs, original GUI/input/replacement/fault gates remain mandatory.
 No accepted VMware full desktop yet. Never apply archived queue wholesale.
 

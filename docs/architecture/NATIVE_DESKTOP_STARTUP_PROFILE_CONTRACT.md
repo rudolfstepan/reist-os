@@ -610,3 +610,27 @@ No CPU profile acceptance or desktop completion may be claimed without those
 proofs. The original10s startup and1000ms health limits remain unchanged.
 
 User explicitly approved: Ja, Supervisor und Desktop jeweils64 freigeben. Both-profile amendment is authorized; other peer/default budgets remain32. Preserve CF candidate and proceed with one separate bounded CPU prerequisite transaction, then resume CF with all historical obligations.
+
+## Resume after accepted CG fa790cf0 (2026-09-25)
+
+User explicitly approved supervisor/compositor64; CG passed all five frozen
+gates and seven fresh guests, committed fa790cf0 with clean worktree. The old
+CPU32 exclusion is superseded only for these two full-desktop roles. Other
+peers/apps/input remain32 and health/startup/device/rights/cleanup gates stand.
+Restore16 CF source files byte-exact from before-cpu-prerequisite01 (manifest
+and archive verified), keep current queue/history/CG implementation intact.
+
+The immutable CB integration fixture already wires LARGE_PERIODIC separately
+for full-desktop. Through the allowed CF verifier, freeze these exact additional
+profile substitutions: full-desktop Makefile CPU flags and boot-producer flags
+also define DESKTOP_CPU; compositor alone calls accepted CREATE-v9 with64.
+Input and applications keep existing32 imports. No general selector changes or
+new kernel/SDK code; temporary CB files restored exactly after each build.
+The preserved CF renderer/pixel/SDK improvements remain its declared editable
+exceptions. These substitutions become CB integration obligations on resume.
+
+Reserve hosts69..74<=180s, integration builds/media27..29<=300/180s and guests
+40..42<=600s. Preserve68 hosts,4 role builds,26 integration builds/media and39
+failed/unaccepted guests. First build/use the newly accepted64 profile with
+original10-second startup; diagnose only evidence-directed failures. Final CF
+four gates and later CB five/eight-guest gates remain required, no fake READY.
