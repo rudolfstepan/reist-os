@@ -1,3 +1,73 @@
+# CI active: approved bounded input READ return (2026-09-25)
+
+CB archived28394e53; baseline f5ebfb0d clean before scope freeze.
+User mach weiter approves concrete kernel proposal. CI counters0/0/0/0.
+Frozen gates and scope: NATIVE_INPUT_RETURN_CONTRACT.md. CB remains queued.
+
+# CB: input CPU fault confirmed; kernel scope proposal pending (2026-09-25)
+
+CF accepted f5ebfb0d; CB sole active, uncommitted. Host86 evidence review
+passed0.052s; git diff --check passed. Spent86 hosts/50 builds/28 media/
+38 guests. Guests34/35 failed host observer synchronization;36/38 confirmed
+input slot5/gen16 reaches CPU32 and is fenced256/kind3. Guest37 captured
+text health EBADF after input loss; no speculative text-client edit.
+All owned guests closed, signed media unchanged. No source/build change
+this continuation; retained read-only diagnostic scripts/evidence under
+build/codex-agent/native-vmware-desktop/cb-resume-after-cf01/.
+
+Concrete proposal in NATIVE_DESKTOP_SERVICES_CONTRACT.md final section:
+validated successful/empty input READ may share existing eight-call
+query_resume64 return. Only new kernel source input_domain.inc; prior
+clock/PID approval excludes device reads, so scope approval is required
+by AGENTS rule4. No kernel edit yet. All limits/five CB gates/eight final
+cases remain. No stable VMware or full native64 acceptance. Guest39 unused;
+no unchanged retry planned. Current prepared VMware previews remain failed.
+
+# CB: text-client exit under mouse load (2026-09-25)
+
+CF accepted f5ebfb0d; CB sole active, uncommitted. User approved PS/2 scope;
+25ms complete /5ms partial packet pacing implemented with unchanged limits.
+Hosts85/builds50/media28/guests33 spent. Guest33 text exit71 after13 batches;
+guest34 reserved read-only error-site diagnosis on same image. No stable
+VMware release or full OS acceptance; five CB gates remain open.
+
+# CB: VMware input CPU fault; scope extension pending (2026-09-25)
+
+CF accepted f5ebfb0d; CB is sole active, uncommitted. Storage120s recovery
+fixed and proved by guest30 (177.848s; new generations, stable10s). VMware
+build48/media26 dd5c10f0b842438c86235abdb36ab8c2 reached real UI/MOUSE_OK,
+then input slot5/gen16 faulted256/kind3; group restart ended -32/stage4.
+VM cleanly stopped, media unchanged. No VMware stability or full OS acceptance.
+
+The required PS/2 source is outside current CB allowed_files. Narrow proposal
+and evidence are in NATIVE_DESKTOP_SERVICES_CONTRACT.md final section; no
+PS/2 edit made. Proposed25ms active-round pacing retains all safety/input
+limits. Current counters80 hosts/48 builds/26 media/30 QEMU guests. Guest28/29
+failed; guest30 passed. Build48 receipt wrapper failed after builder completed;
+original log preserved and signed media consumer verified outputs, no rebuild.
+New compositor u/h/q fault hook passes host80 but awaits build/runtime proof.
+Full CB verifier still absent; original five gates/eight cases remain open.
+Current VMware packages are previews with recorded failures, not stable release.
+
+# CB VMware storage recovery in progress (2026-09-25)
+
+Accepted CF commit f5ebfb0d passed all four original gates. CB remains sole
+active package, integration restored from exact accepted fixture. VMware
+current preview c269bfd249854c53a0bd8c5961189b98 showed the actual desktop,
+but returned unattended to shell; user explicitly confirmed no input. Its
+readiness-only launcher result is superseded by stability-review.json=false.
+Actual window.png retained, media unchanged, VM stopped cleanly.
+
+Cause inventory: original120s storage lifespan expires; retired backend
+fs_phase3 incorrectly survives new-generation full_graphical_open. In-scope
+correction full_desktop_backend_bind clears only old transport fields after
+healthy new-owner validation. Host75 red,76 full suite green18.794s.
+Build46/media24 done; QEMU guest28 observing actual120s storage expiry and
+new desktop generation plus10s stability. Do not claim its result yet.
+CB counters76 hosts/46 builds/24 media/28 guests (guest28 running).
+Original five CB gates/eight fresh cases and VMware stability remain open.
+R3.6b deferred. No push/nested agents/new authority or limit increase.
+
 # CF accepted; CB integration resumed (2026-09-25)
 
 CF qualification05 passed all four original gates, including300ms mouse/text,
