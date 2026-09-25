@@ -1,3 +1,19 @@
+# Current: approved bounded native query-return prerequisite CH (2026-09-25)
+
+User approved separate kernel package. CH sole active, CF queued/unaccepted.
+All21 CF files archived byte-exact in before-query-prerequisite01/files.zip,
+SHA2564219e710cc0c2acb08d6cd0f3ffd0a6f31685cecd2222997024b497404fe2eda,
+stash0316372f64818a18832ec45f52753876423ad47b. Clean worktree verified after
+stash. CF113 hosts/4 role builds/45 builds-media/68 guests retained; host113
+seven groups passes12.089s, guest68 still fails original pointer/abc300ms.
+CG fa790cf0 accepted. CH contract freezes cap8 queries, same-task validated
+return only for successful clock/PID reads, unchanged CPU/IRQ/rights/defaults,
+actual host/9-case guest/A-B GUI gates. No implementation or gate yet.
+Next commit definition, preserve disabled baseline, test pure assembly budget
+before return wiring. No agents, separate worktrees or push.
+
+# Preserved previous boundary
+
 # Current: CG accepted; resume CF desktop integration (2026-09-25)
 
 R8.3cg-desktop-cpu: all five frozen gates passed qualification01. Seven fresh
