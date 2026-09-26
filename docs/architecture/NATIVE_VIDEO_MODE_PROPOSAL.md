@@ -1,5 +1,12 @@
 # Native64 VGA-/Grafikwechsel: begrenzte Geraeteberechtigung
 
+## Freigabe26.09.2026
+
+Erneutes `mach weiter` unmittelbar nach der konkreten Berechtigungsfrage
+zu Commit4a10641a gibt diesen Vorschlag frei. Umsetzung und Nachweis folgen
+in NATIVE_VIDEO_MODE_CONTRACT.md; die folgenden Abschnitte dokumentieren
+die vorangegangene Entscheidungsvorlage, keine erneute Freigabeanforderung.
+
 ## Stand und Entscheidung
 
 26.09.2026, saubere abgenommene Grundlage `f96af9f6` (CJ).

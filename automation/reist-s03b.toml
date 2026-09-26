@@ -8,7 +8,8 @@ native_large_after_pio = "BV candidate06 accepted: five gates/25 tests/14 comple
 native_large_host_time_exception = "2026-09-24 user explicitly approved: Ja, laengere Host-Pruefzeit freigeben. BV full two-root host proof may use600s per guest instead of300s. Keep4200s matrix/5000s runtime gate, all14 guests, exact two full generations and all guest limits/pacing/rights. Concrete proposal NATIVE_LARGE_EXECUTABLE_PROPOSAL.md. No unchanged retries or discarded failures."
 desktop_dependency_resume = "2026-09-24 after accepted BW5f0debf9 and BX3b829aee: full desktop requires larger image/capture, so restore attributed BV source from verified stash/archive. Current accepted baseline3b829aee preserves all desktop changes. No spent counters reset. Reserve hosts86..91 <=600s for independent160-pair audit and runtime adapter completion, existing build21/diagnostic35<=60s remain unspent; after positive calibration reserve one full reference diagnostic36<=300s. Original five frozen gates and14 guests unchanged. No new execution-control site or authority, no agents/push. Signed BI image remains rejected as full desktop delivery."
 program = "S0-assurance-completion"
-active_id = ""
+active_id = "R8.3ck-video-mode"
+native_video_mode_authority = "2026-09-26 renewed mach weiter immediately after concrete4a10641a authority question approves NATIVE_VIDEO_MODE_PROPOSAL.md. CK active, exact NATIVE_VIDEO_MODE_CONTRACT.md scope/gates. Existing limits and CB archive preserved; no new confirmation for bounded implementation/diagnostics."
 native_video_mode_boundary = "2026-09-26 after accepted CJf96af9f6, user mach weiter: inventory confirms native display only accepts immutable boot framebuffer, CJ is mode03-only and old BIOS thunk is32-bit. Concrete NATIVE_VIDEO_MODE_PROPOSAL.md requests generation-scoped VMware SVGA-II fixed text/1024x768x32 transition, kernel-mediated registers/validated framebuffer and bounded UPDATE-only FIFO if required, isolated Ring3 terminal driver and fail-closed VGA recovery. No raw device/DMA/IRQ/3D authority or CPU/task/resource expansion. AGENTS new-authority stop applies; no implementation active or new builds/guests until explicit decision. CB remains queued/archived."
 native_vga_console_acceptance = "2026-09-26 CJ qualification05: all five frozen gates pass, seven host tests, exact disabled artifacts, fresh healthy/early/crash/hang proofs and actual VMware mode03 shell with hardware cursor. Local acceptance follows final scope review. Native64 text/graphics handoff remains the next genuine hardware-authority boundary; CB stays queued/unaccepted until that prerequisite. No active implementation while preparing its concrete authority proposal."
 native_vga_console_priority = "2026-09-26 user mach weiter approves the concrete VGA-console source scope and bounded VGA-cell authority. CJ active; CB queued and unaccepted. Candidate30 files verified in before-native-vga-console02/candidate.zip SHA256 c3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77;26 attributed code paths restored to898f30d5 after verification. Actual mode03 shell, keyboard, visible errors and bounded recovery first; native64 text/graphics handoff and original desktop gates remain required."
@@ -49,6 +50,17 @@ max_read_only_reviewers = 3
 external_writes = false
 push = false
 
+
+[[packages]]
+id = "R8.3ck-video-mode"
+status = "active"
+phase = "native64-userspace"
+title = "Bounded native VMware text/graphics transition and VGA recovery"
+scope = "Authorized4a10641a proposal; NATIVE_VIDEO_MODE_CONTRACT.md freezes one hardware prerequisite. No restored CB or resource expansion; preserve accepted CJ and other profiles."
+allowed_files = ["automation/reist-s03b.toml", "docs/development/CURRENT_WORK.md", "docs/development/X86_64_COMPLETION_WORK_PAPER.md", "docs/architecture/NATIVE_VIDEO_MODE_PROPOSAL.md", "docs/architecture/NATIVE_VIDEO_MODE_CONTRACT.md", "Makefile", "scripts/build-x86_64-bootstrap.ps1", "scripts/build_x86_64_boot_programs.py", "scripts/build_x86_64_c_payload.py", "scripts/build_x86_64_video_mode.py", "scripts/build_x86_64_video_mode_media.py", "scripts/check_x86_64_video_mode_media.py", "scripts/run_qemu_x86_64_video_mode.py", "scripts/verify_x86_64_video_mode.py", "arch/x86_64/boot/entry.asm", "arch/x86_64/proc/cooperative_scheduler.asm", "arch/x86_64/proc/process_run.inc", "arch/x86_64/proc/task_family.inc", "arch/x86_64/video/video_mode.h", "arch/x86_64/video/video_mode.c", "arch/x86_64/video/video_mode_domain.inc", "arch/x86_64/video/display_domain.inc", "arch/x86_64/video/vga_text_domain.inc", "userspace/sdk/include/reist/x86_64/video_mode.h", "userspace/sdk/lib/x86_64/shell_session.c", "userspace/sdk/lib/x86_64/shell_video_mode.inc", "userspace/sdk/lib/x86_64/shell_vga_console.inc", "userspace/drivers/video/native_mode.c", "userspace/drivers/video/native_mode.h", "userspace/drivers/video/native_mode_main.c", "userspace/drivers/ps2/native_session.c", "userspace/gui/compositor/native_mode_probe.c", "test/test_x86_64_video_mode.py", "test/x86_64_video_mode_host.c"]
+targeted_tests = ["python test/test_x86_64_video_mode.py -v"]
+package_tests = ["python scripts/verify_x86_64_video_mode.py --defaults", "python scripts/verify_x86_64_video_mode.py --package"]
+runtime_tests = ["python scripts/verify_x86_64_video_mode.py --runtime", "python scripts/verify_x86_64_video_mode.py --review"]
 
 [[packages]]
 id = "R8.3cj-vga-console"

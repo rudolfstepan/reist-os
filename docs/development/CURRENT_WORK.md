@@ -1,4 +1,14 @@
-## 2026-09-26 next hardware boundary prepared
+## 2026-09-26 CK native video mode implementation authorized
+
+User mach weiter following4a10641a authority question approves the bounded
+VMware mode transition. CK is the single active package; contract, exact
+scope, five gates and finite development window frozen in
+NATIVE_VIDEO_MODE_CONTRACT.md. Baseline CJf96af9f6 accepted, CB stays archived.
+Inventory reuses existing native display copy/fence and CJ recovery rather
+than porting the old monolithic hardware driver. Positive read-only device
+aperture evidence is required before hardware writes. No resource expansion.
+
+## Historical: next hardware boundary prepared
 
 Clean accepted CJ commitf96af9f6. Renewed user mach weiter advances native
 text/graphics inventory. Concrete authority proposal:
