@@ -1,3 +1,159 @@
+## 2026-09-26 CJ VGA console authorized and frozen
+
+User mach weiter approves the preceding concrete VGA-console request.
+CJ is now the only active package. Contract NATIVE_VGA_CONSOLE_CONTRACT.md
+freezes authority/scope/limits/gates and finite development reservation.
+CB queued/unaccepted; all30 files preserved in before-native-vga-console02
+archivec3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77.
+26 owned code paths restored after exact archive verification; documentation
+history preserved. No CB gate discarded or candidate accepted. Native64
+text/graphics mode handoff remains required after console qualification;
+existing32-bit thunk is not a native64 implementation.
+Next: clean contract commit, regression-first fixed VGA mediation and Ring3
+console/keyboard integration. No nested agents, additional pools or CPU limits.
+
+## 2026-09-26 user priority: visible real VGA text shell at boot
+
+User explicitly requires VGA text shell/boot errors on screen. Inventory:
+full-desktop BIOS media enables VBE before kernel, native console only COM1;
+turning off VBE alone leaves shell invisible and breaks current graphics.
+Native64 runtime mode handoff absent; existing BIOS thunk is32-bit only.
+Concrete separate-prerequisite proposal now in NATIVE_DESKTOP_SERVICES_CONTRACT.md
+(section User priority2026-09-26). Kernel/console/driver files exceed active CB
+scope and fixed VGA-cell authority is new: stop before implementation, request
+that scope decision per AGENTS rule4/new-authority rule. No speculative VGA fix.
+CB30-file candidate preserved in before-native-vga-console01/candidate.zip;
+main worktree and all evidence remain. No final CB gate or source commit.
+Latest build57/media34 add bounded quota diagnostics only. Host116 all15 pass;
+host117 actual failure receipt/scrub pass. VMware08 one READY/no quota error over
+170.489s, recovery unproven. VMware09 fails before READY/input task71/channel-32;
+mouse helper never ran. Session84f969c36c9540fbac13e95110e52902 closed according
+to VMware exit log and vmrun list zero. Do not relabel as mouse/load acceptance.
+
+## 2026-09-26 CB relaunch proofs and current VMware candidate
+
+Build56/media32 current. All15 host tests pass(host111,22.960s); root image
+fits unchanged ceiling with compact vendor SHA256. Native client disabled
+objects identical for both apps/startup variants(host109). Bounded normal-close
+EPIPE distinction fixes unintended automatic restart; reaped receipt required.
+Guest48 preserves failed glyph-allowlist observer result, independent host113
+raw review passes: both slots empty after close, Paint6/gen19 then Text7/gen20,
+original compositor/input15/16,10s stable. Guest49 passes78.975s: Text6 then
+Paint7, actual abc in newly started text within300ms,10s stable; host115 replay
+passes. All prior failed43..47 observer/product evidence preserved.
+New development VMware package: build/vmware/
+reist-native64-full-desktop-20260926-app-relaunch/START-VMWARE.cmd.
+Visual media33 uses verified signed media32, own pipe/VMX,180s limit. VMware06
+failed before guest start, no serial/VMX log, zero running VMs. VMware07 is
+reserved/running outside sandbox to inspect actual host startup. No VMware
+acceptance yet. Old live-frame package preserved; framebuffer shell still
+COM1-only. No final CB gates run, verifier still absent, no candidate commit.
+Remaining: final eight-case fault/read/lifecycle qualification and VMware
+recovery proof, then original five gates/queue transition/local commit.
+
+## 2026-09-26 CB application relaunch continuation (unaccepted candidate)
+
+Accepted baseline898f30d5 unchanged. Explicit user approval for native_client.c
+recorded in CB contract/queue. Private role-v2 decouples text/paint from slots6/7;
+real manifest-bound launch, receipt cleanup and direct HELLO implemented.
+Guest42 natural storage recovery passes176.487s (second READY/new owners/10s).
+Host107 thirteen tests pass; host108 compact vendor SHA256 passes; host109
+four disabled client object comparisons byte-identical. Build52 root ceiling
+failure,53 host clock/standby compiler timeout,54 root ceiling failure retained.
+Build55 succeeds27.996s using full-root compact vendor SHA256 (-Oz helper units),
+unchanged0x440000 ceiling. Media30 passes. Guest43 observer NameError after
+normal exits; corrected44 proves normal closes incorrectly trigger replacement.
+Host110 expected red; bounded acknowledged-close/EPIPE distinction added only
+inside existing1000ms retirement interval. Host111 all15 tests pass22.960s.
+Build56 now reserved/running; media32 and guest45 next. Reservation details in
+NATIVE_DESKTOP_SERVICES_CONTRACT.md. Hosts96..100 unused; no counters reset.
+Original five CB gates/eight fresh cases remain outstanding; verifier script
+still absent. No accepted candidate commit or finished OS/VMware claim.
+Framebuffer has no visible shell; serial prompt is COM1 only. Preserve old
+VMware live-frame visual package until new guest behavior is qualified.
+
+# CB: drag correction verified; VMware recovery proof incomplete (2026-09-25)
+
+Accepted kernel898f30d5; CB candidate remains uncommitted, original five gates
+not run. Hosts95 exact pixel review confirms paint title moved4,2 and remains
+stable; scope/diff review clean. Spent95hosts/51builds/29media/41QEMU guests.
+VMware05 bc5bef69 reached full170.494s observation,stop0,media unchanged,
+no serial shell return and no CPU256 receipt. At120s storage retirement a
+group recreation began, but no second GRAPHICAL_READY before timed stop.
+Raw launcher passed only observation; independent-review.json rejects full
+stability. Do not relabel this as accepted. No VM remains running.
+Current visual candidate:build/vmware/reist-native64-full-desktop-20260925-live-frame.
+User correction retained: shell output only COM1, framebuffer remains graphic.
+Next: complete bounded recovery observation and actual desktop service-LAUNCH
+(backend still ENOTSUP), then original five gates/eight fresh runtime cases.
+Visible framebuffer shell remains separate missing integration; no in-kernel
+terminal shortcut or unapproved scope/resource change. No completion claim.
+
+# CB live-frame correction passes drag and300ms input (2026-09-25)
+
+Hosts87..94 spent:87 red diagnostic,88 admission pass,89 red pacing,90
+O0/O2 pass,91 all12 hosttests19.632s,92 adapter pass,93/94 raw reviews pass.
+Build51/media29 pass. Guest39 baseline drag fails233events CPU64;guest40
+801drags+10s stable passes67.222s;guest41 original300ms pointer/exact abc
+passes58.468s. Guests closed,media unchanged. Old limits and owners verified.
+Only small/cached live frames gain existing50ms checkpoint; no kernel change.
+Totals94hosts/51builds/29media/41QEMU guests; final CB gates still unrun.
+Next reserve one180s manual VMware05 on fresh20260925-live-frame package,
+matching media29, full observation required. Windows automated input delivery
+remains unproved. User correctly reports no visible shell: console isCOM1-only.
+Visible framebuffer console and real service-LAUNCH remain open.
+
+# VMware04 failed: compositor CPU256, restart EPIPE (2026-09-25)
+
+91b5a88a: elapsed148.645s,ready98.443s, unexpected shell return.
+Slot4/gen15 CPU256/kind3; next compositor exits32/kind4; restart EPIPE,stage4.
+Stop0,base media unchanged. Actual screenshot shows moved windows; manual
+assessment still pending. Not VMware accepted. Reserve hosts87..90/guest39
+for bounded180s QEMU drag reproduction on unchanged qualified media; no build
+or media. Freeze documented in CB contract. Existing gates/budgets preserved.
+
+# CB VMware03 input delivery blocked; manual observation04 (2026-09-25)
+
+VMware03 f25cd1fd actual desktop READY;50.302s;stop0;media unchanged.
+Host absolute event not delivered:target1048,591 actual1226,569;0 clicks
+and0 stress events. Three failed helper sessions retained, no guest fault
+attributed. No further automated mouse retry. User asked for manual visual
+input result; not presumed. Reserve one180s passive/manual VMware04; monitor
+full170s window plus bounded shutdown, unexpected shell return fails.
+Launcher now requires complete observation window rather than READY alone.
+CB gates remain pending. This is a host input proof blocker, not OS success.
+
+# CB VMware02 diagnosed; bounded corrected helper session03 (2026-09-25)
+
+VMware02 c2f5c05d failed SetCursorPos returning0/error0 before any input.
+Actual desktop ready;53.773s;stop0;media unchanged. Preserve both failures.
+Evidence-directed window: one180s VMware03, unchanged qualified guest media,
+helper uses one absolute mouse event restricted to identified guest viewport,
+reads back host position and foreground before click; no guessed coordinate.
+Existing801 events/15s helper and180s session limits unchanged. No unchanged
+retry and no scope/authority expansion. Source CB counters86/50/28/38 retained.
+
+# CB VMware01 host-input failure; diagnostic02 reserved (2026-09-25)
+
+CI898f30d5 committed and CB restored. VMware01 ae56eea9 reached actual
+DESKTOP_OK/GRAPHICAL_READY with screenshot, then host helper assertion before
+any input (0 events),53.939s, stopped0, both base media unchanged. Not passed.
+Framebuffer origin457,240 verified visually. Guest failure not established.
+Host unchanged-position SetCursorPos succeeds; powered-off named window
+rehearsal fails missing window. Added API declaration and precise failure
+labels/traceback to ignored helper. Second reserved180s session will diagnose
+remaining foreground/cursor assertion; no guest-source changes or gate rerun.
+VMware spent1/2. CB source development counters86/50/28/38 unchanged.
+
+# CI committed; CB restored; VMware visual proof next (2026-09-25)
+
+User renewed mach weiter directly after named process_run.inc commit question.
+Automatic approval accepted local commit898f30d5; clean boundary verified.
+All four CI gates passed; no rerun. CB source-only archive28394e53 restored
+with every file hash and allowed scope checked. CB counters86/50/28/38 retained.
+First of two reserved180s VMware sessions next, using qualified CI media.
+Original CB five gates/eight cases remain; no complete OS claim.
+
 # CI gates passed; local commit blocked by automatic approval review (2026-09-25)
 
 All four qualification01 gates passed; acceptance seal and raw evidence kept.

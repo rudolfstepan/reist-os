@@ -350,3 +350,278 @@ VMware. Host86 below only reviews preserved evidence; no kernel source edit.
 Host86 independent retained-evidence review passed0.052s; exact CPU32
 exhaustion in guests36/38 and EBADF health in37 confirmed. git diff --check
 passed. Spent86/50/28/38. No new kernel implementation or acceptance claim.
+
+
+## Resume after accepted CI898f30d5 (2026-09-25)
+
+CI passed all four frozen gates; exact source-only CB archive28394e53 restored
+after clean commit boundary. Preserve CB spent86 hosts/50 builds/28 media/38
+QEMU diagnostics. VMware sessions01..03 all reach actual desktop; host mouse
+injection fails before clicks, not guest acceptance. Sources/media unchanged.
+Session04 reserves180s passive/manual observation and bounded owned-VM stop;
+launcher must reach complete observation deadline and reject shell return.
+Manual input assessment is required because Windows cursor injection could not
+be demonstrated. Original five gates/eight runtime cases remain unchanged.
+Backend LAUNCH=-95 remains an implementation gap; adopted startup apps do not
+prove requested service launch. No new source changes beyond restored CB yet.
+
+
+## VMware04 real failure and targeted drag reproduction (2026-09-25)
+
+Session91b5a88a failed148.645s: actual desktop98.443s, then slot4/gen15
+CPU256/kind3; subsequent startup fails EPIPE(-32),stage4, shell returns.
+Stop0/base media unchanged. Screenshot shows moved windows; manual feedback
+pending. This invalidates VMware stability, without changing accepted CI gates.
+Reserve CB hosts87..90<=180s and guest39<=180s, no build/media. Extend only
+existing allowed runner/test files with explicit bounded drag diagnostic and
+60..600s selectable timeout (existing default600 unchanged). Reuse byte-exact
+CI guest media; hold left button on known paint title and alternate801 small
+movements, release, retain raw task/CPU/pixel evidence. No CPU-budget increase,
+no guest-source fix until reproduction/localization. Preserve all counters.
+
+
+## Confirmed unpaced live-frame path; correction window (2026-09-25)
+
+Host87 red missing diagnostic option;host88 two admission/transport tests pass.
+Guest39 reproduces failure49.726s after233 drag events,closed/media unchanged.
+Raw CPU record303:slot4/gen15,limit64,period100ticks,used63->64,result2.
+Source inventory: large/startup frames use50ms bounded checkpoints, while
+small live/cached move frames and dirty-loop tail do not sleep. Continuous
+window dragging therefore bypasses existing rendering pacing.
+Reserve hosts89..96<=180s, build51<=300s,media29<=180s,guests40/41<=180s
+each for corrected drag and original300ms pointer/text exercise. Apply existing
+50ms live-frame checkpoint to the uncovered small/cached live path, preserving
+fixed1000ms frame deadline, all startup/recovery paths, CPU64 and all old
+profiles. Allowed desktop.c and full-desktop test only; no kernel edit.
+Original final gates unchanged; these remain developmental comparisons.
+User corrected visible-shell claim: native_console.inc exclusively COM1, no
+visible framebuffer console. Record this separate recovery UI gap; do not
+claim serial prompt is visible or silently add a kernel terminal renderer.
+
+
+Build51/media29 and guests40/41 pass:801 drags+10s stable67.222s; original
+300ms pointer/exact abc58.468s. Hosts93/94 independently verify stable owners,
+CPU limits, raw trace/no exhaustion and pixels. Hosts spent94 total. Reserve
+one180s VMware05 manual/passive session on new20260925-live-frame package;
+require full observation, no serial shell return. All prior failures retained.
+
+
+VMware05 bc5bef69: full170.494s observation and stop0, immutable media, no
+serial shell return/CPU256. Storage120s retirement initiated recreation; no
+second READY before deadline. Independent review therefore does NOT accept
+stability, regardless of raw launcher observation flag. Preserve raw result.
+Host95 pixel review confirms exact4,2 title displacement/stability. Spent95
+hosts/51builds/29media/41QEMU guests and5 VMware sessions. No CB acceptance.
+
+
+## Recovery continuation on current build51 (2026-09-25)
+
+Preserve spent95/51/29/41 and five VMware sessions. Freeze hosts96..100
+<=180s and QEMU guest42<=600s, using existing approved600s QEMU operation
+limit and exact prior storage-recovery observer from guest30. Current media29
+has changed live-frame pacing; require actual120s storage retirement, second
+READY, newer storage/all GUI owners and10s stable replacement. No debugger,
+no timer manipulation, no build/media, no VMware limit change. This is a
+current-path recovery proof, not an unchanged retry or final-gate substitute.
+
+
+## Proposed application-slot decoupling: one additional source file
+
+Inventory after build51 (2026-09-25): the real backend LAUNCH still returns
+ENOTSUP. Native clients additionally hard-code application kind into both
+owner slot and health/HELLO role: native_client.c uses6+REIST_NATIVE_CLIENT
+and2+REIST_NATIVE_CLIENT. Text is therefore permanently tied to slot6 and
+paint to slot7. A manifest-bound launch into either of the two available
+application slots cannot reuse that identity assumption. Do not invent a
+kernel owner, silently discard the launch, or reserve dummy tasks to force
+allocation order.
+
+Requested scope addition: userspace/gui/apps/native_client.c only. Current
+CB allowed_files does not include it; AGENTS package rule4 requires explicit
+scope approval before editing. Existing approval of compositor runtime and
+kernel prerequisites is not approval of this separate source file.
+
+Concrete implementation: a new explicit full-desktop build selector enables
+private REIST role-arguments-v2. Keep eight argv entries and all size limits;
+the existing private fault-mode argument carries a bounded mode/slot pair.
+Accept only supervisor-supplied application slots6 or7, exact termination,
+existing fault modes and unchanged generation/deadline admission. Derive
+health/HELLO role from that admitted slot, independently of text/paint kind.
+Kernel owner validation and endpoint delegation remain authoritative; the
+argument grants no authority. Original clients/profiles keep v1 arguments and
+byte-identical disabled output. POSIX-style argc/argv entry remains unchanged;
+the private REIST role protocol is explicitly versioned, not a POSIX feature.
+
+All other implementation files already belong to CB: full-desktop build
+wrapper, supervisor service backend, SDK client/channel adapters, desktop
+launch dispatch and current host tests. Both commands remain manifest/digest
+bound and use existing slots6/7 only. No kernel change, CPU/heap increase,
+new task slot, device right, writable file or generic process authority.
+
+After approval freeze hosts101..112<=180s, builds52..53<=300s, media30..31
+<=180s, guests43..46<=600s for both launch orders, close/wait/relaunch,
+failure rollback and stale owner rejection. Existing final five gates/eight
+fresh cases remain mandatory. Approval is scope authority, not acceptance.
+Until approval, do not edit native_client.c or change the queue's allowed list.
+Current independent recovery guest42 may finish; all existing evidence stays.
+
+
+Explicit user approval received2026-09-25: "Ja, native_client.c fuer diesen
+Startpfad freigeben" in direct answer to the named-file request. Add only that
+file to active CB scope; proposed bounded window101..112/52..53/30..31/43..46
+is now frozen. Guest42 passes176.487s including natural120s storage retirement,
+second READY, new storage/all GUI generations and10s stable replacement.
+No VMware extension/acceptance is inferred. Old counters remain95/51/29/42.
+
+Build52 fails the unchanged root image ceiling: text grows from0xdf28 to0xe458,
+forcing one more page; image ends0x440f40 beyond0x440000. Preserve failure.
+For reserved build53 select existing -Oz also for full-desktop root console,
+image parser and storage SDK translation units, previously compiled -O2.
+Only the root adapter compilation changes; independent drivers/filesystem and
+all disabled profiles retain original flags. No capacity/linker/authority change.
+Host107 checks complete current targeted tests before build53; new guest proofs
+still mandatory, including timing and launch/reap. Hosts101/104 expected red,
+102/105 harness failures,103/106 passed; no final gate has run.
+
+2026-09-26 build53 failed before root link: compiler60s timeout in font_catalog.c.
+Host System log records wall-clock changes23:54:21/23:54:49 and standby/resume;
+launcher reported7198.577s. No running compiler/build remains. Preserve log;
+this is not evidence for root size or guest behavior. Reserve build54<=300s
+with explicit subprocess timeout after host resume; no compiler limit increase.
+Host107 all13 tests passed20.976s. Media30..31/guests43..46 still unspent.
+
+Build54 failed23.669s: root text0xe3fc, still one page too large. Only92bytes
+saved by root -Oz units. Map identifies2631byte unrolled vendor SHA256 block.
+Use pinned vendor MBEDTLS_SHA256_SMALLER loop implementation only for full
+desktop root hash units; same SHA256 algorithm/digest, existing2000ms hash
+deadline and yielding unchanged. Host108 verifies actual large-image hash and
+rejection at O0/O2 with this selector, then reserve build55<=300s. No third-party
+source edit or disabled-profile change; guest timing remains mandatory.
+
+Build55 passes27.996s; media30 passes. Host108 compact SHA256 and host109
+four disabled native-client object comparisons pass (both apps, startup on/off).
+Guest43 failed52.368s in observer NameError(struct missing), after both actual
+normal app exits; no launch performed. Raw reaps show slots7/6 status0 reason2.
+Correct only observer namespace, use already reserved guest44; no image change.
+
+Guest44 fails52.367s: both regular status0/reason2 closes cause new app owners
+before requested launch. Current channel_application_fail marks even EPIPE as
+fault, so frontend requests replacement despite an acknowledged CLOSE send.
+Host110 regression red confirms distinction absent. Record successfully sent
+CLOSE for exact owner only through existing1000ms retire window; only EPIPE
+inside that window is normal. All other errors/expired closes still fail.
+Reset marker on replacement/direct launch; existing reap receipt remains required.
+Files remain CB scope, runtime file unchanged. Reserve build56<=300s and
+media32<=180s (media31 remains unspent); original guests45..46 remain available.
+
+Build56 passes27.821s/media32 passes. Guest45 fails52.845s in observer:
+paint normal close now leaves slot7 free(0,0), old text survives; framebuffer
+shows taskbar resized to Computer80..477 and Application478..878. Observer
+450,752 focused Explorer and closed it, not text. Use actual text650,752
+for reserved guest46 with unchanged candidate; raw images retained.
+
+Guest46 fails52.910s: screenshot shows taskbar650 click minimized text instead
+of raising it; again observer closed Explorer, no second app exit. This is UI
+toggle semantics, not new root/app failure. Paint-close snapshot proves exposed
+text client strip at500,470. Freeze guests47..49<=600s and hosts113..118<=180s
+for evidence-directed relaunch qualification;112 still unspent. Use exposed
+client focus with visible Type glyph proof before selecting title close; keep
+all43..46 failures and current media32, no candidate/build change.
+
+Guest47 reaches both normal exits: slots6/7 empty, desktop/input unchanged.
+Observer first Explorer taskbar click minimized the already active window;
+paint icon click therefore had no launch target. Second taskbar click restored
+Explorer and text launched as newslot6/gen19, slot7empty. Final all-role review
+correctly fails; preserve snapshots. Use visible Explorer title500,30 for focus
+instead of toggling taskbar for already reserved guest48. Same media32.
+
+Guest48 collected complete79.093s proof: both normal reaps, Paint slot6/gen19,
+Text slot7/gen20, original desktop/input15/16, stable10s. Final observer failed
+because reused glyph oracle allowlists only abc/Type, not Move. Host113 extends
+only explicit oracle allowlist to Move (same exact PSF/pixel matching) and
+independently validates retained frames/processes/media/closure. Separate
+relaunch-review.json passes; original failed result remains unchanged. Use
+reserved guest49 for opposite launch order and actual new-text abc/300ms.
+
+Guest49 passes78.975s: text then paint, new19/20, original15/16, real abc
+within300ms in new text and10s stable. Guest48 separate replay proves paint
+then text. Reserve visual media33 (copy verified signed media32,<=180s),
+host114 package/hash review<=180s and VMware06<=180s unchanged launcher.
+Fresh isolated folder20260926-app-relaunch; old package/sessions preserved.
+Raw launcher observation success is not a recovery acceptance: independent
+review must prove second READY after natural storage retirement before claiming it.
+All final CB gates remain outstanding; visual package is development only.
+
+VMware06 failed39.642s before any serial/VMX guest log; vmrun reports zero running VMs, no VMware process present. Preserve session6e1f545b47a1420982b60881f70b14ee and unchanged media. Freeze VMware07<=180s with identical candidate/launcher but host execution outside sandbox to test the actual interactive VMware start. No guest safety/time changes or acceptance inference.
+
+VMware07 host execution reaches real READY then fails58.350s total/8.155s
+after READY with DESKTOP_ADAPTER_ERROR -122. Compositor reap status122 used63,
+not CPU256; replacement fails-32 stage4. Sessionea7e3c7e42ec465b964470a170ea3942
+is closed, immutable media, failed. Root cause not yet attributed among input
+queue/rate, channel queue or another quota. Do not raise quotas or speculate.
+Reserve host116<=180s, build57<=300s, media34<=180s, VMware08<=180s for bounded
+Ring3 terminal diagnostic only in existing CB header/startup files: retain
+pre-clear input counts, emit one additional<=64byte record with input phase,
+rate state/count, pre-clear queues, channel phase and service phase. Existing
+fail-closed cleanup/limits unchanged. New image requires proof after correction.
+
+VMware08 finishes170.489s unchanged media/closed, one READY, no adapter error;
+independent recovery review remains false because no second READY. Host117
+actual input-failure receipt/scrub passes O0/O2. Freeze VMware09<=180s with
+existing guarded801-event/15s helper invoked immediately after READY, using
+correct unique window title and actual host execution (prior helpers ran in
+sandbox). No clicks without foreground/exact1024x768 guest identification and
+verified pointer delivery; abort on failed guards. Same build57/media34, new
+isolated input-diagnostic folder. Host118 prepares this identical-media variant.
+
+
+## User priority2026-09-26: actual VGA text shell at boot
+
+Explicit correction: "man muss bei booten die vga text shell sehen um fehler
+zu sehen." Preserve CB candidate and stop further visual retries while defining
+this prerequisite. Snapshot before-native-vga-console01/candidate.zip contains
+all30 attributed candidate files; original worktree/evidence remain untouched.
+VMware09 failed before READY: input5/gen16 exits71, channel EPIPE, diagnostic
+input phase1/rate.failed0/used11/queues0, channel phase2/service phase1. Mouse
+helper was never reached. Session84f969c36c9540fbac13e95110e52902 failed100.250s;
+VMware log records exit and vmrun list confirms zero running VMs. Do not label
+this as the same -122 reproduction or a passing mouse test.
+
+Inventory: stage2_bios.asm sets mode03 initially and prints BIOS verification
+in VGA. Its USE_FRAMEBUFFER branch at the final kernel jump switches to VBE.
+Full-desktop media explicitly defines USE_FRAMEBUFFER=1. native_console.inc
+READ/WRITE mediate only initialized COM1; console.c/shell_platform.c use those
+calls. Native64 boot_framebuffer_parse accepts only active32-bit direct-colour
+framebuffers; merely removing the boot selector disables the current display
+backend and does not create visible shell output. The existing runtime VBE
+thunk is BITS32 (arch/x86/boot/vbe_runtime.asm), not a native64 implementation.
+
+Proposed separate native VGA console prerequisite, requiring package-rule4
+scope and new fixed VGA-cell authority approval before source changes:
+- Default boot remains VGA mode03,80x25. BIOS errors remain visible; a bounded
+  early/fatal status sink reports fixed native boot errors before Ring3 starts.
+- The ordinary Ring3 /bin/shell.prg is the command interpreter. A supervised
+  Ring3 console service owns text layout/scrolling and existing PS/2 input via
+  generation-scoped mediation. No parser, font renderer or general driver in
+  Ring0; kernel additions only validate/fence fixed VGA text-cell transfers and
+  the minimal early/fatal status record. No raw user MMIO/PIO, DMA, network or
+  file-write authority. Use existing task/CPU/storage bounds; no larger pools.
+- Keep COM1 diagnostics in parallel. A failed app/GUI start must leave a visible
+  diagnostic and usable text shell. Starting graphics and restoring text need
+  an explicit validated native64 display-owner/mode handoff; do not pretend the
+  existing32-bit BIOS thunk supplies that proof. Keep this transition explicit
+  in the prerequisite design; no finished-OS claim from text-only boot.
+- Relevant new scope: native64 console/terminal/display mediation and its host
+  tests; SDK console and shell output integration; a Ring3 VGA console service;
+  native boot/build/media selectors; a separate console verifier and contract.
+  Exact paths/opcodes and unchanged resource proof must be frozen after the
+  authority decision and focused inventory, before implementation. Do not mix
+  unverified VGA code into CB. Preserve/archive CB and perform a clean separate
+  prerequisite transaction, then restore CB with hashes checked.
+- Required evidence: actual VGA cells at boot and shell prompt; real PS/2
+  command/unknown-command error; bounded console crash/hang/fence/recreation;
+  stale-owner rejection; early boot error visibility; desktop/text handoff only
+  after its own runtime proof. Existing CB five gates/eight cases stay open.
+
+This proposal requests scope/authority only; it does not authorize relaxed
+acceptance, unrestricted video registers or an in-kernel graphics driver.

@@ -1,5 +1,53 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Prioritaet26.09.: sichtbare VGA-Textshell beim Booten
+
+Der Nutzer fordert die echte VGA-Textshell, damit Boot- und Startfehler auf dem
+Bildschirm lesbar bleiben. Aktuell schaltet das Desktop-Abbild vor dem Kernel
+auf VBE; die native Shell schreibt nur COM1. Ein Entfernen des VBE-Schalters
+allein behebt die fehlende Konsolenausgabe nicht. Der vorhandene Runtime-VBE-
+Thunk gehoert zur32-Bit-Architektur. Separates begrenztes VGA-Konsolen-Paket
+vom Nutzer mit mach weiter freigegeben; CJ ist aktiv. VGA-Textshell und
+Konsolenwiederherstellung zuerst, gepruefter nativer Text-/Grafik-Uebergang
+anschliessend erforderlich. CB-Kandidat vollstaendig in Archiv02 gesichert.
+
+CB-Fortschritt: Text/Paint-Schliessen und Neuoeffnen in beiden Reihenfolgen
+in QEMU nachgewiesen, neue Texteingabe abc binnen300ms,10s stabile neue Apps.
+VMware07 scheitert mit-122 nach READY;08 beobachtet einen READY ohne Fehler,
+aber keine vollstaendige Wiederherstellung;09 scheitert vor READY am
+Eingabedienst/Kanal. Keine VMware-/CB-/Gesamt-OS-Abnahme. Details CURRENT_WORK.
+
+
+## Desktop-Korrektur25.09.: Fensterziehen geprueft, Abnahme offen
+
+CB-Build51/Medium29:12 Hosttests bestanden. QEMU reproduziert den
+Compositor-CPU-Abbruch nach233 Ziehbewegungen; mit begrenzter Zeichenpause
+bestehen801 Bewegungen plus10s Stabilitaet sowie die urspruengliche300ms
+Zeiger-/Texteingabe. CPU64 bleibt unveraendert.
+
+VMware05 lief170.494s ohne serielle Shell-Rueckkehr. Die nach120s faellige
+Speicherdienst-Wiederherstellung war am Testende noch nicht vollstaendig
+beobachtet: unabhaengige Pruefung lehnt eine Stabilitaetsabnahme ab.
+Die Shell schreibt derzeit nur COM1; sie ist im Framebuffer nicht sichtbar.
+CB und die vollstaendige native64-Systemabnahme bleiben offen.
+
+## Aktueller Stand25.09.2026: CI abgenommen, Desktop CB offen
+
+Kernel-Paket898f30d5: vier eingefrorene Abnahmen bestanden. Drei frische
+QEMU-Laeufe belegen801 Mausbewegungen, urspruengliche300ms Zeiger-/Texteingabe
+und begrenzte CPU-Fehlerisolation mit neuer Anwendungsgeneration. Der genaue
+Frame-Besitzvergleich bleibt erhalten; alte deaktivierte Profile bytegleich.
+Beleg: build/codex-agent/r83ci-input-return/qualification01/acceptance-seal.json.
+
+Der echte Desktop startet im VMware-Paket20260925-ci. Drei automatisierte
+Mauspruefungen brachen vor dem ersten Klick im Windows-Helfer ab; keine
+VMware-Eingabe- oder Stabilitaetsabnahme daraus. Manuelle Beobachtung folgt.
+CB ist allein aktiv; verifizierte Quellen wiederhergestellt. Seine fuenf
+Abnahmen mit acht frischen Fehlerfaellen bleiben ausstehend. Der reale
+Supervisor-Backend-Pfad fuer Desktop-LAUNCH liefert weiterhin ENOTSUP;
+initiale zwei adoptierte Apps ersetzen diesen fehlenden Startpfad nicht.
+Keine abgeschlossene native64-Version; R3.6b bleibt zurueckgestellt.
+
 ## BY und BV abgenommen
 
 Abgenommen: R8.3bv-large-file, candidate06. Alle fuenf Gates bestehen:
