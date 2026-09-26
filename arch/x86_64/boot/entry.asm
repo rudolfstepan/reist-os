@@ -244,6 +244,22 @@ x86_64_bootstrap_start:
     mov eax, high_page_table
     or eax, PAGE_PRESENT_WRITE
     mov dword [high_page_directory], eax
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    ; Explicit text-only BIOS profile. Never infer visible VGA from no VBE map.
+    push eax ; the following RAM table loop still owns the page-table cursor
+    cmp byte [0x449],3
+    jne .memory_map_error
+    cmp word [0x44a],80
+    jne .memory_map_error
+    cmp byte [0x484],24
+    jne .memory_map_error
+    mov eax,[boot_info_value]
+    test dword [eax],1<<12
+    jnz .memory_map_error
+    mov dword [high_page_table+0xb8*8],0xb801b
+    mov dword [high_page_table+0xb8*8+4],PAGE_NX_HIGH
+    pop eax
+%endif
 %if X86_64_NATIVE_RAM
     mov ecx, 1
 .more_high_tables:
@@ -620,6 +636,22 @@ higher_half_entry:
     test eax,eax
     jnz higher_half_state_error
 .display_pat_ready:
+%endif
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    mov eax,1
+    cpuid
+    test edx,1<<16
+    jz higher_half_state_error
+    mov ecx,0x277
+    rdmsr
+    shr eax,24
+    test eax,eax
+    jnz higher_half_state_error
+    mov esi,0xb8000
+    mov edx,0x1b
+    mov ecx,PAGE_NX_HIGH
+    call verify_high_page64
+    mov byte [rel native_vga_ready],1
 %endif
 
     mov esi, higher_half_entry
@@ -1289,13 +1321,21 @@ serial_init64:
     ret
 
 serial_write64:
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    call native_vga_serial_status64
+.byte:
+%endif
     lodsb
     test al, al
     jz .done
     call serial_putc64
     test eax, eax
     jz halt64
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    jmp .byte
+%else
     jmp serial_write64
+%endif
 .done:
     ret
 
@@ -1318,11 +1358,69 @@ serial_putc64:
     ret
 
 halt64:
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    cmp qword [rel native_vga_last_message],0
+    je .stop
+    push rsi
+    mov rsi,[rel native_vga_last_message]
+    call native_vga_status64
+    pop rsi
+.stop:
+%endif
     cli
 .loop:
     hlt
     jmp .loop
 
+%ifdef REIST_NATIVE_VGA_CONSOLE
+; Only a fixed, bounded kernel status line. No layout, parser or scrolling.
+global native_vga_status64
+global native_vga_status_lock
+native_vga_serial_status64:
+    cmp byte [rsi],32
+    jb .done
+    mov [rel native_vga_last_message],rsi
+    cmp byte [rel native_vga_status_lock],0
+    je native_vga_status64
+.done:
+    ret
+native_vga_status64:
+    cmp byte [rel native_vga_ready],1
+    jne .done
+    cmp byte [rsi],32
+    jb .done ; a separate serial CR/LF must not erase the previous fault text
+    push rax
+    push rcx
+    push rdi
+    push rsi
+    mov rdi,0xffffffff800b8f00
+    mov ecx,80
+.cell:
+    lodsb
+    cmp al,32
+    jb .pad
+    mov ah,0x4f
+    stosw
+    loop .cell
+    jmp .restore
+.pad:
+    mov ax,0x4f20
+    rep stosw
+.restore:
+    pop rsi
+    pop rdi
+    pop rcx
+    pop rax
+.done:
+    ret
+section .data
+native_vga_ready: db 0
+native_vga_status_lock: db 0
+align 8
+native_vga_last_message: dq 0
+section .text
+
+%endif
 section .rodata
 fp_ready_message: db "REIST_X86_64_FP_CPU_READY", 13, 10, 0
 fp_unsupported_message: db "REIST_X86_64_FP_UNSUPPORTED", 13, 10, 0

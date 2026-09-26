@@ -8321,6 +8321,10 @@ scheduler_profile_ranges64:
 %include "arch/x86_64/devices/input_domain.inc"
 %endif
 %endif
+%ifdef REIST_NATIVE_VGA_CONSOLE
+%include "arch/x86_64/devices/input_domain.inc"
+%include "arch/x86_64/video/vga_text_domain.inc"
+%endif
 %endif
 %endif
 %ifdef REIST_NATIVE_HEAP_BINDING

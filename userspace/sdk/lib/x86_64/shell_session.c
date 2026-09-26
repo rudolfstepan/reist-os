@@ -6,6 +6,14 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_VGA_CONSOLE
+static void session_vga_poll(uint64_t);
+static void session_vga_health(uint64_t);
+static int64_t session_vga_wait3(unsigned,uintptr_t,uintptr_t,uintptr_t);
+#define SESSION_APPLICATION_SLOT 5U
+#else
+#define SESSION_APPLICATION_SLOT 4U
+#endif
 #ifdef REIST_NATIVE_APP_NETWORK
 #ifdef REIST_NATIVE_APP_TCP
 static unsigned session_tcp_active;
@@ -72,7 +80,11 @@ static uint64_t session_terminal_service,session_previous_terminal_service,sessi
 #endif
 #define SESSION_S0(n) reist_x64_syscall0(REIST_X64_SYS_##n)
 #define SESSION_S1(n,a) reist_x64_syscall1(REIST_X64_SYS_##n,(uintptr_t)(a))
+#ifdef REIST_NATIVE_VGA_CONSOLE
+#define SESSION_S3(n,a,b,c) session_vga_wait3(REIST_X64_SYS_##n,(uintptr_t)(a),(uintptr_t)(b),(uintptr_t)(c))
+#else
 #define SESSION_S3(n,a,b,c) reist_x64_syscall3(REIST_X64_SYS_##n,(uintptr_t)(a),(uintptr_t)(b),(uintptr_t)(c))
+#endif
 #define SESSION_MASK ((1ULL<<4)|(1ULL<<5)|(1ULL<<6)|(1ULL<<9)|(1ULL<<22)|(1ULL<<40)|(1ULL<<41)|(1ULL<<42)|(0x7fULL<<49)|(1ULL<<58))
 /* Private qualification selector, default healthy ext2. Not a syscall/API.
  * The host may select a declared case only before the first user instruction. */
@@ -111,8 +123,27 @@ static uint64_t session_now(void) {
     if(stamp<0)session_stop(-5);
     int result=reist_session_policy_charge(&session_policy,(uint64_t)stamp,1,0,0);
     if(result)session_stop(result);
+#ifdef REIST_NATIVE_VGA_CONSOLE
+    session_vga_health((uint64_t)stamp);
+#endif
     return (uint64_t)stamp;
 }
+#ifdef REIST_NATIVE_VGA_CONSOLE
+/* A timed-out wait publishes no IPC delivery. Keep one absolute deadline
+ * across slices and probe health without recursive service recreation. */
+static int64_t session_vga_wait3(unsigned op,uintptr_t a,uintptr_t b,uintptr_t timeout) {
+    if((op!=REIST_X64_SYS_IPC_SEND_TIMEOUT && op!=REIST_X64_SYS_IPC_RECEIVE_TIMEOUT)
+       || !timeout || timeout>1000)return reist_x64_syscall3(op,a,b,timeout);
+    uint64_t now=session_now(),end=now+timeout;
+    for(unsigned attempt=0;attempt<11 && now<end;attempt++) {
+        uint64_t slice=end-now;if(slice>100)slice=100;
+        int64_t r=reist_x64_syscall3(op,a,b,slice);
+        now=session_now();
+        if(r!=-110)return r;
+    }
+    return -110;
+}
+#endif
 static uint64_t service_clock(void *context){(void)context;return session_now();}
 static int service_endpoint(void *context,uint32_t *out){(void)context;return (int)SESSION_S1(IPC_CREATE,out);}
 static int service_close(void *context,uint32_t ep){(void)context;return (int)SESSION_S1(IPC_CLOSE,ep);}
@@ -131,6 +162,18 @@ static int service_pio(void *context,uint64_t owner,unsigned operation) {
 }
 static int64_t service_task(void *context,unsigned operation,uint64_t owner,unsigned timeout) {
     (void)context;reist_task_control_request_t q={1,64,operation,0,owner,0,timeout,0,0,0};
+#ifdef REIST_NATIVE_VGA_CONSOLE
+    if(operation==2 && timeout && timeout<=1000) {
+        uint64_t now=session_now(),end=now+timeout;
+        for(unsigned attempt=0;attempt<11 && now<end;attempt++) {
+            q.timeout_ms=(unsigned)(end-now);if(q.timeout_ms>100)q.timeout_ms=100;
+            int64_t r=reist_x64_task_control(&q);
+            now=session_now();
+            if(r!=-110)return r;
+        }
+        return -110;
+    }
+#endif
     return reist_x64_task_control(&q);
 }
 static void session_hex(char *text,uint32_t value) {
@@ -282,6 +325,9 @@ int x86os_sleep_ms(uint32_t duration) {
     (void)session_now();return 0;
 }
 int x86os_getchar_nonblocking(void) {
+#ifdef REIST_NATIVE_VGA_CONSOLE
+    session_vga_poll(session_now());
+#endif
 #ifdef REIST_NATIVE_APP_TCP
     session_input_idle=0;
     uint64_t now=session_now();
@@ -568,7 +614,7 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 #endif
         )?6U:4U) || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
 #else
-    if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+    if(!child || (uint32_t)child!=SESSION_APPLICATION_SLOT || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
 #endif
 #ifdef REIST_NATIVE_DISPLAY
     if(display_program) {
@@ -672,6 +718,9 @@ int x86os_usb_diagnostics(x86os_usb_diagnostics_t *out){(void)out;return -38;}
 int x86os_network_control(const x86os_network_control_request_t *q,x86os_network_control_result_t *out){(void)q;(void)out;return -38;}
 #endif
 extern int __real_main(int,char **);
+#ifdef REIST_NATIVE_VGA_CONSOLE
+#include "shell_vga_console.inc"
+#endif
 int __wrap_main(int argc,char **argv) {
     if(reist_shell_session_selection[0]!=0x3153455353484c53ULL || reist_shell_session_selection[1]!=1 ||
        reist_shell_session_selection[2]>4 || reist_shell_session_selection[3]>17)session_stop(-22);
@@ -693,6 +742,12 @@ int __wrap_main(int argc,char **argv) {
         x86os_file_info_t first;
         (void)reist_vfs_readdir_at("/",0,&first,1000);
     }
+#ifdef REIST_NATIVE_VGA_CONSOLE
+    uint64_t vga_end=session_now()+2000;
+    int vga_result=session_ensure(vga_end-1000,0);
+    if(!vga_result)vga_result=session_vga_start(vga_end);
+    if(vga_result)session_vga_disabled=1;
+#endif
     session_retire();
     /* First mount/self-test is healthy. Qualification faults belong to the
      * following actual command/file transaction, not a cached root STAT that
@@ -700,6 +755,9 @@ int __wrap_main(int argc,char **argv) {
     session_case=selected_case;
     int result=__real_main(argc,argv);
     session_flush();session_retire();
+#ifdef REIST_NATIVE_VGA_CONSOLE
+    session_vga_retire();
+#endif
 #ifdef REIST_NATIVE_NETWORK_SESSION
     session_network_free();
 #endif

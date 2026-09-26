@@ -37,6 +37,36 @@ native_console_syscall64:
     call scheduler_validate_shell_range64
     cmp eax,1
     jne .pointer
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    lea rdi,[rel native_vga_state]
+    call native_vga_core_admit64
+    test rax,rax
+    jnz scheduler_fail
+    cmp qword [rel native_vga_state+24],1
+    je .serial_only
+    cmp ebx,REIST_SYS_READ
+    je .vga_read
+    ; Reserve the complete bounded write before any UART side effect.
+    mov eax,2048
+    sub rax,[rel native_vga_state+56]
+    cmp rax,r13
+    jb .vga_again
+    jmp .serial_only
+.vga_read:
+    mov rsi,r14
+    mov rdx,r13
+    mov ecx,3
+    call native_vga_core_transfer64
+    cmp rax,-11
+    je .serial_only
+    test rax,rax
+    js scheduler_fail
+    jmp process_run_resume64
+.vga_again:
+    mov rax,-11
+    jmp process_run_resume64
+.serial_only:
+%endif
     xor r15d,r15d
 .byte:
     mov dx,COM1_LSR
@@ -62,6 +92,20 @@ native_console_syscall64:
     cmp r15,r13
     jb .byte
 .partial:
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    cmp ebx,REIST_SYS_WRITE
+    jne .return_partial
+    cmp qword [rel native_vga_state+24],1
+    je .return_partial
+    lea rdi,[rel native_vga_state]
+    mov rsi,r14
+    mov rdx,r15
+    xor ecx,ecx
+    call native_vga_core_transfer64
+    cmp rax,r15
+    jne scheduler_fail
+.return_partial:
+%endif
     mov rax,r15
     jmp process_run_resume64
 .again:

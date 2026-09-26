@@ -95,7 +95,7 @@ static int64_t session_app_import(const char *path,int argc,const char *const *a
     uint64_t issued=session_now();if(issued>=end){r=-110;goto failed;}
     int64_t child=reist_x64_task_import_wide(session_prepared,profile,32,startup);
     if(child<0){r=child>=-4095?(int)child:-5;goto failed;}
-    if(!child || (uint32_t)child!=4 || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
+    if(!child || (uint32_t)child!=SESSION_APPLICATION_SLOT || (uint64_t)child>>32>0x7fffffff)session_stop(-5);
     session_zero(&session_app_grant,sizeof(session_app_grant));
     r=reist_app_grant_init(&session_app_grant,session_app_snapshot,session_policy.owner,(uint64_t)child>>32,session_app_epoch,issued);
     if(!r)r=(int)SESSION_S3(IPC_DELEGATE,session_app_request,(uint64_t)child>>32,1);

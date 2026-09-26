@@ -1,5 +1,16 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Stand26.09.: VGA-Textshell samt Hardwarecursor abgenommen
+
+CJ qualification05 besteht alle fuenf eingefrorenen Gates:7 Hosttests,
+unveraenderte Standardartefakte, signiertes Textabbild, frische QEMU-Nachweise
+fuer Normalbetrieb/Bootfehler/Crash/Hang und echte VMware-Anzeige. Cursor
+folgt dem Prompt; VMware-Bild direkt geprueft. Gast-/Host-Grenzen unveraendert.
+Belege: build/codex-agent/r83cj-vga/qualification05. Naechster offener Schritt
+ist der native64-Text-/Grafik-Uebergang; CB bleibt bis dahin archiviert/queued.
+Die alte32-Bit-BIOS-Umschaltung und der nur beim Booten gebundene native
+Framebuffer erfuellen diesen Schritt nicht. Gesamt-OS-Abnahme bleibt offen.
+
 ## Prioritaet26.09.: sichtbare VGA-Textshell beim Booten
 
 Der Nutzer fordert die echte VGA-Textshell, damit Boot- und Startfehler auf dem

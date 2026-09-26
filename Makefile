@@ -405,6 +405,21 @@ $(error NativeAppDNS requires NativeAppTCP)
 endif
 endif
 X86_64_NATIVE_INPUT ?= 0
+X86_64_NATIVE_VGA_CONSOLE ?= 0
+ifneq ($(words $(X86_64_NATIVE_VGA_CONSOLE)),1)
+$(error NativeVgaConsole selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_VGA_CONSOLE),0 1),$(X86_64_NATIVE_VGA_CONSOLE))
+$(error NativeVgaConsole selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_VGA_CONSOLE),1)
+ifneq ($(X86_64_NATIVE_APP_FILES),1)
+$(error NativeVgaConsole requires NativeAppFiles shell)
+endif
+ifneq ($(filter 1,$(X86_64_NATIVE_DISPLAY) $(X86_64_NATIVE_INPUT) $(X86_64_NATIVE_NETWORK_SESSION) $(X86_64_NATIVE_GRAPHICAL_SESSION)),)
+$(error NativeVgaConsole is a separate text profile)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_INPUT)),1)
 $(error NativeInput selector must be one explicit value)
 endif
@@ -417,6 +432,7 @@ $(error NativeInput requires explicit NativeDisplay)
 endif
 endif
 X86_64_INPUT_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_INPUT)),-DREIST_NATIVE_INPUT=1,)
+X86_64_INPUT_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_VGA_CONSOLE)),-DREIST_NATIVE_VGA_CONSOLE=1 -DREIST_NATIVE_INPUT=1,)
 X86_64_NATIVE_TERMINAL_SERVICE ?= 0
 # BI explicit Ring3 graphical session; no additional kernel selector.
 X86_64_NATIVE_GRAPHICAL_SESSION ?= 0
@@ -674,6 +690,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_FILES)),--app-files,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY_INFO)),--display-info,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_VGA_CONSOLE)),--vga-console,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
@@ -1237,7 +1254,7 @@ endif
 		$(X86_64_PROCESS_SCHEDULER_OBJ) $(X86_64_FP_OBJ) $(X86_64_FAULT_OBJ) $(X86_64_QUEUE_OBJ) $(X86_64_IDENTITY_OBJ) $(X86_64_CONTEXT_OBJ) $(X86_64_BUDGET_OBJ) $(X86_64_TERMINAL_OBJ) $(X86_64_IPC_ADMISSION_OBJ) $(X86_64_STARTUP_OBJ) $(X86_64_REQUEST_OBJ) $(X86_64_FRAME_CLAIM_OBJ) $(X86_64_PROFILE_OBJ) $(X86_64_IMAGE_FRAMES_OBJ) $(X86_64_ADDRESS_SPACE_OBJ) $(X86_64_TASK_FRAMES_OBJ) $(X86_64_USER_ACCESS_OBJ)
 ifeq ($(X86_64_NATIVE_NETWORK_SESSION),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) --network-session
-else ifeq ($(X86_64_NATIVE_INPUT),1)
+else ifneq ($(filter 1,$(X86_64_NATIVE_INPUT) $(X86_64_NATIVE_VGA_CONSOLE)),)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
 endif
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF) $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)

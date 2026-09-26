@@ -1,3 +1,98 @@
+## 2026-09-26 CJ accepted: visible VGA shell and current-line cursor
+
+Qualification05 passes all five frozen gates: targeted7 tests4.740s,
+defaults14.470s, package19.680s, runtime82.236s, review58.201s. Fresh boots:
+healthy22.211s, early8.734s, crash25.833s, hang18.500s. Actual cursor raster
+follows CAT/LS/final prompt; renderer tests cover wrap/backspace/scroll.
+VMware shell visible9.927s; inspected screenshot shows underscore after C:\>.
+VMware proof53.352s, stopped and immutable media confirmed. Host cleanup
+first aborted on PowerShell JSON date coercion; exact literal PID/start
+check then completed safely. No running VM. All earlier failures retained.
+
+Final raw receipt: build/codex-agent/r83cj-vga/qualification05/final.json;
+acceptance-seal.json records the manual final diff/visual review and source
+binding. CJ done; CB remains queued and archived. No active implementation
+until the native64 text/graphics hardware transition authority is settled;
+the existing display domain accepts only an immutable boot framebuffer.
+Native64 OS/desktop completion remains open. No nested agent or push.
+
+## Historical: CJ hardware cursor correction and qualification05
+
+This entry supersedes historical progress below. CJ remains active and
+uncommitted on01106c77. User reports the hardware cursor stays on the old
+line. Appended generation/epoch-bound SET_CURSOR9 with fixed mode03 CRTC
+location writes; Ring3 publishes the position once its row is painted.
+Host18 all5 tests pass4.050s; build10/media08 succeed. Guest16 fails only
+missing Pillow in the observer; corrected to bounded standard-library PPM
+parsing. Guest17 passes22.272s with actual hardware cursor pixels after
+CAT, LS and final HELP/error output. All failed evidence remains retained.
+
+Verifier is complete. Qualifications02/03 gates1..4 pass; VMware review
+fails host process cleanup after a visible healthy shell. Follow-up confirms
+zero running VMs. Qualification04 retains all five gates/limits/fresh guests,
+adds cursor raster replay and a bounded exact-process host cleanup handoff.
+Original180s VMware cap and independent absence/media checks remain.
+Qualification04 gates1..3 and healthy guest pass; replay fails a local
+variable collision, corrected and complete replay verified by host19.
+Qualification05 repeats unchanged frozen gates with this regression added.
+No native64 completion claim; text/graphics handoff and archived CB still open.
+
+## Historical: CJ VGA application starts and supervision corrected
+
+Latest state supersedes older stop notes below. CJ remains active, uncommitted
+and unaccepted; no frozen qualification gate has been run. User explicitly
+approved shell_app_files.inc; queue allowed_files now includes it. Native VGA
+applications use slot5 while the isolated console occupies slot4; all other
+profiles retain slot4 and exact default source projections.
+
+Host12: all3 tests pass2.708s (actual core/renderer/domain O0/O2, serial oracle,
+actual selected wait/probe functions across all1..1000ms deadlines). Selected
+root IPC/task waits use <=100ms slices under the same absolute deadline;
+health checks run during commands, recreation stays at the safe shell boundary.
+Build08/media07: guest13 ordinary PS/2 CAT/LS/HELP/error passes27.078s;
+guest14 hang/two restarts/exhaustion/visible error/serial rescue passes18.781s;
+guest15 crash/new generation+epoch/CAT+LS passes28.498s. Raw captures include
+exact task/family/syscall profiles and supervisor-only writable/NX/cache-disabled
+VGA page walk. Independent integration-review01.json verifies10 live owner/
+profile snapshots and seven exact disabled-source projections against898f30d5.
+Build09 passes and kernel/catalog/C-core match build08 byte-for-byte after
+source-guard/whitespace cleanup. All historical failed attempts remain.
+
+Earlier build07/media06: guest12 injected existing early error branch is
+visible in VGA and UART (10.320s; not a physical-memory detection claim).
+VMware04 shows actual shell10.273s, screenshot retained; overall failed because
+vmrun stop8s timed out, as did the20s cleanup follow-up. Exact PID/start bound
+to VM log; targeted Stop-Process succeeded, vmrun list zero, media unchanged.
+No running guest/build/helper. Do not count failed VMware04 as accepted.
+
+Remaining CJ work: complete scripts/verify_x86_64_vga_console.py (not yet
+created), full disabled build/artifact and build-selector comparison, final
+source/tool/image binding, frozen five gates with fresh three-case matrix and
+early error visibility, required bounded VMware proof and scope review/local
+commit. Native64 text/graphics handoff follows before restoring archived CB;
+original desktop gates remain required. No completed OS claim.
+
+Evidence: build/codex-agent/r83cj-vga; host logs under
+build/codex-agent/native-vmware-desktop/cj-hostNN.log. Spent: hosts01..12,
+builds01..09, media01..07, guests01..15, VMware01..04; media08 reserved/unspent.
+New finite evidence-directed windows may be frozen without another routine
+permission question under AGENTS. Safety/acceptance limits remain unchanged.
+
+## 2026-09-26 CJ actual VGA shell diagnostic passed; acceptance open
+
+Contract commit01106c77; implementation uncommitted/unaccepted. build03/media03
+and guest03 prove real BIOS mode03/80x25, ordinary C:\> shell, PS/2 HELP and
+visible Bad command or program file. error with serial parity (14.501s).
+Screenshot/raw cells: build/codex-agent/r83cj-vga/guest03/commands/.
+Separate Ring3 console slot4/gen5/epoch1 uses bounded VGA-cell/input mediation.
+Host05 actual core/renderer O0/O2 and domain/service compilation pass.
+Failures preserved: media01 capacity, guest01/02 page fault caused by new
+boot-check EAX clobber; build03 preserves RAM page-table cursor. Counters and
+next finite reservation in NATIVE_VGA_CONSOLE_CONTRACT.md. No frozen gate run.
+Next: reserved VMware01 visual proof, crash/hang/restart exhaustion and complete
+independent admission/cleanup/default proof. Native64 graphics handoff then
+restore CB archive02; original desktop obligations and deferrals remain.
+
 ## 2026-09-26 CJ VGA console authorized and frozen
 
 User mach weiter approves the preceding concrete VGA-console request.

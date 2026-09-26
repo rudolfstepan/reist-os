@@ -59,6 +59,7 @@ param(
     [switch]$NativeMath,
     [switch]$NativeMathHardware,
     [switch]$NativeInput,
+    [switch]$NativeVgaConsole,
     [switch]$NativeDisplay,
     [switch]$NativeDisplayInfo,
     [switch]$NativeServicePIO,
@@ -105,6 +106,12 @@ if ($NativeNetworkSession) {
     $NativeAppFiles = [switch]$true
 }
 if ($NativeNetworkDMA) { $NativeTaskPool = [switch]$true }
+if ($NativeVgaConsole) {
+    if ($NativeDisplay -or $NativeInput -or $NativeTerminalService -or $NativeGraphicalSession -or $NativeNetworkSession -or $NativeNetworkDMA) {
+        throw 'NativeVgaConsole requires the separate text shell profile.'
+    }
+    $NativeAppFiles = [switch]$true
+}
 if ($NativeGraphicalSession) { $NativeTerminalService = [switch]$true }
 if ($NativeTerminalService) { $NativeInput = [switch]$true }
 if ($NativeInput) { $NativeDisplay = [switch]$true }
@@ -502,6 +509,7 @@ try {
         "X86_64_NATIVE_TERMINAL_SERVICE=$([int]$NativeTerminalService.IsPresent)" `
         "X86_64_NATIVE_GRAPHICAL_SESSION=$([int]$NativeGraphicalSession.IsPresent)" `
         "X86_64_NATIVE_INPUT=$([int]$NativeInput.IsPresent)" `
+        "X86_64_NATIVE_VGA_CONSOLE=$([int]$NativeVgaConsole.IsPresent)" `
         "X86_64_NATIVE_NETWORK_DMA=$([int]$NativeNetworkDMA.IsPresent)" `
         "X86_64_NATIVE_NETWORK_SESSION=$([int]$NativeNetworkSession.IsPresent)" `
         "X86_64_NATIVE_APP_NETWORK=$([int]$NativeAppNetwork.IsPresent)" `

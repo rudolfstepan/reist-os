@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False,large_file=False,display_info=False,large_periodic=False,desktop_cpu=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False,large_file=False,display_info=False,large_periodic=False,desktop_cpu=False,vga_console=False):
+    if type(vga_console) is not bool or vga_console and (not app_files or any((display,input,graphical_session,network_session,large_file))):raise ValueError("VGA console requires separate application-file shell")
     if type(large_file) is not bool or large_file and (not large_image or not text_runtime or any((display,input,graphical_session,network_session))):raise ValueError("large file requires separate large image/text shell")
     if large_file:cc=[*cc,'-DREIST_NATIVE_LARGE_FILE=1']
     if type(large_periodic) is not bool or large_periodic and (not (large_image and wide and task_pool and service_cpu) or any((large_file,memory_case,pio,block,filesystem,shell_session,text_runtime,session))):
@@ -151,6 +152,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if display_info:cc=[*cc,'-DREIST_NATIVE_DISPLAY_INFO=1']
     if display:cc=[*cc,'-DREIST_NATIVE_DISPLAY=1']
     if input:cc=[*cc,'-DREIST_NATIVE_INPUT=1']
+    if vga_console:cc=[*cc,'-DREIST_NATIVE_VGA_CONSOLE=1']
     if terminal_service:cc=[*cc,'-DREIST_NATIVE_TERMINAL_SERVICE=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
@@ -204,6 +206,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         with (attempt/'build.log').open('ab') as f:f.write(r.stdout+r.stderr)
         if r.returncode:raise RuntimeError((r.stdout+r.stderr).decode(errors='replace')[-2000:])
     start=attempt/'start.o';run([*nasm,'-f','elf64','arch/x86_64/user/boot_start.asm','-o',start])
+    if vga_console:
+        from build_x86_64_vga_console import build_role
+        vga_blob=build_role(attempt,cc,ld,run,start)
     if input and not graphical_session:
         input_objects=[]
         for index,source in enumerate(('arch/x86_64/user/input_service.c','userspace/drivers/ps2/native_input.c')):
@@ -263,6 +268,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             if shell_session and n==0:
                 with header.open('a',encoding='ascii') as output:
                     output.write('#include <reist/x86_64/shell_session.h>\nconst reist_shell_images reist_native_shell_images={import_blob,sizeof(import_blob),filesystem_blob,sizeof(filesystem_blob)};\n')
+            if vga_console and n==0:
+                with header.open('a',encoding='ascii') as output:
+                    output.write('const unsigned char reist_native_vga_image[]={'+','.join(str(b) for b in vga_blob)+'};\nconst size_t reist_native_vga_image_bytes=sizeof(reist_native_vga_image);\n')
             if input and not graphical_session and n==0:
                 with header.open('a',encoding='ascii') as output:
                     output.write('const unsigned char reist_native_input_image[]={'+','.join(str(b) for b in input_blob)+'};\nconst size_t reist_native_input_image_bytes=sizeof(reist_native_input_image);\n')
@@ -398,6 +406,7 @@ elif __name__=='__main__':
     p.add_argument('--display',action='store_true')
     p.add_argument('--display-info',action='store_true')
     p.add_argument('--input',action='store_true')
+    p.add_argument('--vga-console',action='store_true')
     p.add_argument('--terminal-service',action='store_true')
     p.add_argument('--graphical-session',action='store_true')
     p.add_argument('--network-dma',action='store_true')
@@ -414,4 +423,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput,a.large_file,a.display_info,a.large_periodic,a.desktop_cpu)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput,a.large_file,a.display_info,a.large_periodic,a.desktop_cpu,a.vga_console)

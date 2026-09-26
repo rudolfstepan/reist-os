@@ -1252,6 +1252,15 @@ process_run_syscall64:
 .not_network_control:
 %endif
 %ifdef REIST_NATIVE_PIO
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    cmp qword [rel syscall_rax],113
+    jne .not_vga_control
+    cmp qword [rel syscall_rdi],33
+    je native_vga_syscall64
+    cmp qword [rel syscall_rdi],31
+    je native_input_syscall64
+.not_vga_control:
+%endif
     cmp qword [rel syscall_rax],113
 %ifdef REIST_NATIVE_DISPLAY
     jne .not_display_control

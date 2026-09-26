@@ -1516,6 +1516,9 @@ family_terminal64:
 %ifdef REIST_NATIVE_INPUT
     call native_input_terminal64
 %endif
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    call native_vga_terminal64
+%endif
 %ifdef REIST_NATIVE_NETWORK_DMA
     call native_network_terminal64
 %endif
@@ -1780,6 +1783,9 @@ family_finish64:
 %endif
 %ifdef REIST_NATIVE_INPUT
     call native_input_finish64
+%endif
+%ifdef REIST_NATIVE_VGA_CONSOLE
+    call native_vga_finish64
 %endif
 %ifdef REIST_NATIVE_NETWORK_DMA
     call native_network_finish64
