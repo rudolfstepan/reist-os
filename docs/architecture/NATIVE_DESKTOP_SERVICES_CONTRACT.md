@@ -625,3 +625,34 @@ scope and new fixed VGA-cell authority approval before source changes:
 
 This proposal requests scope/authority only; it does not authorize relaxed
 acceptance, unrestricted video registers or an in-kernel graphics driver.
+
+
+## Resume after CK c5aa5fb9, QEMU-only development window
+
+CK is accepted only for QEMU under the explicitly approved allocation; actual
+VMware healthy/fault acceptance remains a mandatory final platform milestone.
+CB is the sole active package. A clean main worktree was confirmed after CK.
+All prior CB host/build/media/guest counters and failures remain spent.
+Latest candidate archive before-native-vga-console02/candidate.zip SHA256
+c3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77
+contains26 implementation files plus4 historical docs/queue files. Restore
+implementation only; keep current docs/queue and accepted CJ/CK changes.
+
+Read-only merge inventory01 failed before worktree changes because its harness
+incorrectly allowed at most3 git merge-file conflicts. Inventory02 records
+26 candidate files; Makefile has1 conflict and boot-program builder7. Merge
+append-only selectors/LTO/symbol preservation explicitly; never overwrite
+accepted VGA/mode mechanisms. Remaining candidate files merge without conflicts.
+All26 implementation paths are already within CB allowed_files. No new authority.
+
+Freeze restoration and first integration window: one restored-candidate host119
+<=180s; host120<=180s after evidence-directed integration; build58<=300s,
+media35<=180s and QEMU guest50<=180s only after host success. Stop each failed
+operation, retain receipt and inventory cause before any new attempt. No VMware
+launch/focus. Source restoration is not acceptance or a desktop boot claim.
+First restore and check existing services/client/display/entry regressions.
+Then inventory the actual handoff: VGA owner4 retires before desktop4/input5;
+Ring3 mode policy uses existing device34, input/display roles and original
+quotas. Freeze any additionally required path before editing it. Kernel files
+are outside this CB package; no kernel shortcut or new permission domain.
+Original CB five gates/eight fresh cases and300ms input boundaries remain.

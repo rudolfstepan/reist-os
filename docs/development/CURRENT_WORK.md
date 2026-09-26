@@ -1,3 +1,14 @@
+## 2026-09-26 CB restoration window frozen after CK c5aa5fb9
+
+CK committed locally and clean worktree confirmed; QEMU-only acceptance,
+actual VMware milestone still open. CB sole active. Read-only inventory02
+verifies26 archived code files and hashes; preserve4 current docs/queue files.
+Resolve8 textual conflicts in Makefile/boot-program builder, preserving both
+CJ/CK selectors and archived full-desktop composition. No restored source has
+yet entered the main worktree. Contract reserves host119/120,build58,media35,
+QEMU50 with original finite limits; all historical counters remain spent.
+VMware stays closed. Evidence: native-vmware-desktop/resume-after-ck02.
+
 ## 2026-09-26 CK QEMU-only acceptance; CB resume authorized
 
 User renewed mach weiter after the explicit split-acceptance question.
