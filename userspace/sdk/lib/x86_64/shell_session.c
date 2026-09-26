@@ -6,6 +6,12 @@
 #include <reist/x86_64/syscall.h>
 #include <reist/x86_64/task.h>
 #include <reist/x86_64/terminal.h>
+#ifdef REIST_NATIVE_VIDEO_MODE
+static unsigned session_video_active,video_driver_reaped;
+static int session_video_start(int);
+static int session_video_wait(int *);
+static int video_stop(int);
+#endif
 #ifdef REIST_NATIVE_VGA_CONSOLE
 static void session_vga_poll(uint64_t);
 static void session_vga_health(uint64_t);
@@ -390,6 +396,12 @@ void x86os_print_number(int value) {
     session_write(text,length);
 }
 int x86os_terminal_input(uint32_t operation,int pid,uint32_t generation) {
+#ifdef REIST_NATIVE_VIDEO_MODE
+    /* As with the supervised desktop, COM1 remains the root recovery console;
+     * the exact active renderer has no terminal-input capability. */
+    if(session_video_active && session_child && operation==REIST_TERMINAL_TRANSFER &&
+       (unsigned)pid==session_child>>32 && generation==(unsigned)pid)return 0;
+#endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
     if(session_graphical_active && operation==REIST_TERMINAL_TRANSFER &&
        (unsigned)pid==session_child>>32 && generation==(unsigned)pid)return 0;
@@ -564,6 +576,12 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
     }
 #endif
     reist_task_profile_v1_t profile={1,40,{SESSION_MASK|(1ULL<<15)|(1ULL<<20),1ULL<<63,0},0};
+#ifdef REIST_NATIVE_VIDEO_MODE
+    if(session_app_equal(canonical,"/video.prg")) {
+        session_zero(&startup,sizeof(startup));
+        return session_video_start(argc);
+    }
+#endif
 #ifdef REIST_NATIVE_DISPLAY
     int display_program=session_app_equal(canonical,"/boot.prg");
     if(display_program)profile.masks[1]|=1ULL<<49;
@@ -654,6 +672,9 @@ int x86os_spawnv(const char *path,int argc,const char *const *argv) {
 }
 int x86os_kill(int pid) {
     if(pid<=0 || !session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_VIDEO_MODE
+    if(session_video_active)return video_stop(0);
+#endif
 #ifdef REIST_NATIVE_APP_TCP
     if(session_tcp_active)session_tcp_revoke();
 #endif
@@ -668,6 +689,9 @@ int x86os_kill(int pid) {
 int x86os_wait(int pid,int *out) {
     if(!out || pid<=0)return -22;
     if(!session_child || (uint32_t)pid!=session_child>>32)return -3;
+#ifdef REIST_NATIVE_VIDEO_MODE
+    if(session_video_active)return session_video_wait(out);
+#endif
 #ifdef REIST_NATIVE_GRAPHICAL_SESSION
     if(session_graphical_active)return session_graphical_wait(out);
 #endif
@@ -720,6 +744,9 @@ int x86os_network_control(const x86os_network_control_request_t *q,x86os_network
 extern int __real_main(int,char **);
 #ifdef REIST_NATIVE_VGA_CONSOLE
 #include "shell_vga_console.inc"
+#ifdef REIST_NATIVE_VIDEO_MODE
+#include "shell_video_mode.inc"
+#endif
 #endif
 int __wrap_main(int argc,char **argv) {
     if(reist_shell_session_selection[0]!=0x3153455353484c53ULL || reist_shell_session_selection[1]!=1 ||

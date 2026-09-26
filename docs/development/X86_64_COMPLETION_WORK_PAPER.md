@@ -1,5 +1,43 @@
 # Native x86_64-Version: Umsetzung bis zur Systemabnahme
 
+## Stand26.09.: CK fuer QEMU abgenommen, echter Desktop als naechstes
+
+Nach Nutzerfreigabe der getrennten Abnahme: vier eingefrorene Gates und
+unabhaengige QEMU-Nachpruefung13.076s bestanden,9 Faelle/1335 Belegdateien.
+Unveraenderte Quellen/Tools/Images und vollstaendige Rohdaten nachgeprueft.
+CK-Abschluss gilt ausschliesslich fuer das QEMU-Forschungsprofil. Die echte
+VMware-Hardwarepruefung bleibt vor VMware-Auslieferung und OS-Abschluss Pflicht.
+CB wird nach sauberem lokalem CK-Commit aus dem gesicherten Archiv fortgesetzt.
+
+
+## Stand26.09.: vier CK-Abnahmepruefungen bestanden
+
+Qualification01 besteht Hosttests,188 unveraenderte Altprofil-Artefakte,
+frischen Paketbau mit signiertem Abbild und alle neun frischen QEMU-Faelle.
+Laufzeiten der vier Gates:6.256/31.212/22.670/337.143s. Vier manipulierte
+Rohdatennachweise werden abgewiesen;1335 Belegdateien sind gehasht.
+Alle Testgaeste beendet. VMware bleibt auf Nutzerwunsch geschlossen.
+Gate5 samt echtem VMware-Hardwarebeleg bleibt offen; keine CK-Abnahme,
+kein Implementierungscommit und noch keine Wiederaufnahme des echten Desktops.
+Beleg: build/codex-agent/r83ck-video-mode/qualification01/pending.json.
+
+
+## Entwicklungsstand26.09.: neun QEMU-Modustests nach Korrektur bestanden
+
+CK build12/media10 besteht neun QEMU-Entwicklungsfaelle mit unabhaengiger
+Rohdatenpruefung: Normalbetrieb/Wiederholung, Crash/Hang vor Grafik, waehrend
+Grafik und beim Rueckwechsel sowie Neustart-Erschoepfung. Zwei Fehler des
+Testprogramms wurden mit Regressionstests reproduziert und korrigiert:
+zu viele Zeichenauftraege pro100ms und ein unzulaessiger1000ms-Schlafaufruf.
+Kernelgrenzen bleiben unveraendert. Fruehere reine Aufnahme-Erfolgsmeldungen
+mit Renderer-Fehlerstatus gelten nicht als bestandene Nachweise.
+
+Aktuell3 Hosttests bestanden; neun Gaeste zusammen300.636s, abschliessende
+Nachpruefung10.263s. Beleg: build/codex-agent/r83ck-video-mode/qemu-replay-audit01.json.
+Auf Nutzerwunsch nur QEMU im Hintergrund; VMware bleibt zurueckgestellt.
+CK ist noch nicht abgenommen/committed, eingefrorene Gesamtpruefungen und
+VMware-Nachweis bleiben offen. Vollstaendiger Desktop/OS-Abschluss bleibt offen.
+
 ## Stand26.09.: VGA-Textshell samt Hardwarecursor abgenommen
 
 CJ qualification05 besteht alle fuenf eingefrorenen Gates:7 Hosttests,

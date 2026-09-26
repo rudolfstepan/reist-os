@@ -116,3 +116,57 @@ jeweils nachweisen. Eine Grafik-Testflaeche prueft nur den Vorbau; danach
 folgt der archivierte echte Desktop mit allen bisherigen Latenz-/App-Gates.
 
 Diese Freigabe waere keine Abnahme des Codes oder der gesamten64-Bit-Version.
+
+
+## Proposed QEMU prerequisite acceptance; VMware remains a final release gate
+
+2026-09-26, pending explicit user decision; not implemented or accepted.
+
+The user requests continued native64 completion and explicitly defers VMware
+because its window/input capture disrupts host work. CK qualification01 passed
+its four ordered non-VMware gates, including nine fresh QEMU cases and altered-
+evidence rejection. Current gate5 cannot pass without actual VMware healthy
+and driver-fault/return proofs. Existing package sequencing consequently blocks
+CB real-desktop integration even in QEMU. A repeated request to continue is not
+silently treated as authorization to waive the frozen hardware gate.
+
+Proposed precise allocation:
+1. Complete CK for the QEMU research profile only after the existing independent
+   source/tool/scope/evidence review passes. Keep all four preceding gates,
+   nine cases, tamper denials, timing/resource limits and historical failures.
+2. Carry qualification01 proofs only after verifying every recorded source,
+   tool, artifact and raw evidence hash. Any changed guest/build/capture/replay
+   implementation requires the affected original gate again. A separately
+   inventoried change confined to gate scheduling/receipt handling may carry
+   the existing unchanged proofs after independent review; preserve original
+   receipts and source freeze, and record the exact verifier diff separately.
+3. Freeze actual VMware healthy and driver-fault/return acceptance as an open,
+   mandatory platform milestone before claiming a usable VMware release or
+   completed native64 OS. Keep180s per hardware case, exact owned cleanup,
+   positive aperture inventory, real pixels, successful VGA restoration,
+   post-return keyboard/cursor, all original guest safety limits and failure
+   retention. QEMU evidence never satisfies these VMware checks.
+4. Only after the scoped QEMU review/local commit and clean worktree may CB be
+   restored as the sole active package and the real desktop integrated/tested
+   under QEMU. Preserve its original tests and VMware delivery requirement.
+   Label every intermediate artifact research/QEMU-qualified, VMware-unverified.
+5. Do not launch or focus VMware until the user changes the existing deferral.
+   Do not claim full CK hardware acceptance, finished desktop or finished OS.
+
+This changes frozen acceptance allocation and therefore requires explicit user
+approval under AGENTS.md. It adds no device, resource or process authority.
+Without approval, CK remains active/uncommitted and CB remains archived.
+
+## Decision 2026-09-26: scoped QEMU acceptance authorized
+
+The user renewed "mach weiter" directly after the explicit question and
+concrete proposal above. Apply that requested split: QEMU-only acceptance
+after complete independent review, unchanged evidence reuse, mandatory final
+VMware milestone still open. VMware remains closed. This is not a waiver of
+the final VMware or OS acceptance.
+
+Reserve acceptance-qemu01: one independent review <=600s, unchanged frozen
+source/tool/image binding, all nine raw replays and evidence hashes, actual
+tamper receipt, direct scope/diff review. Use a saved outer review script;
+leave the frozen verifier and original full-platform --review fail-closed.
+No new guest or build; original qualification receipts remain immutable.

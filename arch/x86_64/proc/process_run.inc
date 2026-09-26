@@ -1260,6 +1260,15 @@ process_run_syscall64:
     cmp qword [rel syscall_rdi],31
     je native_input_syscall64
 .not_vga_control:
+%ifdef REIST_NATIVE_VIDEO_MODE
+    cmp qword [rel syscall_rax],113
+    jne .not_video_control
+    cmp qword [rel syscall_rdi],34
+    je native_video_syscall64
+    cmp qword [rel syscall_rdi],30
+    je native_display_syscall64
+.not_video_control:
+%endif
 %endif
     cmp qword [rel syscall_rax],113
 %ifdef REIST_NATIVE_DISPLAY

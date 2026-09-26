@@ -234,6 +234,11 @@ native_display_syscall64:
 %endif
     cmp dword [rel native_display_request+8],3
     jne .result
+%ifdef REIST_NATIVE_VIDEO_MODE
+    call native_video_reserve64
+    test rax,rax
+    jnz .result
+%endif
     ; Validate all touched leaves before the first MMIO store.
     xor r10d,r10d
 .check_row:
@@ -269,6 +274,11 @@ native_display_syscall64:
     jb .copy_row
     mfence
     inc qword [rel native_display_commits]
+%ifdef REIST_NATIVE_VIDEO_MODE
+    call native_video_publish64
+    test rax,rax
+    jnz .result
+%endif
     xor eax,eax
     jmp .result
 .invalid:

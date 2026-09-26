@@ -126,6 +126,11 @@ global x86_64_c_serial_write64
 global x86_64_c_process_shell64
 extern x86_64_exception_init
 extern x86_64_physical_memory_init32
+%ifdef REIST_NATIVE_VIDEO_MODE
+global native_display_boot,native_display_boot_inverse,native_display_pd,native_display_pts,pdpt_table
+global native_video_fifo_pt,native_video_ranges,native_video_range_count
+global native_video_ranges_inverse,native_video_count_inverse,native_vga_ready
+%endif
 %ifdef REIST_NATIVE_DISPLAY
 extern reist_x64_display_capture32
 global native_display_boot, native_display_boot_inverse
@@ -258,6 +263,11 @@ x86_64_bootstrap_start:
     jnz .memory_map_error
     mov dword [high_page_table+0xb8*8],0xb801b
     mov dword [high_page_table+0xb8*8+4],PAGE_NX_HIGH
+    pop eax
+%endif
+%ifdef REIST_NATIVE_VIDEO_MODE
+    push eax
+    call native_video_capture32
     pop eax
 %endif
 %if X86_64_NATIVE_RAM
@@ -495,6 +505,77 @@ native_display_init32:
     mov [pdpt_table+509*8],eax
 .unavailable:
     ret
+%endif
+
+%ifdef REIST_NATIVE_VIDEO_MODE
+; Preserve the bounded, already BIOS-supplied E820 map before low memory
+; becomes inaccessible. No PCI mutation or device parser in this boot path.
+native_video_capture32:
+    pushad
+    mov eax,[boot_info_value]
+    test dword [eax],1<<6
+    jz .bad
+    mov ecx,[eax+44]
+    mov esi,[eax+48]
+    test ecx,ecx
+    jz .bad
+    cmp ecx,32*28
+    ja .bad
+    test esi,esi
+    jz .bad
+    mov ebx,esi
+    add ebx,ecx
+    jc .bad
+    cmp ebx,0x100000
+    ja .bad
+    mov edi,native_video_ranges
+    xor ebp,ebp
+.entry:
+    cmp esi,ebx
+    je .done
+    inc ebp
+    cmp ebp,32
+    ja .bad
+    mov edx,ebx
+    sub edx,esi
+    cmp edx,24
+    jb .bad
+    mov eax,[esi]
+    cmp eax,20
+    je .size
+    cmp eax,24
+    jne .bad
+.size:
+    add eax,4
+    cmp eax,edx
+    ja .bad
+    lea edx,[esi+eax]
+    add esi,4
+    mov ecx,5
+    rep movsd
+    xor eax,eax
+    stosd
+    mov esi,edx
+    jmp .entry
+.done:
+    mov [native_video_range_count],ebp
+    not ebp
+    mov [native_video_count_inverse],ebp
+    mov dword [native_video_count_inverse+4],-1
+    mov esi,native_video_ranges
+    mov edi,native_video_ranges_inverse
+    mov ecx,32*6
+.inverse:
+    lodsd
+    not eax
+    stosd
+    loop .inverse
+    popad
+    ret
+.bad:
+    mov esi,memory_map_error_message
+    call serial_write32
+    jmp halt32
 %endif
 
 serial_init32:
@@ -1495,6 +1576,19 @@ high_page_directory:
 alignb 4096
 high_page_table:
     resb (1 + 7 * X86_64_NATIVE_RAM) * 4096
+%ifdef REIST_NATIVE_VIDEO_MODE
+alignb 8
+native_video_range_count: resq 1
+native_video_count_inverse: resq 1
+native_video_ranges: resb 32*24
+native_video_ranges_inverse: resb 32*24
+native_display_boot: resb 32
+native_display_boot_inverse: resb 32
+alignb 4096
+native_display_pd: resb 4096
+native_display_pts: resb 6*4096
+native_video_fifo_pt: resb 4096
+%endif
 %ifdef REIST_NATIVE_DISPLAY
 alignb 8
 native_display_boot: resb 32

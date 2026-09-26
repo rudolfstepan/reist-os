@@ -406,6 +406,18 @@ endif
 endif
 X86_64_NATIVE_INPUT ?= 0
 X86_64_NATIVE_VGA_CONSOLE ?= 0
+X86_64_NATIVE_VIDEO_MODE ?= 0
+ifneq ($(words $(X86_64_NATIVE_VIDEO_MODE)),1)
+$(error NativeVideoMode selector must be one explicit value)
+endif
+ifneq ($(filter $(X86_64_NATIVE_VIDEO_MODE),0 1),$(X86_64_NATIVE_VIDEO_MODE))
+$(error NativeVideoMode selector must be 0 or 1)
+endif
+ifeq ($(X86_64_NATIVE_VIDEO_MODE),1)
+ifneq ($(X86_64_NATIVE_VGA_CONSOLE),1)
+$(error NativeVideoMode requires NativeVgaConsole)
+endif
+endif
 ifneq ($(words $(X86_64_NATIVE_VGA_CONSOLE)),1)
 $(error NativeVgaConsole selector must be one explicit value)
 endif
@@ -433,6 +445,7 @@ endif
 endif
 X86_64_INPUT_FLAGS = $(if $(filter 1,$(X86_64_NATIVE_INPUT)),-DREIST_NATIVE_INPUT=1,)
 X86_64_INPUT_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_VGA_CONSOLE)),-DREIST_NATIVE_VGA_CONSOLE=1 -DREIST_NATIVE_INPUT=1,)
+X86_64_INPUT_FLAGS += $(if $(filter 1,$(X86_64_NATIVE_VIDEO_MODE)),-DREIST_NATIVE_VIDEO_MODE=1,)
 X86_64_NATIVE_TERMINAL_SERVICE ?= 0
 # BI explicit Ring3 graphical session; no additional kernel selector.
 X86_64_NATIVE_GRAPHICAL_SESSION ?= 0
@@ -691,6 +704,7 @@ X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY)),--display,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_DISPLAY_INFO)),--display-info,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_INPUT)),--input,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_VGA_CONSOLE)),--vga-console,)
+X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_VIDEO_MODE)),--video-mode,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),--network-dma,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_NETWORK_SESSION)),--network-session,)
 X86_64_SESSION_ARG += $(if $(filter 1,$(X86_64_NATIVE_APP_NETWORK)),--app-network,)
@@ -1199,10 +1213,14 @@ endif
 ifeq ($(X86_64_NATIVE_NETWORK_DMA),1)
 	@$(X86_64_CC) $(X86_64_CFLAGS) -I. $(X86_64_NETWORK_FLAGS) -c arch/x86_64/devices/network_dma.c -o $(X86_64_BOOTSTRAP_DIR)/network_dma.o
 endif
+ifeq ($(X86_64_NATIVE_VIDEO_MODE),1)
+	@$(X86_64_CC) $(X86_64_CFLAGS) -I. -DREIST_NATIVE_VIDEO_MODE=1 -c arch/x86_64/video/video_mode.c -o $(X86_64_BOOTSTRAP_DIR)/video_mode.o
+endif
 	@$(LD) -m elf_x86_64 -nostdlib --build-id=none --fatal-warnings --no-undefined \
 		-z noexecstack --strip-debug -T config/x86_64_c_payload.ld \
 		-o $(X86_64_C_CORE_ELF) $(X86_64_C_CORE_OBJ) \
 		$(if $(filter 1,$(X86_64_NATIVE_NETWORK_DMA)),$(X86_64_BOOTSTRAP_DIR)/network_dma.o,) \
+		$(if $(filter 1,$(X86_64_NATIVE_VIDEO_MODE)),$(X86_64_BOOTSTRAP_DIR)/video_mode.o,) \
 		$(if $(filter 1,$(X86_64_C_PAYLOAD_PROBE)),$(X86_64_C_PAYLOAD_PROBE_OBJ),) \
 		$(if $(filter 1,$(X86_64_NATIVE_IPC)),$(X86_64_BOOTSTRAP_DIR)/native_ipc_pool.o $(X86_64_BOOTSTRAP_DIR)/native_ipc.o,) \
 		$(if $(filter 1,$(X86_64_NATIVE_RAM)),$(X86_64_BOOTSTRAP_DIR)/native_memory.o,) \
@@ -1255,7 +1273,7 @@ endif
 ifeq ($(X86_64_NATIVE_NETWORK_SESSION),1)
 	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) --network-session
 else ifneq ($(filter 1,$(X86_64_NATIVE_INPUT) $(X86_64_NATIVE_VGA_CONSOLE)),)
-	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,)
+	@$(PYTHON) scripts/build_x86_64_boot_programs.py --compact-input-elf $(X86_64_BOOTSTRAP_ELF) --objcopy $(OBJCOPY) $(if $(filter 1,$(X86_64_NATIVE_TERMINAL_SERVICE)),--terminal-service,) $(if $(filter 1,$(X86_64_NATIVE_VIDEO_MODE)),--video-mode,)
 endif
 	@$(PYTHON) scripts/build_x86_64_c_payload.py --elf $(X86_64_C_CORE_ELF) --verify-outer $(X86_64_BOOTSTRAP_ELF) $(if $(filter 1,$(X86_64_NATIVE_LARGE_IMAGE)),--large-image,)
 	@echo "x86_64 bootstrap complete: $(X86_64_BOOTSTRAP_ELF)"

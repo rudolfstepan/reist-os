@@ -8324,6 +8324,10 @@ scheduler_profile_ranges64:
 %ifdef REIST_NATIVE_VGA_CONSOLE
 %include "arch/x86_64/devices/input_domain.inc"
 %include "arch/x86_64/video/vga_text_domain.inc"
+%ifdef REIST_NATIVE_VIDEO_MODE
+%include "arch/x86_64/video/display_domain.inc"
+%include "arch/x86_64/video/video_mode_domain.inc"
+%endif
 %endif
 %endif
 %endif

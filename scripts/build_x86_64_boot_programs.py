@@ -63,7 +63,8 @@ def build_file_program(directory,cc,nasm,ld):
     if not 64<=len(raw)<=limit:raise ValueError('file program exceeds existing8-RPC capture bound: '+str(len(raw)))
     prepare(raw,[],True);return raw
 
-def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False,large_file=False,display_info=False,large_periodic=False,desktop_cpu=False,vga_console=False):
+def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,startup_case=0,import_image=False,pio=False,pio_case=0,block=False,wide=False,memory_case=0,block_profile=False,block_profile_case=0,filesystem=False,filesystem_case=0,filesystem_layout=2,file_launch=False,file_launch_case=0,task_pool=False,pool_pio=False,service_cpu=False,service_pio=False,live_file=False,console=False,native_shell=False,service_console=False,terminal=False,session=False,shell_session=False,wide_file=False,app_files=False,display=False,input=False,terminal_service=False,graphical_session=False,network_dma=False,network_session=False,app_network=False,app_tcp=False,app_dns=False,app_http=False,app_cpp_runtime=False,math_runtime=False,text_runtime=False,large_image=False,pio_throughput=False,large_file=False,display_info=False,large_periodic=False,desktop_cpu=False,vga_console=False,video_mode=False):
+    if type(video_mode) is not bool or video_mode and not vga_console:raise ValueError("video mode requires VGA console")
     if type(vga_console) is not bool or vga_console and (not app_files or any((display,input,graphical_session,network_session,large_file))):raise ValueError("VGA console requires separate application-file shell")
     if type(large_file) is not bool or large_file and (not large_image or not text_runtime or any((display,input,graphical_session,network_session))):raise ValueError("large file requires separate large image/text shell")
     if large_file:cc=[*cc,'-DREIST_NATIVE_LARGE_FILE=1']
@@ -153,6 +154,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if display:cc=[*cc,'-DREIST_NATIVE_DISPLAY=1']
     if input:cc=[*cc,'-DREIST_NATIVE_INPUT=1']
     if vga_console:cc=[*cc,'-DREIST_NATIVE_VGA_CONSOLE=1']
+    if video_mode:cc=[*cc,'-DREIST_NATIVE_VIDEO_MODE=1']
     if terminal_service:cc=[*cc,'-DREIST_NATIVE_TERMINAL_SERVICE=1']
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     attempt=directory/('programs-'+uuid.uuid4().hex);attempt.mkdir()
@@ -209,6 +211,10 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     if vga_console:
         from build_x86_64_vga_console import build_role
         vga_blob=build_role(attempt,cc,ld,run,start)
+    if video_mode:
+        from build_x86_64_video_mode import build_roles as build_video_roles
+        video_blob=build_video_roles(attempt,cc,ld,run,start)
+        vga_blob=video_blob
     if input and not graphical_session:
         input_objects=[]
         for index,source in enumerate(('arch/x86_64/user/input_service.c','userspace/drivers/ps2/native_input.c')):
@@ -223,7 +229,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
         obj=attempt/f'program{n}.o';elf=attempt/f'program{n}.prg'
         extra=[];objects=[]
         shell_root=(native_shell or shell_session) and n==0
-        if app_dns and shell_root:
+        if (app_dns or video_mode) and shell_root:
             # Optimize across root SDK units within the existing image ceiling.
             # Restore the command vectors before building any independent role.
             cc=[*cc,'-flto'];ld=[*ld,'--lto-O2']
@@ -271,6 +277,9 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             if vga_console and n==0:
                 with header.open('a',encoding='ascii') as output:
                     output.write('const unsigned char reist_native_vga_image[]={'+','.join(str(b) for b in vga_blob)+'};\nconst size_t reist_native_vga_image_bytes=sizeof(reist_native_vga_image);\n')
+            if video_mode and n==0:
+                with header.open('a',encoding='ascii') as output:
+                    output.write('const unsigned char *const reist_native_video_image=reist_native_vga_image;\nconst size_t reist_native_video_image_bytes=sizeof(reist_native_vga_image);\n')
             if input and not graphical_session and n==0:
                 with header.open('a',encoding='ascii') as output:
                     output.write('const unsigned char reist_native_input_image[]={'+','.join(str(b) for b in input_blob)+'};\nconst size_t reist_native_input_image_bytes=sizeof(reist_native_input_image);\n')
@@ -315,7 +324,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
             large_prepare(elf.read_bytes(),[])
         else:
             records[n]=prepare(elf.read_bytes(),[f'program{n}.prg',str(n)],wide)
-        if app_dns and shell_root:
+        if (app_dns or video_mode) and shell_root:
             cc=cc[:-1];ld=ld[:-1]
         if shell_root:
             install=attempt/'root/bin';install.mkdir(parents=True,exist_ok=large_file)
@@ -331,7 +340,7 @@ def build(directory,cc,nasm,ld,case,family=False,family_case=0,startup=False,sta
     staged.write_bytes(catalog.read_bytes());os.replace(staged,directory/'boot-programs.bin')
     print('NATIVE_BOOT_PROGRAMS_PREPARED',attempt)
 
-def compact_input_elf(path,objcopy,terminal_service=False,network_session=False):
+def compact_input_elf(path,objcopy,terminal_service=False,network_session=False,video_mode=False):
     """Drop only new local debug names; preserve every loaded byte and address."""
     from build_x86_64_c_payload import elf,require
     path=Path(path).absolute()
@@ -339,12 +348,19 @@ def compact_input_elf(path,objcopy,terminal_service=False,network_session=False)
     raw=path.read_bytes();before=elf(raw,32)
     if type(network_session) is not bool or network_session and terminal_service:raise ValueError('exclusive network compaction selector')
     prefixes=('native_pio_','native_terminal_','native_network_') if network_session else ('native_input_', 'native_terminal_') if terminal_service else ('native_input_',)
+    if video_mode:prefixes+=('native_video_','native_vga_','native_display_','family_','scheduler_')
     removed={n for n,s in before['symbols'].items() if n.startswith(prefixes) and '.' in n and s['binding']==0}
-    require(1<=len(removed)<=128,'bounded input local debug symbols')
+    require(1<=len(removed)<=(768 if video_mode else 128),'bounded input local debug symbols')
     retained=path.with_suffix('.untrimmed.elf');temporary=path.with_suffix('.compact.elf')
     require(not retained.exists() and not temporary.exists(),'fresh compaction artifacts')
     with retained.open('xb') as out:out.write(raw)
     command=[str(objcopy),*[arg for n in sorted(removed) for arg in ('--strip-symbol',n)],str(retained),str(temporary)]
+    if video_mode:
+        symbols=path.with_suffix('.strip-symbols.txt')
+        require(not symbols.exists() and all(n.isascii() and not any(c.isspace() for c in n) for n in removed),
+                'fresh bounded symbol-name file')
+        symbols.write_text('\n'.join(sorted(removed))+'\n',encoding='ascii')
+        command=[str(objcopy),'--strip-symbols='+str(symbols),str(retained),str(temporary)]
     r=subprocess.run(command,cwd=ROOT,capture_output=True,timeout=30,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     require(r.returncode==0,'input local symbol compaction: '+r.stderr.decode(errors='replace')[-1200:])
     compact=bytearray(temporary.read_bytes())
@@ -371,7 +387,8 @@ def compact_input_elf(path,objcopy,terminal_service=False,network_session=False)
 
 if __name__=='__main__' and '--compact-input-elf' in sys.argv:
     p=argparse.ArgumentParser();p.add_argument('--compact-input-elf',required=True);p.add_argument('--objcopy',required=True);p.add_argument('--terminal-service',action='store_true');p.add_argument('--network-session',action='store_true')
-    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy,a.terminal_service,a.network_session)
+    p.add_argument('--video-mode',action='store_true')
+    a=p.parse_args();compact_input_elf(a.compact_input_elf,a.objcopy,a.terminal_service,a.network_session,a.video_mode)
 elif __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--directory',required=True)
     for tool in ('cc','nasm','ld'):p.add_argument('--'+tool,required=True,nargs='+')
@@ -407,6 +424,7 @@ elif __name__=='__main__':
     p.add_argument('--display-info',action='store_true')
     p.add_argument('--input',action='store_true')
     p.add_argument('--vga-console',action='store_true')
+    p.add_argument('--video-mode',action='store_true')
     p.add_argument('--terminal-service',action='store_true')
     p.add_argument('--graphical-session',action='store_true')
     p.add_argument('--network-dma',action='store_true')
@@ -423,4 +441,4 @@ elif __name__=='__main__':
     a=p.parse_args()
     if a.family_case and not a.family:p.error('family-case requires family')
     if a.startup_case and not a.startup:p.error('startup-case requires startup')
-    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput,a.large_file,a.display_info,a.large_periodic,a.desktop_cpu,a.vga_console)
+    build(a.directory,a.cc,a.nasm,a.ld,a.case,a.family,a.family_case,a.startup,a.startup_case,a.import_image,a.pio,a.pio_case,a.block,a.wide,a.memory_case,a.block_profile,a.block_profile_case,a.filesystem,a.filesystem_case,a.filesystem_layout,a.file_launch,a.file_launch_case,a.task_pool,a.pool_pio,a.service_cpu,a.service_pio,a.live_file,a.console,a.native_shell,a.service_console,a.terminal,a.session,a.shell_session,a.wide_file,a.app_files,a.display,a.input,a.terminal_service,a.graphical_session,a.network_dma,a.network_session,a.app_network,a.app_tcp,a.app_dns,a.app_http,a.app_cpp_runtime,a.math_runtime,a.text_runtime,a.large_image,a.pio_throughput,a.large_file,a.display_info,a.large_periodic,a.desktop_cpu,a.vga_console,a.video_mode)

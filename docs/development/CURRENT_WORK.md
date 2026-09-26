@@ -1,4 +1,148 @@
-## 2026-09-26 CK native video mode implementation authorized
+## 2026-09-26 CK QEMU-only acceptance; CB resume authorized
+
+User renewed mach weiter after the explicit split-acceptance question.
+Approved allocation applied: CK QEMU research prerequisite closes after four
+frozen gates plus independent QEMU-only review13.076s (9 cases/1335 files).
+Actual VMware healthy/fault acceptance remains open and mandatory before any
+VMware release/native64 completion. Original frozen sources, proof receipts,
+images and replay code remain unchanged. No new VM/build; no VMware launch.
+Contract adds an explicit allocation appendix; queue selects CB as the sole
+next package. Local CK commit/clean status is required before restoring CB.
+Latest archive: before-native-vga-console02/candidate.zip SHA256
+c3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77.
+Preserve CB counters, original gates and hardware deferral; real desktop and
+full OS remain unfinished. Review: r83ck-video-mode/acceptance-qemu01/review.json.
+
+## 2026-09-26 CK continuation: acceptance-allocation decision pending
+
+Read-only inventory confirms qualification01 source/tool/image binding and all
+1335 raw evidence hashes unchanged; archived CB candidate SHA256 remains
+c3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77.
+No build, VM launch, source change, gate retry, commit or queue transition.
+Gate5 currently requires actual VMware and blocks QEMU desktop continuation.
+Concrete pending proposal appended to NATIVE_VIDEO_MODE_PROPOSAL.md: complete
+independent review for QEMU-only CK acceptance, retain verified unchanged
+proofs, defer mandatory VMware healthy/fault acceptance to the final platform
+milestone, then resume CB only after clean scoped acceptance. Original safety
+limits and final VMware/OS requirements remain. Explicit user decision requested
+because this reallocates a frozen acceptance gate; do not infer approval from
+elapsed time or apply the proposal before it arrives. VMware remains closed.
+Receipt: build/codex-agent/r83ck-video-mode/continuation-inventory01.json.
+
+## 2026-09-26 CK qualification01: gates1..4 passed, VMware deferred
+
+Ordered frozen qualification01 now passes gates1..4: host6.256s (3 tests),
+defaults31.212s (91+97 byte-identical artifacts), fresh selected build/signed
+package22.670s, runtime337.143s. Nine fresh QEMU cases independently replayed:
+healthy34.415, repeated41.317, prep-crash32.676, prep-hang34.274,
+graphics-crash33.522, graphics-hang35.286, return-crash34.589,
+return-hang35.140, exhaustion20.632 seconds. Four raw-evidence corruptions
+rejected against this fresh healthy capture (4.762s);1335 evidence files bound.
+Sources/tools/scope/contract and accepted fixtures checked before/after gates.
+
+Evidence: build/codex-agent/r83ck-video-mode/qualification01/pending.json.
+Fresh signed media: qualification01/media (supersedes development media10 for
+qualification). All QEMU guests stopped. VMware was not launched. Gate5 is
+explicitly pending under the user's QEMU-only direction; --review deliberately
+fails closed after read-only evidence replay until actual VMware healthy/fault
+acceptance is implemented and demonstrated. No source changes after freeze.
+The full frozen contract remains required; these four gates do not accept CK.
+No implementation commit or queue transition; CB remains archived, real desktop
+integration and complete native64 OS acceptance remain open. Historical current-
+work UTF-8 corruption from the preceding documentation rewrite was restored
+only where the original committed text matched exactly; no source behavior change.
+
+## 2026-09-26 CK: default-profile and selected-artifact development checks
+
+VMware remains closed by user direction. defaults-diagnostic06 passes27.682s:
+all91 NativeAppFiles and97 NativeVgaConsole artifacts byte-identical to accepted
+CJ qualification05. Reference seal, accepted f96af9f6 receipt, exact tool hashes
+and retained artifact hashes checked; Git blobs and accepted checkout hashes
+recorded separately because historical checkout line endings are mixed.
+Diagnostics01..05 stopped before builds on provenance-comparison assumptions;
+all failure receipts retained. No guest/runtime source changed this turn.
+
+package-diagnostic01 passes1.036s on build12/media10: independently signed media,
+ordinary shell/video/CAT/LS/PROBE file binding, no undefined kernel/core symbols,
+actual static role stack frames (conservative sum1912bytes), writable storage
+7984bytes for driver and16384bytes for probe. These are development checks,
+not frozen qualification. The prior nine-case QEMU audit remains historical;
+its verifier-source hash predates the new diagnostic functions. No QEMU or
+VMware guest started this turn; no implementation commit. Remaining: complete
+frozen verifier modes, fresh ordered qualification and deferred VMware hardware
+acceptance, followed by the archived real-desktop integration. Do not claim CK
+or native64 finished from these checks.
+
+## 2026-09-26 CK: QEMU-only correction and independent replay
+
+User explicitly requests background QEMU testing because VMware disrupts work.
+No further VMware launch/focus; its final hardware gate remains open.
+CK remains active/uncommitted on022b6799, CB archived. Independent raw replay
+invalidated earlier capture-only success conclusions for05/07/08/09/12:
+the probe exceeded64 commits/100ms and exited122 before selected faults.
+After pacing correction,14 revealed invalid1000ms sleep (kernel maximum100ms).
+Both faults reproduced in actual-probe host regressions before correction.
+Current probe uses4 tiles/10ms and ten100ms hold sleeps; no kernel limit change.
+
+Current signed image is build12/media10; kernel unchanged from build10,
+ordinary video.prg corrected. Healthy15 passes35.336s with full1024x768 raster,
+successful renderer/worker exits, authority/CPU/page checks and VGA return.
+Host10 passes3 tests5.943s including four altered-evidence rejection cases.
+Return-hang16/return-crash17/graphics-crash18 pass34.913s/35.189s/33.022s
+with independent raw replay. Preparation-crash19/preparation-hang20/graphics-
+hang21/repeated22/exhaustion23 also pass33.475s/34.098s/36.057s/37.969s/20.577s.
+Final independent audit passes10.263s over all nine recordings (300.636s total
+guest time),1332 evidence files and29 source hashes. Receipt:
+build/codex-agent/r83ck-video-mode/qemu-replay-audit01.json.
+All test guests stopped. Current code has three passing host tests, full
+healthy/repeated rasters, exact crash/health/return receipts, bounded recovery,
+quota exhaustion, CPU/profile/page checks and altered-evidence rejection.
+Frozen qualification commands have not run; these are development proofs,
+not final OS acceptance. Next independent work is the remaining qualification
+verifier/default/package checks. VMware stays deferred by user instruction;
+do not reopen it or claim its hardware gate passed. No implementation commit.
+
+## Historical: CK development before strict terminal-receipt replay
+
+Active CK remains uncommitted on022b6799. Build10/media08 produce the current
+signed text-first candidate; kernel SHA256
+931cefb0bbf43aec68e33cb87f59b074ade5147cbb0ddc745271f8ff0d93484e.
+Evidence under build/codex-agent/r83ck-video-mode. Development diagnostics:
+healthy05 passes25.686s, preparation crash06 passes25.170s (build09/media07);
+repeated07 passes28.405s, graphics hang08 passes30.709s, return crash09
+passes26.787s, exhaustion10 passes18.027s (build10/media08). Actual pixels,
+VGA generation/epoch replacement, PS2 command/cursor and unmapped final video
+verified; exhaustion permits exactly two recoveries then retains COM1 HELP.
+Host04 actual core/policy/probe O0/O2 passes2 tests1.114s.
+
+VMware diagnostics01/02 fail39.708s/33.167s with stopped owned VMs and unchanged
+media. Real VGA shell and host128MiB framebuffer/8MiB FIFO inventory pass,
+but automated VIDEO never reaches the guest. Each serial log instead contains
+an LS command now confirmed by the user as manual. Explicit Ctrl+G and mapped scan codes did not resolve it.
+Read-only host token check finds helper and VMware UI both medium integrity
+(8192); do not claim elevation mismatch. Diagnostic03 uses checked SendInput:
+all16 events accepted by Windows, still no guest VIDEO; fails48.675s.
+Manual diagnostic04 receives HELP/CLS rather than VIDEO and fails55.984s.
+Both own VMs stopped and media unchanged. The observer is corrected to wait
+for the actual VIDEO command/return rather than any intervening shell prompt.
+Manual VIDEO then HELP remains necessary for the direct VMware transition
+proof. Diagnostic05 failed56.487s on foreground check; manual-only focus
+requirement removed. Diagnostic06 failed56.637s with empty capture assertion,
+11 frames and no VIDEO. Both stopped=false historical receipts are preserved;
+later exact PID/start host cleanup confirmed both processes absent.
+Separate user-owned visual artifact now prepared at
+build/codex-agent/r83ck-video-mode/visual-test01/vmware/reist-native64.vmx.
+Boot/data hashes exactly match signed media08. No automatic guest started
+from this artifact; any later user-opened instance is outside our cleanup.
+Open this separate artifact for VIDEO then HELP; original capture folders
+must not be reused or modified by manual testing.
+No running CK guest/tool session. Preserve all failed evidence. No further
+unchanged VMware retry. The new verifier currently implements development
+VMware capture only; five frozen qualification gates remain unexecuted and
+their full verifier/replay remains to be implemented. Original CB full desktop
+is still archived/unaccepted; this prerequisite does not finish native64.
+
+## Historical: 2026-09-26 CK native video mode implementation authorized
 
 User mach weiter following4a10641a authority question approves the bounded
 VMware mode transition. CK is the single active package; contract, exact
