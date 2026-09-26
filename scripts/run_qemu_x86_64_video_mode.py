@@ -79,7 +79,7 @@ def exhaustion(vm,serial,snapshot,result,end):
     result['passed']=True
     return result
 
-def diagnostic(directory,folder,case='healthy'):
+def diagnostic(directory,folder,case='healthy',fifo_proof=False):
     text_guest.check.need(case in CASES,'CK diagnostic case')
     fault_mode=CASES[case]
     commands=('cat data.txt','ls','video',*(['video'] if case=='repeated' else []),'help','zzzz')
@@ -127,6 +127,7 @@ def diagnostic(directory,folder,case='healthy'):
          "                    frame=folder/('mode-'+str(len(mode_frames))+'.ppm')\n"
          "                    qmp.call('screendump',dict(filename=str(frame)))\n"
          "                    mode_frames.append(frame.name)\n"
+         "                    if fifo_proof:qmp.call('pmemsave',dict(val=0xfe000000,size=16384,filename=str(folder/('fifo-'+str(len(mode_frames)-1)+'.bin'))))\n"
          "                    if not graphics_snapshot and frame.read_bytes().startswith(b'P6\\n1024 768\\n255\\n'):\n"
          "                        snapshot('graphics');graphics_snapshot=True\n"
          "                    time.sleep(.3 if mode_case=='repeated' else .1)"),
@@ -146,6 +147,7 @@ def diagnostic(directory,folder,case='healthy'):
         ("state[3]==2 and state[0]==expected[0],'console stayed healthy'",
          "state[3]==2 and state[0]!=expected[0] and state[2]==expected[2]+(2 if mode_case=='repeated' else 1),'new console generation after mode return'")
     ],'reist_ck_mode_diagnostic')
+    selected.fifo_proof=fifo_proof
     selected.graphics_frame=graphics_frame
     selected.exhaustion=exhaustion
     selected.fault_mode=fault_mode;selected.mode_case=case
@@ -161,10 +163,11 @@ def diagnostic(directory,folder,case='healthy'):
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--inventory',action='store_true')
+    parser.add_argument('--fifo-proof',action='store_true')
     parser.add_argument('--case',choices=tuple(CASES),default='healthy')
     parser.add_argument('--directory',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
-    result=inventory(args.directory,args.output) if args.inventory else diagnostic(args.directory,args.output,args.case)
+    result=inventory(args.directory,args.output) if args.inventory else diagnostic(args.directory,args.output,args.case,args.fifo_proof)
     print(json.dumps(result))
     raise SystemExit(0 if result['passed'] else 1)

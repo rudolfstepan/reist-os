@@ -269,9 +269,10 @@ def diagnostic_package(directory,build,output):
         legacy.save(output/'result.json',result)
     return result
 
-def replay_qemu(directory,folder):
+def replay_qemu(directory,folder,fifo_bytes=4096):
     """Independent raw state/media/page/pixel replay, without capture predicates."""
     image=media.verify(Path(directory));folder=Path(folder);need=media.need
+    need(fifo_bytes in (4096,16384),'explicit FIFO replay profile')
     row=legacy.read(folder/'result.json');case=row['case']
     need(row['passed'] and row['stopped'] and 0<row['elapsed']<=90 and
          row['kernel_sha256']==legacy.digest(image/media.KERNEL) and 'cleanup_error' not in row,
@@ -396,8 +397,10 @@ def replay_qemu(directory,folder):
         need(all(clean(pd[i])==(address('native_display_pts')+i*4096)|3 for i in range(6)) and
              clean(pd[6])==address('native_video_fifo_pt')|3 and not any(pd[7:]),'exact bounded display directory')
         need(all(clean(pts[i])==(base+i*4096)|0x800000000000001b for i in range(768)) and
-             not any(pts[768:]) and clean(fp[0])==0xfe000000|0x800000000000001b and not any(fp[1:]),
-             'only exact supervisor RW/NX/UC framebuffer and4KiB FIFO mappings')
+             not any(pts[768:]) and
+             all(clean(fp[i])==(0xfe000000+i*4096)|0x800000000000001b for i in range(fifo_bytes//4096)) and
+             not any(fp[fifo_bytes//4096:]),
+             'only exact supervisor RW/NX/UC framebuffer and selected FIFO mappings')
     if case in ('healthy','repeated','return-crash','return-hang'):
         expected_row=b'\x33\x66\x99'*320+b'\x33\x99\x66'*384+b'\x99\x66\x33'*320
         expected=b'P6\n1024 768\n255\n'+expected_row*768
@@ -409,6 +412,23 @@ def replay_qemu(directory,folder):
                  set(names)=={p.name for p in frames},'two disjoint consecutive transition frame groups')
             need(all(any((folder/name).read_bytes()==expected for name in group) for group in groups),
                  'complete raster observed separately for both transitions')
+    if fifo_bytes==16384 and case in ('healthy','repeated'):
+        groups=row['mode_groups']
+        need(len(groups)==(2 if case=='repeated' else 1),'FIFO generation groups')
+        for group in groups:
+            consumed=[]
+            for name in group:
+                index=int(Path(name).stem.split('-')[1])
+                raw=(folder/('fifo-'+str(index)+'.bin')).read_bytes()
+                need(len(raw)==16384,'complete FIFO evidence')
+                minimum,maximum,next_,stop=struct.unpack_from('<4I',raw)
+                if not (folder/name).read_bytes().startswith(b'P6\n1024 768\n255\n'):
+                    continue # Text-phase captures are not active graphics evidence.
+                need(minimum==16 and maximum==16384 and maximum-minimum>=10240 and
+                     minimum<=next_<maximum and minimum<=stop<maximum and
+                     next_%4==0 and stop%4==0,'valid native QEMU FIFO header')
+                if next_==stop and stop==16+192*20:consumed.append(index)
+            need(consumed,'all192 real UPDATE commands consumed in each generation')
     return dict(passed=True,case=case,elapsed=row['elapsed'],snapshots=sorted(modes),reaps=len(reaps))
 
 def vmware_transition(capture,hwnd,folder,result,start,manual=False):
@@ -546,10 +566,125 @@ def prepare_manual(directory,output):
         kernel=legacy.digest(image/media.KERNEL),qualification=False,user_owned=True))
     return vmx
 
+# Separate CL transaction. Original CK evidence/gates above remain historical.
+FIFO_BASE=ROOT/'build/codex-agent/r83cl-video-fifo'
+FIFO_IDENT=os.environ.get('REIST_FIFO_QUALIFICATION','qualification01')
+media.need(re.fullmatch(r'qualification[0-9]{2}',FIFO_IDENT),'FIFO qualification identifier')
+FIFO_GATES=FIFO_BASE/FIFO_IDENT
+FIFO_CASES=('healthy','repeated','graphics-crash','graphics-hang')
+FIFO_COMMANDS=[['python','test/test_x86_64_video_mode.py','-v']]+[
+    ['python','scripts/verify_x86_64_video_mode.py','--fifo-'+mode]
+    for mode in ('defaults','package','runtime','review')]
+FIFO_LIMITS=(180,600,600,600,300)
+
+def fifo_package_definition():
+    queue=tomllib.loads((ROOT/'automation/reist-s03b.toml').read_text(encoding='utf-8'))
+    active=[p for p in queue['packages'] if p['status']=='active']
+    media.need(len(active)==1 and active[0]['id']==queue['active_id']=='R8.3cl-video-fifo','one CL package')
+    p=active[0]
+    media.need(p['targeted_tests']+p['package_tests']+p['runtime_tests']==
+               [' '.join(c) for c in FIFO_COMMANDS],'frozen CL gates')
+    media.need(set(legacy.common.common.changed())<=set(p['allowed_files']),'CL source scope')
+    subprocess.run(['git','diff','--check'],cwd=ROOT,capture_output=True,check=True,timeout=30)
+    return p
+
+def fifo_binding():
+    f=legacy.read(FIFO_GATES/'frozen.json')
+    media.need(f['head']==legacy.git('rev-parse','HEAD') and f['package']==fifo_package_definition() and
+               f['sources']==legacy.common.sources() and f['tools']==legacy.common.common.all_tools() and
+               f['contract']==legacy.digest(ROOT/'docs/architecture/NATIVE_VIDEO_MODE_CONTRACT.md'),
+               'immutable CL source/tool/contract binding')
+    return f
+
+def fifo_prior(number):
+    fifo_binding()
+    for n in range(1,number):
+        r=legacy.read(FIFO_GATES/f'gate-{n:02d}.json')
+        media.need(r['passed'] and r['elapsed']<=FIFO_LIMITS[n-1] and
+                   r['command'][1:]==FIFO_COMMANDS[n-1][1:],'passed ordered CL gate')
+
+def qualify_fifo():
+    p=fifo_package_definition();media.need(not FIFO_GATES.exists(),'fresh CL qualification')
+    legacy.save(FIFO_GATES/'frozen.json',dict(head=legacy.git('rev-parse','HEAD'),package=p,
+        sources=legacy.common.sources(),tools=legacy.common.common.all_tools(),
+        contract=legacy.digest(ROOT/'docs/architecture/NATIVE_VIDEO_MODE_CONTRACT.md'),
+        commands=FIFO_COMMANDS,limits=FIFO_LIMITS))
+    for n,command in enumerate(FIFO_COMMANDS,1):
+        fifo_binding()
+        r=legacy.run([sys.executable,*command[1:]],FIFO_GATES/f'gate-{n:02d}.log',FIFO_LIMITS[n-1])
+        fifo_binding();print('CL_GATE_OK',n,round(r['elapsed'],3),flush=True)
+    legacy.save(FIFO_GATES/'accepted.json',dict(passed=True,qemu_only=True,vmware_accepted=False,
+        frozen=legacy.digest(FIFO_GATES/'frozen.json'),
+        gates=[legacy.digest(FIFO_GATES/f'gate-{n:02d}.json') for n in range(1,6)]))
+
+def fifo_defaults():
+    fifo_prior(2);diagnostic_defaults(FIFO_GATES/'defaults');fifo_binding()
+
+def fifo_package():
+    fifo_prior(3);build=FIFO_GATES/'enabled'
+    legacy.run(['powershell.exe','-NoProfile','-File','scripts/build-x86_64-bootstrap.ps1',
+        '-NativeVideoMode','-OutputDirectory',build.relative_to(ROOT).as_posix()],FIFO_GATES/'build.log',300)
+    legacy.run([sys.executable,'scripts/build_x86_64_video_mode_media.py','--input-directory',
+        str(build/'x86_64'),'--output-directory',str(FIFO_GATES/'media')],FIFO_GATES/'media.log',180)
+    diagnostic_package(FIFO_GATES/'media',build/'x86_64',FIFO_GATES/'package')
+    fifo_binding()
+
+def fifo_image():
+    p=legacy.read(FIFO_GATES/'package/result.json')
+    media.need(p['passed'] and p['artifacts']==legacy.common.artifacts(FIFO_GATES/'enabled'),
+               'CL selected artifact binding')
+    image=media.verify(FIFO_GATES/'media');media.need(str(image)==p['image'],'CL signed image')
+    return image
+
+def fifo_runtime():
+    fifo_prior(4);fifo_image();start=time.monotonic();rows=[]
+    for case in FIFO_CASES:
+        media.need(time.monotonic()-start<270,'reserve final bounded CL guest')
+        folder=FIFO_GATES/('guest-'+case)
+        legacy.run([sys.executable,'scripts/run_qemu_x86_64_video_mode.py','--fifo-proof','--case',case,
+            '--directory',str(FIFO_GATES/'media'),'--output',str(folder)],
+            FIFO_GATES/('capture-'+case+'.log'),90)
+        row=replay_qemu(FIFO_GATES/'media',folder,16384);rows.append(row)
+        legacy.save(folder/'independent-replay.json',row)
+        print('CL_QEMU_OK',case,round(row['elapsed'],3),flush=True)
+    elapsed=time.monotonic()-start
+    media.need(elapsed<=360 and sum(r['elapsed'] for r in rows)<=360,'CL runtime aggregate')
+    evidence={p.relative_to(FIFO_GATES).as_posix():legacy.digest(p)
+        for case in FIFO_CASES for p in (FIFO_GATES/('guest-'+case)).rglob('*') if p.is_file()}
+    legacy.save(FIFO_GATES/'runtime.json',dict(passed=True,elapsed=elapsed,rows=rows,evidence=evidence))
+    fifo_binding()
+
+def fifo_review():
+    fifo_prior(5);fifo_image()
+    matrix=legacy.read(FIFO_GATES/'runtime.json')
+    media.need(matrix['passed'] and [r['case'] for r in matrix['rows']]==list(FIFO_CASES),'complete CL matrix')
+    for name,digest in matrix['evidence'].items():
+        media.need(legacy.digest(FIFO_GATES/name)==digest,'unchanged CL raw proof')
+    for case in FIFO_CASES:replay_qemu(FIFO_GATES/'media',FIFO_GATES/('guest-'+case),16384)
+    # Independent raw tampering: deny extra user mapping and never-consumed FIFO.
+    from unittest.mock import patch
+    original=Path.read_bytes;folder=FIFO_GATES/'guest-healthy'
+    for mode in ('mapping','consumption'):
+        def read(path):
+            data=original(path)
+            if mode=='mapping' and path==folder/'graphics/native_video_fifo_pt.bin':
+                raw=bytearray(data);raw[3*8]|=4;return bytes(raw)
+            if mode=='consumption' and path.parent==folder and path.name.startswith('fifo-'):
+                raw=bytearray(data);struct.pack_into('<I',raw,12,16);return bytes(raw)
+            return data
+        rejected=False
+        with patch.object(Path,'read_bytes',read):
+            try:replay_qemu(FIFO_GATES/'media',folder,16384)
+            except ValueError:rejected=True
+        media.need(rejected,'CL rejects tampered '+mode)
+    fifo_binding()
+    legacy.save(FIFO_GATES/'review.json',dict(passed=True,qemu_only=True,
+        cases=list(FIFO_CASES),files=len(matrix['evidence']),tamper_denied=['mapping','consumption']))
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     modes=parser.add_mutually_exclusive_group(required=True)
-    for name in ('qualify-qemu','defaults','package','runtime','review'):
+    for name in ('qualify-qemu','defaults','package','runtime','review','qualify-fifo','fifo-defaults','fifo-package','fifo-runtime','fifo-review'):
         modes.add_argument('--'+name,action='store_true')
     modes.add_argument('--diagnostic-vmware',action='store_true')
     modes.add_argument('--prepare-manual',action='store_true')
@@ -561,7 +696,9 @@ if __name__=='__main__':
     parser.add_argument('--build',type=Path)
     parser.add_argument('--output',type=Path)
     args=parser.parse_args()
-    for name,callback in (('qualify_qemu',qualify_qemu),('defaults',defaults_gate),
+    for name,callback in (('qualify_fifo',qualify_fifo),('fifo_defaults',fifo_defaults),
+                          ('fifo_package',fifo_package),('fifo_runtime',fifo_runtime),('fifo_review',fifo_review),
+                          ('qualify_qemu',qualify_qemu),('defaults',defaults_gate),
                           ('package',package_gate),('runtime',runtime_gate),('review',review_gate)):
         if getattr(args,name):
             callback();raise SystemExit(0)

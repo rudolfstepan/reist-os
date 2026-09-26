@@ -479,3 +479,32 @@ qualification01 once. Finite next diagnostic only for an observed failure,
 record historical counters; no reset or relaxed acceptance.
 After passing all gates, direct diff/scope review and local commit; restore CB
 source archive without overwriting accepted kernel or queue/current docs.
+
+CL host01-before fails at first16KiB wrap admission as expected. Host01-after
+passes actual core/driver O0/O2 plus freestanding hardware compilation.
+Qualification01 now frozen after direct source review: four supervisor-only
+leaves in existing table, fixed16KiB header, unchanged commands/quotas/cleanup.
+Observer records <=40 FIFO captures16KiB each; independent replay requires
+192 commands consumed per healthy generation, exact four leaves and rejects
+user mapping/unchanged STOP tampering. Old replay defaults remain4KiB for
+unchanged historical proofs. No nested agents or VMware.
+
+Qualification01 gates1..3 pass7.440/34.335/25.193s; gate4 stops in independent
+replay after actual healthy guest succeeds. New checker incorrectly requires
+active FIFO even for pre-transition720x400 frames (all-zero initial header).
+Raw graphics frames10..19 show STOP advancing256,1556,2816,3856 and complete
+192-command consumption at3856, plus successful VGA return. Only active
+1024x768 snapshots can satisfy FIFO proof; skip text-phase captures, retain
+all active header/mapping and per-generation complete-consumption checks.
+Reserve read-only replay01<=90s for this correction, then qualification02
+with the same five gates/limits and four fresh cases; all01 receipts retained.
+
+CL qualification02 all five gates pass6.080/30.864/23.923/158.396/9.221s.
+Four fresh QEMU cases and independent raw replay pass; both healthy generations
+consume all192 UPDATEs. Actual graphics-crash/hang recover to fenced VGA.
+Default reference artifacts byte-exact; altered user mapping and unconsumed
+FIFO evidence rejected. Source/tool/contract binding checked after gate5,
+direct diff/scope review complete. QEMU-only acceptance; no VMware claim.
+No source changes follow these gates. Queue/current docs transition to CB;
+local commit first, then exact archived CB restoration. All01 failure evidence
+retained, all owned guests stopped.

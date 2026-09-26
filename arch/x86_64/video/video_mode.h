@@ -1,6 +1,7 @@
 #ifndef REIST_NATIVE_VIDEO_MODE_CORE_H
 #define REIST_NATIVE_VIDEO_MODE_CORE_H
 #include "userspace/sdk/include/reist/x86_64/video_mode.h"
+enum { REIST_VIDEO_FIFO_BYTES=16384, REIST_VIDEO_FIFO_MIN_DATA=10240 };
 typedef struct { uint64_t word[12],inverse[12]; } reist_video_state;
 enum { VM_OWNER,VM_PARENT,VM_EPOCH,VM_PHASE,VM_FENCED,VM_LAST,VM_HEALTH,
        VM_DEADLINE,VM_NEXT,VM_FAULT,VM_RESERVED0,VM_RESERVED1 };

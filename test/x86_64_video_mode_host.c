@@ -70,21 +70,41 @@ static reist_video_request_v1 request(unsigned op) {
     return q;
 }
 static void fifo(void) {
-    uint32_t area[1024]={16,4096,4092,36},before[1024];
+    struct { uint32_t guard0,area[4096],guard1; } guarded={0};
+    uint32_t *area=guarded.area,before[4096];
+    guarded.guard0=guarded.guard1=0x5a55a55a;
+    area[0]=16;area[1]=16384;area[2]=16380;area[3]=36;
     assert(!reist_video_fifo_update(area,16,10,20,64,64,1));
-    assert(area[1023]==1 && area[4]==10 && area[5]==20 && area[6]==64 && area[7]==64 && area[2]==32);
-    area[2]=16;area[3]=36;memcpy(before,area,sizeof area);
+    assert(area[4095]==1 && area[4]==10 && area[5]==20 && area[6]==64 && area[7]==64 && area[2]==32);
+    area[2]=16;area[3]=36;memcpy(before,area,16384);
     assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-11);
-    assert(!memcmp(before,area,sizeof area));
+    assert(!memcmp(before,area,16384));
     area[3]=40;
     assert(!reist_video_fifo_update(area,16,960,704,64,64,0));
+    assert(!memcmp(before+4,area+4,16384-16));
     assert(reist_video_fifo_update(area,16,961,704,64,64,1)==-22);
-    area[0]=20;
-    assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-5);
-    area[0]=16;area[3]=4096;
-    assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-5);
-    assert(reist_video_fifo_update(area,4092,0,0,1,1,1)==-22);
-    puts("VIDEO_FIFO_OK: fixed UPDATE, wrap, full reservation, geometry and corrupt header denial");
+    area[0]=20;assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-5);
+    area[0]=16;area[3]=16384;assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-5);
+    area[3]=40;area[1]=4096;assert(reist_video_fifo_update(area,16,0,0,64,64,1)==-5);
+    area[1]=16384;assert(reist_video_fifo_update(area,4092,0,0,1,1,1)==-22);
+    /* Independent host consumer: require QEMU's >=10KiB usable ring, then
+     * decode every command across multiple wraps; no synthetic STOP advance
+     * before the complete UPDATE was checked. */
+    for(unsigned header=16;header<=4072;header+=4056) {
+        memset(area,0,16384);area[0]=header;area[1]=16384;area[2]=area[3]=header;
+        assert(area[1]-area[0]>=10240);
+        for(unsigned n=0;n<2000;n++) {
+            unsigned x=(n%16)*64,y=(n%12)*64;
+            assert(!reist_video_fifo_update(area,header,x,y,64,64,1));
+            unsigned expected[5]={1,x,y,64,64},stop=area[3];
+            for(unsigned k=0;k<5;k++) {
+                assert(area[stop/4]==expected[k]);stop+=4;if(stop==area[1])stop=area[0];
+            }
+            assert(stop==area[2]);area[3]=stop;
+        }
+    }
+    assert(guarded.guard0==0x5a55a55a && guarded.guard1==0x5a55a55a);
+    puts("VIDEO_FIFO_OK:16KiB, minimum capacity, repeated consume/wrap, full preflight, guards and corrupt header denial");
 }
 static uint64_t policy_now;
 static unsigned policy_calls,policy_fail=99;

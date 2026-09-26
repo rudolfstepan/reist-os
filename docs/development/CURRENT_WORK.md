@@ -1,3 +1,11 @@
+## 2026-09-26 CL FIFO correction accepted on QEMU
+
+qualification02 all five frozen gates pass, including four real guests,
+complete FIFO consumption, crash/hang isolation and VGA return. Fixed16KiB
+FIFO with four kernel-only pages; old profiles byte-identical. Local CL commit
+then restore CB before-native-fifo01 candidate; continue real desktop input,
+return/relaunch and original full acceptance. VMware remains deferred.
+
 ## 2026-09-26 CL SVGA FIFO prerequisite active
 
 User approved fixed16KiB FIFO/kernel scope. CB saved and verified in

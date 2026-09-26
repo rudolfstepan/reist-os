@@ -9,7 +9,7 @@ native_large_after_pio = "BV candidate06 accepted: five gates/25 tests/14 comple
 native_large_host_time_exception = "2026-09-24 user explicitly approved: Ja, laengere Host-Pruefzeit freigeben. BV full two-root host proof may use600s per guest instead of300s. Keep4200s matrix/5000s runtime gate, all14 guests, exact two full generations and all guest limits/pacing/rights. Concrete proposal NATIVE_LARGE_EXECUTABLE_PROPOSAL.md. No unchanged retries or discarded failures."
 desktop_dependency_resume = "2026-09-24 after accepted BW5f0debf9 and BX3b829aee: full desktop requires larger image/capture, so restore attributed BV source from verified stash/archive. Current accepted baseline3b829aee preserves all desktop changes. No spent counters reset. Reserve hosts86..91 <=600s for independent160-pair audit and runtime adapter completion, existing build21/diagnostic35<=60s remain unspent; after positive calibration reserve one full reference diagnostic36<=300s. Original five frozen gates and14 guests unchanged. No new execution-control site or authority, no agents/push. Signed BI image remains rejected as full desktop delivery."
 program = "S0-assurance-completion"
-active_id = "R8.3cl-video-fifo"
+active_id = "R8.3cb-desktop-services"
 native_video_mode_authority = "2026-09-26 renewed mach weiter immediately after concrete4a10641a authority question approves NATIVE_VIDEO_MODE_PROPOSAL.md. CK active, exact NATIVE_VIDEO_MODE_CONTRACT.md scope/gates. Existing limits and CB archive preserved; no new confirmation for bounded implementation/diagnostics."
 native_video_mode_boundary = "2026-09-26 after accepted CJf96af9f6, user mach weiter: inventory confirms native display only accepts immutable boot framebuffer, CJ is mode03-only and old BIOS thunk is32-bit. Concrete NATIVE_VIDEO_MODE_PROPOSAL.md requests generation-scoped VMware SVGA-II fixed text/1024x768x32 transition, kernel-mediated registers/validated framebuffer and bounded UPDATE-only FIFO if required, isolated Ring3 terminal driver and fail-closed VGA recovery. No raw device/DMA/IRQ/3D authority or CPU/task/resource expansion. AGENTS new-authority stop applies; no implementation active or new builds/guests until explicit decision. CB remains queued/archived."
 native_vga_console_acceptance = "2026-09-26 CJ qualification05: all five frozen gates pass, seven host tests, exact disabled artifacts, fresh healthy/early/crash/hang proofs and actual VMware mode03 shell with hardware cursor. Local acceptance follows final scope review. Native64 text/graphics handoff remains the next genuine hardware-authority boundary; CB stays queued/unaccepted until that prerequisite. No active implementation while preparing its concrete authority proposal."
@@ -54,7 +54,8 @@ push = false
 
 [[packages]]
 id = "R8.3cl-video-fifo"
-status = "active"
+status = "done"
+acceptance = "qualification02 all five gates pass: four fresh QEMU cases, consumed UPDATE proof, fault/VGA recovery and tamper denial. QEMU only; VMware remains mandatory final milestone."
 phase = "native64-userspace"
 title = "Standards-sized bounded SVGA UPDATE FIFO"
 scope = "User mach weiter after explicit16KiB FIFO/kernel question approves fixed four-page FIFO in validated PCI aperture; no other authority or quota expansion. CB candidate preserved before-native-fifo01. QEMU-only prerequisite, VMware remains required for final release."
@@ -137,7 +138,7 @@ runtime_tests = ["python scripts/verify_x86_64_display_info.py --runtime", "pyth
 
 [[packages]]
 id = "R8.3cb-desktop-services"
-status = "queued"
+status = "active"
 resume = "CK QEMU-only acceptance follows explicit allocation approval; actual VMware remains deferred and mandatory final milestone. Restore latest before-native-vga-console02/candidate.zip SHA256 c3017dca8ad1e368f9876bd72c23dd404e5990d2129727156cdc293da080da77, merging accepted CJ/CK mechanisms only after clean local CK commit. Preserve all CB counters and original full-desktop gates. Inventory/freeze one text-first real-desktop integration window; QEMU only, no finished VMware/OS claim."
 prerequisite = "CC authoritative display geometry query. CB source archived byte-exact at build/codex-agent/native-vmware-desktop/services-before-geometry01/files.zip SHA256611d015daf4b148b728b8407e46ba60599a6befcc53d906156b8a35cb188e3c6; stash be7747004dd7b7604c7dce418170e2d67866aa32. Five of24 initial hosts spent:01 expected absent source;02..05 pass broker/client O0/O2 incl queued/rate/read/launch/revoke and corrupt/late replies. No build/media/diagnostic/gate spent; not accepted. Restore verified five files after CC, no counter reset or new permission question."
 phase = "native64-userspace"

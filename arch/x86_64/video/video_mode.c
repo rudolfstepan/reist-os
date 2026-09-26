@@ -9,7 +9,7 @@ int reist_video_fifo_update(volatile uint32_t *fifo,unsigned minimum,
        !width || !height || width>1024 || height>768 || x>1024-width || y>768-height ||
        (uint64_t)width*height>4096)return -22;
     unsigned min=fifo[0],max=fifo[1],next=fifo[2],stop=fifo[3];
-    if(min!=minimum || max!=4096 || next<min || next>=max || next%4 ||
+    if(min!=minimum || max!=REIST_VIDEO_FIFO_BYTES || max-min<REIST_VIDEO_FIFO_MIN_DATA || next<min || next>=max || next%4 ||
        stop<min || stop>=max || stop%4)return -5;
     unsigned available=stop>next?stop-next:max-next+stop-min;
     if(available<24)return -11; /* reserve one dword to distinguish full */
@@ -269,7 +269,8 @@ static int map_framebuffer(const reist_video_platform *p) {
     for(unsigned n=0;n<512;n++){pd[n]=0;fp[n]=0;}
     for(unsigned n=0;n<6;n++)pd[n]=(physical(p->pts)+n*4096)|3;
     pd[6]=physical(p->fifo_pt)|3;
-    fp[0]=hardware[HW_FIFO]|UINT64_C(0x800000000000001b);
+    for(unsigned n=0;n<REIST_VIDEO_FIFO_BYTES/4096;n++)
+        fp[n]=(hardware[HW_FIFO]+n*4096)|UINT64_C(0x800000000000001b);
     pdpt[509]=physical(p->pd)|3;tlb_flush();
     uint64_t *boot=(void *)(uintptr_t)p->boot,*inv=(void *)(uintptr_t)p->boot_inverse;
     boot[0]=base;boot[1]=((uint64_t)1024<<32)|4096;
@@ -301,7 +302,7 @@ static int hardware_step(void *context,unsigned step) {
         case REIST_VIDEO_CONFIGURE: {
             if(!hardware[HW_MAPPED])return -5;
             volatile uint32_t *fifo=(void *)(uintptr_t)UINT64_C(0xffffffff40c00000);
-            fifo[0]=(uint32_t)hardware[HW_MIN];fifo[1]=4096;
+            fifo[0]=(uint32_t)hardware[HW_MIN];fifo[1]=REIST_VIDEO_FIFO_BYTES;
             fifo[2]=fifo[3]=(uint32_t)hardware[HW_MIN];
             if(hardware[HW_MIN]>=1164)fifo[290]=0;
             __atomic_thread_fence(__ATOMIC_SEQ_CST);reg_write(20,1);return 0;
