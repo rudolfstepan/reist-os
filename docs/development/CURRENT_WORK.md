@@ -1,3 +1,9 @@
+## 2026-09-26 real desktop resumed after CL84c0be27
+
+Accepted16KiB kernel FIFO; all five CL gates pass. Restore hash-bound CB
+candidate and run build71/media46/guest66 focused text plus VGA return.
+Original CB acceptance remains open; VMware remains closed.
+
 ## 2026-09-26 CL FIFO correction accepted on QEMU
 
 qualification02 all five frozen gates pass, including four real guests,

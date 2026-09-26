@@ -1049,3 +1049,16 @@ and fixed capacity extension. CB preserved in before-native-fifo01 candidate.zip
 SHA256 e3726f53313ddb209f0f2a5dfe5e7eec64eb19fffcaeb4cb19a200d18041ccdf.
 All35 changed files individually hashed; tracked base restored and clean before
 CL definition. CL prerequisite active; CB queued, all evidence/limits retained.
+
+## CB resume after accepted CL84c0be27
+
+CL qualification02 five gates passed and local commit clean. Restore verified
+non-documentation source paths from before-native-fifo01; preserve accepted
+video kernel/observer/verifier and current queue/docs. Restore exact previously
+approved CB allowed_files from archive before source restoration. Frozen
+original CB five gates/eight cases/300ms input and final VMware proof remain.
+Reserve build71<=300s, media46<=180s, guest66<=240s (230s observer) for real
+focused abc and ordinary VGA return using corrected hardware FIFO. Earlier
+build70/media45/guest65 remain diagnostic failed evidence. Host140 unchanged
+Ring3 regression results retained. Guest61 remains available only for relaunch
+after positive healthy input. No VMware, nested agents or counter resets.
