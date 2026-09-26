@@ -1,3 +1,12 @@
+## 2026-09-26 CL SVGA FIFO prerequisite active
+
+User approved fixed16KiB FIFO/kernel scope. CB saved and verified in
+before-native-fifo01/candidate.zip (manifest retained); clean baseline08478f40.
+CL implements standard minimum usable FIFO and four bounded kernel-only pages.
+Frozen five QEMU-only gates in NATIVE_VIDEO_MODE_CONTRACT.md. No VMware launch.
+CB remains queued/unaccepted, all prior failures and final300ms/VMware gates
+retained. Restore CB only after CL acceptance/local commit.
+
 ## 2026-09-26 CB restoration window frozen after CK c5aa5fb9
 
 CK committed locally and clean worktree confirmed; QEMU-only acceptance,

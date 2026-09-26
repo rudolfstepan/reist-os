@@ -656,3 +656,396 @@ Ring3 mode policy uses existing device34, input/display roles and original
 quotas. Freeze any additionally required path before editing it. Kernel files
 are outside this CB package; no kernel shortcut or new permission domain.
 Original CB five gates/eight fresh cases and300ms input boundaries remain.
+
+Host119 restoration passes16 tests25.956s. Freeze integration within the
+existing CB files: selected FullDesktop+VideoMode composes Ring3 desktop/input
+with CK kernel mode mediation; only Make kernel defines suppress the obsolete
+boot-framebuffer branch, preserving DISPLAY_INFO. No kernel source edit.
+Ring3 input driver links existing native_mode.c policy, enters mode after PS/2
+self-test and refreshes existing1000ms kernel health every250ms. Root binds
+input/mode for exact driver5, waits absolute2000ms before display binding,
+fences mode during common retirement, and restores VGA only on final return
+(not between automatic GUI restarts). GUI capture/start failure also restores
+VGA within2000ms. Keep original desktop quotas/roles/service/restart policy.
+Boot media stays mode03; QEMU observer explicitly selects VMware SVGA hardware.
+Use reserved host120/build58/media35/QEMU50; no extra package or source scope.
+
+Host120 passes16 tests32.772s. Build58 stops before guest build on missing
+Namespace.desktop_cpu: archived CB removed the accepted selector/guard, while
+the merged signature retained it. Restore both accepted parser and validation
+unchanged. Add actual CLI/admission regression; reserve targeted host121<=180s
+and build59<=300s. Media35/guest50 remain unspent. Capture now explicitly selects
+VMware SVGA in headless QEMU; no VMware host launch or guest-limit change.
+
+Host121 selector regression passes. Build59 compiles the full selected roles
+but root link exceeds the existing0x440000 image ceiling: end0x444fa0.
+Map identifies embedded VGA16736bytes plus block16736bytes and filesystem106848.
+Keep admission/stack/resource limits. Selected root may place compact immutable
+VGA+block ELF bytes in the already admitted RNPGv2 slots0..6 (0x400000..0x407000),
+read-only/NX, separate ordinary ELF PT_LOAD. Code remains0x410000 upward;
+guard/stack slots7..15 and the64-slot total remain unchanged. Existing compact_elf
+preserves exact prepared bytes/rights/entry; sizes12757+12320 fit the28KiB region.
+Filesystem image and emitted dependency PRGs remain byte-identical. Generate
+selected linker script from existing wide script; assert low/high bounds.
+No kernel source/parser change or mapping-capacity increase. Reserve targeted
+host122<=180s and build60<=300s; original media35/guest50 still unspent.
+
+Build60 and signed media35 pass. Guest50 fails26.377s before GUI startup:
+block driver2/gen6 exits256 (CPU budget), filesystem is reaped, text shell
+survives; media unchanged and guest closed. Storage PRGs and actual desktop
+ELF are byte-identical to old successful build57. New VGA role still runs
+while the first393672-byte desktop image is captured; retirement currently
+occurs too late, only after file_finish. Move the already required VGA
+retirement before that capture, restore it on capture failure, and compare
+with the same bounded diagnostic. No quota/timing/driver change. Reserve
+build61<=300s/media36<=180s/QEMU51<=180s. Preserve50 as failed; no unchanged retry.
+
+Build61/media36 pass; guest51 fails48.388s at DESKTOP_START_STAGE2 with
+-13 after all four image captures. VGA retirement before initial capture
+removes the observed storage CPU exit in this run. Guest/media cleanup passes.
+Inventory finds family_profile_admit64 permits terminal bit127 plus device
+bit113 only under REIST_NATIVE_DISPLAY; CK native mode selects its separate
+display path without that macro. Full desktop requires both already approved
+rights. Reserve one read-only host123<=180s executing the actual admission
+assembly under legacy-display/native-mode/terminal-only selectors. No further
+guest or kernel edit before resolving the additional source scope.
+
+## Proposed native-mode terminal profile composition (after guest51)
+
+Host123 executes the unchanged production family_profile_admit64 assembly at
+O0/O2 under three selectors. Exact terminal+device profile returns1 under
+REIST_NATIVE_DISPLAY, -13 under REIST_NATIVE_VIDEO_MODE, and -13 in plain
+terminal-only mode. This reproduces the stage2 guest rejection without QEMU.
+Evidence: resume-after-ck02/admission-diagnostic.py and host123.json/log;
+assembly/build/run logs retained under r83p-retirement/CB_ADMISSION-*.
+
+Additional source requiring explicit scope decision:
+arch/x86_64/proc/task_family.inc, only family_profile_admit64 terminal branch.
+Permit its existing DISPLAY combination when VIDEO_MODE is selected too,
+using the identical mask check. Native mode already mediates resources30/34;
+this fixes composition of existing approved desktop terminal/device rights.
+Do not set global DISPLAY (that duplicates input/display includes), drop the
+terminal ownership checks, add syscall bits, change attenuation, quotas,
+resource ownership or device operations. No driver policy moves to Ring0.
+All other kernel code is excluded. CB remains the sole active package.
+
+On approval: append this one source to CB allowed_files before editing; add
+actual assembly regression in existing allowed test/test_x86_64_full_desktop.py.
+Cover terminal-only and legacy display controls, exact native-mode combination,
+missing terminal bits, unrelated mask bits, unchanged input records and parent
+attenuation. Reserve targeted host124<=180s, selected build62<=300s, signed
+media37<=180s, headless QEMU52<=180s after host success. Guest must reach actual
+desktop READY and exercise real mouse/keyboard; failure remains failure.
+Existing CB frozen gates, crash/hang/restart and300ms acceptance remain required.
+No VMware launch. No kernel change has been made for this proposal.
+
+User renewed mach weiter immediately after the concrete additional-kernel-file
+question approves only the proposed family_profile_admit64 correction. Added
+that source to CB allowed_files before implementation. Host124 includes the
+pre-fix negative witness and post-fix regression within180s each phase; all
+other reserved operations/limits unchanged.
+
+Host124-before reproduces expected native-mode denial. Host124-after stops
+at assembly: NASM does not accept ifdefined; no build/media/guest consumed.
+Use supported ifdef/elifdef with the identical three-instruction mask check.
+Reserve host125<=180s; build62/media37/guest52 remain unspent.
+
+Host125 passes actual admission/attenuation O0/O2 including legacy controls.
+Build62/media37 pass; guest52 fails38.609s in initial capture with storage
+CPU exit256, before GUI creation. VGA retires71; root shell survives; media
+unchanged and VM closed. Earlier51 alone did not prove storage issue fixed.
+Inventory also identifies the same DISPLAY-only combined-profile checks in
+native_terminal.inc (root/child plan and live-child validation). Reserve
+read-only host126<=180s to execute existing terminal plan and decode saved
+CPU trace; no further source/kernel edits or guest retries.
+
+## Proposed matching terminal handoff correction after host126
+
+Actual unchanged native_terminal_plan64 under O0/O2 accepts the existing
+terminal+device profile under DISPLAY (0), rejects it under VIDEO_MODE (-13),
+without modifying proposal on rejection. Host126 proves this separately from
+guest52, which failed earlier in storage and does not prove terminal behavior.
+Native terminal service op6 calls this same plan for desktop takeover.
+
+Additional source requested: arch/x86_64/proc/native_terminal.inc, only its
+three DISPLAY profile-combination checks: root-to-child ownership plan, child
+check/release plan, live-child profile validation. Mirror the accepted legacy
+mask treatment for VIDEO_MODE, as in the now tested task_family.inc correction.
+Retain all owner/generation/liveness checks, terminal bit coupling, denial of
+unrelated bits, quotas and unchanged other modes. No terminal-service-core,
+scheduler, device driver or other kernel source changes. Existing CB scope
+otherwise unchanged. Explicit AGENTS rule4 scope decision required before edit.
+
+On approval freeze targeted host127<=180s for actual O0/O2 ownership plan and
+live-child checks, including stale identity/foreign parent/unrelated rights
+and no publication on denial, plus unchanged terminal-only/display controls.
+Reproduce native-mode failure before correction, preserve that witness.
+No new guest reservation here: first diagnose retained storage CPU exhaustion.
+Raw guest50/52 trace confirms slot2/gen6 exhausts32-sample periodic budget;
+guest51 succeeding does not establish that VGA retirement fixed this.
+cpu-readonly-analysis.json preserves decoded records; trace ring has only
+last256 records plus exhaustion record, so no claim of complete history.
+No quota increase or unchanged retry is authorized by this correction.
+
+Final scope audit catches queue-edit anchor matching active_id instead of the
+CB package id; the approved source was accidentally appended to CK. Corrected
+anchor to exact package line, removed accidental CK addition, revalidated
+one active CB and complete changed-file set. User-approved source scope is
+unchanged; no CK implementation/acceptance changed. Preserve this audit failure.
+
+Renewed user mach weiter after the concrete native_terminal.inc question
+approves the three-check counterpart correction. CB scope updated using exact
+package-id anchor before edits. Host127 before/after phases <=180s each.
+
+Host127-before reproduces denial; after passes actual ownership plans and
+live-child validation at O0/O2 for native/legacy/plain modes and negative
+identity/profile cases. Additional observer inventory finds guests50..52
+incorrectly combine -vga vmware with legacy -device VGA,vgamem_mb=16, unlike
+accepted CK single-adapter setup. Remove only that inherited duplicate device
+in full-desktop observer, assert expected legacy argument before replacement.
+Do not change storage pacing/quotas on this unproven hypothesis. Reserve
+host128<=180s for actual argument regression, build63<=300s/media38<=180s
+and QEMU53<=180s with corrected hardware composition and terminal fix.
+
+Guest53 fails29.604s at initial capture, same storage CPU exit256 despite
+single SVGA adapter. VGA retirement succeeds normally; no GUI reached.
+Keep that corrected hardware setup. Existing root session_fs_send spaces
+full-desktop FS requests by10ms versus40ms for network composition. Reuse
+the established40ms root request spacing for selected FullDesktop to reduce
+request pressure on unchanged32-sample storage workers. This is bounded sleep,
+not larger CPU/device quotas; recheck remaining absolute deadline before send.
+All request counts/deadlines and120000ms capture limit unchanged. Actual
+large capture timing remains a guest gate; no claim from static arithmetic.
+Freeze host129 before/after<=180s for actual send function with clock/transport
+stubs (plain/full/network, deadlines and sleep failures), build64<=300s,
+media39<=180s and QEMU54<=180s. No storage-driver/kernel edit or retry unchanged.
+
+Host129 passes O0/O2 plain/full/network pacing and deadline/error checks.
+Build64/media39 pass. Guest54 passes159.852s: actual1024x768 desktop READY,
+mouse/keyboard pixel changes,10s stable, closed guest and unchanged media.
+Reviewed real screenshots: explorer and application windows visible. This
+coarse keyboard check does not prove text abc or300ms exact response. Preserve
+raw PPMs; lossless PNG conversion uses standard-library zlib after PIL absent.
+
+Next diagnostic uses the SAME signed media39, no rebuild. Extend observer with
+explicit --return-to-shell after --exercise: ordinary Start menu/Desktop beenden
+clicks, DESKTOP_EXIT_OK and shell prompt, physical VGA text cells at0xb8000.
+Reserve guest55<=240s (observer230s leaves cleanup); startup54 used159.852s
+including input/stability, so allow room for explicit return and snapshots.
+No guest deadlines, quotas, final300ms gates or hardware permissions changed.
+Source compile/scope check before launch; no unchanged retry or VMware start.
+
+Guest55 fails175.075s after successful startup/input/stability: Start-button
+click triggers client6/gen18 exit71, then DESKTOP_ADAPTER_ERROR -11. No
+DESKTOP_EXIT_OK or exit-menu snapshot, so this is NOT expected shutdown.
+Raw image shows partial menu repaint. Media unchanged/guest closed.
+Reserve bounded client-failure diagnostic in existing allowed native_client.c:
+selected role-v2 only emits one <=64-byte site/error record before the same
+exit71 at receive, repaint and heartbeat failure. No fallback/retry/limits
+changed. Host130<=180s preserves disabled client bytes; build65<=300s,
+media40<=180s, guest56<=240s (230s observer) repeats the concrete failing
+menu path with added evidence. Old failure remains failed; not acceptance.
+
+Host130 disabled client bytes pass1.990s. Build65/media40 pass. Guest56
+fails157.565s at old keyboard pixel inequality, before the menu probe; no
+client failure marker. Inspection shows Paint initially covers Text; printable
+keys do not render in Paint. Therefore old pixel inequality was not a valid
+text oracle (earlier pass54 remains diagnostic only, never300ms evidence).
+Correct observer: explicitly focus Text via its taskbar button, verify Type
+glyph, inject abc, require existing independent keyboard_glyphs oracle within
+the same300ms wait, then test normal menu exit. Preserve role-loss guard.
+Same media40; reserve guest57<=240s/observer230s. No rebuild/source workaround,
+quota change or weaker gate. New focus steps and actual glyph oracle explain
+the changed diagnostic; guest56 remains failed.
+
+Guest57 fails147.844s during text taskbar focus: client6 exits71, compositor
+-11, then other roles retire and root exits5; fresh text shell is recreated.
+No CLIENT_FAILURE serial record because existing client profile excludes WRITE20.
+Do not add console rights. Reserve read-only denial observer for guest58 on
+identical media40: one hardware breakpoint at process_run_syscall64.denied,
+attached only after pointer snapshot, <=32 hits, capture only client6/7 WRITE20
+buffer<=64 bytes while task address space is current. Bind original/compacted
+loaded bytes with existing observer audit. No register/memory modification,
+no new guest rights. Save adapted observer source/hash. Guest58<=240s with
+230s observer; not a pass/retry claim, solely evidence for the failed call.
+
+Guest58 fails147.639s; debugger captures no client WRITE denial. Instead
+input5 exits110 after attachment, frontend-32. Observer closes cleanly but
+this timing-perturbed failure cannot diagnose original client71. Preserve it.
+Replace ineffective client WRITE with a selected-role-v2 diagnostic exit
+encoding: low byte71 remains original failure, bits24..30 site1..5, bits8..23
+absolute errno. Kernel already records32-bit exit status before reaping; no
+new syscall/authority, logging, debugger pause or recovery fallback. Only
+fatal diagnostic paths change; unselected binary bytes must stay exact.
+This diagnostic encoding must be removed before final qualification. Extend
+sites to invalid input serial/reserved and pointer bounds. Reserve host131
+<=180s (disabled projection), build66<=300s/media41<=180s/guest59<=240s using
+existing focused-text/menu observer without GDB. No retry of unchanged setup.
+
+Guest59 fails146.006s without debugger. Encoded client6 exit0x01002047
+proves receive site1 errno32 (EPIPE), original low byte71. Compositor reports
+-11 and closes the channel, so client failure is downstream. Inventory finds
+poll_client consumes/applies a request before nonblocking send_response;
+EAGAIN is returned as fatal by poll_clients, closing a healthy client.
+Reserve host132<=180s to execute actual poll_client with full reply queue,
+verify consumed/dispatched request and lost response, O0/O2. No Runtime source
+edit: desktop_surface_runtime.c/.h are outside current CB allowed_files.
+
+Host132 stops before compilation because omitted explicit Zig caches select
+a nonwritable host directory. No source result. Reserve host133<=180s with
+both Zig caches in the existing workspace build directory, same host witness.
+
+Host133 link retains unrelated exported runtime functions under COFF despite
+section-GC flags; missing host stubs stop it. No runtime claim. Host134<=180s
+extracts unchanged production clear/send/poll_client functions with actual
+header, stubs unused applet branches, and isolates only the reply-pressure
+witness. Extraction and all failed logs retained; no production edits.
+
+## Proposed bounded Surface reply retention after host134
+
+Host134 executes unchanged production poll_client/send_response O0/O2. A valid
+request is consumed and dispatched once, reply send returns-11 (EAGAIN), next
+poll sees no request and never resends the reply: first=-11,second=0,received=2,
+dispatched=1,sent=1. Production poll_clients treats that-11 as fatal, closes
+the channel and revokes the client. This matches guest59 client EPIPE and
+frontend-11. All evidence is retained in resume-after-ck02. Temporary selected
+client exit encoding is now removed from source; diagnostic binaries remain.
+
+Requested additional CB source scope (not yet edited):
+- userspace/gui/compositor/desktop_surface_runtime.c
+- userspace/gui/compositor/desktop_surface_runtime.h
+Earlier runtime-file approval covered input drain rounds; this new correction
+adds bounded reply retention and explicitly requires this scope decision.
+
+For selected FullDesktop only, retain at most one already produced Surface
+reply per client when nonblocking send returns EAGAIN. Flush it before consuming
+another request or delivering later input on that client; keep other clients
+progressing within existing16 fair drain rounds and IPC queue capacities.
+Never redispatch the consumed request or repeat its side effects. Use a fixed
+absolute deadline at most the existing500ms client response timeout, never
+extended by retries. On expiry, peer loss or invalid identity use existing
+isolate/revoke/retire path. Scrub pending bytes on revoke/rebind/cleanup so no
+old generation can receive a reply. Keep existing zero-timeout syscalls; no
+busy wait, blocking UI send, larger IPC/CPU quota, heap ceiling or Ring0 change.
+Private fixed struct space must fit the existing compositor workspace/heap
+bounds, measured in the selected build. Old profiles retain exact code/layout.
+
+Tests in already allowed CB host files: immediate send; EAGAIN then success
+with exact one dispatch/one reply and FIFO; repeated EAGAIN/deadline; peer loss;
+revocation/rebind/stale generation; fairness for other client and no old reply
+after reuse; actual queue-pressure regression at O0/O2. Include default layout
+projection. Freeze hosts135/136<=180s each, build67<=300s/media42<=180s, and
+QEMU60/61<=240s each (230s observer) for real focused abc300ms plus Start-menu
+exit/VGA return and app close/relaunch respectively. Stop first failure,
+retain evidence, no unchanged retry. These are development diagnostics; original
+CB five gates/eight cases and final VMware milestone remain mandatory.
+No implementation of this additional source scope before explicit decision.
+
+User mach weiter after concrete two-file question approves the reply-retention
+scope. Added both exact runtime paths to CB allowed_files before implementation.
+Host135 before/after phases <=180s each; remaining reserved operations unchanged.
+
+Host135 before fails as expected, after passes; host136 both pressure/FIFO and
+disabled object projection pass. Build67/media42 pass. Guest60 fails101.296s
+during focus, client6 exit71/frontend-11; closed, media hashes unchanged.
+Reply retention alone does not close the real failure. Preserve guest61 for
+relaunch after positive input proof. Reserve temporary selected Ring3 error-site
+diagnostics in already allowed runtime.c/native_client.c, build68<=300s,
+media43<=180s, guest62<=240s (230s observer), host137<=180s review. Only failure
+paths emit fixed bounded diagnostics or encode diagnostic exit status. Remove
+these probes before acceptance; no unchanged retry or safety-limit change.
+
+Build68/media43 pass. Guest62 fails107.617s: client receive EPIPE again,
+no Surface failure-site record, adapter-11. This rules out asserting reply
+retention as the complete fix. Reserve build69<=300s/media44<=180s/guest63<=240s
+for a raw bounded first platform-failure caller-address record in already
+allowed desktop_platform.c; bypass only failed logging adapter, not authority.
+Remove all temporary probes after capture. Original gates unchanged.
+
+Guest63 retains receive EPIPE and first platform failure caller0x45c36e,
+resolved by exact build69 map to platform_pump. Inventory identifies another
+concrete integration defect: native_video_reserve64 returns EAGAIN before
+framebuffer writes when SVGA FIFO is full; display_pump permanently latches it.
+Freeze correction within already allowed desktop_display.c and display host
+test files: FullDesktop-only retain existing dirty tile on EAGAIN, first-failure
+absolute100ms deadline, at most one retry per10ms, return to caller between
+attempts; no extra queue, quota, syscall loop or renewed deadline. Other errors
+remain fatal, detach scrubs state, unselected behavior unchanged. Host137 before/
+after<=180s each, host138<=180s selected+default tests, build70<=300s, media45
+<=180s, guest64<=240s focused input/return. Guest diagnosis will determine if
+this closes the observed failure; no root-cause certainty from inventory alone.
+
+Host137-before compile fails duplicate local next in new host test, no runtime
+claim. Rename duplicate; host139 before/after<=180s each replaces this spent
+host slot, logs retained. No acceptance change.
+
+Guest64 fails116.988s with adapter-110 instead of-11 after bounded pressure
+handling. Upstream QEMU hw/display/vmware_vga.c vmsvga_fifo_length explicitly
+requires fifo_max>=fifo_min+10KiB; our kernel selects MAX4096. Installed QEMU
+reports11.1.0 v11.1.0-12130-ge470268ff4; exact upstream commit URL unavailable,
+so upstream reading is not claimed as binary identity. Reserve guest65<=240s
+with same media45 but changed read-only observer: capture existing FIFO PTE
+and physical first4KiB at stopped snapshots to verify NEXT/STOP progression
+on this installed executable. No kernel edits.
+
+Temporary runtime/client/platform error probes removed from candidate source;
+diagnostic builds68..70 retained. Tightened retry syscall deadline to original
+pressure deadline (not now+100), added selected display regression to frozen
+full desktop host suite. Reserve host140<=180s for reply pressure/default
+projection and selected display pressure after cleanup; no new guest build
+until kernel FIFO scope/resource decision.
+
+## Proposed native SVGA FIFO capacity correction (approval required)
+
+Reference: QEMU upstream hw/display/vmware_vga.c, vmsvga_fifo_length,
+https://github.com/qemu/qemu/blob/master/hw/display/vmware_vga.c . It rejects
+FIFO_MAX < FIFO_MIN+10KiB. Existing native configuration sets MAX4096 and maps
+only one kernel-only FIFO page. Full-screen raster exceeds that unconsumed
+ring after roughly203 commands; CK small-update proof did not exercise sustained
+FIFO consumption and is not evidence for the real desktop's steady operation.
+Installed-binary read-only FIFO observation is guest65 (in progress at freeze).
+
+Requested correction: fixed16KiB FIFO (four existing-table pages) within the
+already validated64KiB QEMU or8MiB VMware PCI aperture. Validate MIN/MAX, header
+size, alignment, NEXT/STOP and original UPDATE-only64x64 rectangle bounds before
+effects; keep last guard dword, nonblocking reserve, fixed mapping/cleanup,
+mirrored state validation, generation revocation and fail-closed VGA recovery.
+No new user mapping, raw register/device/DMA right, CPU/IPC quota or polling loop.
+This changes the previously frozen device-buffer capacity and kernel source
+scope, so existing in-scope continuation authority alone is insufficient.
+
+Exact proposed prerequisite source/test scope:
+- arch/x86_64/video/video_mode.c: fixed-capacity admission, four-leaf mapping,
+  configuration and full cleanup using the existing FIFO page table.
+- arch/x86_64/video/video_mode.h: shared fixed FIFO byte constant if needed.
+- test/x86_64_video_mode_host.c and test/test_x86_64_video_mode.py:
+  minimum usable capacity, wrap, pressure, corruption and guarded storage tests.
+- scripts/run_qemu_x86_64_video_mode.py and scripts/verify_x86_64_video_mode.py:
+  exact four-leaf proof and bounded repeated UPDATE consumption; healthy, driver
+  crash/hang and fenced VGA return on QEMU. Preserve every historical CK result
+  and final VMware milestone. No launch of VMware without user availability.
+- automation/reist-s03b.toml, this contract, NATIVE_VIDEO_MODE_CONTRACT.md and
+  CURRENT_WORK.md: prerequisite scope, gates and complete evidence attribution.
+
+After approval, preserve current unaccepted CB candidate in a hash-verified
+archive before activating the separate cohesive kernel prerequisite; never
+mix its implementation into an unverified CB commit. Freeze exact commands
+and finite operation reservations before implementation, retain old failures.
+Original CB five gates/eight guests, exact300ms input and final hardware proof
+remain mandatory. The proposal itself does not authorize kernel edits.
+
+Guest65 fails131.326s, closed and media unchanged. Actual installed-QEMU
+FIFO headers (MIN,MAX,NEXT,STOP): desktop(16,4096,3856,16), pointer
+(16,4096,3996,16). Thus192 then199 UPDATEs published without any consumption,
+matching upstream minimum-size rejection. Failure snapshot(16,4096,16,16) is
+after recovery reconfiguration; do not call it a full-ring snapshot. Raw proof
+and hashes: resume-after-ck02/fifo-progress-review.json. Host140 all3 targeted
+tests pass after diagnostic removal. Default display host138 passes; selected
+pressure host139 before fails/after O0/O2 passes. All guests closed.
+Kernel FIFO proposal remains unimplemented awaiting resource/scope approval.
+
+User mach weiter after explicit16KiB/kernel question approves proposed scope
+and fixed capacity extension. CB preserved in before-native-fifo01 candidate.zip
+SHA256 e3726f53313ddb209f0f2a5dfe5e7eec64eb19fffcaeb4cb19a200d18041ccdf.
+All35 changed files individually hashed; tracked base restored and clean before
+CL definition. CL prerequisite active; CB queued, all evidence/limits retained.

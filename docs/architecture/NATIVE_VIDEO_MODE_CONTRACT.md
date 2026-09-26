@@ -445,3 +445,37 @@ Only docs/queue allocation bookkeeping changes follow this source review.
 Next transaction: restore the exact latest CB archive after the CK local
 commit leaves a clean worktree. Bind to the accepted CK source and integrate
 the real desktop in QEMU; preserve CB tests/counters and final VMware gates.
+
+## CL approved FIFO prerequisite, 2026-09-26
+
+User mach weiter immediately after the explicit16KiB/kernel question approves
+the concrete CB-contract FIFO proposal. Baseline08478f40 clean after verified
+CB archive before-native-fifo01; CB queued/unaccepted. Exactly one active CL.
+Use fixed16384-byte FIFO, four existing-table supervisor-only RW/NX/UC leaves
+inside previously validated PCI aperture. Minimum usable data>=10240 bytes,
+header16..4072 aligned; validate MAX, NEXT/STOP, reserved guard dword, UPDATE
+rectangle64x64 bounds, preflight-before-copy and existing generation/fencing.
+No new syscall, raw user authority, DMA, CPU/IPC quota or busywait. Reference:
+QEMU hw/display/vmware_vga.c vmsvga_fifo_length rejects MAX<MIN+10KiB.
+
+Frozen five gates: host test/test_x86_64_video_mode.py -v<=180s; verifier
+--fifo-defaults<=600s; --fifo-package<=600s; --fifo-runtime<=600s;
+--fifo-review<=300s. Existing verifier file adds separate CL modes; original CK
+gates/receipts unchanged. Defaults: fresh NativeAppFiles/NativeVgaConsole
+byte-exact accepted CJ artifacts using existing diagnostic_defaults. Package:
+fresh NativeVideoMode build<=300s/media<=180s and actual diagnostic_package.
+Runtime: four fresh QEMU cases healthy,repeated,graphics-crash,graphics-hang
+each<=90s,total<=360s, existing complete independent replay including fenced
+VGA return/CPU/authority checks; exact four-page mappings, actual consumed
+FIFO UPDATEs on healthy/repeated captures. Host tests cover >one full ring
+wrap with modeled consumer, full/no-effects, malformed header/ranges and guards.
+Review: replay all four raw cases, media/source/tool/hash binding and retained
+host/default/package receipts; reject tampered FIFO mapping/consumption data.
+Gate driver freezes sources/scope/contract/tool hashes before gate1, checks
+between gates, stops first failure, stores logs under ignored r83cl-video-fifo.
+No VMware launch; actual VMware healthy/fault proof remains final milestone.
+No unchanged retries. Reserve development host01 before/after<=180s, then
+qualification01 once. Finite next diagnostic only for an observed failure,
+record historical counters; no reset or relaxed acceptance.
+After passing all gates, direct diff/scope review and local commit; restore CB
+source archive without overwriting accepted kernel or queue/current docs.
