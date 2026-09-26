@@ -1,3 +1,15 @@
+## 2026-09-26 next hardware boundary prepared
+
+Clean accepted CJ commitf96af9f6. Renewed user mach weiter advances native
+text/graphics inventory. Concrete authority proposal:
+docs/architecture/NATIVE_VIDEO_MODE_PROPOSAL.md. Existing native display only
+accepts boot-time framebuffer; VGA-cell authority cannot set VMware modes.
+Proposal bounds SVGA-II mode/register/mapping and UPDATE-only presentation
+with Ring3 terminal policy and visible VGA recovery. Existing resource and
+desktop acceptance limits remain. AGENTS requires a decision for this new
+device authority; no implementation package/build/guest activated. CB stays
+queued and archived pending this prerequisite. No unrelated changes found.
+
 ## 2026-09-26 CJ accepted: visible VGA shell and current-line cursor
 
 Qualification05 passes all five frozen gates: targeted7 tests4.740s,
